@@ -1,0 +1,261 @@
+/* Shared responsive button sizing — import last in main.tsx */
+
+:root {
+  --btn-height: 40px;
+  --btn-height-sm: 36px;
+  --btn-pad-x: 1rem;
+  --btn-radius: 10px;
+  --btn-radius-pill: 999px;
+  --btn-font: 0.8125rem;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 2px;
+}
+
+/* —— Global auth / shell —— */
+.btn-primary,
+.btn-outline,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: var(--btn-height);
+  font-size: var(--btn-font);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  padding: 0.65rem 1.15rem;
+  border-radius: var(--btn-radius-pill);
+}
+
+.btn-outline,
+.btn-ghost {
+  padding: 0.55rem 1rem;
+}
+
+.shell-modal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--btn-height);
+  min-width: 5.5rem;
+  padding: 0.55rem 1rem;
+  font-size: var(--btn-font);
+}
+
+/* —— Toolbar pills (Export, filters) —— */
+.hr-toolbar-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: var(--btn-height-sm);
+  height: auto;
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--btn-radius-pill);
+  font-size: var(--btn-font);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.hr-toolbar-pill-filter:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.hr-toolbar-pill-export:hover {
+  background: #eff6ff;
+}
+
+.hr-toolbar-pill select {
+  max-width: 11rem;
+  cursor: pointer;
+}
+
+/* —— Module toolbar primary actions —— */
+.disc-header-primary-btn,
+.leave-new-request-btn,
+.att-manual-punch-btn,
+.pay-run-btn,
+.pay-header-add-btn,
+.emp-add-employee-btn,
+.hr-add-btn,
+.hd-navy-btn,
+.train-primary-btn,
+.perf-primary-btn,
+.ast-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: var(--btn-height);
+  padding: 0.55rem 1rem;
+  border-radius: var(--btn-radius-pill);
+  font: inherit;
+  font-size: var(--btn-font);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.disc-header-primary-btn,
+.att-manual-punch-btn,
+.pay-run-btn,
+.emp-add-employee-btn,
+.leave-new-request-btn,
+.pay-header-add-btn,
+.hd-navy-btn,
+.train-primary-btn,
+.perf-primary-btn,
+.ast-primary-btn {
+  border: none;
+  background: var(--brand-blue-deep);
+  color: #fff;
+}
+
+.disc-header-primary-btn:hover,
+.att-manual-punch-btn:hover,
+.pay-run-btn:hover,
+.emp-add-employee-btn:hover,
+.leave-new-request-btn:hover,
+.pay-header-add-btn:hover,
+.hd-navy-btn:hover,
+.train-primary-btn:hover,
+.perf-primary-btn:hover,
+.ast-primary-btn:hover {
+  background: #1d4ed8;
+}
+
+.hr-add-btn {
+  min-height: var(--btn-height-sm);
+  padding: 0.45rem 0.85rem;
+  border: 1px solid #bfdbfe;
+  background: #fff;
+  color: var(--brand-blue-deep);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.hr-add-btn:hover {
+  background: #eff6ff;
+}
+
+/* —— In-content primary / outline buttons —— */
+.recruit-primary-btn,
+.recruit-outline-btn,
+.att-primary-btn,
+.att-outline-btn,
+.disc-primary-btn,
+.disc-outline-btn,
+.disc-navy-btn,
+.claim-primary-btn,
+.claim-navy-btn,
+.leave-primary-btn,
+.onboard-primary-btn,
+.onboard-navy-btn,
+.pay-primary-btn,
+.pay-navy-btn,
+.eng-primary-btn,
+.eng-outline-btn,
+.lrn-primary-btn,
+.ben-navy-btn,
+.rpt-primary-btn,
+.rpt-navy-btn,
+.rpt-run-btn,
+.hr-outline-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: var(--btn-height);
+  padding: 0.55rem 1rem;
+  border-radius: var(--btn-radius);
+  font: inherit;
+  font-size: var(--btn-font);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.recruit-primary-btn,
+.att-primary-btn,
+.disc-primary-btn,
+.claim-primary-btn,
+.leave-primary-btn,
+.onboard-primary-btn,
+.pay-primary-btn,
+.eng-primary-btn,
+.lrn-primary-btn,
+.rpt-primary-btn,
+.rpt-run-btn {
+  border: none;
+  background: var(--brand-blue-deep);
+  color: #fff;
+}
+
+.recruit-outline-btn,
+.att-outline-btn,
+.disc-outline-btn,
+.eng-outline-btn,
+.hr-outline-btn {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+}
+
+.disc-navy-btn,
+.claim-navy-btn,
+.onboard-navy-btn,
+.pay-navy-btn,
+.ben-navy-btn,
+.rpt-navy-btn {
+  border: none;
+  background: #1e293b;
+  color: #fff;
+}
+
+/* —— Wizard / modal footers —— */
+.emp-wizard-back-btn,
+.emp-wizard-next-btn,
+.recruit-dark-ghost,
+.recruit-dark-primary,
+.recruit-dark-success {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--btn-height);
+  min-width: 5rem;
+  padding: 0.55rem 1rem;
+  font-size: var(--btn-font);
+  font-weight: 600;
+}
+
+.emp-wizard-footer-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: flex-end;
+}
+
+/* —— Top bar —— */
+.topbar-menu-btn,
+.topbar-icon-btn,
+.topbar-user-trigger {
+  min-height: var(--btn-height-sm);
+  min-width: var(--btn-height-sm);
+}

@@ -1,0 +1,175 @@
+/* Shared HR module tab bar — scrollable tabs + toolbar row */
+
+.hr-tab-toolbar-row,
+.pay-tab-toolbar-row,
+.disc-tab-toolbar-row,
+.train-tab-toolbar-row,
+.perf-tab-toolbar-row,
+.ast-tab-toolbar-row,
+.onboard-tab-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+  padding: 0 0.5rem;
+}
+
+.hr-module-toolbar,
+.pay-module-toolbar,
+.disc-module-toolbar,
+.train-module-toolbar,
+.perf-module-toolbar,
+.ast-module-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0.5rem 0;
+  flex-shrink: 0;
+}
+
+.hr-module-subtoolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+}
+
+.hr-module-subtoolbar-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+/* Horizontal scroll for module tab lists */
+.emp-module-tabs,
+.leave-module-tabs,
+.recruit-module-tabs,
+.claim-module-tabs,
+.att-module-tabs,
+.onboard-module-tabs,
+.pay-module-tabs,
+.disc-module-tabs,
+.train-module-tabs,
+.perf-module-tabs,
+.ast-module-tabs,
+.ben-module-tabs,
+.lrn-module-tabs,
+.eng-module-tabs,
+.hd-module-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.emp-module-tabs::-webkit-scrollbar,
+.leave-module-tabs::-webkit-scrollbar,
+.recruit-module-tabs::-webkit-scrollbar,
+.claim-module-tabs::-webkit-scrollbar,
+.att-module-tabs::-webkit-scrollbar,
+.onboard-module-tabs::-webkit-scrollbar,
+.pay-module-tabs::-webkit-scrollbar,
+.disc-module-tabs::-webkit-scrollbar,
+.train-module-tabs::-webkit-scrollbar,
+.perf-module-tabs::-webkit-scrollbar,
+.ast-module-tabs::-webkit-scrollbar,
+.ben-module-tabs::-webkit-scrollbar,
+.lrn-module-tabs::-webkit-scrollbar,
+.eng-module-tabs::-webkit-scrollbar,
+.hd-module-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.emp-module-tabs::-webkit-scrollbar-thumb,
+.leave-module-tabs::-webkit-scrollbar-thumb,
+.recruit-module-tabs::-webkit-scrollbar-thumb,
+.claim-module-tabs::-webkit-scrollbar-thumb,
+.att-module-tabs::-webkit-scrollbar-thumb,
+.onboard-module-tabs::-webkit-scrollbar-thumb,
+.pay-module-tabs::-webkit-scrollbar-thumb,
+.disc-module-tabs::-webkit-scrollbar-thumb,
+.train-module-tabs::-webkit-scrollbar-thumb,
+.perf-module-tabs::-webkit-scrollbar-thumb,
+.ast-module-tabs::-webkit-scrollbar-thumb,
+.ben-module-tabs::-webkit-scrollbar-thumb,
+.lrn-module-tabs::-webkit-scrollbar-thumb,
+.eng-module-tabs::-webkit-scrollbar-thumb,
+.hd-module-tabs::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.emp-module-tabs button,
+.leave-module-tabs button,
+.recruit-module-tabs button,
+.claim-module-tabs button,
+.att-module-tabs button,
+.onboard-module-tabs button,
+.pay-module-tabs button,
+.disc-module-tabs button,
+.train-module-tabs button,
+.perf-module-tabs button,
+.ast-module-tabs button,
+.ben-module-tabs button,
+.lrn-module-tabs button,
+.eng-module-tabs button,
+.hd-module-tabs button {
+  flex-shrink: 0;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Tab row inside combined header */
+.hr-tab-toolbar-row > nav[class$='-module-tabs'],
+.pay-tab-toolbar-row > nav[class$='-module-tabs'],
+.disc-tab-toolbar-row > nav[class$='-module-tabs'],
+.train-tab-toolbar-row > nav[class$='-module-tabs'],
+.perf-tab-toolbar-row > nav[class$='-module-tabs'],
+.ast-tab-toolbar-row > nav[class$='-module-tabs'],
+.onboard-tab-row > nav[class$='-module-tabs'] {
+  flex: 1;
+  min-width: 0;
+  border-bottom: none;
+  background: transparent;
+}
+
+.lrn-module-head,
+.eng-module-head,
+.hd-module-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+  padding: 0 0.5rem;
+}
+
+.lrn-module-head > nav,
+.eng-module-head > nav,
+.hd-module-head > nav {
+  flex: 1;
+  min-width: 0;
+  border-bottom: none;
+  background: transparent;
+}
+
+.lrn-module-head > :not(nav),
+.eng-module-head > :not(nav),
+.hd-module-head > .hd-module-actions {
+  flex-shrink: 0;
+}

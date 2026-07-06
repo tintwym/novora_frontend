@@ -1,0 +1,174 @@
+/* Cross-module UI polish */
+
+/* Module search field */
+.module-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 200px;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.module-search:focus-within {
+  border-color: #cbd5e1;
+  box-shadow: var(--shadow-xs);
+  background: var(--card);
+}
+
+.module-search-icon {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: #94a3b8;
+}
+
+.module-search input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: var(--text);
+  outline: none;
+}
+
+.module-search input::placeholder {
+  color: #94a3b8;
+}
+
+/* Shared data table polish */
+.ui-data-table tbody tr {
+  transition: background 0.12s ease;
+}
+
+.ui-data-table tbody tr:hover td {
+  background: var(--surface-muted);
+}
+
+.ui-data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Shared icon action buttons in tables */
+.ui-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ui-icon-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.ui-icon-btn:focus-visible {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 1px;
+}
+
+.ui-icon-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* In-tab filter toolbars: filters left, actions right */
+.module-toolbar-main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.module-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.leave-card.leave-sub-toolbar,
+.pay-card.pay-toolbar-row,
+.claim-card.claim-toolbar-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-start;
+}
+
+.leave-card.leave-sub-toolbar {
+  padding: 0.75rem 1rem;
+}
+
+.pay-card.pay-toolbar-row,
+.claim-card.claim-toolbar-row {
+  padding: 0.75rem 1rem;
+  margin: 1rem 1.25rem 0;
+}
+
+.leave-sub-toolbar select,
+.leave-sub-toolbar .leave-search,
+.pay-card.pay-toolbar-row select,
+.pay-card.pay-toolbar-row .pay-search,
+.claim-card.claim-toolbar-row select,
+.claim-card.claim-toolbar-row .claim-date-input,
+.claim-card.claim-toolbar-row .claim-search,
+.claim-card.claim-toolbar-row input[type='search'] {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.65rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  background: var(--card);
+}
+
+.leave-sub-toolbar .leave-search,
+.pay-card.pay-toolbar-row .pay-search,
+.claim-card.claim-toolbar-row .claim-search {
+  flex: 1 1 160px;
+  min-width: 160px;
+  max-width: 320px;
+  background: var(--surface-muted);
+}
+
+.leave-sub-toolbar .leave-filter-group,
+.leave-sub-toolbar .leave-summary-pills {
+  flex: 1;
+  min-width: 0;
+}
+
+.leave-sub-toolbar .module-toolbar-actions.leave-action-group,
+.leave-sub-toolbar .leave-action-group,
+.leave-sub-toolbar .module-toolbar-actions,
+.claim-card.claim-toolbar-row .module-toolbar-actions,
+.pay-card.pay-toolbar-row .module-toolbar-actions {
+  margin-left: auto;
+}
+
+.pay-card.pay-toolbar-row .module-toolbar-actions .pay-navy-btn,
+.leave-sub-toolbar .module-toolbar-actions .leave-primary-btn,
+.leave-sub-toolbar .module-toolbar-actions .leave-outline-btn,
+.claim-card.claim-toolbar-row .module-toolbar-actions .claim-primary-btn,
+.claim-card.claim-toolbar-row .module-toolbar-actions .claim-outline-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+}

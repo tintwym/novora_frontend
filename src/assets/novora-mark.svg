@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 68" fill="none" role="img" aria-label="Novora">
+  <defs>
+    <linearGradient id="mark-ribbon-left" x1="4" y1="10" x2="34" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#67C9EA"/>
+      <stop offset="38%" stop-color="#3FA8D6"/>
+      <stop offset="72%" stop-color="#8BCF43"/>
+      <stop offset="100%" stop-color="#6FBF2E"/>
+    </linearGradient>
+    <linearGradient id="mark-ribbon-orange" x1="44" y1="8" x2="58" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FDB515"/>
+      <stop offset="45%" stop-color="#F7941D"/>
+      <stop offset="100%" stop-color="#F57C00"/>
+    </linearGradient>
+    <linearGradient id="mark-ribbon-hook" x1="54" y1="44" x2="70" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4AA03A"/>
+      <stop offset="55%" stop-color="#2B6FB5"/>
+      <stop offset="100%" stop-color="#1A4A86"/>
+    </linearGradient>
+    <linearGradient id="mark-mid-body" x1="28" y1="14" x2="34" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EEF1F5"/>
+      <stop offset="100%" stop-color="#C8D0DA"/>
+    </linearGradient>
+    <radialGradient id="mark-head-blue" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#5DAEE8"/>
+      <stop offset="100%" stop-color="#2B7BC0"/>
+    </radialGradient>
+    <radialGradient id="mark-head-gray" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#D5DCE5"/>
+    </radialGradient>
+    <radialGradient id="mark-head-orange" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#FFC04A"/>
+      <stop offset="100%" stop-color="#F7941D"/>
+    </radialGradient>
+  </defs>
+  <path fill="url(#mark-mid-body)" d="M29.5 16.2c-1.4 0-2.5 1.1-2.7 2.5l-1.8 35.8c-.2 2.3 1.6 4.3 3.9 4.5 1.2.1 2.3-.3 3.1-.9.9-.7 1.4-1.7 1.5-2.8l1.5-34.1c.2-2.3-1.5-4.2-3.7-4.4-.4 0-.7 0-1 .1Z"/>
+  <path fill="url(#mark-ribbon-left)" d="M15.2 16.4c-2.8 0-5.1 2.2-5.4 5l-1.2 24.5c-.2 2.2 1.2 4.2 3.4 4.6 1.2.2 2.4-.1 3.4-.9 1-.8 1.6-2 1.7-3.3l.9-22.1c.2-2.6-1.7-4.8-4.3-5.1-.5-.1-1-.1-1.5-.1Zm-6.8 34.8c-1.2 1.6-3.6 1.9-5.1.6-1-.8-1.3-2.2-.6-3.4l3.2-4.8c1.5.6 3.1.5 4.6-.1 1.2-.5 2.2-1.3 2.9-2.3Z"/>
+  <path fill="url(#mark-ribbon-left)" d="M8.4 52.8c-3.2 1.8-6.9 1.2-8.8-1.6-1.2-1.8-.8-4.2 1-5.4 4.8-2.8 10.6-1.2 13.4 3.4 1.2 2 .5 4.5-1.4 5.7-1.4.8-3 .9-4.2.3Z"/>
+  <path fill="url(#mark-ribbon-hook)" d="M10.5 54.8c5.2-2.2 11-.8 14.8 2.8 2.2 2.2 5.2 3.4 8.4 3.2 6.4-.4 12.2-4.2 15.2-10 1.4-2.6 4.6-3.4 7.2-1.8 1.8 1.1 2.6 3.4 1.8 5.4-3.2 7.4-10.8 12.2-19 12.6H20.2c-7.8 0-13.2-4.4-13.4-6.2 2.4 1.4 5.2 2 8 1.6 4.8-.6 8.8-3.8 10.8-8.2 1.2-2.6 3.8-4.2 6.6-4.4Z"/>
+  <path fill="url(#mark-ribbon-hook)" d="M56.8 42.6c3.2-1.2 6.8-.2 8.8 2.6 1.4 2 .8 4.8-1.4 6.2l-8.2 5.2c-2 1.3-4.6.6-5.6-1.6-.8-1.6-.2-3.6 1.4-4.6l4.2-2.6c.2-.2.5-.4.8-.6Z"/>
+  <path fill="url(#mark-ribbon-orange)" d="M48.8 16.6c-2.8 0-5.1 2.2-5.3 5l-2 30.8c-.3 3.2 2 6 5.2 6.4 1.6.2 3.2-.3 4.5-1.3 1.3-1 2.1-2.5 2.2-4.1l1.7-29.2c.3-3.1-1.9-5.8-5-6.2-.6-.1-1.2-.1-1.8-.1 1.2 2.4 1.4 5.2.4 7.8-.8 2-2.4 3.6-4.4 4.6-1.2.6-2.6.9-4 .8Z"/>
+  <circle cx="14.8" cy="10.2" r="6.1" fill="url(#mark-head-blue)"/>
+  <circle cx="31.4" cy="10" r="5.5" fill="url(#mark-head-gray)"/>
+  <circle cx="31.4" cy="10" r="5.5" fill="none" stroke="#C5CED8" stroke-width="0.55"/>
+  <circle cx="47.6" cy="10.2" r="6.1" fill="url(#mark-head-orange)"/>
+</svg>
