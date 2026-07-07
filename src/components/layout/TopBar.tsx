@@ -99,7 +99,14 @@ export function TopBar({ sidebarCollapsed = false, onExpandSidebar }: TopBarProp
                 <strong>{user?.displayName}</strong>
                 {user?.email ? <span>{user.email}</span> : null}
               </div>
-              <button type="button" role="menuitem" onClick={() => navigate('/settings')}>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false)
+                  navigate('/settings')
+                }}
+              >
                 Settings
               </button>
               <button

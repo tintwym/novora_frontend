@@ -8,7 +8,6 @@ import {
   type ReactNode,
 } from 'react'
 import { fetchMe, login as apiLogin, logout as apiLogout, register as apiRegister, tryRestoreSession } from '../api/auth'
-import { loadCachedUser, loadRememberMe } from './sessionStorage'
 import type { User } from '../types/user'
 
 type AuthContextValue = {
@@ -28,26 +27,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false
-    const bootTimeout = window.setTimeout(() => {
-      if (!cancelled) setBooting(false)
-    }, 30_000)
 
     ;(async () => {
       try {
         const restored = await tryRestoreSession()
         if (!cancelled) setUser(restored)
       } catch {
-        // Transport error — keep cached user only when remember-me is on.
-        if (!cancelled) {
-          setUser(loadRememberMe() ? loadCachedUser() : null)
-        }
+        if (!cancelled) setUser(null)
       } finally {
         if (!cancelled) setBooting(false)
       }
     })()
     return () => {
       cancelled = true
-      window.clearTimeout(bootTimeout)
     }
   }, [])
 

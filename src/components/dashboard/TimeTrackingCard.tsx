@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { checkIn, checkOut, fetchMyAttendance, shortTime, todayIso } from '../../api/attendance'
+import { ApiError } from '../../api/client'
 import type { AttendanceLog } from '../../types/dashboard'
 import { CardHeader, DashboardCard, LiveBadge } from './DashboardCard'
 
@@ -17,6 +18,9 @@ export function TimeTrackingCard() {
   const [logs, setLogs] = useState<AttendanceLog[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const loadSeq = useRef(0)
 
   const today = logs.find((l) => l.workDate === todayIso())
   const canCheckIn = !loading && !today?.checkInTime
@@ -24,23 +28,37 @@ export function TimeTrackingCard() {
   const status = !today?.checkInTime ? 'Standby' : today?.checkOutTime ? 'Complete' : 'Active'
 
   async function load() {
+    const seq = ++loadSeq.current
     setLoading(true)
-    const list = await fetchMyAttendance()
-    setLogs(list)
+    const result = await fetchMyAttendance()
+    if (seq !== loadSeq.current) return
+    if (result.ok) {
+      setLogs(result.logs)
+      setError(null)
+    } else {
+      setLogs([])
+      setError(result.error)
+    }
     setLoading(false)
   }
 
   useEffect(() => {
     void load()
     const id = window.setInterval(() => setNow(new Date()), 1000)
-    return () => window.clearInterval(id)
+    return () => {
+      loadSeq.current += 1
+      window.clearInterval(id)
+    }
   }, [])
 
   async function onCheckIn() {
     setBusy(true)
+    setActionError(null)
     try {
       await checkIn()
       await load()
+    } catch (e) {
+      setActionError(e instanceof ApiError ? e.message : 'Check-in failed')
     } finally {
       setBusy(false)
     }
@@ -48,9 +66,12 @@ export function TimeTrackingCard() {
 
   async function onCheckOut() {
     setBusy(true)
+    setActionError(null)
     try {
       await checkOut()
       await load()
+    } catch (e) {
+      setActionError(e instanceof ApiError ? e.message : 'Check-out failed')
     } finally {
       setBusy(false)
     }
@@ -82,6 +103,8 @@ export function TimeTrackingCard() {
         <strong>{sessionLabel(today)}</strong>
       </div>
       <div className="dash-punch-actions">
+        {error ? <p className="auth-form-error">{error}</p> : null}
+        {actionError ? <p className="auth-form-error">{actionError}</p> : null}
         <button
           type="button"
           className="btn-primary dash-punch-btn"

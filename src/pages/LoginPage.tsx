@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError, warmApi } from '../api/client'
 import { getRememberedEmail } from '../api/auth'
 import { useAuth } from '../auth/AuthContext'
@@ -10,6 +10,14 @@ import '../styles/auth.css'
 export function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const from =
+    typeof location.state === 'object' &&
+    location.state !== null &&
+    'from' in location.state &&
+    typeof (location.state as { from?: unknown }).from === 'string'
+      ? (location.state as { from: string }).from
+      : '/dashboard'
   const [email, setEmail] = useState(getRememberedEmail)
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(() => localStorage.getItem('novora_remember_me') === 'true')
@@ -30,7 +38,7 @@ export function LoginPage() {
     const slowTimer = window.setTimeout(() => setSlowConnect(true), 4000)
     try {
       await login(email, password, rememberMe)
-      navigate('/dashboard', { replace: true })
+      navigate(from, { replace: true })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Sign in failed')
     } finally {

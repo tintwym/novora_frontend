@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { AuthField } from '../components/auth/AuthField'
@@ -19,6 +19,7 @@ function passwordError(password: string): string | null {
 
 export function RegisterPage() {
   const { register } = useAuth()
+  const navigate = useNavigate()
   const [fullName, setFullName] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [email, setEmail] = useState('')
@@ -53,6 +54,7 @@ export function RegisterPage() {
     setLoading(true)
     try {
       await register(email, password, companyName, fullName)
+      navigate('/dashboard', { replace: true })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Registration failed')
     } finally {

@@ -1,4 +1,4 @@
-const HR_ADMIN_ROLES = new Set(['SUPER_ADMIN', 'HR_ADMIN', 'HR_MANAGER', 'MANAGER'])
+const HR_ADMIN_ROLES = new Set(['SUPER_ADMIN', 'HR_ADMIN', 'HR_MANAGER'])
 
 export function normalizeRole(raw: string): string {
   const r = raw.trim().toUpperCase()
@@ -33,7 +33,7 @@ export function parseUser(json: Record<string, unknown>): User {
     displayName,
     roles,
     primaryRole,
-    isEmployee: primaryRole === 'EMPLOYEE',
+    isEmployee: primaryRole === 'EMPLOYEE' || primaryRole === 'MANAGER',
     canAccessHrAdmin: primaryRole != null && HR_ADMIN_ROLES.has(primaryRole),
   }
 }

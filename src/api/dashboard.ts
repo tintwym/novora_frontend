@@ -1,4 +1,4 @@
-import { apiRequest } from './client'
+import { apiRequest, ApiError } from './client'
 import { Endpoints } from './endpoints'
 import type {
   AttendanceSlice,
@@ -123,11 +123,15 @@ function parseLeaves(data: unknown): LeaveRequest[] | null {
     const row = e as Record<string, unknown>
     const name = asString(row.name)
     const status = asString(row.status)
+    const statusLabel =
+      status.length > 0
+        ? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
+        : 'Unknown'
     out.push({
       name,
       type: asString(row.leaveType),
       dates: asString(row.dateRange),
-      status: status.charAt(0).toUpperCase() + status.slice(1).toLowerCase(),
+      status: statusLabel,
       initials: initials(name),
       color: HIRE_PALETTE[i % HIRE_PALETTE.length],
     })
@@ -153,6 +157,19 @@ function formatUsd(amount: number): string {
   }).format(amount)
 }
 
+function emptyPayroll(): PayrollTotals {
+  return {
+    totalPayroll: '—',
+    netPay: '—',
+    deductions: '—',
+    taxes: '—',
+    periodLabel: '—',
+    netPayPercent: 0,
+    deductionsPercent: 0,
+    taxesPercent: 0,
+  }
+}
+
 function parsePayroll(data: unknown): PayrollTotals | null {
   if (!Array.isArray(data)) return null
   let basic = 0
@@ -163,7 +180,9 @@ function parsePayroll(data: unknown): PayrollTotals | null {
     if (!e || typeof e !== 'object') continue
     const row = e as Record<string, unknown>
     const n = asString(row.name).toLowerCase()
-    const v = typeof row.value === 'number' ? row.value : 0
+    // Backend stores payroll slice values in cents (see DashboardService.fetchPayrollRow).
+    const raw = typeof row.value === 'number' ? row.value : 0
+    const v = raw / 100
     if (n.includes('basic') || n.includes('salary')) basic += v
     else if (n.includes('allow')) allowances += v
     else if (n.includes('deduct')) deductions += v
@@ -323,19 +342,22 @@ function mockAttendance(): AttendanceSlice[] {
   ]
 }
 
-function buildDashboard(partial: Partial<DashboardData> & { employeeView: boolean }): DashboardData {
+function buildDashboard(
+  partial: Partial<DashboardData> & { employeeView: boolean; useMockData?: boolean },
+): DashboardData {
+  const useMock = partial.useMockData ?? false
   const months = partial.growthMonths ?? 12
   const growth = mockGrowthSlice(months)
   return {
     employeeView: partial.employeeView,
-    statItems: partial.statItems ?? mockStatItems(),
-    recentHires: partial.recentHires ?? (partial.employeeView ? [] : mockHires()),
-    leaveRequests: partial.leaveRequests ?? (partial.employeeView ? [] : mockLeaves()),
-    payroll: partial.payroll ?? mockPayroll(),
-    attendanceSlices: partial.attendanceSlices ?? mockAttendance(),
-    attendanceRatePercent: partial.attendanceRatePercent ?? 89.4,
-    growthPoints: partial.growthPoints ?? growth.points,
-    monthLabels: partial.monthLabels ?? growth.labels,
+    statItems: partial.statItems ?? (useMock ? mockStatItems() : []),
+    recentHires: partial.recentHires ?? (useMock && !partial.employeeView ? mockHires() : []),
+    leaveRequests: partial.leaveRequests ?? (useMock && !partial.employeeView ? mockLeaves() : []),
+    payroll: partial.payroll ?? (useMock ? mockPayroll() : emptyPayroll()),
+    attendanceSlices: partial.attendanceSlices ?? (useMock ? mockAttendance() : []),
+    attendanceRatePercent: partial.attendanceRatePercent ?? (useMock ? 89.4 : 0),
+    growthPoints: partial.growthPoints ?? (useMock ? growth.points : []),
+    monthLabels: partial.monthLabels ?? (useMock ? growth.labels : []),
     growthMonths: months,
   }
 }
@@ -343,7 +365,10 @@ function buildDashboard(partial: Partial<DashboardData> & { employeeView: boolea
 async function getJson<T>(path: string): Promise<T | null> {
   try {
     return await apiRequest<T>(path)
-  } catch {
+  } catch (e) {
+    if (e instanceof ApiError && e.status !== null && (e.status === 401 || e.status === 403)) {
+      throw e
+    }
     return null
   }
 }
@@ -359,18 +384,22 @@ export async function fetchAdminDashboard(growthMonths = 12): Promise<DashboardD
   ])
 
   const attParsed = parseAttendance(att)
-  const growthSlice = mockGrowthSlice(growthMonths)
+
+  if (!summary && !growth && !hires && !leaves && !payroll && !att) {
+    throw new ApiError('Unable to load dashboard data. Check your connection and try again.', null)
+  }
 
   return buildDashboard({
     employeeView: false,
+    useMockData: false,
     statItems: parseKpis(summary) ?? undefined,
     recentHires: parseHires(hires) ?? undefined,
     leaveRequests: parseLeaves(leaves) ?? undefined,
     payroll: parsePayroll(payroll) ?? undefined,
     attendanceSlices: attParsed?.slices,
     attendanceRatePercent: attParsed?.rate,
-    growthPoints: parseGrowth(growth) ?? growthSlice.points,
-    monthLabels: parseGrowthLabels(growth) ?? growthSlice.labels,
+    growthPoints: parseGrowth(growth) ?? undefined,
+    monthLabels: parseGrowthLabels(growth) ?? undefined,
     growthMonths,
   })
 }
@@ -378,21 +407,21 @@ export async function fetchAdminDashboard(growthMonths = 12): Promise<DashboardD
 export async function fetchEmployeeDashboard(growthMonths = 12): Promise<DashboardData> {
   const data = await getJson<Record<string, unknown>>(Endpoints.myDashboard)
   if (!data) {
-    return buildDashboard({ employeeView: true, growthMonths })
+    throw new ApiError('Unable to load your dashboard. Check your connection and try again.', null)
   }
 
   const attParsed = parseAttendance(data.attendanceOverview)
-  const growthSlice = mockGrowthSlice(growthMonths)
 
   return buildDashboard({
     employeeView: true,
+    useMockData: false,
     statItems: parseKpis({ kpis: data.kpis }) ?? undefined,
     leaveRequests: parseLeaves(data.leaveRequests) ?? [],
     payroll: parsePayroll(data.payrollSummary) ?? undefined,
     attendanceSlices: attParsed?.slices,
     attendanceRatePercent: attParsed?.rate,
-    growthPoints: parseGrowth(data.growth) ?? growthSlice.points,
-    monthLabels: parseGrowthLabels(data.growth) ?? growthSlice.labels,
+    growthPoints: parseGrowth(data.growth) ?? undefined,
+    monthLabels: parseGrowthLabels(data.growth) ?? undefined,
     growthMonths,
   })
 }
@@ -402,13 +431,21 @@ export async function fetchGrowthOnly(
   growthMonths: number,
 ): Promise<{ growthPoints: GrowthPoint[]; monthLabels: string[] }> {
   if (employeeView) {
-    const data = await fetchEmployeeDashboard(growthMonths)
-    return { growthPoints: data.growthPoints, monthLabels: data.monthLabels }
+    const data = await getJson<Record<string, unknown>>(Endpoints.myDashboard)
+    if (!data) {
+      throw new ApiError('Unable to load growth chart. Check your connection and try again.', null)
+    }
+    return {
+      growthPoints: parseGrowth(data.growth) ?? [],
+      monthLabels: parseGrowthLabels(data.growth) ?? [],
+    }
   }
   const growth = await getJson<unknown>(`${Endpoints.dashboardGrowth}?months=${growthMonths}`)
-  const slice = mockGrowthSlice(growthMonths)
+  if (!growth) {
+    throw new ApiError('Unable to load growth chart. Check your connection and try again.', null)
+  }
   return {
-    growthPoints: parseGrowth(growth) ?? slice.points,
-    monthLabels: parseGrowthLabels(growth) ?? slice.labels,
+    growthPoints: parseGrowth(growth) ?? [],
+    monthLabels: parseGrowthLabels(growth) ?? [],
   }
 }
