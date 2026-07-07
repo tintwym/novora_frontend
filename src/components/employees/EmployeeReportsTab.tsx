@@ -38,7 +38,7 @@ const KPI_CARDS = [
   {
     title: 'ACTIVE OUT-OF-OFFICE STATE',
     value: '0',
-    subtext: 'on approved leaves',
+    subtext: 'On approved leaves',
     subtextTone: 'warning',
     footer: 'No staff currently out-of-office',
     footerColor: 'warning',
@@ -56,14 +56,6 @@ const KPI_CARDS = [
     iconColor: '#10b981',
   },
 ] as const
-
-const SECTOR_PILL_COLORS: Record<string, string> = {
-  Engineering: '#dbeafe',
-  Finance: '#d1fae5',
-  HR: '#f3e8ff',
-  Marketing: '#fce7f3',
-  Operations: '#ffedd5',
-}
 
 export function EmployeeReportsTab() {
   const [sector, setSector] = useState<string>(REPORT_SECTORS[0])
@@ -335,7 +327,7 @@ function DeptDistributionRow({ data }: { data: DeptDistribution }) {
   return (
     <div className="emp-reports-dept-row">
       <div className="emp-reports-dept-row-head">
-        <i aria-hidden />
+        <i style={{ background: data.color }} aria-hidden />
         <span>{data.label}</span>
         <em>
           {data.count} Members • {pct}%
@@ -382,7 +374,14 @@ function ContractRatioBar({ slices }: { slices: ContractSlice[] }) {
 
 function RegisterRow({ row }: { row: StaffingRegisterEntry }) {
   const name = staffingFullName(row)
-  const pillBg = SECTOR_PILL_COLORS[row.sector] ?? '#f1f5f9'
+  const sectorColor =
+    {
+      Engineering: '#2563eb',
+      Finance: '#059669',
+      HR: '#9333ea',
+      Marketing: '#db2777',
+      Operations: '#d97706',
+    }[row.sector] ?? '#64748b'
 
   return (
     <tr>
@@ -400,7 +399,7 @@ function RegisterRow({ row }: { row: StaffingRegisterEntry }) {
       </td>
       <td>
         <strong>{row.position}</strong>
-        <span className="emp-reports-sector-pill" style={{ background: pillBg }}>
+        <span className="emp-reports-sector-text" style={{ color: sectorColor }}>
           {row.sector}
         </span>
       </td>

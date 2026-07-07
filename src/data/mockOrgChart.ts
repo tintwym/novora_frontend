@@ -1,21 +1,5 @@
 import type { OrgChartNode } from '../types/orgChart'
 
-export function openPositionNode(): OrgChartNode {
-  return {
-    id: 'open-hr-bp',
-    name: 'Open Position',
-    role: 'HR Business Partner',
-    initials: '+',
-    deptKey: 'open',
-    deptLabel: 'HR',
-    isOpenPosition: true,
-    grade: 'G-6',
-    since: 'Recruiting',
-    team: '—',
-    children: [],
-  }
-}
-
 export function mockOrgChartRoot(): OrgChartNode {
   return {
     id: 'ceo',
@@ -44,10 +28,12 @@ export function mockOrgChartRoot(): OrgChartNode {
             moreCount: 8,
             children: [
               { id: 'hana', name: 'Hana', role: 'Dev', initials: 'H', deptKey: 'engineering', deptLabel: 'Engineering', children: [] },
-              { id: 'zul', name: 'Zul M', role: 'Dev', initials: 'ZM', deptKey: 'engineering', deptLabel: 'Engineering', children: [] },
+              { id: 'zul', name: 'Zali M', role: 'Dev', initials: 'ZM', deptKey: 'engineering', deptLabel: 'Engineering', children: [] },
             ],
           },
-          { id: 'raj', name: 'Raj', role: 'Tech Lead', initials: 'R', deptKey: 'engineering', deptLabel: 'Engineering', moreCount: 12, children: [] },
+          { id: 'raj', name: 'Raj', role: 'Tech Lead', initials: 'R', deptKey: 'engineering', deptLabel: 'Engineering', moreCount: 12, children: [
+              { id: 'irfan', name: 'Irfan M', role: 'Backend Dev', initials: 'IM', deptKey: 'engineering', deptLabel: 'Engineering', children: [] },
+            ] },
         ],
       },
       {

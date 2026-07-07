@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BenefIcon } from '../components/benefits/BenefitsShared'
 import {
   BenefitsDependentsTab,
   BenefitsEnrollmentTab,
@@ -7,17 +8,18 @@ import {
   BenefitsVendorTab,
   BenefitsWellnessTab,
 } from '../components/benefits/BenefitsTabs'
+import { HrToolbarPill } from '../components/hr/HrPrimitives'
 import { BENEFIT_EMPLOYEES } from '../data/mockBenefits'
 import '../styles/benefits.css'
 import '../styles/recruitment.css'
 
 const MODULE_TABS = [
-  { id: 'enrollment', label: 'Enrollment & Selection' },
-  { id: 'wellness', label: 'Wellness Wallets & FSA' },
-  { id: 'dependents', label: 'Dependents & Beneficiaries' },
-  { id: 'payroll', label: 'Payroll Integration' },
-  { id: 'vendor', label: 'Vendor Management' },
-  { id: 'reports', label: 'Benefits Reports & Analytics' },
+  { id: 'enrollment', label: 'Enrollment & Selection', icon: 'enrollment' },
+  { id: 'wellness', label: 'Wellness Wallets & FSA', icon: 'wellness' },
+  { id: 'dependents', label: 'Dependents & Beneficiaries', icon: 'dependents' },
+  { id: 'payroll', label: 'Payroll Integration', icon: 'payroll' },
+  { id: 'vendor', label: 'Vendor Management', icon: 'vendor' },
+  { id: 'reports', label: 'Benefits Reports & Analytics', icon: 'reports' },
 ] as const
 
 type ModuleTab = (typeof MODULE_TABS)[number]['id']
@@ -28,23 +30,28 @@ export function BenefitsPage() {
 
   return (
     <div className="ben-module">
-      <nav className="ben-module-tabs" aria-label="Benefits modules">
-        {MODULE_TABS.map((t) => (
-          <button key={t.id} type="button" className={moduleTab === t.id ? 'active' : ''} onClick={() => setModuleTab(t.id)}>
-            {t.label}
-          </button>
-        ))}
-      </nav>
-
-      <div className="ben-employee-bar">
-        <span className="ben-employee-label">VIEWING EMPLOYEE PROFILE:</span>
-        <select className="ben-employee-select" value={employee} onChange={(e) => setEmployee(e.target.value)} aria-label="Employee profile">
-          {BENEFIT_EMPLOYEES.map((emp) => (
-            <option key={emp} value={emp}>
-              {emp}
-            </option>
+      <div className="hr-tab-toolbar-row">
+        <nav className="ben-module-tabs" aria-label="Benefits modules">
+          {MODULE_TABS.map((t) => (
+            <button key={t.id} type="button" className={moduleTab === t.id ? 'active' : ''} onClick={() => setModuleTab(t.id)}>
+              <BenefIcon name={t.icon} className="ben-tab-icon" />
+              {t.label}
+            </button>
           ))}
-        </select>
+        </nav>
+
+        <div className="hr-module-toolbar ben-module-toolbar">
+          <span className="ben-employee-label">VIEWING EMPLOYEE PROFILE:</span>
+          <HrToolbarPill variant="filter">
+            <select className="ben-employee-select" value={employee} onChange={(e) => setEmployee(e.target.value)} aria-label="Employee profile">
+              {BENEFIT_EMPLOYEES.map((emp) => (
+                <option key={emp} value={emp}>
+                  {emp}
+                </option>
+              ))}
+            </select>
+          </HrToolbarPill>
+        </div>
       </div>
 
       <div className="ben-module-body">

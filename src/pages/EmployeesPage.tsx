@@ -22,8 +22,6 @@ export function EmployeesPage() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null)
   const [showWizard, setShowWizard] = useState(false)
 
-  const onProfileTab = moduleTab === 'profile'
-
   return (
     <div className={`emp-module${showWizard ? ' emp-module--wizard-open' : ''}`}>
       {showWizard ? (
@@ -45,11 +43,6 @@ export function EmployeesPage() {
             </nav>
 
             <div className="hr-module-toolbar">
-              {onProfileTab ? (
-                <button type="button" className="emp-back-link" onClick={() => setModuleTab('directory')}>
-                  ‹ Back to Employee Directory
-                </button>
-              ) : null}
               <HrToolbarPill variant="filter">
                 <select
                   className="emp-dept-select"
@@ -74,7 +67,12 @@ export function EmployeesPage() {
           </div>
 
           <div className="emp-module-body">
-            {moduleTab === 'profile' ? <EmployeeProfile employeeId={selectedEmployeeId} /> : null}
+            {moduleTab === 'profile' ? (
+              <EmployeeProfile
+                employeeId={selectedEmployeeId}
+                onBack={() => setModuleTab('directory')}
+              />
+            ) : null}
             {moduleTab === 'directory' ? (
               <EmployeeDirectoryTab
                 departmentFilter={deptFilter}

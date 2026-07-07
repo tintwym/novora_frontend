@@ -11,7 +11,7 @@ export function mockStaffingRegister(): StaffingRegisterEntry[] {
       sector: 'Operations',
       employmentType: 'Permanent',
       hireDate: '2018-01-15',
-      identityDoc: '750314-14-5325',
+      identityDoc: '750314-14-5121',
       phone: '+60 12 211 4321',
       emergencyContact: 'Emerg: Aisha Wahid (Wife) • +60 19 221 2345',
       dependents: 'Kids/Spouse: Spouse (Aisha), 2 Children (Amin, Sophia)',

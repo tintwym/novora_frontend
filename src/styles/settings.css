@@ -62,6 +62,66 @@
 .set-sidebar-chevron {
   margin-left: auto;
   opacity: 0.9;
+  width: 1rem;
+  height: 1rem;
+}
+
+.set-sidebar-header-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.set-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.set-nav-icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-muted);
+}
+
+.set-sidebar-nav button.active .set-nav-icon {
+  color: var(--brand-blue-deep);
+}
+
+.set-search-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.set-btn-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.set-help-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--brand-blue-deep);
+  flex-shrink: 0;
+}
+
+.set-card-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.set-card-title-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  color: var(--brand-blue-deep);
+}
+
+.set-export-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--brand-blue-deep);
 }
 
 .set-sidebar-search {
@@ -122,7 +182,7 @@
 }
 
 .set-sidebar-nav button.active {
-  background: #eff6ff;
+  background: rgba(37, 99, 235, 0.08);
   color: var(--brand-blue-deep);
   font-weight: 600;
   border-left-color: var(--brand-blue-deep);
@@ -131,9 +191,12 @@
 .set-sidebar-help {
   margin: 8px 12px 12px;
   padding: 12px;
-  border-radius: 10px;
-  background: #eff6ff;
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.08);
   font-size: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
 }
 
 .set-sidebar-help strong {
@@ -188,8 +251,9 @@
 .set-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 1.1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .set-card-head {
@@ -220,7 +284,7 @@
 .set-inline-form {
   background: #f8fafc;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 1rem;
 }
 
@@ -275,6 +339,9 @@
 }
 
 .set-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   border: none;
   border-radius: 8px;
   padding: 0.5rem 0.9rem;
@@ -531,8 +598,9 @@
   gap: 1rem;
   padding: 1rem 1.1rem;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 .set-role-title,
@@ -786,8 +854,12 @@
 }
 
 .set-export-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   background: #fff;
   padding: 0.85rem;
   font: inherit;

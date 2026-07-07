@@ -17,17 +17,19 @@ export type SuggestionEntry = {
   date: string
   text: string
   tag: string
+  tags?: string[]
   nlp: string
   upvotes: number
 }
 
-export type ShoutOutMedal = { name: string; icon: string; description: string }
+export type ShoutOutMedal = { name: string; icon: string; tone: string; description: string }
 
 export type ShoutOutCard = {
   initials: string
   name: string
   role: string
   badge: string
+  badgeTone: string
   message: string
   meta: string
   applause: number

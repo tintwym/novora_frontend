@@ -9,6 +9,7 @@ import {
   ClaimsSubmitTab,
 } from '../components/claims/ClaimsTabs'
 import { ViewClaimModal } from '../components/claims/ClaimsModals'
+import { ClaimIcon } from '../components/claims/ClaimsShared'
 import { HrToolbarPill } from '../components/hr/HrPrimitives'
 import { CLAIMS_APPROVAL_BADGE, DEFAULT_CLAIM_VIEW } from '../data/mockClaims'
 import type { ClaimViewData } from '../types/claims'
@@ -16,17 +17,17 @@ import '../styles/claims.css'
 import '../styles/recruitment.css'
 
 const ADMIN_TABS = [
-  { id: 'submit', label: 'Submit claim' },
-  { id: 'approval', label: 'Approval', badge: CLAIMS_APPROVAL_BADGE },
-  { id: 'policy', label: 'Policy & compliance' },
-  { id: 'payroll', label: 'Payroll integration' },
-  { id: 'analytics', label: 'Analytics & reports' },
-  { id: 'history', label: 'Claim history' },
+  { id: 'submit', label: 'Submit claim', icon: 'plus' },
+  { id: 'approval', label: 'Approval', icon: 'check', badge: CLAIMS_APPROVAL_BADGE },
+  { id: 'policy', label: 'Policy & compliance', icon: 'shield' },
+  { id: 'payroll', label: 'Payroll integration', icon: 'payroll' },
+  { id: 'analytics', label: 'Analytics & reports', icon: 'chart' },
+  { id: 'history', label: 'Claim history', icon: 'history' },
 ] as const
 
 const EMPLOYEE_TABS = [
-  { id: 'submit', label: 'Submit claim' },
-  { id: 'history', label: 'Claim history' },
+  { id: 'submit', label: 'Submit claim', icon: 'plus' },
+  { id: 'history', label: 'Claim history', icon: 'history' },
 ] as const
 
 type AdminTab = (typeof ADMIN_TABS)[number]['id']
@@ -53,6 +54,7 @@ export function ClaimsPage() {
         <nav className="claim-module-tabs" aria-label="Claims modules">
           {tabs.map((t) => (
             <button key={t.id} type="button" className={moduleTab === t.id ? 'active' : ''} onClick={() => setModuleTab(t.id)}>
+              <ClaimIcon name={t.icon} className="claim-tab-icon" />
               {t.label}
               {'badge' in t && t.badge ? <span className="claim-tab-badge">{t.badge}</span> : null}
             </button>
@@ -70,7 +72,10 @@ export function ClaimsPage() {
             <select className="claim-dept-select" defaultValue="All departments" aria-label="Department filter">
               <option>All departments</option>
               <option>Engineering</option>
+              <option>Finance</option>
+              <option>HR</option>
               <option>Marketing</option>
+              <option>Operations</option>
             </select>
           </HrToolbarPill>
           <HrToolbarPill variant="export">

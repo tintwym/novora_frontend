@@ -4,7 +4,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "overview",
     "label": "All Overview",
-    "icon": "⊞",
+    "icon": "overview",
     "categories": [
       "all"
     ],
@@ -32,7 +32,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "employee",
     "label": "Employee",
-    "icon": "👤",
+    "icon": "employee",
     "categories": [
       "all",
       "core_hr"
@@ -109,8 +109,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Workforce distribution alignment & tenure stability tracking.",
       "financialImpact": "Optimized headcount allocation limiting turnover leakage.",
       "directives": [
-        "Workforce distribution alignment & tenure stability tracking.",
-        "Optimized headcount allocation limiting turnover leakage.",
         "Review potential department succession pipelines for technical roles nearing 5 years avg tenure.",
         "Track contract staff conversion metrics to control high-fee contractor budgets.",
         "Verify remote work ratios relative to local physical seat booking configurations."
@@ -120,7 +118,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "onboarding",
     "label": "On/Off-boarding",
-    "icon": "↔",
+    "icon": "onboarding",
     "categories": [
       "all",
       "core_hr"
@@ -197,8 +195,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Security credentials clearance & asset recovery rates.",
       "financialImpact": "IT infrastructure setup overhead & unrecovered laptop replacement costs.",
       "directives": [
-        "Security credentials clearance & asset recovery rates.",
-        "IT infrastructure setup overhead & unrecovered laptop replacement costs.",
         "Mandate all directory and SSO credentials terminate within 2 hours of departure timestamps.",
         "Configure automated notification triggers to verify company laptop recovery within 7 workdays.",
         "Standardize onboarding templates to guarantee key-cyber-awareness briefing is cleared on week 1."
@@ -208,7 +204,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "attendance",
     "label": "Attendance",
-    "icon": "📅",
+    "icon": "attendance",
     "categories": [
       "all",
       "core_hr"
@@ -285,8 +281,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Overtime wage leakages & digital shift punctuality trends.",
       "financialImpact": "Overtime payroll premium payouts ($14.5k variance above corporate projection).",
       "directives": [
-        "Overtime wage leakages & digital shift punctuality trends.",
-        "Overtime payroll premium payouts ($14.5k variance above corporate projection).",
         "Enforce secondary tier supervisor approvals for overtime work exceeding 10 hours monthly.",
         "Study rotating flex hours for key divisions facing seasonal customer ticket peaks.",
         "In corporate locations, match key card logs against manual portal clock-ins to reduce check-in errors."
@@ -296,7 +290,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "leave",
     "label": "Leave",
-    "icon": "📋",
+    "icon": "leave",
     "categories": [
       "all",
       "core_hr"
@@ -373,8 +367,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Unfunded book liabilities & year-end resource bottleneck mapping.",
       "financialImpact": "Accrued annual leave cash payout reserves ($42k aggregate exposure).",
       "directives": [
-        "Unfunded book liabilities & year-end resource bottleneck mapping.",
-        "Accrued annual leave cash payout reserves ($42k aggregate exposure).",
         "Guide supervisors to prompt team annual leave bookings before major product deliverables sprints.",
         "Stagger critical tech roles leaves to secure minimum 80% coverage limits in Q4.",
         "Review recurring sick-leave clusters adjacent to weekends to optimize resource coverage plans."
@@ -384,7 +376,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "disciplinary",
     "label": "Disciplinary",
-    "icon": "🛡",
+    "icon": "disciplinary",
     "categories": [
       "all",
       "core_hr"
@@ -461,8 +453,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Interpersonal disputes & litigation exposure mitigation.",
       "financialImpact": "Extremely high potential direct litigation & external mediation services fees.",
       "directives": [
-        "Interpersonal disputes & litigation exposure mitigation.",
-        "Extremely high potential direct litigation & external mediation services fees.",
         "Mandate formal compliance code-of-conduct e-refresher courses for all staff with active warnings.",
         "Ensure HR representation is present in PIP reviews exceeding 30-day timelines.",
         "Standardize all incident written files in structured secure servers for legal discovery readiness."
@@ -472,7 +462,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "assets",
     "label": "Assets",
-    "icon": "◎",
+    "icon": "assets",
     "categories": [
       "all",
       "core_hr"
@@ -549,8 +539,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Capital hardware lifecycle tracking & unused SaaS subscription retrieval.",
       "financialImpact": "Active laptop shrinkage and idle tooling licenses expenditures ($184k value).",
       "directives": [
-        "Capital hardware lifecycle tracking & unused SaaS subscription retrieval.",
-        "Active laptop shrinkage and idle tooling licenses expenditures ($184k value).",
         "Automate license key reclamation for high-tier apps with 45+ days of inactivity.",
         "Repurpose three-year-old laptops into secondary dev-test terminals to avoid immediate replacement buys.",
         "Consolidate equipment inventory entries from branch offices to check for regional surplus devices."
@@ -560,7 +548,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "payroll",
     "label": "Payroll",
-    "icon": "💳",
+    "icon": "payroll",
     "categories": [
       "all",
       "financials"
@@ -637,8 +625,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Labor market matching & cost controls across regional payroll centers.",
       "financialImpact": "Represents 64% of total company monthly operating expenditure ($642.8k).",
       "directives": [
-        "Labor market matching & cost controls across regional payroll centers.",
-        "Represents 64% of total company monthly operating expenditure ($642.8k).",
         "Run localized compensation reviews against competitor job listings in Q3.",
         "Verify withholding formulas with external general tax guidelines before year-end filings.",
         "Enforce dual-authorization triggers on manual off-cycle wage releases."
@@ -648,7 +634,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "claims",
     "label": "Claims",
-    "icon": "🧾",
+    "icon": "claims",
     "categories": [
       "all",
       "financials"
@@ -725,8 +711,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Operational spending compliance audits & expense policy enforcement.",
       "financialImpact": "High client entertainment spend ratio (30% of total outbound claims).",
       "directives": [
-        "Operational spending compliance audits & expense policy enforcement.",
-        "High client entertainment spend ratio (30% of total outbound claims).",
         "Set strict caps on business dining hospitality allowances based on localized regional indexes.",
         "Audit mileage claims with coordinate validation checks to prevent inaccurate expense declarations.",
         "Establish standard 30-day deadlines for receipt submissions to ensure accurate operational balance tallies."
@@ -736,7 +720,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "benefits",
     "label": "Benefits",
-    "icon": "♥",
+    "icon": "benefits",
     "categories": [
       "all",
       "financials"
@@ -813,8 +797,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Benefit program selection yields & medical premium allocations.",
       "financialImpact": "Average flat cost matching totals $34.1k/mo healthcare premium expenses.",
       "directives": [
-        "Benefit program selection yields & medical premium allocations.",
-        "Average flat cost matching totals $34.1k/mo healthcare premium expenses.",
         "Renegotiate wholesale medical plans by leveraging larger group scales in Q3 vendor negotiations.",
         "Promote gym wellness credits usage to lower long-term chronic clinical claims and sick leave frequency.",
         "Benchmark company pension standard brackets with localized peers to maintain competitive hiring terms."
@@ -824,7 +806,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "recruitment",
     "label": "Recruitment",
-    "icon": "💼",
+    "icon": "recruitment",
     "categories": [
       "all",
       "talent_growth"
@@ -901,8 +883,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Conversion metrics & sourcing agency expenditure.",
       "financialImpact": "High operational spend ($4,200 avg cost-per-hire) on external recruiters.",
       "directives": [
-        "Conversion metrics & sourcing agency expenditure.",
-        "High operational spend ($4,200 avg cost-per-hire) on external recruiters.",
         "Establish targeted organic hiring campaigns to minimize dependent recruiter commission costs.",
         "Integrate technical screening checkpoints earlier to decrease average panel selection cycle time.",
         "Formulate active internal candidate databases for high-frequency hiring roles to decrease time-to-hire."
@@ -912,7 +892,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "performance",
     "label": "Performance",
-    "icon": "📈",
+    "icon": "performance",
     "categories": [
       "all",
       "talent_growth"
@@ -989,8 +969,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Performance alignment with board objectives & variable payout governance.",
       "financialImpact": "Variable bonus payout pool tracking against approved corporate budget caps.",
       "directives": [
-        "Performance alignment with board objectives & variable payout governance.",
-        "Variable bonus payout pool tracking against approved corporate budget caps.",
         "Calibrate manager rating distributions to prevent grade inflation across divisions.",
         "Link PIP completion milestones to structured coaching resource allocations.",
         "Publish quarterly OKR attainment summaries to division heads before board reviews."
@@ -1000,7 +978,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "training",
     "label": "Training",
-    "icon": "🎓",
+    "icon": "training",
     "categories": [
       "all",
       "talent_growth"
@@ -1077,8 +1055,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Skills catalog expansions & vendor expenditure checks.",
       "financialImpact": "External specialized tutors and training facility booking fees.",
       "directives": [
-        "Skills catalog expansions & vendor expenditure checks.",
-        "External specialized tutors and training facility booking fees.",
         "Convert costly custom external seminars into reusable on-demand digital modules inside the LMS.",
         "Implement standard seat verification procedures to reduce pay-per-head empty-seat fees.",
         "Link certification milestones to standard division-level performance review systems."
@@ -1088,7 +1064,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "learning",
     "label": "Learning",
-    "icon": "📚",
+    "icon": "learning",
     "categories": [
       "all",
       "talent_growth"
@@ -1165,8 +1141,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Corporate regulatory compliance checks & critical skill matrices.",
       "financialImpact": "Mitigates regulatory fine exposures for non-compliant industry deployments.",
       "directives": [
-        "Corporate regulatory compliance checks & critical skill matrices.",
-        "Mitigates regulatory fine exposures for non-compliant industry deployments.",
         "Deliver automatic system alerts for staff whose regulatory security clearances expire soon.",
         "Examine learning engagement scores to find effective, popular internal curriculum creators.",
         "Enforce ethical workplace learning completions as a required hurdle for annual bonus eligibility."
@@ -1176,7 +1150,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "helpdesk",
     "label": "Helpdesk & Inquiries",
-    "icon": "🎧",
+    "icon": "helpdesk",
     "categories": [
       "all",
       "support_engagement"
@@ -1253,8 +1227,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Administrative bottle-necks & internal satisfaction SLA checks.",
       "financialImpact": "SLA lags reduce corporate work productivity and onboarding satisfaction scores.",
       "directives": [
-        "Administrative bottle-necks & internal satisfaction SLA checks.",
-        "SLA lags reduce corporate work productivity and onboarding satisfaction scores.",
         "Release self-service answers for high-frequency topics like overtime and benefits coverage.",
         "Address recurring login portal and SSO issues with IT to reduce redundant support load.",
         "Maintain the response speed under the 1.5-hour threshold to preserve excellent 98.4% CSAT ratios."
@@ -1264,7 +1236,7 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
   {
     "id": "engagement",
     "label": "Engagement",
-    "icon": "😊",
+    "icon": "engagement",
     "categories": [
       "all",
       "support_engagement"
@@ -1341,8 +1313,6 @@ export const REPORT_MODULES: ReportModuleDefinition[] = [
       "strategicFocus": "Workforce sentiment indicators & mitigation of key resignation risks.",
       "financialImpact": "Pre-emptive engagement checks prevent costly localized talent walkouts.",
       "directives": [
-        "Workforce sentiment indicators & mitigation of key resignation risks.",
-        "Pre-emptive engagement checks prevent costly localized talent walkouts.",
         "Schedule team discussions for departments with sub-80% engagement scores within 14 days.",
         "Send executive answers to top-voted open card themes within one business week.",
         "Map engagement trend lines against voluntary turnover to identify early warning clusters."

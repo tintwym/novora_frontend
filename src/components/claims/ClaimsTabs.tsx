@@ -29,6 +29,7 @@ import {
   ClaimAvatar,
   ClaimCard,
   ClaimField,
+  ClaimIcon,
   ClaimLinkBtn,
   ClaimSectionTitle,
   ClaimTableScroll,
@@ -42,7 +43,9 @@ export function ClaimsSubmitTab({ onView }: { onView: (claim: ClaimViewData) => 
         <ClaimCard>
           <ClaimSectionTitle title="Receipt capture & OCR" trailing={<span className="claim-muted">Mobile upload · OCR scan</span>} />
           <div className="claim-upload-zone">
-            <span aria-hidden>📎</span>
+            <span className="claim-upload-icon" aria-hidden>
+              <ClaimIcon name="paperclip" />
+            </span>
             <strong>Snap or upload receipt</strong>
             <p>JPG, PNG, PDF • max 10MB</p>
             <button type="button" className="claim-primary-btn">
@@ -173,12 +176,12 @@ export function ClaimsApprovalTab({ onView }: { onView: (claim: ClaimViewData) =
       </ClaimToolbarRow>
       <ClaimCard>
         <div className="claim-card-head between">
-          <strong>Approval routing rules</strong>
+          <ClaimSectionTitle title="Approval routing rules" />
           <ClaimLinkBtn label="Edit rules" onClick={() => setMatrixOpen(true)} />
         </div>
         <div className="claim-rule-cards">
           <RuleCard title="Claims ≤ MYR 200" sub="Direct manager only — single approval" tag="Sequential" tone="success" />
-          <RuleCard title="Claims MYR 201 – MYR 1,000" sub="Manager → Department Head" tag="Sequential" tone="warning" />
+          <RuleCard title="Claims MYR 201 – MYR 1,000" sub="Manager → Department Head" tag="Sequential" tone="success" />
           <RuleCard title="Claims > MYR 1,000" sub="Manager → Dept Head → Finance Director" tag="Parallel with Dept Head" tone="purple" />
         </div>
       </ClaimCard>
@@ -491,10 +494,9 @@ function ClaimsAnalyticsDashboard() {
   return (
     <>
       <div className="claim-kpi-row">
-        <RecruitIconKpi title="Total Claimed — YTD" value="MYR 48,230" subtext="+12% vs last year" icon="◎" iconColor="#2563eb" trend="+12% vs last year" />
-        <RecruitIconKpi title="Claimed — May 2026" value="MYR 14,820" subtext="94% of monthly budget" icon="📅" iconColor="#ea580c" trend="94% of monthly budget" />
-        <RecruitIconKpi title="Policy Flags — May" value="8" subtext="4 blocked • 4 escalated" icon="⚠" iconColor="#ef4444" valueTone="danger" />
-        <RecruitIconKpi title="Avg Ticket" value="MYR 284.29" subtext="Per approved claim" icon="📄" iconColor="#7c3aed" />
+        <RecruitIconKpi title="TOTAL CLAIMED — YTD" value="MYR 48,230" subtext="Year to date" icon="wallet" iconColor="#2563eb" trend="+12% vs last year" trendTone="success" />
+        <RecruitIconKpi title="CLAIMED — MAY 2026" value="MYR 14,820" subtext="Monthly total" icon="clipboard" iconColor="#ea580c" trend="94% of monthly budget" trendTone="warning" />
+        <RecruitIconKpi title="POLICY FLAGS — MAY" value="8" subtext="Compliance alerts" icon="alert" iconColor="#ef4444" valueTone="danger" trend="4 blocked • 4 escalated" trendTone="danger" />
       </div>
       <div className="claim-split">
         <ClaimCard>

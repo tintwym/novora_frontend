@@ -15,6 +15,7 @@ import {
   HdDonut,
   HdField,
   HdHBar,
+  HdIcon,
   HdKpiRow,
   HdSectionTitle,
   HdTableScroll,
@@ -30,16 +31,21 @@ export function HelpdeskTicketsTab() {
       <HdKpiRow />
       <HdCard className="hd-filter-card">
         <div className="hd-filter-head">
-          <span aria-hidden>☰</span>
+          <HdIcon name="filter" className="hd-filter-icon" />
           <span className="hd-section-title">FILTER SERVICE LOGS</span>
         </div>
         <div className="hd-filter-row">
-          <input type="search" placeholder="Keywords" className="hd-filter-keywords" />
+          <label className="hd-filter-search">
+            <HdIcon name="search" className="hd-search-icon" />
+            <input type="search" placeholder="Ref, name or title…" aria-label="Keywords" />
+          </label>
           <select defaultValue="All Categories" aria-label="Incident category">
             <option>All Categories</option>
             <option>Payroll Discrepancy</option>
             <option>Benefits Inquiry</option>
             <option>Document Request</option>
+            <option>Tax Form Issue</option>
+            <option>General Policy</option>
           </select>
           <select defaultValue="All Priorities" aria-label="Priority target">
             <option>All Priorities</option>
@@ -73,7 +79,7 @@ function TicketListItem({ ticket, selected, onSelect }: { ticket: HelpdeskTicket
     <button type="button" className={`hd-ticket-item${selected ? ' selected' : ''}`} onClick={onSelect}>
       <div className="hd-ticket-item-head">
         <strong className="tone-primary">{ticket.id}</strong>
-        <RecruitPill label={ticket.category} tone="neutral" />
+        <RecruitPill label={ticket.category} tone="info" />
         <RecruitPill label={ticket.priority} tone={ticket.priorityTone} />
       </div>
       <h4>{ticket.subject}</h4>
@@ -89,7 +95,7 @@ function TicketListItem({ ticket, selected, onSelect }: { ticket: HelpdeskTicket
         <div className="hd-ticket-badges">
           {ticket.slaLabel ? <RecruitPill label={ticket.slaLabel} tone="warning" /> : null}
           {ticket.badge ? <RecruitPill label={ticket.badge} tone="danger" /> : null}
-          {ticket.escalated ? <RecruitPill label="ESCALATED" tone="warning" /> : null}
+          {ticket.escalated ? <RecruitPill label="ESCALATED" tone="info" /> : null}
           {ticket.secure ? <RecruitPill label="SECURE" tone="purple" /> : null}
         </div>
       ) : null}
@@ -133,24 +139,31 @@ function TicketDetail({
           </div>
         </HdField>
         <HdField label="Reporter Transcript">
-          <div className="hd-transcript">
-            Hi team, my May overtime payout appears lower than expected after the weekend roster sync. The multiplier for public holiday hours seems to have reverted to 1.0x instead of 2.0x. Please review OT_Roster_May_16.pdf and confirm the calculation basis.
+          <div className="hd-transcript">{ticket.transcript}</div>
+        </HdField>
+        <HdField label="Uploaded Attachments">
+          <div className="hd-attachment-card">
+            <HdIcon name="document" className="hd-attachment-icon" />
+            <span>OT_Roster_May_16.pdf</span>
           </div>
         </HdField>
-        <p className="hd-attachment">
-          <span aria-hidden>📎</span> OT_Roster_May_16.pdf
-        </p>
         {ticket.breached || ticket.escalated ? (
           <div className="hd-sla-escalator">
-            <strong>SLA OVERDUE ESCALATOR</strong>
-            <p>This ticket has exceeded its SLA window.</p>
-            <button type="button" className="hd-danger-btn">
-              Trigger Breach Re-route
-            </button>
+            <div className="hd-sla-escalator-head">
+              <div>
+                <strong>SLA OVERDUE ESCALATOR</strong>
+                <p>Simulate breaching task response boundaries</p>
+              </div>
+              <button type="button" className="hd-danger-btn">
+                Trigger Breach Re-route
+              </button>
+            </div>
           </div>
         ) : null}
-        <HdField label="Discussion Trail">
-          <p className="hd-chat-system">Ticket registered. Category identified as &quot;Payroll Discrepancy&quot;. Assigned to Compensation Leads queue.</p>
+        <HdField label="Two-Way Discussion Audio Trail">
+          <p className="hd-chat-system">
+            Ticket registered. Category identified as &quot;{ticket.category}&quot;. Assigned to Compensation Leads queue with SLA target applied.
+          </p>
           <div className="hd-chat-operator">
             <strong>Chong Wei Min</strong>
             <p>Thanks Sarah — I am reviewing the May roster sync logs and multiplier table. Will update within the hour.</p>
@@ -169,7 +182,7 @@ function TicketDetail({
         <div className="hd-reply-row">
           <input type="text" placeholder="Clarify calculation details with the reporter…" />
           <button type="button" className="hd-send-btn" aria-label="Send reply">
-            ➤
+            <HdIcon name="send" />
           </button>
         </div>
       </div>
@@ -184,37 +197,52 @@ export function HelpdeskDocumentTab() {
     <>
       <HdKpiRow />
       <div className="hd-split doc">
-        <HdCard>
-          <div className="hd-portal-head">
-            <span aria-hidden>✦</span>
-            <span className="hd-section-title">HR STANDARD LETTERS PORTAL</span>
-          </div>
-          <p className="hd-muted">
-            Choose any employee. The system automatically populates dynamic payroll ledger, design, and join info instantly.
-          </p>
-          <HdField label="Associate Record">
-            <select defaultValue="-- Choose employee details --">
-              <option>-- Choose employee details --</option>
-              <option>Sarah Lim (EMP-001)</option>
-              <option>John Doe (EMP-002)</option>
-            </select>
-          </HdField>
-          <HdField label="Letter Format Template">
-            <select defaultValue="Standard Employment Verification Letter (Bank/Embassy Spec)">
-              <option>Standard Employment Verification Letter (Bank/Embassy Spec)</option>
-              <option>Salary Certificate</option>
-            </select>
-          </HdField>
-          <HdField label="Issued For (Recipient Organisation)">
-            <input type="text" placeholder="e.g. Citibank Mortgage Hub, Japanese Consulate Regional Office" />
-          </HdField>
-          <HdField label="Specific Purpose / Memo (Optional)">
-            <textarea rows={3} placeholder="e.g. To facilitate the processing of a home loan application under official package clauses." />
-          </HdField>
-          <button type="button" className="hd-navy-btn full" onClick={() => setCompiled(true)}>
-            📄 Compile & Auto-Populate Letter
-          </button>
-        </HdCard>
+        <div className="hd-doc-left">
+          <HdCard>
+            <div className="hd-portal-head">
+              <HdIcon name="document" className="hd-portal-icon" />
+              <span className="hd-section-title">HR STANDARD LETTERS PORTAL</span>
+            </div>
+            <p className="hd-muted">
+              Choose any employee. The system automatically populates dynamic payroll ledger, design, and join info instantly.
+            </p>
+            <HdField label="Associate Record">
+              <select defaultValue="-- Choose employee details --">
+                <option>-- Choose employee details --</option>
+                <option>Sarah Lim (EMP-001)</option>
+                <option>John Doe (EMP-002)</option>
+              </select>
+            </HdField>
+            <HdField label="Letter Format Template">
+              <select defaultValue="Standard Employment Verification Letter (Bank/Embassy Spec)">
+                <option>Standard Employment Verification Letter (Bank/Embassy Spec)</option>
+                <option>Salary Certificate</option>
+              </select>
+            </HdField>
+            <HdField label="Issued For (Recipient Organisation)">
+              <input type="text" placeholder="e.g. Citibank Mortgage Hub, Japanese Consulate Regional Office" />
+            </HdField>
+            <HdField label="Specific Purpose / Memo (Optional)">
+              <textarea rows={3} placeholder="e.g. To facilitate the processing of a home loan application under official package clauses." />
+            </HdField>
+            <button type="button" className="hd-navy-btn full hd-compile-btn" onClick={() => setCompiled(true)}>
+              <HdIcon name="document" className="hd-btn-icon" />
+              Compile & Auto-Populate Letter
+            </button>
+          </HdCard>
+          <HdCard>
+            <HdSectionTitle title="Recent Issued Digital Certificates" />
+            {DIGITAL_CERTIFICATES.map((cert, i) => (
+              <div key={cert.title} className={`hd-cert-row${i > 0 ? ' bordered' : ''}`}>
+                <div>
+                  <strong>{cert.title}</strong>
+                  <p className="hd-muted sm">{cert.subtitle}</p>
+                </div>
+                <RecruitPill label={cert.status} tone={cert.statusTone} />
+              </div>
+            ))}
+          </HdCard>
+        </div>
         <HdCard className="hd-letter-preview">
           {compiled ? (
             <div className="hd-letter-content">
@@ -227,7 +255,7 @@ export function HelpdeskDocumentTab() {
             </div>
           ) : (
             <div className="hd-letter-empty">
-              <span aria-hidden>📄</span>
+              <HdIcon name="document" className="hd-letter-empty-icon" />
               <strong>NO DYNAMIC LETTER ACTIVE</strong>
               <p>
                 Select an employee record on the left-wing console and click &apos;Compile & Auto-Populate Letter&apos; to generate a beautiful printable corporate verification document.
@@ -236,18 +264,6 @@ export function HelpdeskDocumentTab() {
           )}
         </HdCard>
       </div>
-      <HdCard>
-        <HdSectionTitle title="Recent Issued Digital Certificates" />
-        {DIGITAL_CERTIFICATES.map((cert, i) => (
-          <div key={cert.title} className={`hd-cert-row${i > 0 ? ' bordered' : ''}`}>
-            <div>
-              <strong>{cert.title}</strong>
-              <p className="hd-muted sm">{cert.subtitle}</p>
-            </div>
-            <RecruitPill label={cert.status} tone={cert.statusTone} />
-          </div>
-        ))}
-      </HdCard>
     </>
   )
 }
@@ -285,24 +301,26 @@ export function HelpdeskAnalyticsTab() {
       </div>
       <div className="hd-systemic-alert">
         <div className="hd-systemic-head">
-          <span aria-hidden>⚠</span>
+          <HdIcon name="warning" className="hd-warning-icon" />
           <strong>SYSTEMIC PAYROLL PROCESSING PAIN POINTS IDENTIFIED</strong>
           <button type="button" className="hd-danger-btn">
             Sync Overtime Multiplier DB
           </button>
         </div>
         <p>
-          Spike in Payroll Discrepancy tickets linked to weekend timesheet multiplier anomalies and roster-claims database sync issue #SNC-9281.
+          Spike in Payroll Discrepancy tickets linked to weekend timesheet multiplier anomalies. A potential database sync issue may be affecting overtime calculations across the roster-claims pipeline.
         </p>
         <div className="hd-reconcile-box">
-          RECONCILE SYSTEM ACTION RECOMMENDATION: Reset automated Roster-Claims database sync protocol logs #SNC-9281.
+          <span className="hd-section-title">RECONCILE SYSTEM ACTION RECOMMENDATION</span>
+          <p>Reset automated Roster-Claims database sync protocol logs #SNC-9281.</p>
         </div>
       </div>
       <HdCard>
         <HdSectionTitle
           title="Recent Operations Lead Performance Logs"
+          subtitle="Detailed resolution times parsed."
           trailing={
-            <button type="button" className="hd-outline-btn">
+            <button type="button" className="hd-dark-btn">
               Download CSV report
             </button>
           }
@@ -350,14 +368,17 @@ export function HelpdeskKnowledgeTab() {
         <div className="hd-kb-head">
           <div>
             <div className="hd-portal-head">
-              <span aria-hidden>📖</span>
+              <HdIcon name="book" className="hd-portal-icon" />
               <span className="hd-section-title">COMPANY POLICIES & SELF-HELP ARCHIVES</span>
             </div>
             <p className="hd-muted">
               Answers to general questions regarding payroll multiplier metrics, optical benefits coverage caps, internet claims, and remote limits.
             </p>
           </div>
-          <input type="search" className="hd-kb-search" placeholder="Query payroll, tax, handbook clauses…" />
+          <label className="hd-kb-search-wrap">
+            <HdIcon name="search" className="hd-search-icon" />
+            <input type="search" className="hd-kb-search" placeholder="Query payroll, tax, handbook clauses…" aria-label="Search knowledge base" />
+          </label>
         </div>
         <div className="hd-faq-grid">
           {KNOWLEDGE_FAQS.map((faq) => (
@@ -366,7 +387,7 @@ export function HelpdeskKnowledgeTab() {
                 <RecruitPill label={faq.category} tone="info" />
                 <strong>{faq.question}</strong>
               </div>
-              <span aria-hidden>›</span>
+              <HdIcon name="chevron" className="hd-faq-chevron" />
             </button>
           ))}
         </div>

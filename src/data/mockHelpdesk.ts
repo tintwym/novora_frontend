@@ -19,11 +19,12 @@ export const HELPDESK_TICKETS: HelpdeskTicket[] = [
     snippet: 'My May overtime payout seems lower than expected after the weekend roster sync…',
     reporter: 'Sarah Lim',
     initials: 'SL',
-    filedAt: '2024-05-15 09:12',
+    filedAt: '2026-05-15 09:12',
     status: 'In Progress',
     statusTone: 'info',
-    slaLabel: 'Target SLA: 48 hrs',
     escalated: true,
+    transcript:
+      'Hi team, my May overtime payout appears lower than expected after the weekend roster sync. The multiplier for public holiday hours seems to have reverted to 1.0x instead of 2.0x. Please review OT_Roster_May_16.pdf and confirm the calculation basis.',
   },
   {
     id: 'TKT-9202',
@@ -34,10 +35,11 @@ export const HELPDESK_TICKETS: HelpdeskTicket[] = [
     snippet: 'Need confirmation on annual optical allowance for spouse coverage…',
     reporter: 'John Doe',
     initials: 'JD',
-    filedAt: '2024-05-14 14:20',
+    filedAt: '2026-05-14 14:20',
     status: 'Open',
     statusTone: 'info',
     slaLabel: 'Expires (2h left)',
+    transcript: 'Could you confirm the annual optical allowance cap for dependents under the Gold Premium plan?',
   },
   {
     id: 'TKT-9203',
@@ -48,9 +50,10 @@ export const HELPDESK_TICKETS: HelpdeskTicket[] = [
     snippet: 'Requesting certified salary letter for Citibank mortgage processing…',
     reporter: 'Pinky Sharma',
     initials: 'PS',
-    filedAt: '2024-05-13 11:05',
+    filedAt: '2026-05-13 11:05',
     status: 'Resolved',
     statusTone: 'success',
+    transcript: 'Requesting a certified salary certificate for Citibank mortgage processing. Reference DOC-1002.',
   },
   {
     id: 'TKT-9204',
@@ -61,12 +64,13 @@ export const HELPDESK_TICKETS: HelpdeskTicket[] = [
     snippet: 'Form EA download is missing bonus classification rows for FY2025…',
     reporter: 'Michael Chang',
     initials: 'MC',
-    filedAt: '2024-05-12 08:44',
+    filedAt: '2026-05-12 08:44',
     status: 'Open',
     statusTone: 'info',
     breached: true,
     badge: 'BREACHED OVERDUE',
     secure: true,
+    transcript: 'Form EA download is missing bonus classification rows for FY2025. Please regenerate with full IR8A line items.',
   },
   {
     id: 'TKT-9205',
@@ -77,21 +81,22 @@ export const HELPDESK_TICKETS: HelpdeskTicket[] = [
     snippet: 'Clarification on maximum consecutive sickness leave while remote…',
     reporter: 'Amina Al-Mansour',
     initials: 'AA',
-    filedAt: '2024-05-11 16:30',
+    filedAt: '2026-05-11 16:30',
     status: 'Resolved',
     statusTone: 'success',
+    transcript: 'What is the maximum consecutive sickness leave buffer allowed while working remotely?',
   },
 ]
 
 export const DIGITAL_CERTIFICATES: DigitalCertificate[] = [
-  { title: 'Standard Employment Verification Letter', subtitle: 'For Sarah Lim — Ref DOC-1001', status: 'CERTIFIED', statusTone: 'success' },
-  { title: 'Salary Certificate', subtitle: 'For John Doe — Ref DOC-1002', status: 'DRAFT', statusTone: 'warning' },
+  { title: 'Standard Employment Verification Letter', subtitle: 'Sarah Lim — Ref DOC-1001', status: 'CERTIFIED', statusTone: 'success' },
+  { title: 'Salary Certificate', subtitle: 'John Doe — Ref DOC-1002', status: 'DRAFT', statusTone: 'warning' },
 ]
 
 export const CATEGORY_VOLUMES: CategoryVolume[] = [
   { label: 'Payroll Discrepancy', pct: 20, color: '#dc2626', trailing: '1 log (20%)' },
   { label: 'Document Request', pct: 20, color: '#eab308', trailing: '1 log (20%)' },
-  { label: 'Tax Form Issue', pct: 20, color: '#059669', trailing: '1 log (20%)' },
+  { label: 'Tax Form Issue', pct: 20, color: '#60a5fa', trailing: '1 log (20%)' },
   { label: 'Benefits Inquiry', pct: 20, color: '#14b8a6', trailing: '1 log (20%)' },
   { label: 'General Policy', pct: 20, color: '#2563eb', trailing: '1 log (20%)' },
 ]
@@ -100,7 +105,7 @@ export const SLA_TARGETS: SlaTarget[] = [
   { level: 'CRITICAL', levelTone: 'danger', target: '4 hrs', ytdAvg: '3.2 hrs', actionRequired: true },
   { level: 'HIGH', levelTone: 'warning', target: '12 hrs', ytdAvg: '10.5 hrs' },
   { level: 'MEDIUM', levelTone: 'info', target: '24 hrs', ytdAvg: '18.0 hrs' },
-  { level: 'LOW', levelTone: 'neutral', target: '48 hrs', ytdAvg: '34.2 hrs' },
+  { level: 'LOW', levelTone: 'success', target: '48 hrs', ytdAvg: '34.2 hrs' },
 ]
 
 export const PERFORMANCE_LOGS: PerformanceLogRow[] = [
@@ -112,10 +117,10 @@ export const PERFORMANCE_LOGS: PerformanceLogRow[] = [
 ]
 
 export const KNOWLEDGE_FAQS: KnowledgeFaq[] = [
-  { category: 'Payroll Discrepancy', question: 'How is the Overtime (OT) multi-multiplier calculated on Public Holidays?' },
-  { category: 'Document Request', question: 'How do I download a certified Salary Certificate for banks?' },
-  { category: 'Benefits Inquiry', question: 'How does the company coordinate remote internet allowances?' },
-  { category: 'Tax Form Issue', question: 'Where can I find my certified IR8A or Form EA tax files?' },
-  { category: 'Benefits Inquiry', question: 'What is the limit for optical checkups and prescription frames?' },
-  { category: 'General Policy', question: 'What is the maximum duration buffer allowed for sickness leave blocks?' },
+  { category: 'PAYROLL DISCREPANCY', question: 'How is the Overtime (OT) multi-multiplier calculated on Public Holidays?' },
+  { category: 'DOCUMENT REQUEST', question: 'How do I download a certified Salary Certificate for banks?' },
+  { category: 'BENEFITS INQUIRY', question: 'How does the company coordinate remote internet allowances?' },
+  { category: 'TAX FORM ISSUE', question: 'Where can I find my certified IR8A or Form EA tax files?' },
+  { category: 'BENEFITS INQUIRY', question: 'What is the limit for optical checkups and prescription frames?' },
+  { category: 'GENERAL POLICY', question: 'What is the maximum duration buffer allowed for sickness leave blocks?' },
 ]

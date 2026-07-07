@@ -1,10 +1,38 @@
 import { HrField, HrFieldRow, HrInput, HrModal, HrSelect } from '../hr/HrModal'
+import { PayIcon } from './PayrollShared'
 
 type ModalProps = { open: boolean; onClose: () => void }
 
+function PayModalIcon({ name }: { name: 'plus' | 'edit' | 'calendar' | 'calculator' }) {
+  if (name === 'plus') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.12" />
+        <path d="M12 8v8M8 12h8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    )
+  }
+  if (name === 'edit') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    )
+  }
+  if (name === 'calendar') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path d="M16 2v4M8 2v4M3 10h18" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    )
+  }
+  return <PayIcon name="calculator" />
+}
+
 export function AddAllowanceTypeModal({ open, onClose }: ModalProps) {
   return (
-    <HrModal open={open} title="ADD NEW ALLOWANCE TYPE" icon={<span aria-hidden>⊕</span>} confirmLabel="Create Allowance" onClose={onClose} onConfirm={onClose}>
+    <HrModal open={open} title="ADD NEW ALLOWANCE TYPE" icon={<PayModalIcon name="plus" />} confirmLabel="Create Allowance" onClose={onClose} onConfirm={onClose}>
       <HrField label="Allowance name">
         <HrInput placeholder="e.g. Transport allowance" />
       </HrField>
@@ -40,7 +68,7 @@ export function AddAllowanceTypeModal({ open, onClose }: ModalProps) {
 
 export function EditAllowanceTypeModal({ open, onClose, name = 'Transport allowance' }: ModalProps & { name?: string }) {
   return (
-    <HrModal open={open} title="EDIT ALLOWANCE POLICY" icon={<span aria-hidden>✎</span>} confirmLabel="Save Changes" onClose={onClose} onConfirm={onClose}>
+    <HrModal open={open} title="EDIT ALLOWANCE POLICY" icon={<PayModalIcon name="edit" />} confirmLabel="Save Changes" onClose={onClose} onConfirm={onClose}>
       <HrField label="Allowance name">
         <HrInput defaultValue={name} />
       </HrField>
@@ -66,7 +94,7 @@ export function EditAllowanceTypeModal({ open, onClose, name = 'Transport allowa
 
 export function AddBonusTypeModal({ open, onClose }: ModalProps) {
   return (
-    <HrModal open={open} title="ADD NEW BONUS TYPE" icon={<span aria-hidden>⊕</span>} confirmLabel="Create Bonus" onClose={onClose} onConfirm={onClose}>
+    <HrModal open={open} title="ADD NEW BONUS TYPE" icon={<PayModalIcon name="plus" />} confirmLabel="Create Bonus" onClose={onClose} onConfirm={onClose}>
       <HrField label="Bonus name">
         <HrInput placeholder="e.g. Annual performance bonus" />
       </HrField>
@@ -97,7 +125,7 @@ export function AddBonusTypeModal({ open, onClose }: ModalProps) {
 
 export function AddDepositTypeModal({ open, onClose }: ModalProps) {
   return (
-    <HrModal open={open} title="ADD NEW DEPOSIT TYPE" icon={<span aria-hidden>⊕</span>} confirmLabel="Create Deposit" onClose={onClose} onConfirm={onClose}>
+    <HrModal open={open} title="ADD NEW DEPOSIT TYPE" icon={<PayModalIcon name="plus" />} confirmLabel="Create Deposit" onClose={onClose} onConfirm={onClose}>
       <HrField label="Deposit type name">
         <HrInput placeholder="e.g. Uniform deposit" />
       </HrField>
@@ -126,7 +154,7 @@ export function AddDepositTypeModal({ open, onClose }: ModalProps) {
 
 export function AddDeductionTypeModal({ open, onClose }: ModalProps) {
   return (
-    <HrModal open={open} title="ADD NEW DEDUCTION TYPE" icon={<span aria-hidden>⊕</span>} confirmLabel="Create Deduction" onClose={onClose} onConfirm={onClose}>
+    <HrModal open={open} title="ADD NEW DEDUCTION TYPE" icon={<PayModalIcon name="plus" />} confirmLabel="Create Deduction" onClose={onClose} onConfirm={onClose}>
       <HrField label="Deduction name">
         <HrInput placeholder="e.g. Late deduction" />
       </HrField>
@@ -151,7 +179,7 @@ export function AddDeductionTypeModal({ open, onClose }: ModalProps) {
 
 export function EditDeductionTypeModal({ open, onClose, name = 'EPF (employee)' }: ModalProps & { name?: string }) {
   return (
-    <HrModal open={open} title="EDIT DEDUCTION TYPE" icon={<span aria-hidden>✎</span>} confirmLabel="Save Changes" onClose={onClose} onConfirm={onClose}>
+    <HrModal open={open} title="EDIT DEDUCTION TYPE" icon={<PayModalIcon name="edit" />} confirmLabel="Save Changes" onClose={onClose} onConfirm={onClose}>
       <HrField label="Deduction name">
         <HrInput defaultValue={name} />
       </HrField>
@@ -174,7 +202,7 @@ export function EditDeductionTypeModal({ open, onClose, name = 'EPF (employee)' 
 
 export function AddTaxCategoryModal({ open, onClose }: ModalProps) {
   return (
-    <HrModal open={open} title="ADD NEW TAX CATEGORY" icon={<span aria-hidden>⊕</span>} confirmLabel="Create Tax" onClose={onClose} onConfirm={onClose}>
+    <HrModal open={open} title="ADD NEW TAX CATEGORY" icon={<PayModalIcon name="plus" />} confirmLabel="Create Tax" onClose={onClose} onConfirm={onClose}>
       <HrField label="Tax name">
         <HrInput placeholder="e.g. Personal income tax" />
       </HrField>
@@ -199,7 +227,7 @@ export function AddTaxCategoryModal({ open, onClose }: ModalProps) {
 
 export function EditTaxCategoryModal({ open, onClose, name = 'Personal income tax' }: ModalProps & { name?: string }) {
   return (
-    <HrModal open={open} title="EDIT TAX CATEGORY" icon={<span aria-hidden>✎</span>} confirmLabel="Save Changes" onClose={onClose} onConfirm={onClose}>
+    <HrModal open={open} title="EDIT TAX CATEGORY" icon={<PayModalIcon name="edit" />} confirmLabel="Save Changes" onClose={onClose} onConfirm={onClose}>
       <HrField label="Tax name">
         <HrInput defaultValue={name} />
       </HrField>
@@ -224,7 +252,7 @@ export function EditTaxCategoryModal({ open, onClose, name = 'Personal income ta
 
 export function RegisterEmolumentModal({ open, onClose }: ModalProps) {
   return (
-    <HrModal open={open} title="REGISTER CUSTOM EMOLUMENT" icon={<span aria-hidden>⊕</span>} confirmLabel="Register Emolument" onClose={onClose} onConfirm={onClose}>
+    <HrModal open={open} title="REGISTER CUSTOM EMOLUMENT" icon={<PayModalIcon name="plus" />} confirmLabel="Register Emolument" onClose={onClose} onConfirm={onClose}>
       <HrField label="Compensation component name">
         <HrInput placeholder="e.g. Phone allowance" />
       </HrField>
@@ -246,7 +274,7 @@ export function RegisterEmolumentModal({ open, onClose }: ModalProps) {
 
 export function NewPaymentDurationModal({ open, onClose }: ModalProps) {
   return (
-    <HrModal open={open} title="CREATE NEW PAYMENT DURATION" icon={<span aria-hidden>📅</span>} confirmLabel="Create Duration" onClose={onClose} onConfirm={onClose}>
+    <HrModal open={open} title="CREATE NEW PAYMENT DURATION" icon={<PayModalIcon name="calendar" />} confirmLabel="Create Duration" onClose={onClose} onConfirm={onClose}>
       <HrField label="Duration name">
         <HrInput placeholder="Monthly (Jun 2026)" />
       </HrField>
@@ -270,7 +298,7 @@ export function NewPaymentDurationModal({ open, onClose }: ModalProps) {
 
 export function RunPayrollConfirmModal({ open, onClose }: ModalProps) {
   return (
-    <HrModal open={open} title="EXECUTE MAY 2026 MONTH-END RUN" icon={<span aria-hidden>🧮</span>} confirmLabel="Confirm & Execute Payroll Disbursement" onClose={onClose} onConfirm={onClose} wide>
+    <HrModal open={open} title="EXECUTE MAY 2026 MONTH-END RUN" icon={<PayModalIcon name="calculator" />} confirmLabel="Confirm & Execute Payroll Disbursement" onClose={onClose} onConfirm={onClose} wide>
       <p className="pay-modal-desc">
         Once executed, this action locks monthly calculation parameters, records progressive taxing logs, and disburses digital payslips to active employees.
       </p>
@@ -281,7 +309,7 @@ export function RunPayrollConfirmModal({ open, onClose }: ModalProps) {
         </div>
         <div>
           <span>Estimated Gross Payroll Release</span>
-          <strong>MYR 60,598</strong>
+          <strong>MYR 60,590</strong>
         </div>
         <div>
           <span>Tax & EPF Withholdings</span>

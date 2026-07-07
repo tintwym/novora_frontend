@@ -9,7 +9,7 @@ import type {
   LeaveTypeRow,
 } from '../types/leave'
 
-export const LEAVE_APPROVAL_BADGE = 3
+export const LEAVE_APPROVAL_BADGE = 1
 
 export const LEAVE_TYPES: LeaveTypeRow[] = [
   { name: 'Annual leave', color: '#2563eb', paid: true, deduction: 'No deduction', hourBased: false, attachmentReq: false },
@@ -123,9 +123,11 @@ export const LEAVE_ENTITLEMENTS: LeaveEntitlementRow[] = [
 ]
 
 export const DEPT_LEAVE_MATRIX: DeptLeaveRow[] = [
-  { department: 'Engineering & Dev', fte: '142', annualUsed: '312 days', medicalTaken: '48 days', unpaidRecorded: '2 days', accruedBalance: '4.2 days', assessment: 'Optimal / 94.2%', assessmentTone: 'info' },
-  { department: 'Human Resources (HR)', fte: '28', annualUsed: '62 days', medicalTaken: '18 days', unpaidRecorded: '0 days', accruedBalance: '3.8 days', assessment: 'Excellent / 98.5%', assessmentTone: 'success' },
-  { department: 'Marketing & Sales', fte: '65', annualUsed: '118 days', medicalTaken: '32 days', unpaidRecorded: '5 days', accruedBalance: '2.1 days', assessment: 'Moderate / 90.0%', assessmentTone: 'warning' },
+  { department: 'Engineering & Dev', fte: '14 FTEs', annualUsed: '32 days', medicalTaken: '8 days', unpaidRecorded: '2 days', accruedBalance: '14 days', assessment: 'Optimal / 94.2%', assessmentTone: 'info' },
+  { department: 'Human Resources (HR)', fte: '8 FTEs', annualUsed: '18 days', medicalTaken: '4 days', unpaidRecorded: '0 days', accruedBalance: '12 days', assessment: 'Excellent / 98.5%', assessmentTone: 'success' },
+  { department: 'Marketing & Sales', fte: '12 FTEs', annualUsed: '28 days', medicalTaken: '6 days', unpaidRecorded: '3 days', accruedBalance: '9 days', assessment: 'Moderate / 80.0%', assessmentTone: 'warning' },
+  { department: 'Finance & Audit', fte: '10 FTEs', annualUsed: '22 days', medicalTaken: '5 days', unpaidRecorded: '1 day', accruedBalance: '11 days', assessment: 'Optimal / 92.1%', assessmentTone: 'info' },
+  { department: 'Operations & Admin', fte: '16 FTEs', annualUsed: '35 days', medicalTaken: '9 days', unpaidRecorded: '2 days', accruedBalance: '10 days', assessment: 'Good / 88.4%', assessmentTone: 'success' },
 ]
 
 export const LEAVE_LOGS: LeaveLogRow[] = [

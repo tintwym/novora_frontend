@@ -3,6 +3,7 @@ import { CustomBuilderPanel, ReportsCenterPanel, ScheduledReportsPanel } from '.
 import type { ReportPanelId } from '../types/reports'
 import { REPORT_PANELS } from '../types/reports'
 import '../styles/reports.css'
+import '../styles/recruitment.css'
 
 export function ReportsPage() {
   const [panel, setPanel] = useState<ReportPanelId>('report_centre')

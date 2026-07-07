@@ -17,7 +17,6 @@ import {
   TRAINING_TYPES,
 } from '../../data/mockTraining'
 import type { ReportMode } from '../../types/training'
-import { RecruitIconKpi } from '../recruitment/RecruitmentPrimitives'
 import {
   EditAttendanceModal,
   EditCategoryModal,
@@ -38,8 +37,10 @@ import {
   TrainEmpCell,
   TrainField,
   TrainFieldRow,
+  TrainIcon,
   TrainOutlineBtn,
   TrainPrimaryBtn,
+  TrainProgressKpi,
   TrainSearchInput,
   TrainSectionPill,
   TrainSelect,
@@ -308,7 +309,7 @@ export function TrainingScheduleTab() {
           <>
             <TrainSelect defaultValue="All courses" options={['All courses', 'Leadership essentials']} />
             <TrainSelect defaultValue="All status" options={['All status', 'Upcoming', 'Ongoing']} />
-            <TrainSelect defaultValue="dd/mm/yyyy" options={['dd/mm/yyyy', '12/05/2026']} />
+            <input type="text" className="train-select train-date-input" placeholder="dd/mm/yyyy" aria-label="Filter by date" />
           </>
         }
         right={
@@ -462,39 +463,58 @@ export function TrainingRequestTab() {
 
 export function TrainingBehalfTab() {
   const [employees, setEmployees] = useState(TRAINING_BEHALF_EMPLOYEES)
+  const [submitMode, setSubmitMode] = useState<'individual' | 'department'>('individual')
 
   return (
     <div className="train-tab train-split">
       <div className="train-panel">
         <h3 className="train-panel-title">REQUEST ON BEHALF</h3>
         <TrainSectionPill>Select employees</TrainSectionPill>
-        <TrainField label="Submit for">
-          <TrainSelect defaultValue="Individual employee" options={['Individual employee', 'Department']} />
-        </TrainField>
-        <TrainField label="Department">
-          <TrainSelect defaultValue="-- Select --" options={['-- Select --', 'Engineering', 'Operations']} />
-        </TrainField>
-        <span className="train-field-label">Employees</span>
-        {employees.map((emp) => (
-          <label key={emp.id} className="train-check-row">
-            <input
-              type="checkbox"
-              checked={emp.checked}
-              onChange={(e) => setEmployees((list) => list.map((x) => (x.id === emp.id ? { ...x, checked: e.target.checked } : x)))}
-            />
-            {emp.label}
+        <div className="train-radio-row">
+          <label>
+            <input type="radio" name="behalf-mode" checked={submitMode === 'individual'} onChange={() => setSubmitMode('individual')} />
+            Individual employees
           </label>
-        ))}
+          <label>
+            <input type="radio" name="behalf-mode" checked={submitMode === 'department'} onChange={() => setSubmitMode('department')} />
+            All department
+          </label>
+        </div>
+        <TrainFieldRow>
+          <TrainField label="Submit for" required>
+            <TrainSelect defaultValue="Individual employees" options={['Individual employees', 'Department']} />
+          </TrainField>
+          <TrainField label="Department">
+            <TrainSelect defaultValue="-- Select --" options={['-- Select --', 'Engineering', 'Operations']} />
+          </TrainField>
+        </TrainFieldRow>
+        <span className="train-field-label">
+          Employees <em className="train-req">*</em>
+        </span>
+        <div className="train-employee-list">
+          {employees.map((emp) => (
+            <label key={emp.id} className="train-check-row">
+              <input
+                type="checkbox"
+                checked={emp.checked}
+                onChange={(e) => setEmployees((list) => list.map((x) => (x.id === emp.id ? { ...x, checked: e.target.checked } : x)))}
+              />
+              {emp.label}
+            </label>
+          ))}
+        </div>
         <TrainSectionPill>Training details</TrainSectionPill>
-        <TrainField label="Course title">
-          <TrainSelect defaultValue="Leadership essentials (12-14 May)" options={['Leadership essentials (12-14 May)', 'Excel advanced']} />
+        <TrainField label="Course title" required>
+          <TrainSelect defaultValue="Leadership essentials (12–14 May)" options={['Leadership essentials (12–14 May)', 'Excel advanced']} />
         </TrainField>
-        <TrainField label="Location">
-          <input type="text" className="train-input" defaultValue="Training Room A" />
-        </TrainField>
-        <TrainField label="Company contribution">
-          <input type="text" className="train-input" defaultValue="100% / Fixed MYR" />
-        </TrainField>
+        <TrainFieldRow>
+          <TrainField label="Location">
+            <input type="text" className="train-input" defaultValue="Training Room A" />
+          </TrainField>
+          <TrainField label="Company contribution">
+            <input type="text" className="train-input" defaultValue="100% / Fixed MYR" />
+          </TrainField>
+        </TrainFieldRow>
         <label className="train-check-row">
           <input type="checkbox" defaultChecked />
           Send email to approver
@@ -550,7 +570,10 @@ export function TrainingApprovalTab() {
           <h3 className="train-panel-title">APPROVAL QUEUE</h3>
           <p className="train-muted">Please review pending training nominations and verify resource limits</p>
         </div>
-        <span className="train-pending-badge">🕐 2 pending approvals</span>
+        <span className="train-pending-badge">
+          <TrainIcon name="clock" className="train-pending-icon" />
+          2 pending approvals
+        </span>
       </div>
       <TrainTableCard>
         <TrainTableScroll>
@@ -589,10 +612,12 @@ export function TrainingApprovalTab() {
                     ) : (
                       <div className="train-action-pair">
                         <button type="button" className="train-approve-btn">
-                          ✓ Approve
+                          <TrainIcon name="check" className="train-action-icon" />
+                          Approve
                         </button>
                         <button type="button" className="train-deny-btn">
-                          ✕ Deny
+                          <TrainIcon name="x" className="train-action-icon" />
+                          Deny
                         </button>
                       </div>
                     )}
@@ -618,14 +643,12 @@ export function TrainingAttendanceTab() {
           <>
             <TrainSelect defaultValue="All courses" options={['All courses', 'Leadership']} />
             <TrainSelect defaultValue="All departments" options={['All departments']} />
-            <TrainSelect defaultValue="06/05/2026" options={['06/05/2026']} />
+            <input type="text" className="train-select train-date-input" defaultValue="06/05/2026" aria-label="Attendance date" />
             <TrainOutlineBtn>Reset</TrainOutlineBtn>
           </>
         }
+        right={<TrainPrimaryBtn onClick={() => setNewOpen(true)}>+ Create New Attendance</TrainPrimaryBtn>}
       />
-      <div className="train-attendance-actions">
-        <TrainOutlineBtn onClick={() => setNewOpen(true)}>+ Create New Attendance</TrainOutlineBtn>
-      </div>
       <TrainTableCard>
         <TrainTableScroll>
           <table className="train-table">
@@ -685,7 +708,12 @@ export function TrainingHistoryTab() {
             </button>
           </>
         }
-        right={<TrainOutlineBtn>Export history</TrainOutlineBtn>}
+        right={
+          <button type="button" className="train-export-history-btn">
+            <TrainIcon name="download" className="train-btn-icon" />
+            Export history
+          </button>
+        }
       />
       <TrainTableCard>
         <TrainTableScroll>
@@ -739,7 +767,8 @@ export function TrainingReportsTab() {
       <div className="train-reports-head">
         <div>
           <h3 className="train-panel-title">
-            <span aria-hidden>📊</span> Training Management Analytics &amp; Reports
+            <TrainIcon name="chart" className="train-title-icon" />
+            Training Management Analytics &amp; Reports
           </h3>
           <p className="train-muted">
             Monitor corporate safety compliance, workforce skill acquisitions, and strategic budget allocations.
@@ -747,46 +776,56 @@ export function TrainingReportsTab() {
         </div>
         <div className="train-report-toggles">
           <button type="button" className={mode === 'compliance' ? 'active' : ''} onClick={() => setMode('compliance')}>
+            <TrainIcon name="shield" className="train-toggle-icon" />
             Compliance &amp; Safety
           </button>
           <button type="button" className={mode === 'skills' ? 'active' : ''} onClick={() => setMode('skills')}>
+            <TrainIcon name="graduation" className="train-toggle-icon" />
             Skills Gap Matrix
           </button>
           <button type="button" className={mode === 'budget' ? 'active' : ''} onClick={() => setMode('budget')}>
+            <TrainIcon name="dollar" className="train-toggle-icon" />
             Budget &amp; Vendor Invoices
           </button>
         </div>
       </div>
 
       <div className="train-kpi-row">
-        <RecruitIconKpi
-          title="COMPLIANCE RATE"
+        <TrainProgressKpi
+          title="Compliance Rate"
           value="83.3%"
           subtext="5 of 6 mandatory sign-offs completed"
-          icon="🛡"
+          icon="shield"
           iconColor="#059669"
-          trend="● ON TRACK"
+          progress={83}
         />
-        <RecruitIconKpi
-          title="SKILLS IDENTIFIED"
+        <TrainProgressKpi
+          title="Skills Identified"
           value="6 Core Skills"
           subtext="Actively tracked across 4 departments"
-          icon="🎓"
+          icon="graduation"
           iconColor="#2563eb"
+          progress={75}
         />
-        <RecruitIconKpi
-          title="TOTAL INVESTED BUDGET"
+        <TrainProgressKpi
+          title="Total Invested Budget"
           value="MYR 8,400"
           subtext="Committed corporate training funds"
-          icon="💰"
+          icon="dollar"
           iconColor="#7c3aed"
+          progress={68}
         />
-        <RecruitIconKpi
-          title="TRAINING FORMATS"
+        <TrainProgressKpi
+          title="Training Formats"
           value="3 Formats"
           subtext="50% Internal, 30% External, 20% Overseas"
-          icon="📈"
+          icon="trend"
           iconColor="#d97706"
+          segments={[
+            { pct: 50, color: '#059669' },
+            { pct: 30, color: '#2563eb' },
+            { pct: 20, color: '#7c3aed' },
+          ]}
         />
       </div>
 
@@ -806,7 +845,12 @@ export function TrainingReportsTab() {
               {mode === 'skills' ? <TrainSelect defaultValue="All Departments" options={['All Departments', 'Engineering', 'Finance']} /> : null}
             </>
           }
-          right={<TrainOutlineBtn>⬇ Export Report Data</TrainOutlineBtn>}
+          right={
+            <button type="button" className="train-export-report-btn">
+              <TrainIcon name="download" className="train-btn-icon" />
+              Export Report Data
+            </button>
+          }
         />
         <TrainTableScroll>
           {mode === 'compliance' ? <ComplianceReportTable /> : null}

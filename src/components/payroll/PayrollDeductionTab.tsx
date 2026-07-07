@@ -85,7 +85,6 @@ export function PayrollDeductionTab({ addSignal = 0 }: { addSignal?: number }) {
       {sub === 1 ? (
         <PayCard>
           <PayAttachmentZone
-            icon="📎"
             iconColor="#ec4899"
             title="Attach personal asset clearance logs or salary sacrifice declaration agreements"
             subtitle="Supports standard PDF, PNG files up to 15MB (Click to simulate attach)"

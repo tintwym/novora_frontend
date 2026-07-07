@@ -75,7 +75,7 @@ function OtPolicyView() {
 function ManualOtView() {
   return (
     <PayCard>
-      <PayAttachmentZone icon="📎" iconColor="#2563eb" title="Attach overtime policy documents" subtitle="Supports PDF files up to 10MB (Click to simulate attach)" />
+      <PayAttachmentZone iconColor="#2563eb" title="Attach overtime policy documents" subtitle="Supports PDF files up to 10MB (Click to simulate attach)" />
     </PayCard>
   )
 }
@@ -120,7 +120,7 @@ function OtRequestView() {
       <PayField label="Business reason">
         <textarea rows={4} placeholder="e.g. Preparing end-of-year accounts audit paperwork" />
       </PayField>
-      <button type="button" className="pay-navy-btn full">Submit OT Request</button>
+      <button type="button" className="pay-primary-btn full">Submit OT Request</button>
     </PayFormCard>
   )
 }
@@ -141,7 +141,7 @@ function OtForOthersView() {
       <PayField label="Justification reason">
         <textarea rows={4} placeholder="e.g. Emergency support during evening network outage" />
       </PayField>
-      <button type="button" className="pay-navy-btn full">File Overtime on Behalf</button>
+      <button type="button" className="pay-primary-btn full">File Overtime on Behalf</button>
     </PayFormCard>
   )
 }
@@ -151,7 +151,7 @@ function OtApprovalView() {
     <PayCard>
       <div className="pay-card-head between">
         <PaySectionTitle title="Pending sign-off queue" />
-        <span className="pay-count-pill warning">3 requests pending</span>
+        <span className="pay-count-pill warning">4 requests pending</span>
       </div>
       <PayTableScroll>
         <table className="pay-table">
@@ -184,7 +184,7 @@ function OtApprovalView() {
 function OtHistoryView() {
   return (
     <PayCard>
-      <PaySectionTitle title="Overtime requests log history" />
+      <PaySectionTitle title="OVERTIME REQUESTS LOG HISTORY" />
       <PayTableScroll>
         <table className="pay-table">
           <thead>

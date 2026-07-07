@@ -117,9 +117,9 @@ export function AstOutlineBtn({ children, onClick }: { children: ReactNode; onCl
   )
 }
 
-export function AstPrimaryBtn({ children, onClick }: { children: ReactNode; onClick?: () => void }) {
+export function AstPrimaryBtn({ children, onClick, className = '' }: { children: ReactNode; onClick?: () => void; className?: string }) {
   return (
-    <button type="button" className="ast-primary-btn" onClick={onClick}>
+    <button type="button" className={`ast-primary-btn${className ? ` ${className}` : ''}`} onClick={onClick}>
       {children}
     </button>
   )
@@ -156,6 +156,19 @@ export function AstCheckboxCard({ checked, onChange, title, subtext }: { checked
     </label>
   )
 }
+
+export const AstCloseIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden className="ast-close-icon">
+    <path d="M18 6 6 18M6 6l12 12" fill="none" stroke="currentColor" strokeWidth="2" />
+  </svg>
+)
+
+export const AstClockIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden className="ast-clock-icon">
+    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
+    <path d="M12 6v6l4 2" fill="none" stroke="currentColor" strokeWidth="2" />
+  </svg>
+)
 
 export const AstEyeIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden>

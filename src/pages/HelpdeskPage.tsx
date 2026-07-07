@@ -1,20 +1,20 @@
 import { useState } from 'react'
+import { HdAutoRoutePill, HdIcon } from '../components/helpdesk/HelpdeskShared'
 import {
   HelpdeskAnalyticsTab,
   HelpdeskDocumentTab,
   HelpdeskKnowledgeTab,
   HelpdeskTicketsTab,
 } from '../components/helpdesk/HelpdeskTabs'
-import { HdAutoRoutePill } from '../components/helpdesk/HelpdeskShared'
 import { HELPDESK_OPEN_BADGE } from '../data/mockHelpdesk'
 import '../styles/helpdesk.css'
 import '../styles/recruitment.css'
 
 const MODULE_TABS = [
-  { id: 'tickets', label: 'Tickets Center & Live Chat', badge: HELPDESK_OPEN_BADGE },
-  { id: 'documents', label: 'Self-Service Document Generator' },
-  { id: 'analytics', label: 'Desk Performance Analytics' },
-  { id: 'knowledge', label: 'Operational Knowledge Base' },
+  { id: 'tickets', label: 'Tickets Center & Live Chat', icon: 'tickets', badge: HELPDESK_OPEN_BADGE },
+  { id: 'documents', label: 'Self-Service Document Generator', icon: 'documents' },
+  { id: 'analytics', label: 'Desk Performance Analytics', icon: 'analytics' },
+  { id: 'knowledge', label: 'Operational Knowledge Base', icon: 'knowledge' },
 ] as const
 
 type ModuleTab = (typeof MODULE_TABS)[number]['id']
@@ -28,6 +28,7 @@ export function HelpdeskPage() {
         <nav className="hd-module-tabs" aria-label="Helpdesk modules">
           {MODULE_TABS.map((t) => (
             <button key={t.id} type="button" className={moduleTab === t.id ? 'active' : ''} onClick={() => setModuleTab(t.id)}>
+              <HdIcon name={t.icon} className="hd-tab-icon" />
               {t.label}
               {'badge' in t && t.badge ? <span className="hd-tab-badge">{t.badge} Open</span> : null}
             </button>

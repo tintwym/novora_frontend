@@ -149,8 +149,7 @@ function AllowanceAttachmentView() {
   return (
     <PayCard>
       <PayAttachmentZone
-        icon="📎"
-        iconColor="#7c3aed"
+        iconColor="#ec4899"
         title="Attach allowance policy documents or employee eligibility proofs"
         subtitle="Supports PDF and image files up to 10MB (Click to simulate attach)"
       />

@@ -8,6 +8,7 @@ import {
   SUMMARY_BALANCE,
   WARNING_ACTIONS,
   WARNING_GUIDE,
+  WARNING_LEVEL_OPTIONS,
 } from '../../data/mockDisciplinary'
 import type { DisciplinaryHistoryRow } from '../../types/disciplinary'
 import { RecruitIconKpi, RecruitPill } from '../recruitment/RecruitmentPrimitives'
@@ -275,7 +276,7 @@ export function DisciplinarySetupTab() {
         </label>
         <SectionPill label="Supporting document" />
         <div className="disc-upload-zone">
-          <span aria-hidden>📎</span>
+          <DiscActionIcon name="paperclip" className="disc-upload-icon" />
           <strong>Click to attach file or drag-and-drop</strong>
           <p>Supports PDF, DOCX, PNG up to 10MB.</p>
         </div>
@@ -290,7 +291,10 @@ export function DisciplinarySetupTab() {
       </DiscCard>
       <div>
         <DiscCard>
-          <h3>⚠ Warning level guide</h3>
+          <h3 className="disc-guide-title">
+            <DiscActionIcon name="shield" className="disc-guide-icon" />
+            Warning level guide
+          </h3>
           <p className="disc-muted">Standard guidelines for issuing warning protocols.</p>
           {WARNING_GUIDE.map((g) => (
             <div key={g.level} className="disc-guide-row">
@@ -308,7 +312,7 @@ export function DisciplinarySetupTab() {
               <h3>Recent cases</h3>
               <p className="disc-muted">Recent system log events.</p>
             </div>
-            <span className="disc-count-pill warning">3 active</span>
+            <span className="disc-count-pill warning">2 active</span>
           </div>
           {RECENT_CASES.map((c) => (
             <div key={c.id} className="disc-recent-row">
@@ -372,7 +376,7 @@ export function DisciplinaryHistoryTab() {
                   <td>{row.incidentDate}</td>
                   <td>{row.actionDate}</td>
                   <td>
-                    <RecruitPill label={row.warningLevel} tone="info" />
+                    <span className="disc-warning-level">{row.warningLevel}</span>
                   </td>
                   <td>{row.issuedBy}</td>
                   <td>
@@ -381,13 +385,14 @@ export function DisciplinaryHistoryTab() {
                   <td>
                     <button
                       type="button"
-                      className="disc-outline-btn sm"
+                      className="disc-outline-btn sm disc-view-btn"
                       onClick={() => {
                         setViewEmployee(row.name)
                         setViewOpen(true)
                       }}
                     >
-                      👁 View
+                      <DiscActionIcon name="eye" />
+                      View
                     </button>
                   </td>
                 </tr>
@@ -407,14 +412,21 @@ export function DisciplinaryReportsTab() {
   return (
     <>
       <div className="disc-kpi-row">
-        <RecruitIconKpi title="Resolution Rate" value="33%" subtext="+ 1 of 3 closed" icon="✓" iconColor="#2563eb" valueTone="primary" trend="+ 1 of 3 closed" />
-        <RecruitIconKpi title="Active Cases" value="2 cases" subtext="1 pending action" icon="⚠" iconColor="#ea580c" trend="1 pending action" />
-        <RecruitIconKpi title="Gross Misconduct" value="0 critical" subtext="Immediate attention" icon="🛡" iconColor="#ef4444" valueTone="danger" trend="Immediate attention" />
-        <RecruitIconKpi title="Total Filed Cases" value="3 logged" subtext="Overall records" icon="📄" iconColor="#7c3aed" valueTone="primary" />
+        <RecruitIconKpi title="RESOLUTION RATE" value="33%" subtext="Overall records" icon="check" iconColor="#2563eb" valueTone="primary" trend="+ 1 of 3 closed" trendTone="success" />
+        <RecruitIconKpi title="ACTIVE CASES" value="2 cases" subtext="Across all units" icon="alert" iconColor="#ea580c" trend="1 pending action" trendTone="warning" />
+        <RecruitIconKpi title="GROSS MISCONDUCT" value="0 critical" subtext="Overall records" icon="shield" iconColor="#ef4444" valueTone="danger" trend="Immediate attention" trendTone="danger" />
+        <RecruitIconKpi title="TOTAL FILED CASES" value="3 logged" subtext="Overall records" icon="clipboard" iconColor="#7c3aed" valueTone="purple" />
       </div>
       <DiscCard>
-        <h3>Departmental Disciplinary & Compliance Matrix</h3>
-        <p className="disc-muted">Aggregate warning frequencies, unresolved pending investigations, and structural risk metrics by business unit.</p>
+        <div className="disc-matrix-head">
+          <div>
+            <h3 className="disc-matrix-title">
+              <DiscActionIcon name="trend" className="disc-matrix-icon" />
+              Departmental Disciplinary & Compliance Matrix
+            </h3>
+            <p className="disc-muted">Aggregate warning frequencies, unresolved pending investigations, and structural risk metrics by business unit.</p>
+          </div>
+        </div>
         <div className="disc-table-scroll">
           <table className="disc-table">
             <thead>
@@ -472,11 +484,12 @@ export function DisciplinaryReportsTab() {
             <option>All Times</option>
           </select>
           <select defaultValue="All Warning Levels">
-            <option>All Warning Levels</option>
-            <option>L1 — Verbal warning</option>
-            <option>L2 — First written warning</option>
+            {WARNING_LEVEL_OPTIONS.map((opt) => (
+              <option key={opt}>{opt}</option>
+            ))}
           </select>
-          <button type="button" className="disc-primary-btn">
+          <button type="button" className="disc-primary-btn disc-export-report-btn">
+            <DiscActionIcon name="export" />
             Export
           </button>
         </div>
@@ -607,6 +620,48 @@ function SummaryBalancePanel() {
       </div>
     </DiscCard>
   )
+}
+
+function DiscActionIcon({ name, className = '' }: { name: string; className?: string }) {
+  const cls = `disc-action-icon${className ? ` ${className}` : ''}`
+  if (name === 'eye') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden className={cls}>
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="none" stroke="currentColor" strokeWidth="2" />
+        <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    )
+  }
+  if (name === 'paperclip') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden className={cls}>
+        <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    )
+  }
+  if (name === 'shield') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden className={cls}>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    )
+  }
+  if (name === 'trend') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden className={cls}>
+        <path d="M3 3v18h18M7 16l4-4 4 4 5-6" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    )
+  }
+  if (name === 'export') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden className={cls}>
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path d="M14 2v6h6M12 18v-6M9 15l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    )
+  }
+  return null
 }
 
 function HistoryStatus({ row }: { row: DisciplinaryHistoryRow }) {

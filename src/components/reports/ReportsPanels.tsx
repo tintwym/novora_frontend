@@ -8,6 +8,7 @@ import {
   RptFieldCheckRow,
   RptFormField,
   RptHeroCard,
+  RptIcon,
   RptInput,
   RptInsightCard,
   RptOutlinedCard,
@@ -248,13 +249,13 @@ export function ScheduledReportsPanel() {
                   <td>{row.next}</td>
                   <td className="rpt-schedule-actions">
                     <button type="button" aria-label="Download" onClick={() => showReportToast('Download')}>
-                      ↓
+                      <RptIcon name="download" />
                     </button>
                     <button type="button" aria-label="Edit" onClick={() => showReportToast('Edit')}>
-                      ✎
+                      <RptIcon name="edit" />
                     </button>
                     <button type="button" aria-label="Delete" onClick={() => showReportToast('Delete')}>
-                      🗑
+                      <RptIcon name="trash" />
                     </button>
                   </td>
                 </tr>
@@ -348,14 +349,16 @@ export function CustomBuilderPanel() {
                 <RptSelect value={format} onChange={setFormat} options={['Excel Spreadsheet (.xlsx)', 'PDF', 'CSV']} />
               </RptFormField>
               <button type="button" className="rpt-primary-btn rpt-run-btn" onClick={() => showReportToast('Running custom report…')}>
-                ↓ Run & Export Report
+                <RptIcon name="download" className="rpt-btn-icon" />
+                Run & Export Report
               </button>
             </RptOutlinedCard>
           </div>
         </div>
         <div className="rpt-builder-foot">
           <button type="button" className="rpt-muted-btn" onClick={() => showReportToast('Reset to default')}>
-            ↻ Reset to Default
+            <RptIcon name="reset" className="rpt-btn-icon" />
+            Reset to Default
           </button>
           <button type="button" className="rpt-navy-btn" onClick={() => showReportToast('Changes saved.')}>
             Save Changes

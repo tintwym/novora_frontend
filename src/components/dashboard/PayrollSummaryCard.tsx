@@ -7,7 +7,26 @@ export function PayrollSummaryCard({ payroll }: { payroll: PayrollTotals }) {
 
   return (
     <DashboardCard>
-      <CardHeader title="FINANCIAL OVERVIEW" />
+      <CardHeader
+        title="FINANCIAL OVERVIEW"
+        action={
+          <button
+            type="button"
+            className="dash-payroll-header-btn"
+            aria-label="Open payroll module"
+            onClick={() => navigate('/payroll')}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden>
+              <path
+                d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+            </svg>
+          </button>
+        }
+      />
       <p className="dash-payroll-total">{payroll.totalPayroll}</p>
       <p className="dash-payroll-sub">Total Operational Payroll</p>
       <div className="dash-payroll-bar">

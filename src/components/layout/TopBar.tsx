@@ -77,7 +77,9 @@ export function TopBar({ sidebarCollapsed = false, onExpandSidebar }: TopBarProp
               strokeWidth="2"
             />
           </svg>
-          <span className="topbar-badge" aria-hidden />
+          <span className="topbar-badge" aria-label="5 unread notifications">
+            5
+          </span>
         </button>
 
         <div className="topbar-user-menu" ref={menuRef}>

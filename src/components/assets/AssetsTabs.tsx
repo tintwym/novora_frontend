@@ -439,6 +439,12 @@ export function AssetRequestsTab({ requests, onUpdateRequests, onExport, onNewRe
     onUpdateRequests(requests.map((r) => (r.id === id ? { ...r, status } : r)))
   }
 
+  function requestStatusTone(status: AssetRequestRecord['status']) {
+    if (status === 'Approved') return 'success' as const
+    if (status === 'Rejected') return 'danger' as const
+    return 'warning' as const
+  }
+
   return (
     <div className="ast-tab">
       <AstToolbarCard
@@ -487,7 +493,7 @@ export function AssetRequestsTab({ requests, onUpdateRequests, onExport, onNewRe
                   </td>
                   <td>{r.submitDate}</td>
                   <td>
-                    <span className={`ast-status-text ast-status-${r.status.toLowerCase()}`}>{r.status}</span>
+                    <AstStatusPill label={r.status} tone={requestStatusTone(r.status)} />
                   </td>
                   <td>
                     {r.status === 'Pending' ? (

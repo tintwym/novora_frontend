@@ -23,12 +23,15 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  border-radius: 8px 8px 0 0;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
 .att-module-tabs button.active {
   color: var(--brand-blue-deep);
   font-weight: 700;
   border-bottom-color: var(--brand-blue-deep);
+  background: rgba(37, 99, 235, 0.08);
 }
 
 .att-tab-badge {
@@ -66,9 +69,10 @@
 .att-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.25rem;
+  border-radius: 16px;
+  padding: 1.25rem 1.35rem;
   margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 }
 
 .att-card:last-child {
@@ -115,8 +119,30 @@
   align-items: center;
 }
 
-.att-icon {
-  font-size: 1.25rem;
+.att-icon-svg,
+.att-recent-cal {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--brand-blue-deep);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.att-icon-svg svg,
+.att-recent-cal svg {
+  width: 20px;
+  height: 20px;
+}
+
+.att-recent-cal {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #64748b;
 }
 
 .att-workstation-panel {
@@ -267,7 +293,14 @@
   height: 32px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 1.125rem;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+}
+
+.att-roster-period button svg {
+  width: 16px;
+  height: 16px;
 }
 
 .att-segmented {
@@ -738,6 +771,31 @@
 
 .tone-primary {
   color: var(--brand-blue-deep);
+}
+
+.att-avatar.unknown {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.att-icon-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.att-modal-icon-success {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.att-modal-icon-success svg {
+  width: 18px;
+  height: 18px;
 }
 
 .att-readonly-field {

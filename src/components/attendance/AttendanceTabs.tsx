@@ -22,6 +22,48 @@ import {
   EditTimesheetModal,
 } from './AttendanceModals'
 
+function AttIcon({ name, className = '' }: { name: string; className?: string }) {
+  const props = { viewBox: '0 0 24 24', 'aria-hidden': true as const, className }
+  if (name === 'clock') {
+    return (
+      <svg {...props}>
+        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path d="M12 6v6l4 2" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    )
+  }
+  if (name === 'calendar') {
+    return (
+      <svg {...props}>
+        <rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path d="M16 2v4M8 2v4M3 10h18" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    )
+  }
+  if (name === 'trash') {
+    return (
+      <svg {...props}>
+        <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    )
+  }
+  if (name === 'chevron-left') {
+    return (
+      <svg {...props}>
+        <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    )
+  }
+  if (name === 'chevron-right') {
+    return (
+      <svg {...props}>
+        <path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    )
+  }
+  return null
+}
+
 const ROSTER_TONE: Record<RosterCellTone, { bg: string; border: string; fg: string }> = {
   completed: { bg: '#d1fae5', border: '#6ee7b7', fg: '#065f46' },
   clockIn: { bg: '#dbeafe', border: '#93c5fd', fg: '#1e40af' },
@@ -36,7 +78,7 @@ const ROSTER_TONE: Record<RosterCellTone, { bg: string; border: string; fg: stri
 export function CheckInTab() {
   const [checkedIn, setCheckedIn] = useState(false)
   const [checkedOut, setCheckedOut] = useState(false)
-  const today = '2026-06-13'
+  const today = '2025-06-13'
 
   function onPunch() {
     if (!checkedIn) {
@@ -52,8 +94,8 @@ export function CheckInTab() {
     <div className="att-split">
       <AttCard>
         <div className="att-card-head">
-          <span className="att-icon" aria-hidden>
-            🕐
+          <span className="att-icon-svg" aria-hidden>
+            <AttIcon name="clock" />
           </span>
           <div>
             <h3>Interactive Attendance Workstation</h3>
@@ -100,7 +142,9 @@ export function CheckInTab() {
         {RECENT_DAY_LOGS.map((e) => (
           <div key={e.date} className="att-recent-row">
             <div>
-              <span aria-hidden>📅</span>
+              <span className="att-recent-cal" aria-hidden>
+                <AttIcon name="calendar" />
+              </span>
               <div>
                 <strong>{e.date}</strong>
                 <em>{e.range}</em>
@@ -127,10 +171,10 @@ export function DutyRosterTab() {
         <div className="att-roster-period">
           <strong>Roster Period: 5 – 11 May 2026</strong>
           <button type="button" aria-label="Previous week">
-            ‹
+            <AttIcon name="chevron-left" />
           </button>
           <button type="button" aria-label="Next week">
-            ›
+            <AttIcon name="chevron-right" />
           </button>
         </div>
         <div className="att-segmented">
@@ -319,7 +363,7 @@ export function ShiftPatternTab() {
                   + Assign Staff
                 </button>
                 <button type="button" className="att-icon-btn danger" aria-label="Delete pattern">
-                  🗑
+                  <AttIcon name="trash" />
                 </button>
               </div>
             </div>
@@ -531,7 +575,10 @@ export function UnknownSwipesTab() {
                   </td>
                   <td>
                     {row.name === '—' ? (
-                      '—'
+                      <div className="att-avatar-cell">
+                        <span className="att-avatar unknown">?</span>
+                        <strong>—</strong>
+                      </div>
                     ) : (
                       <AvatarCell initials={row.initials} name={row.name} />
                     )}
@@ -643,14 +690,14 @@ export function ReportsTab() {
   return (
     <>
       <div className="att-kpi-row">
-        <RecruitIconKpi title="Adherence Rate" value="95.8%" subtext="Across all departments" icon="👥" iconColor="#2563eb" trend="+1.2% this week" />
-        <RecruitIconKpi title="Total Overtime" value="42.5 hrs" subtext="Across 18 staff" icon="🕐" iconColor="#2563eb" valueTone="primary" />
-        <RecruitIconKpi title="Avg Punctuality" value="92.4%" subtext="Late margin tracking" icon="⏱" iconColor="#ef4444" trend="-0.3% late margin" />
-        <RecruitIconKpi title="Total Absences" value="12 days" subtext="8 with sick leave cert" icon="📷" iconColor="#ef4444" />
+        <RecruitIconKpi title="ADHERENCE RATE" value="95.8%" subtext="Across all departments" icon="users" iconColor="#2563eb" trend="↑ +1.2% this week" />
+        <RecruitIconKpi title="TOTAL OVERTIME" value="42.5 hrs" subtext="Across 18 staff" icon="clock" iconColor="#2563eb" valueTone="primary" />
+        <RecruitIconKpi title="AVG PUNCTUALITY" value="92.4%" subtext="Late margin tracking" icon="percent" iconColor="#ef4444" trend="↓ -0.3% late margin" />
+        <RecruitIconKpi title="TOTAL ABSENCES" value="12 days" subtext="8 with sick leave cert" icon="chart" iconColor="#ef4444" />
       </div>
       <AttCard>
         <h3>Corporate Departmental Attendance & Compliance Scoreboard</h3>
-        <p className="att-muted">Track IT checklist status, security, and asset repossessions for exiting staff</p>
+        <p className="att-muted">Department-level attendance performance, punctuality, and compliance ratings.</p>
         <div className="att-table-scroll">
           <table className="att-table">
             <thead>

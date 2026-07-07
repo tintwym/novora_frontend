@@ -24,12 +24,24 @@
   cursor: pointer;
   border-bottom: 2px solid transparent;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 8px 8px 0 0;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.disc-tab-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .disc-module-tabs button.active {
   color: var(--brand-blue-deep);
   font-weight: 700;
   border-bottom-color: var(--brand-blue-deep);
+  background: rgba(37, 99, 235, 0.08);
 }
 
 .disc-header-primary-btn {
@@ -58,9 +70,10 @@
 .disc-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 1.25rem;
   margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .disc-card:last-child {
@@ -199,6 +212,75 @@
 
 .disc-outline-btn.sm {
   padding: 0.25rem 0.6rem;
+}
+
+.disc-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.disc-action-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.disc-upload-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.disc-warning-level {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.disc-guide-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.disc-guide-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--brand-blue-deep);
+}
+
+.disc-matrix-head {
+  margin-bottom: 1rem;
+}
+
+.disc-matrix-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.disc-matrix-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--brand-blue-deep);
+}
+
+.disc-matrix-head .disc-muted {
+  margin-bottom: 0;
+}
+
+.disc-export-report-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .disc-primary-btn {
@@ -468,10 +550,17 @@
 
 .disc-log-title {
   display: block;
-  font-size: 0.875rem;
+  font-size: 0.6875rem;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.05em;
   margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+.hr-modal-icon svg {
+  width: 20px;
+  height: 20px;
+  color: var(--brand-blue-deep);
 }
 
 .disc-segmented {
@@ -500,11 +589,18 @@
 
 .disc-segmented.report {
   border-radius: 8px;
+  background: #f8fafc;
 }
 
 .disc-segmented.report button {
   font-size: 0.8125rem;
   padding: 0.5rem 1rem;
+}
+
+.disc-segmented.report button.active {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--brand-blue-deep);
+  font-weight: 700;
 }
 
 .disc-eval-btn {

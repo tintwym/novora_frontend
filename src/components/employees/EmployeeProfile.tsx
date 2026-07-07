@@ -12,11 +12,18 @@ import type {
   ProfileTabId,
 } from '../../types/employeeProfile'
 import { PROFILE_TABS } from '../../types/employeeProfile'
+import { cn } from '../../lib/cn'
 import { ProfileHeaderCard } from './ProfileHeader'
 import { ProfileModals, type ModalType } from './ProfileModals'
 import { ProfileTabContent, type ProfileTabActions } from './ProfileTabs'
 
-export function EmployeeProfile({ employeeId: _employeeId }: { employeeId?: string | null }) {
+export function EmployeeProfile({
+  employeeId: _employeeId,
+  onBack,
+}: {
+  employeeId?: string | null
+  onBack?: () => void
+}) {
   const [data, setData] = useState<EmployeeProfileDetail>(() => mockEmployeeProfile())
   const [tab, setTab] = useState<ProfileTabId>('summary')
   const [modal, setModal] = useState<ModalType>(null)
@@ -72,20 +79,40 @@ export function EmployeeProfile({ employeeId: _employeeId }: { employeeId?: stri
 
   return (
     <div className="emp-profile">
+      <div className="emp-profile-nav">
+        {onBack ? (
+          <button type="button" className="emp-back-link" onClick={onBack}>
+            ‹ Back to Employee Directory
+          </button>
+        ) : (
+          <span />
+        )}
+        <div className="emp-profile-nav-actions">
+          <button type="button" className="emp-danger-link" onClick={actions.onDeleteEmployee}>
+            Delete Employee
+          </button>
+          <button type="button" className="emp-text-btn" onClick={actions.onResetPassword}>
+            Reset Password
+          </button>
+        </div>
+      </div>
+
       <ProfileHeaderCard header={data.header} />
 
-      <nav className="emp-profile-tabs" aria-label="Profile sections">
-        {PROFILE_TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className={tab === t.id ? 'active' : ''}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </nav>
+      <div className="emp-profile-tabs-bar">
+        <nav className="emp-profile-tabs" aria-label="Profile sections">
+          {PROFILE_TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={cn(tab === t.id && 'active')}
+              onClick={() => setTab(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
+      </div>
 
       <div className="emp-profile-body">
         <ProfileTabContent tab={tab} data={data} actions={actions} />

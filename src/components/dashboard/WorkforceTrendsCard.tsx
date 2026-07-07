@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { GrowthPoint } from '../../types/dashboard'
 import { GROWTH_PERIODS } from '../../types/dashboard'
 import { CardHeader, DashboardCard } from './DashboardCard'
@@ -35,7 +35,17 @@ export function WorkforceTrendsCard({
   onPeriodChange,
 }: WorkforceTrendsCardProps) {
   const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
   const period = GROWTH_PERIODS.find((p) => p.months === growthMonths) ?? GROWTH_PERIODS[0]
+
+  useEffect(() => {
+    if (!open) return
+    function onDocClick(e: MouseEvent) {
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('click', onDocClick)
+    return () => document.removeEventListener('click', onDocClick)
+  }, [open])
 
   const chart = useMemo(() => {
     const width = 560
@@ -72,7 +82,7 @@ export function WorkforceTrendsCard({
       <CardHeader
         title="WORKFORCE TRENDS"
         action={
-          <div className="dash-period-wrap">
+          <div className="dash-period-wrap" ref={wrapRef}>
             <button
               type="button"
               className="dash-period-chip"

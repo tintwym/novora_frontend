@@ -14,7 +14,7 @@ export const ENROLLMENT_PLANS: BenefitPlan[] = [
     title: 'Gold Premium Care Plus',
     provider: 'Alliance Insurance Group',
     price: 'RM 450 / month',
-    description: 'Comprehensive inpatient and outpatient coverage with direct panel access across Malaysia.',
+    description: 'Highest available tier with direct billing access, 10% co-pay, and private suite rooms.',
     inclusions: ['Direct Clinic Billing', 'Overseas Emergencies', 'Maternity Cover included'],
   },
   {
@@ -67,10 +67,10 @@ export const VENDORS: VendorRow[] = [
 ]
 
 export const REPORT_CLAIMS: ReportClaimRow[] = [
-  { name: 'Pinky Sharma', empId: 'EMP-002', category: 'Dental', amount: 'RM 150.00', status: 'Disbursed', statusTone: 'success' },
-  { name: 'Sarah Lim', empId: 'EMP-001', category: 'Optical', amount: 'RM 320.00', status: 'Approved', statusTone: 'info' },
-  { name: 'Raj Kumar', empId: 'EMP-0285', category: 'Medical', amount: 'RM 45.50', status: 'Reviewing', statusTone: 'warning' },
-  { name: 'Pinky Sharma', empId: 'EMP-002', category: 'Wellness', amount: 'RM 90.00', status: 'Reviewing', statusTone: 'warning' },
+  { name: 'Pinky Sharma', empId: 'EMP-882', category: 'Dental', amount: 'RM 150.00', status: 'DISBURSED', statusTone: 'success' },
+  { name: 'Sarah Lim', empId: 'EMP-001', category: 'Optical', amount: 'RM 320.00', status: 'APPROVED', statusTone: 'info' },
+  { name: 'Raj Kumar', empId: 'EMP-0285', category: 'Medical', amount: 'RM 45.50', status: 'REVIEWING', statusTone: 'warning' },
+  { name: 'Pinky Sharma', empId: 'EMP-882', category: 'Wellness', amount: 'RM 90.00', status: 'REVIEWING', statusTone: 'warning' },
 ]
 
 export const CLAIM_CATEGORY_RATIOS: RatioBar[] = [

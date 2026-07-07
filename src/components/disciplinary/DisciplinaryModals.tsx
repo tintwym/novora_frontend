@@ -3,9 +3,40 @@ import { HrField, HrFieldRow, HrInput, HrModal, HrSelect, HrTextarea } from '../
 
 type ModalProps = { open: boolean; onClose: () => void }
 
+function DiscModalIcon({ name }: { name: 'plus' | 'scales' | 'shield' }) {
+  if (name === 'plus') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.12" />
+        <path d="M12 8v8M8 12h8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    )
+  }
+  if (name === 'scales') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <path d="M12 3v18M5 7h14M7 7l-3 6h6L7 7zM17 7l-3 6h6l-3-6z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path d="M12 8v4M12 16h.01" fill="none" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  )
+}
+
 export function AddDisciplinaryReasonModal({ open, onClose }: ModalProps) {
   return (
-    <HrModal open={open} title="ADD NEW DISCIPLINARY REASON" icon={<span aria-hidden>⊕</span>} confirmLabel="Save Reason" onClose={onClose} onConfirm={onClose}>
+    <HrModal
+      open={open}
+      title="ADD NEW DISCIPLINARY REASON"
+      icon={<DiscModalIcon name="plus" />}
+      confirmLabel="Save Reason"
+      onClose={onClose}
+      onConfirm={onClose}
+    >
       <HrField label="Reason name">
         <HrInput placeholder="e.g. Failure to report asset damage" />
       </HrField>
@@ -32,25 +63,30 @@ export function EditDisciplinaryReasonModal({
   description = 'Absent without prior approval or valid medical reason.',
 }: ModalProps & { name?: string; severity?: string; status?: string; description?: string }) {
   return (
-    <HrModal open={open} title="EDIT DISCIPLINARY REASON" icon={<span aria-hidden>⚖</span>} confirmLabel="Save Updates" onClose={onClose} onConfirm={onClose}>
+    <HrModal
+      open={open}
+      title="EDIT DISCIPLINARY REASON"
+      icon={<DiscModalIcon name="scales" />}
+      confirmLabel="Save Updates"
+      onClose={onClose}
+      onConfirm={onClose}
+    >
       <HrField label="Reason name">
         <HrInput defaultValue={name} />
       </HrField>
-      <HrFieldRow>
-        <HrField label="Severity category">
-          <HrSelect defaultValue={severity}>
-            <option>Minor</option>
-            <option>Major</option>
-            <option>Gross misconduct</option>
-          </HrSelect>
-        </HrField>
-        <HrField label="Status">
-          <HrSelect defaultValue={status}>
-            <option>Active</option>
-            <option>Inactive</option>
-          </HrSelect>
-        </HrField>
-      </HrFieldRow>
+      <HrField label="Severity category">
+        <HrSelect defaultValue={severity}>
+          <option>Minor</option>
+          <option>Major</option>
+          <option>Gross misconduct</option>
+        </HrSelect>
+      </HrField>
+      <HrField label="Status">
+        <HrSelect defaultValue={status}>
+          <option>Active</option>
+          <option>Inactive</option>
+        </HrSelect>
+      </HrField>
       <HrField label="Description">
         <HrTextarea rows={4} defaultValue={description} />
       </HrField>
@@ -60,7 +96,14 @@ export function EditDisciplinaryReasonModal({
 
 export function AddWarningParameterModal({ open, onClose }: ModalProps) {
   return (
-    <HrModal open={open} title="ADD WARNING PARAMETER" icon={<span aria-hidden>⊕</span>} confirmLabel="Create Parameter" onClose={onClose} onConfirm={onClose}>
+    <HrModal
+      open={open}
+      title="ADD WARNING PARAMETER"
+      icon={<DiscModalIcon name="plus" />}
+      confirmLabel="Create Parameter"
+      onClose={onClose}
+      onConfirm={onClose}
+    >
       <HrFieldRow>
         <HrField label="Level code">
           <HrInput placeholder="e.g. L7" />
@@ -97,7 +140,14 @@ export function EditWarningParameterModal({
   description = 'Informal verbal caution, not recorded on employee file permanently.',
 }: ModalProps & { level?: string; name?: string; type?: string; payImpact?: string; description?: string }) {
   return (
-    <HrModal open={open} title="EDIT WARNING PARAMETER" icon={<span aria-hidden>🛡</span>} confirmLabel="Save Updates" onClose={onClose} onConfirm={onClose}>
+    <HrModal
+      open={open}
+      title="EDIT WARNING PARAMETER"
+      icon={<DiscModalIcon name="shield" />}
+      confirmLabel="Save Updates"
+      onClose={onClose}
+      onConfirm={onClose}
+    >
       <HrFieldRow>
         <HrField label="Level code">
           <HrInput defaultValue={level} readOnly />

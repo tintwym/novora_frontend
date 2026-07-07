@@ -1,5 +1,5 @@
 import { type ReactNode, useState } from 'react'
-import { HrCheckbox, HrField, HrFieldRow, HrInput, HrSelect } from '../hr/HrModal'
+import { HrCheckbox, HrField, HrInput, HrSelect } from '../hr/HrModal'
 
 const STEPS = ['Details', 'Personal', 'Off duty', 'Biometric', 'Review'] as const
 const FOOTER_LABELS = [
@@ -10,12 +10,32 @@ const FOOTER_LABELS = [
   'Review before saving',
 ] as const
 
-const TIPS = [
-  '• Employee No. can be auto-generated via Settings.\n• Employment Status, Department and Position must be set up in Settings first.\n• Tick "Active" to mark the employee as currently working.',
-  '• Nationality and Religion dropdowns are configured in Settings.\n• Passport section is optional — enable it with the checkbox.\n• Tick "same address" if current and permanent addresses match.',
-  '• Select days the employee does not work.\n• Full day off means no attendance required.\n• Half day applies to mornings or afternoons based on shift.',
-  '• The TA Number must match the number enrolled on the physical biometric device.\n• Multiple terminals can be added with the + button.\n• Enable auto clock-in to skip manual swipes.',
-  '• Check all sections before saving.\n• You can go back to any step to make changes.\n• Once saved, the employee record goes live immediately.',
+const TIPS: string[][] = [
+  [
+    'Employee No. can be auto-generated via Settings.',
+    'Employment Status, Department and Position must be set up in Settings first.',
+    'Tick "Active" to mark the employee as currently working.',
+  ],
+  [
+    'Nationality and Religion dropdowns are configured in Settings.',
+    'Passport section is optional — enable it with the checkbox.',
+    'Tick "same address" if current and permanent addresses match.',
+  ],
+  [
+    'Select days the employee does not work.',
+    'Full day off means no attendance required.',
+    'Half day applies to morning or afternoon based on shift.',
+  ],
+  [
+    'The TA Number must match the number enrolled on the physical biometric device.',
+    'Multiple terminals can be added with the + button.',
+    'Enable auto clock-in to skip manual swipes.',
+  ],
+  [
+    'Check all sections before saving.',
+    'You can go back to any step to make changes.',
+    'Once saved, the employee record goes live immediately.',
+  ],
 ]
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
@@ -228,7 +248,16 @@ export function EmployeeWizard({ onClose, onSaved }: EmployeeWizardProps) {
                   </button>
                 ) : null}
                 <button type="button" className="emp-wizard-next-btn" onClick={next}>
-                  {step === 4 ? 'Save employee ✓' : 'Next step →'}
+                  {step === 4 ? (
+                    <>
+                      <svg viewBox="0 0 24 24" aria-hidden>
+                        <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" strokeWidth="2.5" />
+                      </svg>
+                      Save employee
+                    </>
+                  ) : (
+                    <>Next step →</>
+                  )}
                 </button>
               </div>
             </footer>
@@ -244,7 +273,11 @@ export function EmployeeWizard({ onClose, onSaved }: EmployeeWizardProps) {
             </div>
             <div className="emp-wizard-tips-card">
               <h3>TIPS</h3>
-              <p style={{ whiteSpace: 'pre-line' }}>{TIPS[step]}</p>
+              <ul className="emp-wizard-tips-list">
+                {TIPS[step].map((tip) => (
+                  <li key={tip}>{tip}</li>
+                ))}
+              </ul>
             </div>
           </aside>
         </div>
@@ -264,7 +297,13 @@ function WizardStepper({ step }: { step: number }) {
             <div className="emp-wizard-step-line">
               {i > 0 ? <span className={`line before${i <= step ? ' done' : ''}`} /> : null}
               <span className={`dot${done ? ' done' : ''}${active ? ' active' : ''}`}>
-                {done ? '✓' : i + 1}
+                {done ? (
+                  <svg viewBox="0 0 24 24" aria-hidden>
+                    <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" strokeWidth="2.5" />
+                  </svg>
+                ) : (
+                  i + 1
+                )}
               </span>
               {i < STEPS.length - 1 ? <span className={`line after${i < step ? ' done' : ''}`} /> : null}
             </div>
@@ -322,7 +361,9 @@ function StepDetails(p: DetailsProps) {
       <WizCard title="Profile photo & options">
         <div className="wiz-photo-row">
           <button type="button" className="wiz-photo-upload">
-            <span>+</span>
+            <svg viewBox="0 0 24 24" aria-hidden>
+              <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2" />
+            </svg>
             Upload
           </button>
           <div className="wiz-check-grid">
@@ -434,8 +475,8 @@ function StepPersonal(p: {
       <WizCard
         title="Personal information"
         badge="REQUIRED"
-        trailing={<span className="wiz-identity-badge">IDENTITY</span>}
       >
+        <p className="wiz-identity-badge">IDENTITY</p>
         <div className="wiz-form-grid">
           <HrField label="First Name" required><HrInput value={p.firstName} onChange={(e) => p.setFirstName(e.target.value)} placeholder="e.g. Sarah" /></HrField>
           <HrField label="Last Name" required><HrInput value={p.lastName} onChange={(e) => p.setLastName(e.target.value)} placeholder="e.g. Lim Wai Ling" /></HrField>
@@ -556,37 +597,49 @@ function StepBiometric({
       </p>
       {rows.map((row, i) => (
         <div key={i} className="wiz-bio-row">
-          <HrFieldRow>
-            <HrField label="TA Number" required>
-              <HrInput
-                value={row.ta}
-                onChange={(e) => {
-                  const next = [...rows]
-                  next[i] = { ...row, ta: e.target.value }
-                  setRows(next)
-                }}
-              />
-            </HrField>
-            <HrField label="Terminal" required>
-              <HrSelect
-                value={row.terminal}
-                onChange={(e) => {
-                  const next = [...rows]
-                  next[i] = { ...row, terminal: e.target.value }
-                  setRows(next)
-                }}
-              >
-                <option>Main Lobby — Terminal 1</option>
-                <option>Level 3 — Terminal 2</option>
-              </HrSelect>
-            </HrField>
-          </HrFieldRow>
+          <HrField label="TA Number" required>
+            <HrInput
+              value={row.ta}
+              disabled={!enabled}
+              onChange={(e) => {
+                const next = [...rows]
+                next[i] = { ...row, ta: e.target.value }
+                setRows(next)
+              }}
+            />
+          </HrField>
+          <HrField label="Terminal" required>
+            <HrSelect
+              value={row.terminal}
+              disabled={!enabled}
+              onChange={(e) => {
+                const next = [...rows]
+                next[i] = { ...row, terminal: e.target.value }
+                setRows(next)
+              }}
+            >
+              <option>Main Lobby — Terminal 1</option>
+              <option>Level 3 — Terminal 2</option>
+            </HrSelect>
+          </HrField>
           {rows.length > 1 ? (
-            <button type="button" className="wiz-remove-row" onClick={() => setRows(rows.filter((_, j) => j !== i))}>×</button>
+            <button
+              type="button"
+              className="wiz-remove-row"
+              aria-label="Remove terminal"
+              onClick={() => setRows(rows.filter((_, j) => j !== i))}
+            >
+              ×
+            </button>
           ) : null}
         </div>
       ))}
-      <button type="button" className="wiz-add-link" onClick={() => setRows([...rows, { ta: '', terminal: 'Main Lobby — Terminal 1' }])}>
+      <button
+        type="button"
+        className="wiz-add-link"
+        disabled={!enabled}
+        onClick={() => setRows([...rows, { ta: '', terminal: 'Main Lobby — Terminal 1' }])}
+      >
         + Add another terminal
       </button>
     </WizCard>
@@ -642,13 +695,22 @@ function StepReview(p: {
           <h5>BIOMETRIC</h5>
           <dl>
             <div><dt>Terminals</dt><dd>{p.bioCount} terminal(s) active</dd></div>
-            <div><dt>Auto clock-in</dt><dd>{p.autoClock ? 'On' : 'Off'}</dd></div>
+            <div><dt>Auto clock-in</dt><dd className={p.autoClock ? '' : 'warn'}>{p.autoClock ? 'On' : 'Off'}</dd></div>
           </dl>
         </div>
       </div>
-      <p className="wiz-review-note">
-        ● Please review all information above. Once saved, the employee record will be active and accessible in the directory.
-      </p>
+      <div className="wiz-review-note">
+        <span className="wiz-review-note-icon" aria-hidden>
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2" />
+            <path d="M12 8v5M12 16h.01" fill="none" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        </span>
+        <p>
+          Please review all information above. Once saved, the employee record will be active and
+          accessible in the directory.
+        </p>
+      </div>
     </WizCard>
   )
 }

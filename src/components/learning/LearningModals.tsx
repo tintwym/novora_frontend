@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { LrnField, LrnFieldRow } from './LearningShared'
+import { LrnField, LrnFieldRow, LrnIcon } from './LearningShared'
 
 type ModalProps = { open: boolean; onClose: () => void }
 
@@ -19,10 +19,10 @@ function LrnModalShell({ open, title, onClose, children }: { open: boolean; titl
     <div className="lrn-modal-overlay" role="presentation" onClick={onClose}>
       <div className="lrn-modal wide" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <div className="lrn-modal-head">
-          <span aria-hidden>⬆</span>
+          <LrnIcon name="upload" className="lrn-modal-head-icon" />
           <h2>{title}</h2>
           <button type="button" className="lrn-modal-close" onClick={onClose} aria-label="Close">
-            ✕
+            <LrnIcon name="close" className="lrn-modal-close-icon" />
           </button>
         </div>
         <div className="lrn-modal-body">{children}</div>
@@ -96,7 +96,7 @@ export function ImportScormModal({ open, onClose }: ModalProps) {
         </LrnField>
       </LrnFieldRow>
       <div className="lrn-dropzone">
-        <span aria-hidden>☁</span>
+        <LrnIcon name="upload" className="lrn-dropzone-icon" />
         <strong>Select standard ZIP file</strong>
         <p className="lrn-muted sm">Accepts .zip package files with metadata.xml manifest</p>
       </div>

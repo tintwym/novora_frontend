@@ -157,11 +157,21 @@ export const EMPLOYEE_SCORE_BREAKDOWN: ScoreBreakdown[] = [
   { label: 'Attendance KPI', value: 97, color: '#059669' },
 ]
 
+export const EMPLOYEE_PROFILE_SUMMARY = {
+  level: 'Advanced',
+  grade: 'A',
+  latestScore: '91.7 / 100',
+  lastReview: 'Year-end appraisal · Jan 2026',
+  cepRating: 'High potential',
+  nextPosition: 'Tech Lead',
+  timeFrame: '12 months',
+}
+
 export const EMPLOYEE_REVIEW_HISTORY: ReviewHistoryRow[] = [
-  { type: 'Year-end appraisal', period: '2025', score: '91.7', grade: 'A', gradeBg: '#dbeafe' },
-  { type: 'Mid-year appraisal', period: 'H1 2025', score: '87.3', grade: 'A', gradeBg: '#dbeafe' },
-  { type: 'Year-end appraisal', period: '2024', score: '83.1', grade: 'A', gradeBg: '#dbeafe' },
-  { type: 'Year-end appraisal', period: '2023', score: '74.5', grade: 'B', gradeBg: '#d1fae5' },
+  { type: 'Year-end appraisal', period: '2025', score: '91.7', grade: 'A', gradeBg: '#dbeafe', scoreTone: 'primary' },
+  { type: 'Mid-year appraisal', period: 'H1 2025', score: '87.3', grade: 'A', gradeBg: '#dbeafe', scoreTone: 'primary' },
+  { type: 'Year-end appraisal', period: '2024', score: '83.1', grade: 'A', gradeBg: '#dbeafe', scoreTone: 'primary' },
+  { type: 'Year-end appraisal', period: '2023', score: '74.5', grade: 'B', gradeBg: '#d1fae5', scoreTone: 'warning' },
 ]
 
 export const EMPLOYEE_TRAINING: TrainingRec[] = [

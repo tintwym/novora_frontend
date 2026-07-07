@@ -3,6 +3,7 @@ import {
   ACHIEVEMENT_KPI_BANDS,
   ATTENDANCE_KPI_BANDS,
   COMPETENCIES,
+  EMPLOYEE_PROFILE_SUMMARY,
   EMPLOYEE_REVIEW_HISTORY,
   EMPLOYEE_SCORE_BREAKDOWN,
   EMPLOYEE_TRAINING,
@@ -41,6 +42,7 @@ import {
   PerfActivePill,
   PerfAvatarName,
   PerfCard,
+  PerfCheckMark,
   PerfGradeBox,
   PerfKpiScoreCircle,
   PerfLinkBtn,
@@ -125,7 +127,7 @@ function EvalSetupCardView({ setup }: { setup: EvalSetupCard }) {
       <ul className="perf-setup-category-list">
         {setup.categories.map((cat) => (
           <li key={cat.label}>
-            <span aria-hidden>{cat.checked ? '☑' : '☐'}</span>
+            <PerfCheckMark checked={cat.checked} />
             {cat.label}
           </li>
         ))}
@@ -204,7 +206,9 @@ export function PerformanceLevelTab() {
               {PERF_LEVELS.map((row) => (
                 <tr key={row.no}>
                   <td>{row.no}</td>
-                  <td>{row.name}</td>
+                  <td>
+                    <strong>{row.name}</strong>
+                  </td>
                   <td>{row.description}</td>
                   <td>
                     <PerfLinkBtn>{row.employees}</PerfLinkBtn>
@@ -826,16 +830,7 @@ export function PerformanceCompetencyTab() {
     <div className="perf-competency-tab">
       <PerfCard>
         <PerfToolbarRow
-          leading={
-            <>
-              <PerfSelect defaultValue="All types" aria-label="Competency type filter">
-                <option>All types</option>
-                <option>Competency</option>
-                <option>Sub-comp.</option>
-              </PerfSelect>
-              <PerfSearch placeholder="Search competency..." />
-            </>
-          }
+          leading={<PerfSearch placeholder="Search competency..." />}
           trailing={<PerfPrimaryBtn onClick={() => setNewOpen(true)}>+ New Competency</PerfPrimaryBtn>}
         />
       </PerfCard>
@@ -939,8 +934,7 @@ export function PerformanceReviewReportTab() {
                   </td>
                   <td>
                     <div className="perf-report-actions">
-                      <PerfLinkBtn onClick={() => openReport(row.name, row.grade, row.total)}>View</PerfLinkBtn>
-                      <PerfLinkBtn onClick={() => openReport(row.name, row.grade, row.total)}>PDF</PerfLinkBtn>
+                      <PerfLinkBtn onClick={() => openReport(row.name, row.grade, row.total)}>View PDF</PerfLinkBtn>
                     </div>
                   </td>
                 </tr>
@@ -961,6 +955,8 @@ export function PerformanceReviewReportTab() {
 }
 
 export function PerformanceEmployeeProfileTab() {
+  const summary = EMPLOYEE_PROFILE_SUMMARY
+
   return (
     <div className="perf-employee-profile-tab">
       <PerfCard>
@@ -975,21 +971,59 @@ export function PerformanceEmployeeProfileTab() {
         <span className="perf-profile-avatar">SL</span>
         <div>
           <h3>Sarah Lim Wei Ling</h3>
-          <p className="perf-muted">EMP-0021 · Engineering · Senior Developer</p>
+          <p className="perf-muted">EMP-0021 · ENGINEERING · SENIOR DEVELOPER</p>
         </div>
       </PerfCard>
 
       <div className="perf-profile-split">
         <PerfCard className="perf-profile-left">
-          <strong>Score breakdown</strong>
+          <dl className="perf-profile-stats">
+            <div>
+              <dt>Performance level</dt>
+              <dd className="tone-primary">
+                <strong>{summary.level}</strong>
+              </dd>
+            </div>
+            <div>
+              <dt>Current grade (latest)</dt>
+              <dd>
+                <PerfGradeBox letter={summary.grade} bg="#dbeafe" />
+              </dd>
+            </div>
+            <div>
+              <dt>Latest score</dt>
+              <dd>
+                <strong>{summary.latestScore}</strong>
+              </dd>
+            </div>
+            <div>
+              <dt>Last review</dt>
+              <dd>{summary.lastReview}</dd>
+            </div>
+            <div>
+              <dt>CEP rating</dt>
+              <dd className="tone-success">
+                <strong>{summary.cepRating}</strong>
+              </dd>
+            </div>
+            <div>
+              <dt>Possible next position</dt>
+              <dd>{summary.nextPosition}</dd>
+            </div>
+            <div>
+              <dt>Time frame</dt>
+              <dd>{summary.timeFrame}</dd>
+            </div>
+          </dl>
+          <strong className="perf-sidebar-section">Score breakdown</strong>
           {EMPLOYEE_SCORE_BREAKDOWN.map((row) => (
             <PerfScoreBar key={row.label} label={row.label} value={row.value} color={row.color} />
           ))}
-          <p className="perf-overall-score">Overall score 91.7 / 100</p>
+          <p className="perf-overall-score">{summary.latestScore}</p>
         </PerfCard>
 
         <PerfCard className="perf-profile-right">
-          <strong>Review history</strong>
+          <strong className="perf-sidebar-section">Review history</strong>
           <PerfTableScroll>
             <table className="perf-table compact">
               <thead>
@@ -1005,7 +1039,7 @@ export function PerformanceEmployeeProfileTab() {
                   <tr key={`${row.type}-${row.period}`}>
                     <td>{row.type}</td>
                     <td>{row.period}</td>
-                    <td>{row.score}</td>
+                    <td className={row.scoreTone ? `tone-${row.scoreTone}` : undefined}>{row.score}</td>
                     <td>
                       <PerfGradeBox letter={row.grade} bg={row.gradeBg} />
                     </td>
@@ -1020,17 +1054,22 @@ export function PerformanceEmployeeProfileTab() {
             {EMPLOYEE_TRAINING.map((row) => (
               <li key={row.label}>
                 {row.label}
-                {row.mandatory ? <RecruitPill label="Mandatory" tone="warning" /> : null}
+                {row.mandatory ? (
+                  <RecruitPill label="MANDATORY" tone="danger" />
+                ) : (
+                  <RecruitPill label="OPTIONAL" tone="neutral" />
+                )}
               </li>
             ))}
           </ul>
 
           <strong className="perf-sidebar-section">Appraiser note (latest)</strong>
-          <p className="perf-appraiser-note">
-            Strong technical contributor with consistent improvement. Nominated for tech lead role in Q3 2026.
-            Recommended for leadership training before promotion cycle.
-          </p>
-          <p className="perf-muted sm">— David Ng · 15 Jan 2026</p>
+          <div className="perf-appraiser-note-box">
+            <p className="perf-appraiser-note">
+              Strong technical contributor with consistent improvement. Nominated for tech lead role in Q3 2026. Recommended for leadership training before promotion cycle.
+            </p>
+            <p className="perf-appraiser-sig">— David Ng · 15 Jan 2026</p>
+          </div>
         </PerfCard>
       </div>
     </div>
