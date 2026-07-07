@@ -7,6 +7,7 @@ import {
   PayAddButton,
   PayAttachmentZone,
   PayCard,
+  PayEditBtn,
   PayField,
   PayFormCard,
   PaySectionTitle,
@@ -63,16 +64,12 @@ export function PayrollDeductionTab({ addSignal = 0 }: { addSignal?: number }) {
                       <td><PayYesNo yes={row.onPayslip} /></td>
                       <td><PayActive /></td>
                       <td>
-                        <button
-                          type="button"
-                          className="pay-outline-btn sm"
+                        <PayEditBtn
                           onClick={() => {
                             setEditName(row.name)
                             setEditOpen(true)
                           }}
-                        >
-                          Edit
-                        </button>
+                        />
                       </td>
                     </tr>
                   ))}

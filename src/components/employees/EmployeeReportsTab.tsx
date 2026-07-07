@@ -72,6 +72,7 @@ export function EmployeeReportsTab() {
       if (!q) return true
       return (
         staffingFullName(e).toLowerCase().includes(q) ||
+        e.email.toLowerCase().includes(q) ||
         e.employeeCode.toLowerCase().includes(q) ||
         e.position.toLowerCase().includes(q) ||
         e.identityDoc.toLowerCase().includes(q)

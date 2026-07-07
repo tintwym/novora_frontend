@@ -45,6 +45,7 @@ import {
   PerfCheckMark,
   PerfGradeBox,
   PerfKpiScoreCircle,
+  PerfEditBtn,
   PerfLinkBtn,
   PerfPrimaryBtn,
   PerfScoreBar,
@@ -90,7 +91,7 @@ function KpiBandTable({
               <th>TO %</th>
               <th>TARGET %</th>
               <th>KPI SCORE</th>
-              <th />
+              <th className="perf-actions">ACTIONS</th>
             </tr>
           </thead>
           <tbody>
@@ -105,7 +106,7 @@ function KpiBandTable({
                   <PerfKpiScoreCircle score={row.score} tone={row.scoreTone} />
                 </td>
                 <td>
-                  <PerfLinkBtn onClick={onEdit}>Edit</PerfLinkBtn>
+                  <PerfEditBtn onClick={onEdit} />
                 </td>
               </tr>
             ))}
@@ -199,7 +200,7 @@ export function PerformanceLevelTab() {
                 <th>DESCRIPTION</th>
                 <th>EMPLOYEES</th>
                 <th>STATUS</th>
-                <th />
+                <th className="perf-actions">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -217,7 +218,7 @@ export function PerformanceLevelTab() {
                     <PerfActivePill />
                   </td>
                   <td>
-                    <PerfLinkBtn onClick={() => openEdit(row)}>Edit</PerfLinkBtn>
+                    <PerfEditBtn onClick={() => openEdit(row)} />
                   </td>
                 </tr>
               ))}
@@ -265,7 +266,7 @@ export function PerformanceGradeTab() {
                 <th>MARK TO</th>
                 <th>APPLY FOR PERFORMANCE</th>
                 <th>EMPLOYEES</th>
-                <th />
+                <th className="perf-actions">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -284,7 +285,7 @@ export function PerformanceGradeTab() {
                     <PerfLinkBtn>{row.employees}</PerfLinkBtn>
                   </td>
                   <td>
-                    <PerfLinkBtn onClick={() => openEdit(row)}>Edit</PerfLinkBtn>
+                    <PerfEditBtn onClick={() => openEdit(row)} />
                   </td>
                 </tr>
               ))}
@@ -369,7 +370,7 @@ export function PerformanceEvalTypeTab() {
                 <th>TRAINEE EVAL.</th>
                 <th>APPRAISER</th>
                 <th>STATUS</th>
-                <th />
+                <th className="perf-actions">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -389,14 +390,12 @@ export function PerformanceEvalTypeTab() {
                     <PerfActivePill />
                   </td>
                   <td>
-                    <PerfLinkBtn
+                    <PerfEditBtn
                       onClick={() => {
                         setEditName(row.name)
                         setEditOpen(true)
                       }}
-                    >
-                      Edit
-                    </PerfLinkBtn>
+                    />
                   </td>
                 </tr>
               ))}
@@ -441,7 +440,7 @@ export function PerformanceEvalCategoryTab() {
                 <th>SCORING SCHEME</th>
                 <th>MEASUREMENT</th>
                 <th>DEFINITION LEVELS</th>
-                <th />
+                <th className="perf-actions">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -458,15 +457,13 @@ export function PerformanceEvalCategoryTab() {
                     <RecruitPill label={row.levels} tone="neutral" />
                   </td>
                   <td>
-                    <PerfLinkBtn
+                    <PerfEditBtn
                       onClick={() => {
                         setEditName(row.name)
                         setEditWeight(row.weight.replace('%', ''))
                         setEditOpen(true)
                       }}
-                    >
-                      Edit
-                    </PerfLinkBtn>
+                    />
                   </td>
                 </tr>
               ))}
@@ -544,7 +541,7 @@ export function PerformanceGrantTab() {
                 <th>REVIEW PERIOD TO</th>
                 <th>PENDING</th>
                 <th>STATUS</th>
-                <th />
+                <th className="perf-actions">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -714,7 +711,7 @@ export function PerformanceEvaluationTab() {
                 <th>REVIEW DATE</th>
                 <th>REVIEW PERIOD</th>
                 <th>STATUS</th>
-                <th />
+                <th className="perf-actions">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -781,7 +778,7 @@ export function PerformanceResultTab() {
                 <th>ATTEND. SCORE</th>
                 <th>TOTAL SCORE</th>
                 <th>GRADE</th>
-                <th />
+                <th className="perf-actions">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -843,7 +840,7 @@ export function PerformanceCompetencyTab() {
                 <th>TYPE</th>
                 <th>PARENT COMPETENCY</th>
                 <th>DEFINITION</th>
-                <th />
+                <th className="perf-actions">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -856,15 +853,13 @@ export function PerformanceCompetencyTab() {
                   <td>{row.parent}</td>
                   <td>{row.definition}</td>
                   <td>
-                    <PerfLinkBtn
+                    <PerfEditBtn
                       onClick={() => {
                         setEditName(row.name)
                         setEditDefinition(row.definition)
                         setEditOpen(true)
                       }}
-                    >
-                      Edit
-                    </PerfLinkBtn>
+                    />
                   </td>
                 </tr>
               ))}
@@ -911,7 +906,7 @@ export function PerformanceReviewReportTab() {
                 <th>GRADE</th>
                 <th>APPRAISER</th>
                 <th>STATUS</th>
-                <th />
+                <th className="perf-actions">ACTIONS</th>
               </tr>
             </thead>
             <tbody>

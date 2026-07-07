@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react'
+import { EditIconBtn } from '../ui/EditIconBtn'
 import { RecruitPill } from '../recruitment/RecruitmentPrimitives'
 
 export function PaySubPills({
@@ -160,4 +161,8 @@ export function PayIcon({ name, className = '' }: { name: string; className?: st
     )
   }
   return null
+}
+
+export function PayEditBtn({ onClick, label = 'Edit' }: { onClick?: () => void; label?: string }) {
+  return <EditIconBtn onClick={onClick} label={label} className="pay-icon-btn" />
 }

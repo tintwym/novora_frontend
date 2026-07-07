@@ -214,6 +214,24 @@
   padding: 0.25rem 0.6rem;
 }
 
+.disc-icon-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.disc-icon-btn svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+}
+
 .disc-view-btn {
   display: inline-flex;
   align-items: center;
@@ -326,7 +344,7 @@
   flex-shrink: 0;
 }
 
-.disc-avatar-cell span {
+.disc-avatar-cell span:not(.disc-avatar) {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;

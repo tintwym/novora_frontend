@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { EditIconBtn } from '../ui/EditIconBtn'
 import {
   DEPT_SCOREBOARD,
   MANUAL_PUNCHES,
@@ -296,16 +297,13 @@ export function TimesheetTab() {
                     <RecruitPill label={row.status} tone={row.statusTone} />
                   </td>
                   <td>
-                    <button
-                      type="button"
-                      className="att-link-btn"
+                    <EditIconBtn
+                      className="att-icon-btn"
                       onClick={() => {
                         setEditEmployee(row.name)
                         setEditOpen(true)
                       }}
-                    >
-                      Edit
-                    </button>
+                    />
                   </td>
                 </tr>
               ))}

@@ -67,11 +67,12 @@
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
-  min-width: 12rem;
+  min-width: 14rem;
+  max-width: none;
 }
 
 .ben-module-body {
-  padding: 1.25rem;
+  padding: 1.25rem 0;
   background: #f8fafc;
   flex: 1;
 }

@@ -57,7 +57,7 @@ export function BenefitsPage() {
       <div className="ben-module-body">
         {moduleTab === 'enrollment' ? <BenefitsEnrollmentTab /> : null}
         {moduleTab === 'wellness' ? <BenefitsWellnessTab /> : null}
-        {moduleTab === 'dependents' ? <BenefitsDependentsTab /> : null}
+        {moduleTab === 'dependents' ? <BenefitsDependentsTab employee={employee} /> : null}
         {moduleTab === 'payroll' ? <BenefitsPayrollTab /> : null}
         {moduleTab === 'vendor' ? <BenefitsVendorTab /> : null}
         {moduleTab === 'reports' ? <BenefitsReportsTab /> : null}

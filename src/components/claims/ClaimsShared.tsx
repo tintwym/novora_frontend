@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { EditIconBtn } from '../ui/EditIconBtn'
 
 export function ClaimCard({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <section className={`claim-card${className ? ` ${className}` : ''}`}>{children}</section>
@@ -46,6 +47,10 @@ export function ClaimToolbarRow({ children }: { children: ReactNode }) {
 }
 
 export function ClaimLinkBtn({ label, onClick }: { label: string; onClick?: () => void }) {
+  if (label === 'Edit') {
+    return <EditIconBtn onClick={onClick} label={label} className="claim-icon-btn" />
+  }
+
   return (
     <button type="button" className="claim-link-btn" onClick={onClick}>
       {label}

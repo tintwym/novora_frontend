@@ -243,7 +243,7 @@ export function HelpdeskDocumentTab() {
             ))}
           </HdCard>
         </div>
-        <HdCard className="hd-letter-preview">
+        <HdCard className={`hd-letter-preview${compiled ? ' has-content' : ''}`}>
           {compiled ? (
             <div className="hd-letter-content">
               <span className="hd-section-title">STANDARD EMPLOYMENT VERIFICATION LETTER</span>
@@ -346,7 +346,7 @@ export function HelpdeskAnalyticsTab() {
                   <td>{row.filer}</td>
                   <td>{row.category}</td>
                   <td>{row.slaLimit}</td>
-                  <td className={row.completed ? 'tone-success' : 'hd-muted'}>{row.resolutionTime}</td>
+                  <td className={row.completed ? 'tone-success' : undefined}>{row.resolutionTime}</td>
                   <td>
                     <RecruitPill label={row.statusCode} tone={row.statusTone} />
                   </td>

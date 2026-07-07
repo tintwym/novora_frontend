@@ -6,6 +6,7 @@ import {
   HrAddButton,
   HrCard,
   HrDataTable,
+  HrEditBtn,
   HrEditLink,
   HrIconBtn,
   HrKvGrid,
@@ -411,7 +412,7 @@ function PayLinesTable({
         ),
         <HrPill key="s" tone="success">ACTIVE</HrPill>,
         <div key="act" className="emp-row-actions">
-          <button type="button" className="hr-outline-btn" onClick={() => onEdit(i)}>Edit</button>
+          <HrEditBtn onClick={() => onEdit(i)} />
           <HrIconBtn label="Delete">
             <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" fill="none" stroke="currentColor" strokeWidth="2"/></svg>
           </HrIconBtn>
@@ -437,7 +438,7 @@ function CareerTab({ data, actions }: TabProps) {
           r.toLabel,
           r.reason,
           <div key="a" className="emp-row-actions">
-            <button type="button" className="hr-outline-btn" onClick={() => actions.onEditCareer(i)}>Edit</button>
+            <HrEditBtn onClick={() => actions.onEditCareer(i)} />
             <HrIconBtn label="Delete">
               <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" fill="none" stroke="currentColor" strokeWidth="2"/></svg>
             </HrIconBtn>
@@ -464,7 +465,7 @@ function EducationTab({ data, actions }: TabProps) {
           r.year,
           <HrPill key="g" tone="success">{r.gradeLabel.toUpperCase()}</HrPill>,
           <div key="a" className="emp-row-actions">
-            <button type="button" className="hr-outline-btn" onClick={() => actions.onEditEducation(i)}>Edit</button>
+            <HrEditBtn onClick={() => actions.onEditEducation(i)} />
             <HrIconBtn label="Delete">
               <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" fill="none" stroke="currentColor" strokeWidth="2"/></svg>
             </HrIconBtn>

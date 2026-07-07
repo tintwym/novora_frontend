@@ -139,6 +139,24 @@
   font-size: 0.75rem;
 }
 
+.leave-icon-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.leave-icon-btn svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+}
+
 .leave-tonal-btn {
   border: none;
   background: #e2e8f0;

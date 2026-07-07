@@ -366,6 +366,24 @@
   cursor: pointer;
 }
 
+.claim-icon-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.claim-icon-btn svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+}
+
 .claim-action-group {
   display: flex;
   gap: 0.5rem;
@@ -396,7 +414,7 @@
   flex-shrink: 0;
 }
 
-.claim-avatar-cell span {
+.claim-avatar-cell span:not(.claim-avatar) {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;

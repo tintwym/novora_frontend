@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { BONUS_PAYMENTS, BONUS_TYPES } from '../../data/mockPayroll'
 import { RecruitPill } from '../recruitment/RecruitmentPrimitives'
 import { AddBonusTypeModal } from './PayrollModals'
-import { PayActive, PayAddButton, PayAttachmentZone, PayCard, PaySectionTitle, PaySubPills, PayTableScroll, PayToolbarRow } from './PayrollShared'
+import { PayActive, PayAddButton, PayAttachmentZone, PayCard, PayEditBtn, PaySectionTitle, PaySubPills, PayTableScroll, PayToolbarRow } from './PayrollShared'
 
 const SUB = ['Bonus type', 'Bonus attachment', 'Bonus payment']
 
@@ -46,7 +46,7 @@ export function PayrollBonusTab({ addSignal = 0 }: { addSignal?: number }) {
                       <td>{row.payMonth}</td>
                       <td>{row.basedOn}</td>
                       <td><PayActive /></td>
-                      <td><button type="button" className="pay-outline-btn sm">Edit</button></td>
+                      <td><PayEditBtn /></td>
                     </tr>
                   ))}
                 </tbody>

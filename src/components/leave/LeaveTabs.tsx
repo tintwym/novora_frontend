@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { EditIconBtn } from '../ui/EditIconBtn'
 import {
   DEPT_LEAVE_MATRIX,
   LEAVE_APPROVALS,
@@ -74,16 +75,13 @@ export function LeaveTypeTab() {
                     <RecruitPill label="Active" tone="success" />
                   </td>
                   <td>
-                    <button
-                      type="button"
-                      className="leave-outline-btn sm"
+                    <EditIconBtn
+                      className="leave-icon-btn"
                       onClick={() => {
                         setEditName(row.name)
                         setModalOpen(true)
                       }}
-                    >
-                      Edit
-                    </button>
+                    />
                   </td>
                 </tr>
               ))}

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { EditIconBtn } from '../ui/EditIconBtn'
 import { RecruitHBar, RecruitPill } from '../recruitment/RecruitmentPrimitives'
 
 export function PerfIcon({ name, className = '' }: { name: string; className?: string }) {
@@ -186,6 +187,10 @@ export function PerfLinkBtn({ children, onClick }: { children: ReactNode; onClic
       {children}
     </button>
   )
+}
+
+export function PerfEditBtn({ onClick, label = 'Edit' }: { onClick?: () => void; label?: string }) {
+  return <EditIconBtn onClick={onClick} label={label} className="perf-icon-btn" />
 }
 
 export function PerfTableScroll({ children }: { children: ReactNode }) {
