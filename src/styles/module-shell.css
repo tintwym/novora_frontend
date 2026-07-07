@@ -140,7 +140,8 @@
 .train-tab-toolbar-row > nav[class$='-module-tabs'],
 .perf-tab-toolbar-row > nav[class$='-module-tabs'],
 .ast-tab-toolbar-row > nav[class$='-module-tabs'],
-.onboard-tab-row > nav[class$='-module-tabs'] {
+.onboard-tab-row > nav[class$='-module-tabs'],
+.hr-tab-toolbar-row > nav.ben-module-tabs {
   flex: 1;
   min-width: 0;
   border-bottom: none;

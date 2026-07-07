@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { EditIconBtn } from '../ui/EditIconBtn'
 import {
   DEPT_DISCIPLINARY,
   DISCIPLINARY_HISTORY,
@@ -69,16 +70,13 @@ export function DisciplinaryReasonTab({ addSignal = 0 }: { addSignal?: number })
                     <RecruitPill label={row.status} tone={row.statusTone} />
                   </td>
                   <td>
-                    <button
-                      type="button"
-                      className="disc-outline-btn sm"
+                    <EditIconBtn
+                      className="disc-icon-btn"
                       onClick={() => {
                         setEditRow(row)
                         setEditOpen(true)
                       }}
-                    >
-                      Edit
-                    </button>
+                    />
                   </td>
                 </tr>
               ))}
@@ -151,16 +149,13 @@ export function DisciplinaryActionTab({ addSignal = 0 }: { addSignal?: number })
                     <RecruitPill label={row.payImpact} tone={row.payTone} />
                   </td>
                   <td>
-                    <button
-                      type="button"
-                      className="disc-outline-btn sm"
+                    <EditIconBtn
+                      className="disc-icon-btn"
                       onClick={() => {
                         setEditRow(row)
                         setEditOpen(true)
                       }}
-                    >
-                      Edit
-                    </button>
+                    />
                   </td>
                 </tr>
               ))}

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { PAYROLL_HISTORY, PAYROLL_PREP } from '../../data/mockPayroll'
 import { RecruitPill } from '../recruitment/RecruitmentPrimitives'
 import { NewPaymentDurationModal, RunPayrollConfirmModal } from './PayrollModals'
-import { PayAddButton, PayCard, PayIcon, PayKv, PaySectionTitle, PaySubPills, PayTableScroll } from './PayrollShared'
+import { PayAddButton, PayCard, PayEditBtn, PayIcon, PayKv, PaySectionTitle, PaySubPills, PayTableScroll } from './PayrollShared'
 
 const SUB = ['Payment duration', 'Payroll preparation', 'Payroll run', 'Payroll history']
 
@@ -44,7 +44,7 @@ function PaymentDurationView({ onNew }: { onNew: () => void }) {
       <PayCard className="pay-duration-panel">
         <div className="pay-card-head between">
           <PaySectionTitle title="Payment duration setup" />
-          <button type="button" className="pay-link-btn">Edit</button>
+          <PayEditBtn />
         </div>
         <PayKv label="Duration name" value="Monthly (May 2026)" />
         <PayKv label="Period start" value="1 May 2026" />

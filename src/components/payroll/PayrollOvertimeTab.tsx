@@ -5,6 +5,7 @@ import {
   PayApproveReject,
   PayAttachmentZone,
   PayCard,
+  PayEditBtn,
   PayField,
   PayFormCard,
   PayKv,
@@ -101,7 +102,7 @@ function SpecificOtView() {
                 <td>1.0x</td>
                 <td>1.5x</td>
                 <td>2.0x</td>
-                <td><button type="button" className="pay-outline-btn sm">Edit</button></td>
+                <td><PayEditBtn /></td>
               </tr>
             ))}
           </tbody>

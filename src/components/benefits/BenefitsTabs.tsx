@@ -157,7 +157,9 @@ export function BenefitsWellnessTab() {
   )
 }
 
-export function BenefitsDependentsTab() {
+export function BenefitsDependentsTab({ employee }: { employee: string }) {
+  const employeeName = employee.split(' (')[0] ?? employee
+
   return (
     <div className="ben-split dependents">
       <BenCard>
@@ -197,7 +199,7 @@ export function BenefitsDependentsTab() {
         <BenCard>
           <BenSectionTitle
             title="Registered dependents schedule"
-            subtitle="Insurance allocations verified for employee: Ahmad Wahid"
+            subtitle={`Insurance allocations verified for employee: ${employeeName}`}
             trailing={<RecruitPill label="0 active covers" tone="info" />}
           />
           <div className="ben-empty-state">

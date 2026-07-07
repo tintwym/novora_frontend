@@ -296,6 +296,7 @@
   font-size: 0.8125rem;
   font-weight: 600;
   padding: 0.55rem 0.85rem;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -696,6 +697,18 @@
   background: #fafbfc;
 }
 
+.hd-letter-preview.has-content {
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 1.25rem;
+  overflow-y: auto;
+}
+
+.hd-letter-content {
+  width: 100%;
+  max-width: 520px;
+}
+
 .hd-letter-empty {
   text-align: center;
   max-width: 420px;
@@ -845,6 +858,7 @@
 
 .hd-table {
   width: 100%;
+  min-width: 900px;
   border-collapse: collapse;
   font-size: 0.8125rem;
 }
@@ -858,12 +872,17 @@
   padding: 0.65rem 0.5rem;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
+  background: #f8fafc;
 }
 
 .hd-table td {
   padding: 0.75rem 0.5rem;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
+}
+
+.hd-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .hd-kb-head {

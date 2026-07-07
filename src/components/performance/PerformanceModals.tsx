@@ -589,7 +589,7 @@ export function ViewReportModal({
         <span className="perf-section-title">EMPLOYEE DOSSIER REVIEW CARD</span>
         <div className="perf-view-list-head">
           <strong>{employee}</strong>
-          <PerfGradeBox letter={`Grade ${grade}`} bg="#dbeafe" />
+          <PerfGradeBox letter={grade} bg="#dbeafe" />
         </div>
         <p className="perf-muted sm">Framework Type: Year-end appraisal • Review Period: Jan-Dec 2025</p>
         <p className="perf-muted sm tone-success">Appraiser Manager: David Ng • Status: Completed • Verified</p>

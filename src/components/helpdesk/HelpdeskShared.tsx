@@ -141,7 +141,7 @@ export function HdAutoRoutePill() {
   return (
     <div className="hd-auto-route">
       <span>AUTO-ROUTE RULE:</span>
-      <em>ACTIVE RECRUITER</em>
+      <em>ACTIVE SLA ENGINE</em>
     </div>
   )
 }

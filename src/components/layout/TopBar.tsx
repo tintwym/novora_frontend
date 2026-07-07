@@ -7,10 +7,10 @@ import { ShellMenuIcon } from './ShellIcons'
 
 type TopBarProps = {
   sidebarCollapsed?: boolean
-  onExpandSidebar?: () => void
+  onToggleSidebar?: () => void
 }
 
-export function TopBar({ sidebarCollapsed = false, onExpandSidebar }: TopBarProps) {
+export function TopBar({ sidebarCollapsed = false, onToggleSidebar }: TopBarProps) {
   const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
@@ -41,19 +41,17 @@ export function TopBar({ sidebarCollapsed = false, onExpandSidebar }: TopBarProp
 
   return (
     <header className="topbar">
-      {sidebarCollapsed ? (
-        <button
-          type="button"
-          className="topbar-menu-btn"
-          aria-label="Expand sidebar"
-          aria-expanded={false}
-          onClick={onExpandSidebar}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden className="topbar-menu-icon">
-            <ShellMenuIcon />
-          </svg>
-        </button>
-      ) : null}
+      <button
+        type="button"
+        className="topbar-menu-btn"
+        aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        aria-expanded={!sidebarCollapsed}
+        onClick={onToggleSidebar}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden className="topbar-menu-icon">
+          <ShellMenuIcon />
+        </svg>
+      </button>
 
       <div className="topbar-titles">
         <h1>{title}</h1>

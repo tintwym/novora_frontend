@@ -583,10 +583,19 @@
 .att-icon-btn {
   border: 1px solid var(--border);
   background: #fff;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
+  display: grid;
+  place-items: center;
+  padding: 0;
   cursor: pointer;
+}
+
+.att-icon-btn svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
 }
 
 .att-icon-btn.danger {

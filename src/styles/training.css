@@ -232,13 +232,21 @@
 }
 
 .train-edit-btn {
+  width: 30px;
+  height: 30px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #fff;
-  padding: 0.25rem 0.65rem;
-  font: inherit;
-  font-size: 0.75rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
   cursor: pointer;
+}
+
+.train-edit-btn svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
 }
 
 .train-link-btn {

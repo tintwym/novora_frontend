@@ -140,19 +140,21 @@ export function EmployeeWizard({ onClose, onSaved }: EmployeeWizardProps) {
       <div className="emp-wizard">
         <header className="emp-wizard-header">
           <button type="button" className="emp-wizard-back" onClick={onClose}>
-            ‹ Employee Directory
+            <span className="emp-wizard-back-icon" aria-hidden>‹</span>
+            <span className="emp-wizard-back-label">Employee Directory</span>
           </button>
           <div className="emp-wizard-header-actions">
             <button type="button" className="emp-wizard-link">Save as draft</button>
-            <button type="button" className="emp-wizard-link" onClick={onClose}>Cancel</button>
-            <button type="button" className="emp-wizard-menu" aria-label="More">⋯</button>
+            <button type="button" className="emp-wizard-link emp-wizard-link-muted" onClick={onClose}>Cancel</button>
+            <button type="button" className="emp-wizard-menu" aria-label="More options">⋯</button>
           </div>
         </header>
 
         <div className="emp-wizard-body">
           <div className="emp-wizard-main">
-            <WizardStepper step={step} />
-            <div className="emp-wizard-content">
+            <WizardStepper step={step} onStepClick={setStep} />
+            <div className="emp-wizard-scroll">
+              <div className="emp-wizard-content">
               {step === 0 ? (
                 <StepDetails
                   empNo={empNo} setEmpNo={setEmpNo}
@@ -238,9 +240,10 @@ export function EmployeeWizard({ onClose, onSaved }: EmployeeWizardProps) {
                   autoClock={autoClock}
                 />
               ) : null}
+              </div>
             </div>
             <footer className="emp-wizard-footer">
-              <span>Step {step + 1}: {FOOTER_LABELS[step]}</span>
+              <span className="emp-wizard-footer-step">Step {step + 1}: {FOOTER_LABELS[step]}</span>
               <div className="emp-wizard-footer-btns">
                 {step > 0 ? (
                   <button type="button" className="emp-wizard-back-btn" onClick={back}>
@@ -286,17 +289,25 @@ export function EmployeeWizard({ onClose, onSaved }: EmployeeWizardProps) {
   )
 }
 
-function WizardStepper({ step }: { step: number }) {
+function WizardStepper({ step, onStepClick }: { step: number; onStepClick: (i: number) => void }) {
   return (
-    <div className="emp-wizard-stepper">
+    <div className="emp-wizard-stepper" role="list" aria-label="Form progress">
       {STEPS.map((label, i) => {
         const done = i < step
         const active = i === step
+        const reachable = i <= step
         return (
-          <div key={label} className="emp-wizard-step">
+          <div key={label} className="emp-wizard-step" role="listitem">
             <div className="emp-wizard-step-line">
               {i > 0 ? <span className={`line before${i <= step ? ' done' : ''}`} /> : null}
-              <span className={`dot${done ? ' done' : ''}${active ? ' active' : ''}`}>
+              <button
+                type="button"
+                className={`dot${done ? ' done' : ''}${active ? ' active' : ''}`}
+                onClick={() => reachable && onStepClick(i)}
+                disabled={!reachable}
+                aria-current={active ? 'step' : undefined}
+                aria-label={`${label}${done ? ', completed' : active ? ', current' : ''}`}
+              >
                 {done ? (
                   <svg viewBox="0 0 24 24" aria-hidden>
                     <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" strokeWidth="2.5" />
@@ -304,7 +315,7 @@ function WizardStepper({ step }: { step: number }) {
                 ) : (
                   i + 1
                 )}
-              </span>
+              </button>
               {i < STEPS.length - 1 ? <span className={`line after${i < step ? ' done' : ''}`} /> : null}
             </div>
             <span className={`emp-wizard-step-label${active ? ' active' : ''}${done ? ' done' : ''}`}>
@@ -321,7 +332,7 @@ function WizCard({ title, badge, trailing, children }: { title: string; badge?: 
   return (
     <section className="wiz-card">
       <div className="wiz-card-head">
-        <div>
+        <div className="wiz-card-title-row">
           <h3>{title}</h3>
           {badge ? <span className="wiz-badge-required">{badge}</span> : null}
         </div>
@@ -360,11 +371,13 @@ function StepDetails(p: DetailsProps) {
     <>
       <WizCard title="Profile photo & options">
         <div className="wiz-photo-row">
-          <button type="button" className="wiz-photo-upload">
-            <svg viewBox="0 0 24 24" aria-hidden>
-              <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2" />
-            </svg>
-            Upload
+          <button type="button" className="wiz-photo-upload" aria-label="Upload profile photo">
+            <span className="wiz-photo-upload-icon" aria-hidden>
+              <svg viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2" />
+              </svg>
+            </span>
+            <span className="wiz-photo-upload-label">Upload</span>
           </button>
           <div className="wiz-check-grid">
             <HrCheckbox label="Active employee" checked={p.activeEmployee} onChange={p.setActiveEmployee} />

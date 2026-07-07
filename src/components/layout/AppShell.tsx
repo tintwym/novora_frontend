@@ -33,14 +33,11 @@ export function AppShell() {
 
   return (
     <div className="app-shell">
-      <Sidebar
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed((collapsed) => !collapsed)}
-      />
+      <Sidebar collapsed={sidebarCollapsed} />
       <div className="app-main">
         <TopBar
           sidebarCollapsed={sidebarCollapsed}
-          onExpandSidebar={() => setSidebarCollapsed(false)}
+          onToggleSidebar={() => setSidebarCollapsed((collapsed) => !collapsed)}
         />
         <main className="app-content">
           <Outlet />

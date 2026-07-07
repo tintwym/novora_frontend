@@ -7,6 +7,7 @@ import {
   PayAddButton,
   PayAttachmentZone,
   PayCard,
+  PayEditBtn,
   PayField,
   PayFormCard,
   PaySectionTitle,
@@ -84,7 +85,7 @@ function AllowanceTypeView({ onAdd, onEdit }: { onAdd: () => void; onEdit: (name
                   <td><PayYesNo yes /></td>
                   <td><PayYesNo yes={row.attachEmp} /></td>
                   <td><PayActive /></td>
-                  <td><button type="button" className="pay-outline-btn sm" onClick={() => onEdit(row.name)}>Edit</button></td>
+                  <td><PayEditBtn onClick={() => onEdit(row.name)} /></td>
                 </tr>
               ))}
             </tbody>
