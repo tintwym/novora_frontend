@@ -189,12 +189,17 @@ code {
   flex: 1;
 }
 
-.sidebar-mark {
+.sidebar-mark,
+.sidebar-mark-wrap {
   display: block;
   width: var(--shell-control-size);
   height: var(--shell-control-size);
   object-fit: contain;
   flex-shrink: 0;
+}
+
+.sidebar-brand-full {
+  max-width: 100%;
 }
 
 .sidebar-logo-img {

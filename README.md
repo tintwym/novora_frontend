@@ -58,9 +58,9 @@ src/
 
 ## Auth flow
 
-- **No probe on fresh visit** — `/api/v1/me` is only called when a cached user or “Remember me” exists (avoids 401 noise on the login page).
-- **Login** — POST `/api/v1/auth/login` after CSRF bootstrap.
-- **Logout** — POST `/auth/logout`, clear local cache.
+- **No probe on fresh visit** — `/api/me` is only called when a cached user or “Remember me” exists (avoids 401 noise on the login page).
+- **Login** — POST `/api/auth/login` after CSRF bootstrap.
+- **Logout** — POST `/api/auth/logout`, clear local cache.
 
 ## Deployment
 

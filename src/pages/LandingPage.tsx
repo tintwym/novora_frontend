@@ -18,6 +18,7 @@ import FAQ from '../components/landing/FAQ'
 import Testimonials from '../components/landing/Testimonials'
 import BookingModal from '../components/landing/BookingModal'
 import TrialModal from '../components/landing/TrialModal'
+import { NovoraBrand } from '../components/brand/NovoraLogo'
 import '../styles/landing.css'
 
 export function LandingPage() {
@@ -180,38 +181,7 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 flex items-center justify-center shrink-0">
-                  <svg className="w-8 h-8" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <linearGradient id="footerLogoCyanTeal" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#00a7e1" />
-                        <stop offset="60%" stopColor="#00b2a9" />
-                        <stop offset="100%" stopColor="#7cb342" />
-                      </linearGradient>
-                      <linearGradient id="footerLogoOrangeYellow" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#ff9800" />
-                        <stop offset="100%" stopColor="#f57c00" />
-                      </linearGradient>
-                      <linearGradient id="footerLogoBlue" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#0a58a4" />
-                        <stop offset="100%" stopColor="#00a7e1" />
-                      </linearGradient>
-                    </defs>
-                    <circle cx="42" cy="23" r="8" fill="#e2e8f0" />
-                    <path d="M 42 35 C 33 39, 36 50, 48 53 C 48 53, 49 43, 42 35 Z" fill="#cbd5e1" />
-                    <circle cx="24" cy="28" r="8" fill="#00a7e1" />
-                    <path d="M 12 70 C 14 55, 18 40, 28 38 C 38 36, 42 50, 48 58 C 55 67, 60 70, 68 62 C 60 74, 45 74, 38 66 C 30 57, 24 45, 18 56 C 14 62, 13 67, 12 70 Z" fill="url(#footerLogoCyanTeal)" />
-                    <circle cx="68" cy="27" r="8" fill="url(#footerLogoOrangeYellow)" />
-                    <path d="M 68 35 C 58 45, 52 58, 52 68 C 52 75, 58 78, 64 70 C 70 60, 78 45, 88 25 C 80 23, 72 28, 68 35 Z" fill="url(#footerLogoOrangeYellow)" />
-                    <path d="M 52 68 C 52 75, 58 84, 68 84 C 78 84, 82 72, 88 50 C 85 64, 78 74, 68 74 C 62 74, 56 71, 52 68 Z" fill="url(#footerLogoBlue)" />
-                  </svg>
-                </div>
-                <div>
-                  <span className="font-extrabold text-sm tracking-wider text-slate-900 block leading-none">NOVORA</span>
-                  <span className="text-[8px] font-bold text-[#0a58a4] tracking-widest block mt-0.5 uppercase leading-none">HRMS SOFTWARE</span>
-                </div>
-              </div>
+              <NovoraBrand size="sm" />
               <p className="text-xs text-slate-400 leading-relaxed">
                 The modern, unified human resources operating system. Bridging physical biometric hardware terminals with secure, automated cloud payroll algorithms.
               </p>

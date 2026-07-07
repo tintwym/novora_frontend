@@ -3,6 +3,7 @@ import { fetchAdminDashboard, fetchEmployeeDashboard, fetchGrowthOnly } from '..
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { DashboardAdminBody } from '../components/dashboard/DashboardAdminBody'
+import { NovoraBrand } from '../components/brand/NovoraLogo'
 import type { DashboardData } from '../types/dashboard'
 
 export function DashboardPage() {
@@ -74,6 +75,7 @@ export function DashboardPage() {
   if (!data) {
     return (
       <div className="boot-screen">
+        <NovoraBrand size="sm" showTagline={false} />
         <div className="boot-spinner" aria-hidden />
         <p>Loading dashboard…</p>
       </div>
