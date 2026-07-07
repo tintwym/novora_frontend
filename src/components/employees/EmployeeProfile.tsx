@@ -16,7 +16,7 @@ import { ProfileHeaderCard } from './ProfileHeader'
 import { ProfileModals, type ModalType } from './ProfileModals'
 import { ProfileTabContent, type ProfileTabActions } from './ProfileTabs'
 
-export function EmployeeProfile() {
+export function EmployeeProfile({ employeeId: _employeeId }: { employeeId?: string | null }) {
   const [data, setData] = useState<EmployeeProfileDetail>(() => mockEmployeeProfile())
   const [tab, setTab] = useState<ProfileTabId>('summary')
   const [modal, setModal] = useState<ModalType>(null)

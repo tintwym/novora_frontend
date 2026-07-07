@@ -1,4 +1,4 @@
-import { apiRequest } from './client'
+import { apiRequest, ApiError } from './client'
 import { Endpoints } from './endpoints'
 import type { AttendanceLog } from '../types/dashboard'
 
@@ -12,13 +12,21 @@ function parseLog(row: Record<string, unknown>): AttendanceLog {
   }
 }
 
-export async function fetchMyAttendance(): Promise<AttendanceLog[]> {
+export type AttendanceFetchResult =
+  | { ok: true; logs: AttendanceLog[] }
+  | { ok: false; error: string }
+
+export async function fetchMyAttendance(): Promise<AttendanceFetchResult> {
   try {
     const data = await apiRequest<Record<string, unknown>[]>(Endpoints.myAttendance)
-    if (!Array.isArray(data)) return []
-    return data.map((e) => parseLog(e))
-  } catch {
-    return []
+    if (!Array.isArray(data)) return { ok: true, logs: [] }
+    return { ok: true, logs: data.map((e) => parseLog(e)) }
+  } catch (e) {
+    if (e instanceof ApiError && e.status !== null && (e.status === 401 || e.status === 403)) {
+      throw e
+    }
+    const message = e instanceof ApiError ? e.message : 'Failed to load attendance'
+    return { ok: false, error: message }
   }
 }
 
@@ -30,14 +38,15 @@ export async function checkOut(): Promise<void> {
   await apiRequest(Endpoints.myCheckOut, { method: 'POST' })
 }
 
-export function shortTime(iso: string | null): string {
-  if (!iso) return '--:--'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) {
-    const m = iso.match(/(\d{2}):(\d{2})/)
-    return m ? `${m[1]}:${m[2]}` : '--:--'
+export function shortTime(raw: string | null): string {
+  if (!raw) return '--:--'
+  const timeOnly = raw.match(/^(\d{2}):(\d{2})/)
+  if (timeOnly) return `${timeOnly[1]}:${timeOnly[2]}`
+  const d = new Date(raw)
+  if (!Number.isNaN(d.getTime())) {
+    return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
   }
-  return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
+  return '--:--'
 }
 
 export function todayIso(): string {

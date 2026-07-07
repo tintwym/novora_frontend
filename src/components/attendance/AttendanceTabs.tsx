@@ -35,7 +35,18 @@ const ROSTER_TONE: Record<RosterCellTone, { bg: string; border: string; fg: stri
 
 export function CheckInTab() {
   const [checkedIn, setCheckedIn] = useState(false)
+  const [checkedOut, setCheckedOut] = useState(false)
   const today = '2026-06-13'
+
+  function onPunch() {
+    if (!checkedIn) {
+      setCheckedIn(true)
+      return
+    }
+    if (!checkedOut) {
+      setCheckedOut(true)
+    }
+  }
 
   return (
     <div className="att-split">
@@ -59,12 +70,19 @@ export function CheckInTab() {
             </div>
             <div>
               <span>CHECK-OUT</span>
-              <strong>—</strong>
+              <strong>{checkedOut ? '06:15 PM' : '—'}</strong>
             </div>
           </div>
-          <p className="att-status-line">Status: {checkedIn ? 'Clocked In' : 'Not Clocked-In'}</p>
-          <button type="button" className="att-primary-btn full" onClick={() => setCheckedIn(true)}>
-            {checkedIn ? 'CLOCK CHECK-OUT NOW' : 'CLOCK CHECK-IN NOW'}
+          <p className="att-status-line">
+            Status: {checkedOut ? 'Clocked Out' : checkedIn ? 'Clocked In' : 'Not Clocked-In'}
+          </p>
+          <button
+            type="button"
+            className="att-primary-btn full"
+            onClick={onPunch}
+            disabled={checkedOut}
+          >
+            {!checkedIn ? 'CLOCK CHECK-IN NOW' : checkedOut ? 'SHIFT COMPLETE' : 'CLOCK CHECK-OUT NOW'}
           </button>
           <p className="att-footnote">Matches your login email authentication: Web Console Login</p>
         </div>

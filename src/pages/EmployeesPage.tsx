@@ -19,6 +19,7 @@ type ModuleTab = (typeof MODULE_TABS)[number]['id']
 export function EmployeesPage() {
   const [moduleTab, setModuleTab] = useState<ModuleTab>('directory')
   const [deptFilter, setDeptFilter] = useState('All departments')
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null)
   const [showWizard, setShowWizard] = useState(false)
 
   const onProfileTab = moduleTab === 'profile'
@@ -73,16 +74,24 @@ export function EmployeesPage() {
           </div>
 
           <div className="emp-module-body">
-            {moduleTab === 'profile' ? <EmployeeProfile /> : null}
+            {moduleTab === 'profile' ? <EmployeeProfile employeeId={selectedEmployeeId} /> : null}
             {moduleTab === 'directory' ? (
               <EmployeeDirectoryTab
                 departmentFilter={deptFilter}
-                onOpenProfile={() => setModuleTab('profile')}
+                onOpenProfile={(employeeId) => {
+                  setSelectedEmployeeId(employeeId)
+                  setModuleTab('profile')
+                }}
                 onAddEmployee={() => setShowWizard(true)}
               />
             ) : null}
             {moduleTab === 'org' ? (
-              <OrganisationChartTab onOpenProfile={() => setModuleTab('profile')} />
+              <OrganisationChartTab
+                onOpenProfile={(employeeId) => {
+                  setSelectedEmployeeId(employeeId)
+                  setModuleTab('profile')
+                }}
+              />
             ) : null}
             {moduleTab === 'reports' ? <EmployeeReportsTab /> : null}
           </div>

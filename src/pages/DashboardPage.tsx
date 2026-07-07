@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchAdminDashboard, fetchEmployeeDashboard, fetchGrowthOnly } from '../api/dashboard'
+import { ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { DashboardAdminBody } from '../components/dashboard/DashboardAdminBody'
 import type { DashboardData } from '../types/dashboard'
@@ -8,11 +9,22 @@ export function DashboardPage() {
   const { user } = useAuth()
   const employeeView = user?.isEmployee ?? false
   const [data, setData] = useState<DashboardData | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [growthLoading, setGrowthLoading] = useState(false)
+  const loadSeq = useRef(0)
 
   const load = useCallback(async () => {
-    const next = employeeView ? await fetchEmployeeDashboard() : await fetchAdminDashboard()
-    setData(next)
+    const seq = ++loadSeq.current
+    setError(null)
+    try {
+      const next = employeeView ? await fetchEmployeeDashboard() : await fetchAdminDashboard()
+      if (seq === loadSeq.current) setData(next)
+    } catch (e) {
+      if (seq === loadSeq.current) {
+        setData(null)
+        setError(e instanceof ApiError ? e.message : 'Failed to load dashboard')
+      }
+    }
   }, [employeeView])
 
   useEffect(() => {
@@ -22,21 +34,42 @@ export function DashboardPage() {
   const onGrowthPeriodChange = useCallback(
     async (months: number) => {
       if (!data) return
+      const seq = ++loadSeq.current
       setGrowthLoading(true)
       try {
         const growth = await fetchGrowthOnly(employeeView, months)
-        setData({
-          ...data,
-          growthMonths: months,
-          growthPoints: growth.growthPoints,
-          monthLabels: growth.monthLabels,
-        })
+        if (seq !== loadSeq.current) return
+        setData((prev) =>
+          prev
+            ? {
+                ...prev,
+                growthMonths: months,
+                growthPoints: growth.growthPoints,
+                monthLabels: growth.monthLabels,
+              }
+            : prev,
+        )
+      } catch (e) {
+        if (seq === loadSeq.current) {
+          setError(e instanceof ApiError ? e.message : 'Failed to update growth chart')
+        }
       } finally {
-        setGrowthLoading(false)
+        if (seq === loadSeq.current) setGrowthLoading(false)
       }
     },
     [data, employeeView],
   )
+
+  if (error) {
+    return (
+      <div className="boot-screen">
+        <p>{error}</p>
+        <button type="button" className="btn-primary" onClick={() => void load()}>
+          Retry
+        </button>
+      </div>
+    )
+  }
 
   if (!data) {
     return (

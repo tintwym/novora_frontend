@@ -12,6 +12,11 @@ function assertProductionApiConfig(mode: string) {
         'Remove VITE_API_BASE_URL from Vercel Environment Variables and redeploy.',
     )
   }
+  throw new Error(
+    'VITE_API_BASE_URL must be empty or a full https:// URL. ' +
+      'A bare hostname is treated as a relative path and breaks API calls. ' +
+      'Remove VITE_API_BASE_URL on Vercel and use same-origin /api rewrites instead.',
+  )
 }
 
 // https://vite.dev/config/

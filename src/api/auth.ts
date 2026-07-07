@@ -3,16 +3,12 @@ import { Endpoints } from './endpoints'
 import { parseUser, type User } from '../types/user'
 import {
   clearSessionStorage,
-  loadCachedUser,
-  loadRememberMe,
   saveCachedUser,
   saveRememberMe,
 } from '../auth/sessionStorage'
 
-export function shouldProbeServerSession(cachedUser: User | null): boolean {
-  if (cachedUser) return true
-  if (loadRememberMe()) return true
-  return false
+export function shouldProbeServerSession(): boolean {
+  return true
 }
 
 export async function fetchMe(): Promise<User | null> {
@@ -31,8 +27,7 @@ export async function fetchMe(): Promise<User | null> {
 }
 
 export async function tryRestoreSession(): Promise<User | null> {
-  const cached = loadCachedUser()
-  if (!shouldProbeServerSession(cached)) return null
+  if (!shouldProbeServerSession()) return null
   return fetchMe()
 }
 
@@ -49,10 +44,18 @@ function sessionNotSavedMessage(): string {
  */
 async function confirmSessionUser(authBody: Record<string, unknown>): Promise<User> {
   const snapshot = parseUser(authBody)
-  const user = await fetchMe()
-  if (user) {
-    void ensureCsrfToken().catch(() => {})
-    return user
+  try {
+    const user = await fetchMe()
+    if (user) {
+      void ensureCsrfToken().catch(() => {})
+      return user
+    }
+  } catch (e) {
+    if (snapshot.id && snapshot.email && e instanceof ApiError && e.status === null) {
+      void ensureCsrfToken().catch(() => {})
+      return snapshot
+    }
+    throw e
   }
   if (snapshot.id && snapshot.email) {
     throw new ApiError(sessionNotSavedMessage(), null)
