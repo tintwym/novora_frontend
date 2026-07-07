@@ -34,6 +34,8 @@ export function EmployeeProfile() {
 
   const actions: ProfileTabActions = useMemo(
     () => ({
+      onDeleteEmployee: () => {},
+      onResetPassword: () => {},
       onEditEmployment: () => openModal('employment'),
       onEditHrNotes: () => openModal('hrNotes'),
       onEditPersonal: () => openModal('personal'),

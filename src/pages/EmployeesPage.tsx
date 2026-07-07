@@ -69,16 +69,6 @@ export function EmployeesPage() {
                   <path d="M12 3v12M7 10l5 5 5-5M5 21h14" fill="none" stroke="currentColor" strokeWidth="2" />
                 </svg>
               </HrToolbarPill>
-              {onProfileTab ? (
-                <>
-                  <button type="button" className="emp-danger-link">
-                    Delete Employee
-                  </button>
-                  <button type="button" className="emp-text-btn">
-                    Reset Password
-                  </button>
-                </>
-              ) : null}
             </div>
           </div>
 
