@@ -14,6 +14,8 @@ import {
 } from '../hr/HrPrimitives'
 
 export type ProfileTabActions = {
+  onDeleteEmployee: () => void
+  onResetPassword: () => void
   onEditEmployment: () => void
   onEditHrNotes: () => void
   onEditPersonal: () => void
@@ -71,7 +73,16 @@ export function ProfileTabContent({ tab, data, actions }: Props) {
 function SummaryTab({ data, actions }: TabProps) {
   const { summary } = data
   return (
-    <div className="emp-tab-grid emp-tab-grid-2">
+    <div className="emp-tab-stack">
+      <div className="emp-summary-actions">
+        <button type="button" className="emp-danger-link" onClick={actions.onDeleteEmployee}>
+          Delete Employee
+        </button>
+        <button type="button" className="emp-text-btn" onClick={actions.onResetPassword}>
+          Reset Password
+        </button>
+      </div>
+      <div className="emp-tab-grid emp-tab-grid-2">
       <div className="emp-tab-col">
         <HrCard title="Employment details" trailing={<HrEditLink onClick={actions.onEditEmployment} />}>
           <dl className="hr-kv-list">
@@ -134,6 +145,7 @@ function SummaryTab({ data, actions }: TabProps) {
             </span>
           </div>
         </HrCard>
+      </div>
       </div>
     </div>
   )
