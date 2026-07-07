@@ -16,15 +16,15 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://novora-api-wf1w.onrender.com/api/:path*"
+      "destination": "https://novora-backend-56ot.onrender.com/api/:path*"
     },
     {
       "source": "/auth/:path*",
-      "destination": "https://novora-api-wf1w.onrender.com/auth/:path*"
+      "destination": "https://novora-backend-56ot.onrender.com/auth/:path*"
     },
     {
       "source": "/actuator/:path*",
-      "destination": "https://novora-api-wf1w.onrender.com/actuator/:path*"
+      "destination": "https://novora-backend-56ot.onrender.com/actuator/:path*"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
