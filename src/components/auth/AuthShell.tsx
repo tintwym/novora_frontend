@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { NovoraBrand } from '../brand/NovoraLogo'
 
 type AuthShellProps = {
   title: string
@@ -7,21 +8,12 @@ type AuthShellProps = {
   secureLabel?: string
 }
 
-function BrandWordmark() {
-  return (
-    <div className="auth-brand-wordmark">
-      <span className="auth-brand-name">NOVORA</span>
-      <span className="auth-brand-tag">HRMS Software</span>
-    </div>
-  )
-}
-
 export function AuthShell({ title, subtitle, children, secureLabel }: AuthShellProps) {
   return (
     <div className="auth-split">
       <section className="auth-split-form" aria-label="Authentication form">
         <header className="auth-split-header">
-          <BrandWordmark />
+          <NovoraBrand size="md" />
         </header>
 
         <div className="auth-split-body">

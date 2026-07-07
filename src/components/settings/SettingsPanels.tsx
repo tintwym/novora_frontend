@@ -10,6 +10,7 @@ import {
 } from '../../data/mockSettings'
 import type { CompanyProfileData, ModuleConfig, SettingsPanelId } from '../../types/settings'
 import { useSettingsStore } from './SettingsContext'
+import { NovoraLogoMark } from '../brand/NovoraLogo'
 import {
   EmailPreview,
   SettingsBtn,
@@ -86,7 +87,9 @@ function CompanyProfilePanel() {
       <SettingsPageHeader title="Company Profile" subtitle="Configure company registry information and details." />
       <SettingsCard title="Company branding">
         <div className="set-branding-row">
-          <span className="set-logo-box">{store.companyProfile.logoInitials}</span>
+          <span className="set-logo-box">
+            <NovoraLogoMark className="set-logo-mark" />
+          </span>
           <div>
             <strong>{form.name}</strong>
             <p>Logo — Recommended size: 200×200px (PNG, SVG, or JPEG)</p>

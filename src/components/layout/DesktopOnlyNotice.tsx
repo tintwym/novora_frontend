@@ -1,10 +1,10 @@
 import { DESKTOP_MIN_WIDTH_PX } from '../../config/shell'
-import novoraMark from '../../assets/novora-mark.svg'
+import { NovoraLogoMark } from '../brand/NovoraLogo'
 
 export function DesktopOnlyNotice() {
   return (
     <div className="desktop-only-notice">
-      <img src={novoraMark} alt="" className="desktop-only-notice-mark" width={56} height={56} />
+      <NovoraLogoMark className="desktop-only-notice-mark" />
       <h1>Novora HRMS</h1>
       <p>
         This admin console is built for desktop screens ({DESKTOP_MIN_WIDTH_PX}px wide or larger).

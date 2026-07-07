@@ -1,8 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { navItemsFor } from '../../config/nav'
 import { useAuth } from '../../auth/AuthContext'
-import novoraLogo from '../../assets/novora-logo.svg'
-import novoraMark from '../../assets/novora-mark.svg'
+import { NovoraBrand, NovoraLogoMark } from '../brand/NovoraLogo'
 import { ShellMenuIcon } from './ShellIcons'
 import { SidebarNavIcon } from './SidebarNavIcon'
 
@@ -20,9 +19,11 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
       <div className="sidebar-header">
         <div className="sidebar-brand">
           {collapsed ? (
-            <img src={novoraMark} alt="Novora" className="sidebar-mark" width={38} height={38} />
+            <span className="sidebar-mark-wrap" role="img" aria-label="Novora">
+              <NovoraLogoMark className="sidebar-mark" />
+            </span>
           ) : (
-            <img src={novoraLogo} alt="Novora HRMS Software" className="sidebar-logo-img" />
+            <NovoraBrand size="xs" tone="dark" className="sidebar-brand-full" />
           )}
         </div>
         <button

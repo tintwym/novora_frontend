@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { RecruitPill } from '../recruitment/RecruitmentPrimitives'
+import { NovoraLogoMark } from '../brand/NovoraLogo'
 import type { RecruitPillTone } from '../../types/recruitment'
 import type { SettingsNavSection, SettingsPanelId } from '../../types/settings'
 
@@ -417,7 +418,7 @@ export function EmailPreview({ subject, body }: { subject: string; body: string 
       <p className="set-email-meta">From: Novora Alerts &lt;no-reply@novora.com&gt;</p>
       <p className="set-email-meta">Subject: {subject || '(Enter subject above...)'}</p>
       <div className="set-email-brand">
-        <span className="set-email-logo">NV</span>
+        <NovoraLogoMark className="set-email-logo-mark" />
         <strong>NOVORA PTE LTD</strong>
       </div>
       <div className={`set-email-body ${body ? '' : 'empty'}`}>
