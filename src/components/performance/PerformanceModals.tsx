@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect } from 'react'
 import { GRANT_VIEW_LIST_ROSTER, SETUP_LINKED_CATEGORIES, VIEW_REPORT_SCORES } from '../../data/mockPerformance'
-import { PerfField, PerfFieldRow, PerfGradeBox } from './PerformanceShared'
+import { PerfField, PerfFieldRow, PerfGradeBox, PerfIcon } from './PerformanceShared'
 
 type ModalProps = { open: boolean; onClose: () => void }
 
@@ -41,7 +41,8 @@ function PerfModalShell({
           <span className="perf-modal-dot" aria-hidden />
           <h2>{title}</h2>
           <button type="button" className="perf-modal-close-pill" onClick={onClose}>
-            ✕ Close
+            <PerfIcon name="close" className="perf-modal-close-icon" />
+            Close
           </button>
         </div>
         <div className="perf-modal-body">{children}</div>

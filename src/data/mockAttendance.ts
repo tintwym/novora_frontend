@@ -14,11 +14,11 @@ import type {
 export const UNKNOWN_SWIPE_BADGE = 4
 
 export const RECENT_DAY_LOGS: RecentDayLog[] = [
-  { date: '2026-06-12', range: '09:02 AM → 06:05 PM', hours: '9.0 hrs completed', present: true },
-  { date: '2026-06-11', range: '08:10 AM → 06:00 PM', hours: '8.8 hrs completed', present: true },
-  { date: '2026-06-10', range: '08:05 AM → 06:12 PM', hours: '9.1 hrs completed', present: true },
-  { date: '2026-06-09', range: '08:00 AM → 05:58 PM', hours: '8.9 hrs completed', present: true },
-  { date: '2026-06-02', range: '— → —', hours: '0.0 hrs completed', present: true },
+  { date: '2025-06-12', range: '09:02 AM → 06:05 PM', hours: '9.0 hrs completed', present: true },
+  { date: '2025-06-11', range: '08:10 AM → 06:00 PM', hours: '8.8 hrs completed', present: true },
+  { date: '2025-06-10', range: '08:05 AM → 06:12 PM', hours: '9.1 hrs completed', present: true },
+  { date: '2025-06-09', range: '08:00 AM → 05:58 PM', hours: '8.9 hrs completed', present: true },
+  { date: '2025-06-02', range: '— → —', hours: '0.0 hrs completed', present: true },
 ]
 
 export const ROSTER_DAYS = ['MON 5', 'TUE 6', 'WED 7', 'THU 8', 'FRI 9', 'SAT 10', 'SUN 11']
@@ -29,11 +29,11 @@ export const ROSTER_EMPLOYEES: RosterEmployee[] = [
     name: 'Sarah Lim',
     department: 'Engineering',
     days: [
-      { time: '08:00-18:00', status: 'Completed', tone: 'completed' },
-      { time: '08:00-18:00', status: 'Completed', tone: 'completed' },
-      { time: '08:00-18:00', status: 'Clock In', tone: 'clockIn' },
-      { time: '08:00-18:00', status: 'Planned', tone: 'planned' },
-      { time: '08:00-13:00', status: 'Planned', tone: 'planned' },
+      { time: '09:00-18:00', status: 'Completed', tone: 'completed' },
+      { time: '09:00-18:00', status: 'Completed', tone: 'completed' },
+      { time: '09:00-18:00', status: 'Clock In', tone: 'clockIn' },
+      { time: '09:00-18:00', status: 'Planned', tone: 'planned' },
+      { time: '09:00-13:00', status: 'Planned', tone: 'planned' },
       { time: 'Off', status: 'Off', tone: 'off' },
       { time: 'Off', status: 'Off', tone: 'off' },
     ],
@@ -43,11 +43,11 @@ export const ROSTER_EMPLOYEES: RosterEmployee[] = [
     name: 'Raj Kumar',
     department: 'Engineering',
     days: [
-      { time: '08:00-18:00', status: 'Completed', tone: 'completed' },
-      { time: '08:00-18:00', status: 'Completed', tone: 'completed' },
-      { time: '08:00-20:00', status: 'OT active', tone: 'ot' },
-      { time: '08:00-18:00', status: 'Completed', tone: 'completed' },
-      { time: '08:00-18:00', status: 'Planned', tone: 'planned' },
+      { time: '09:00-18:00', status: 'Completed', tone: 'completed' },
+      { time: '09:00-18:00', status: 'Completed', tone: 'completed' },
+      { time: '09:00-20:00', status: 'OT active', tone: 'ot' },
+      { time: '09:00-18:00', status: 'Completed', tone: 'completed' },
+      { time: '09:00-18:00', status: 'Planned', tone: 'planned' },
       { time: 'Off', status: 'Off', tone: 'off' },
       { time: 'Off', status: 'Off', tone: 'off' },
     ],
@@ -60,8 +60,8 @@ export const ROSTER_EMPLOYEES: RosterEmployee[] = [
       { time: 'Annual Leave', status: 'On leave', tone: 'leave' },
       { time: 'Annual Leave', status: 'On leave', tone: 'leave' },
       { time: 'Annual Leave', status: 'On leave', tone: 'leave' },
-      { time: '08:00-18:00', status: 'Completed', tone: 'completed' },
-      { time: '08:00-18:00', status: 'Planned', tone: 'planned' },
+      { time: '09:00-18:00', status: 'Completed', tone: 'completed' },
+      { time: '09:00-18:00', status: 'Planned', tone: 'planned' },
       { time: 'Off', status: 'Off', tone: 'off' },
       { time: 'Off', status: 'Off', tone: 'off' },
     ],
@@ -71,11 +71,25 @@ export const ROSTER_EMPLOYEES: RosterEmployee[] = [
     name: 'Ahmad L',
     department: 'Operations',
     days: [
-      { time: '08:00-18:00', status: 'Completed', tone: 'completed' },
-      { time: '08:00-18:00', status: 'Clock In', tone: 'clockIn' },
-      { time: '08:00-18:00', status: 'Completed', tone: 'completed' },
+      { time: '09:00-18:00', status: 'Completed', tone: 'completed' },
+      { time: '09:00-18:00', status: 'Late In', tone: 'clockIn' },
+      { time: '09:00-18:00', status: 'Completed', tone: 'completed' },
       { time: '22:00-07:00', status: 'Night', tone: 'night' },
       { time: '22:00-07:00', status: 'Night', tone: 'night' },
+      { time: 'Off', status: 'Off', tone: 'off' },
+      { time: 'Off', status: 'Off', tone: 'off' },
+    ],
+  },
+  {
+    initials: 'NC',
+    name: 'Nadia Chen',
+    department: 'Marketing',
+    days: [
+      { time: '09:00-18:00', status: 'Completed', tone: 'completed' },
+      { time: '09:00-18:00', status: 'Completed', tone: 'completed' },
+      { time: '09:00-18:00', status: 'Clock In', tone: 'clockIn' },
+      { time: '09:00-18:00', status: 'Planned', tone: 'planned' },
+      { time: '09:00-18:00', status: 'Planned', tone: 'planned' },
       { time: 'Off', status: 'Off', tone: 'off' },
       { time: 'Off', status: 'Off', tone: 'off' },
     ],
@@ -85,11 +99,11 @@ export const ROSTER_EMPLOYEES: RosterEmployee[] = [
     name: 'Zara Nor',
     department: 'Operations',
     days: [
-      { time: '08:00-18:00', status: 'Completed', tone: 'completed' },
-      { time: 'Absent', status: 'absent', tone: 'absent' },
-      { time: '08:00-18:00', status: 'Completed', tone: 'completed' },
-      { time: '08:00-18:00', status: 'Completed', tone: 'completed' },
-      { time: '08:00-18:00', status: 'Planned', tone: 'planned' },
+      { time: '09:00-18:00', status: 'Completed', tone: 'completed' },
+      { time: 'Absent', status: 'Absent', tone: 'absent' },
+      { time: '09:00-18:00', status: 'Completed', tone: 'completed' },
+      { time: '09:00-18:00', status: 'Completed', tone: 'completed' },
+      { time: '09:00-18:00', status: 'Planned', tone: 'planned' },
       { time: 'Off', status: 'Off', tone: 'off' },
       { time: 'Off', status: 'Off', tone: 'off' },
     ],
@@ -197,7 +211,7 @@ export const OT_POLICY = [
 ]
 
 export const MANUAL_PUNCHES: ManualPunchRecord[] = [
-  { time: '08:55', employee: 'Sarah Lim', empId: 'EMP-0027', type: 'Clock In', reason: 'Fingerprint device offline', badge: 'In', badgeTone: 'success' },
+  { time: '08:55', employee: 'Sarah Lim', empId: 'EMP-0031', type: 'Clock In', reason: 'Device offline', badge: 'In', badgeTone: 'success' },
   { time: '09:10', employee: 'Ahmad L', empId: 'EMP-0187', type: 'Clock In', reason: 'Forgot to swipe', badge: 'In', badgeTone: 'success' },
   { time: '17:30', employee: 'Nadia Chen', empId: 'EMP-0092', type: 'Clock Out', reason: 'Remote work', badge: 'Out', badgeTone: 'pink' },
   { time: '18:05', employee: 'Raj Kumar', empId: 'EMP-0048', type: 'Clock Out', reason: 'Biometric', badge: 'Auto', badgeTone: 'neutral' },
@@ -206,6 +220,8 @@ export const MANUAL_PUNCHES: ManualPunchRecord[] = [
 export const DEPT_SCOREBOARD: DeptScoreRow[] = [
   { department: 'Engineering & Dev', staff: '142 FTEs', avgHours: '8.4h / day', punctuality: '96.4%', punctualityTone: 'success', overtime: '54.5 hrs', absences: '2 events', compliance: '98.2 / A++', complianceTone: 'success' },
   { department: 'Product Management', staff: '38 FTEs', avgHours: '8.1h / day', punctuality: '91.2%', punctualityTone: 'success', overtime: '12.0 hrs', absences: '3 events', compliance: '92.4 / A', complianceTone: 'success' },
+  { department: 'Customer Success', staff: '52 FTEs', avgHours: '8.0h / day', punctuality: '94.1%', punctualityTone: 'success', overtime: '8.5 hrs', absences: '1 event', compliance: '95.8 / A+', complianceTone: 'success' },
+  { department: 'Human Resources (HR)', staff: '24 FTEs', avgHours: '8.2h / day', punctuality: '97.0%', punctualityTone: 'success', overtime: '4.0 hrs', absences: '0 events', compliance: '99.1 / A++', complianceTone: 'success' },
   { department: 'Marketing & Sales', staff: '65 FTEs', avgHours: '7.9h / day', punctuality: '89.5%', punctualityTone: 'warning', overtime: '18.0 hrs', absences: '5 events', compliance: '89.1 / B-', complianceTone: 'warning' },
 ]
 

@@ -22,13 +22,22 @@
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
+  border-radius: 8px 8px 0 0;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.claim-tab-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .claim-module-tabs button.active {
   color: var(--brand-blue-deep);
   font-weight: 700;
   border-bottom-color: var(--brand-blue-deep);
+  background: rgba(37, 99, 235, 0.08);
 }
 
 .claim-tab-badge {
@@ -64,9 +73,10 @@
 .claim-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 1.25rem;
   margin: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .claim-card:last-child {
@@ -108,10 +118,48 @@
 
 .claim-log-title {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.05em;
   margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+.claim-upload-icon {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #fce7f3;
+  color: #db2777;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.claim-upload-icon .claim-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.claim-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.claim-print-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.hr-modal-icon svg {
+  width: 20px;
+  height: 20px;
+  color: var(--brand-blue-deep);
 }
 
 .claim-split {
@@ -766,8 +814,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
   flex-shrink: 0;
+  color: var(--brand-blue-deep);
+}
+
+.claim-dossier-icon .claim-icon {
+  width: 22px;
+  height: 22px;
 }
 
 .claim-dossier-id {

@@ -732,10 +732,10 @@ export function LeaveReportsTab() {
   return (
     <>
       <div className="leave-kpi-row">
-        <RecruitIconKpi title="Absence Outrate" value="4.8%" subtext="Company-wide average" icon="🕐" iconColor="#2563eb" trend="+0.5% this month" />
-        <RecruitIconKpi title="Active Requests" value="15 active" subtext="Across all units" icon="👥" iconColor="#2563eb" />
-        <RecruitIconKpi title="Annual Time-Off" value="56.5 days" subtext="18 FTEs involved" icon="📄" iconColor="#7c3aed" valueTone="primary" />
-        <RecruitIconKpi title="Medical Leave Rate" value="14.0 days" subtext="All Doctor-certified" icon="✓" iconColor="#059669" />
+        <RecruitIconKpi title="ABSENCE OUTRATE" value="4.8%" subtext="Company-wide average" icon="clock" iconColor="#2563eb" trend="↑ +0.6% this month" />
+        <RecruitIconKpi title="ACTIVE REQUESTS" value="15 active" subtext="Across all units" icon="users" iconColor="#2563eb" />
+        <RecruitIconKpi title="ANNUAL TIME-OFF" value="56.5 days" subtext="18 FTEs involved" icon="clipboard" iconColor="#7c3aed" valueTone="primary" />
+        <RecruitIconKpi title="MEDICAL LEAVE RATE" value="14.0 days" subtext="All Doctor-certified" icon="check" iconColor="#059669" />
       </div>
       <LeaveCard>
         <h3>Departmental Time Off & Leave Utilization Matrix</h3>

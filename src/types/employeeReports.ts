@@ -36,7 +36,7 @@ export type TenureBar = {
 }
 
 export const REPORT_SECTORS = [
-  'All Departments + Consolidated',
+  'All Departments - Consolidated',
   'Engineering',
   'Finance',
   'HR',
@@ -61,7 +61,7 @@ export const DEPT_DISTRIBUTION: DeptDistribution[] = [
 ]
 
 export const TENURE_BREAKDOWN: TenureBar[] = [
-  { label: '5+ Years Veteran', count: 8, fraction: 0.62, color: '#6d28d9' },
+  { label: '5+ Years Veteran', count: 8, fraction: 0.62, color: '#2563eb' },
   { label: '3–5 Years Experienced', count: 5, fraction: 0.38, color: '#818cf8' },
 ]
 

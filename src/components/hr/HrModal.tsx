@@ -72,13 +72,95 @@ export function HrModal({
             </button>
             {onConfirm ? (
               <button type="submit" className="hr-modal-confirm" disabled={confirmDisabled}>
-                ✓ {confirmLabel}
+                <svg viewBox="0 0 24 24" aria-hidden>
+                  <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" strokeWidth="2.5" />
+                </svg>
+                {confirmLabel}
               </button>
             ) : null}
           </div>
         </form>
       </div>
     </div>
+  )
+}
+
+export function HrModalIcon({ children }: { children: ReactNode }) {
+  return <span className="hr-modal-icon-badge">{children}</span>
+}
+
+export function HrModalPlusIcon() {
+  return (
+    <HrModalIcon>
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2.5" />
+      </svg>
+    </HrModalIcon>
+  )
+}
+
+export function HrModalBriefcaseIcon() {
+  return (
+    <HrModalIcon>
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <rect x="2" y="7" width="20" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    </HrModalIcon>
+  )
+}
+
+export function HrModalGraduationIcon() {
+  return (
+    <HrModalIcon>
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <path d="M22 10L12 5 2 10l10 5 10-5z" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path d="M6 12v5c0 0 3 3 6 3s6-3 6-3v-5" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    </HrModalIcon>
+  )
+}
+
+export function HrModalUploadIcon() {
+  return (
+    <HrModalIcon>
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <path d="M12 3v12M7 10l5-5 5 5" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path d="M5 21h14" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    </HrModalIcon>
+  )
+}
+
+export function HrModalUserIcon() {
+  return (
+    <HrModalIcon>
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    </HrModalIcon>
+  )
+}
+
+export function HrModalLocationIcon() {
+  return (
+    <HrModalIcon>
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <path d="M12 21s7-5.2 7-11a7 7 0 10-14 0c0 5.8 7 11 7 11z" fill="none" stroke="currentColor" strokeWidth="2" />
+        <circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    </HrModalIcon>
+  )
+}
+
+export function HrModalNotesIcon() {
+  return (
+    <HrModalIcon>
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <path d="M6 4h12v16l-4-3H6V4z" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    </HrModalIcon>
   )
 }
 

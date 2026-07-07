@@ -1,6 +1,6 @@
 import { type ReactNode, useState } from 'react'
 
-const STEPS = ['Position details', 'Requirements', 'Approval & routing'] as const
+const STEPS = ['Position details', 'Requirements & JD', 'Approval & routing'] as const
 
 type JobRequisitionWizardProps = { onClose: () => void }
 
@@ -54,18 +54,26 @@ export function JobRequisitionWizard({ onClose }: JobRequisitionWizardProps) {
         <div className="recruit-dark-body">
           {step === 0 ? (
             <>
-              <DarkSection title="POSITION DETAILS">
+              <DarkSection title="POSITION INFORMATION">
                 <div className="recruit-dark-grid">
-                  <DarkField label="Position title" required value="HR Business Partner" />
-                  <DarkField label="Department" required value="Human Resources" />
-                  <DarkField label="Employment type" required value="Permanent" />
-                  <DarkField label="Work arrangement" value="On-site" />
-                  <DarkField label="Headcount" required value="1" />
-                  <DarkField label="Salary range (MYR)" value="5,500 – 7,000" />
-                  <DarkField label="Target fill date" required value="13 May 2026" />
-                  <DarkField label="Reports to" value="Nina Reza (Head of HR)" />
+                  <DarkField label="Position title" required placeholder="e.g. HR Business Partner" />
+                  <DarkSelect label="Department" required value="-- Select department --" />
+                  <DarkSelect label="Section / team" value="-- Select section (optional) --" />
+                  <DarkSelect label="Reports to" required value="-- Select manager --" />
                 </div>
-                <DarkTextarea label="Justification / notes" placeholder="Briefly justify the need for this position..." />
+              </DarkSection>
+              <DarkSection title="EMPLOYMENT DETAILS">
+                <div className="recruit-dark-grid three">
+                  <DarkSelect label="Employment type" required value="Permanent" />
+                  <DarkSelect label="Work arrangement" value="On-site" />
+                  <DarkSelect label="Job grade" value="-- Select grade --" />
+                  <DarkField label="No. of vacancies" required value="1" />
+                  <DarkField label="Target fill date" required placeholder="dd/mm/yyyy" />
+                  <DarkSelect label="Urgency" value="Normal" />
+                  <DarkField label="Salary range — min (MYR)" placeholder="e.g. 5500" />
+                  <DarkField label="Salary range — max (MYR)" placeholder="e.g. 7000" />
+                </div>
+                <DarkSelect label="Reason for requisition" required value="New headcount" className="full" />
               </DarkSection>
             </>
           ) : null}
@@ -112,13 +120,23 @@ export function JobRequisitionWizard({ onClose }: JobRequisitionWizardProps) {
                   <textarea rows={5} value={responsibilities} onChange={(e) => setResponsibilities(e.target.value)} />
                 </label>
               </DarkSection>
+              <DarkTextarea label="Nice-to-have / preferred" placeholder="Optional additional requirements or preferences..." />
+              <DarkSection title="PUBLISHING CHANNELS">
+                <DarkCheck label="Internal careers portal" checked />
+                <DarkCheck label="JobStreet.com" checked />
+                <DarkCheck label="LinkedIn Jobs" checked />
+                <DarkCheck label="Indeed" />
+                <DarkCheck label="Recruitment agency" />
+              </DarkSection>
             </>
           ) : null}
 
           {step === 2 ? (
             <>
               <DarkSection title="APPROVAL CHAIN">
-                <p className="recruit-dark-hint">Auto-configured from org hierarchy — adjust if needed.</p>
+                <p className="recruit-dark-hint">
+                  Based on the department and job grade selected, the following approval chain has been auto-configured. You may adjust if needed.
+                </p>
                 <div className="recruit-approver-row">
                   <span className="num active">1</span>
                   <div>

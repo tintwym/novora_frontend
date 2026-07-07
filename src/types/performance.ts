@@ -116,6 +116,6 @@ export type ReviewReportRow = {
 
 export type ScoreBreakdown = { label: string; value: number; color: string }
 
-export type ReviewHistoryRow = { type: string; period: string; score: string; grade: string; gradeBg: string }
+export type ReviewHistoryRow = { type: string; period: string; score: string; grade: string; gradeBg: string; scoreTone?: 'primary' | 'warning' }
 
 export type TrainingRec = { label: string; mandatory: boolean }

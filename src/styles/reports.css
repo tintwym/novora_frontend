@@ -30,6 +30,51 @@
   color: var(--brand-blue-deep);
   font-weight: 700;
   border-bottom-color: var(--brand-blue-deep);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.rpt-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.rpt-search-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  color: var(--text-muted);
+}
+
+.rpt-chip-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.rpt-btn-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.rpt-briefing-spark {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: #60a5fa;
+}
+
+.rpt-briefing-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.rpt-field-check-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--text-muted);
+}
+
+.rpt-field-check.is-checked .rpt-field-check-icon {
+  color: var(--brand-blue-deep);
 }
 
 .rpt-panel {
@@ -47,8 +92,9 @@
 .rpt-hero-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 1.35rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .rpt-hero-card h2 {
@@ -128,13 +174,14 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(37, 99, 235, 0.35);
   border-radius: 10px;
   background: transparent;
   padding: 0.4rem 0.85rem;
   font: inherit;
   font-size: 0.75rem;
   font-weight: 600;
+  color: var(--brand-blue-deep);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -142,6 +189,10 @@
 .rpt-module-chips button.active {
   background: var(--brand-blue-deep);
   border-color: var(--brand-blue-deep);
+  color: #fff;
+}
+
+.rpt-module-chips button.active .rpt-chip-icon {
   color: #fff;
 }
 
@@ -169,11 +220,12 @@
 .rpt-insight-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 1.1rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .rpt-insight-label {
@@ -217,8 +269,9 @@
 .rpt-download-list {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 0 1.1rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .rpt-download-row {
@@ -281,8 +334,9 @@
 .rpt-snapshot-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 1rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .rpt-kv {
@@ -358,8 +412,9 @@
 .rpt-q2-card {
   background: #0f172a;
   color: #fff;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 1.1rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .rpt-briefing-head,
@@ -470,8 +525,9 @@
 .rpt-overview-kpi {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 1.35rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .rpt-overview-kpi strong {
@@ -515,8 +571,9 @@
 .rpt-activity-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 0 1rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .rpt-activity-row {
@@ -597,8 +654,9 @@
 .rpt-outlined-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 1.1rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .rpt-form-grid {
@@ -644,6 +702,10 @@
 }
 
 .rpt-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   border: none;
   border-radius: 10px;
   background: var(--brand-blue-deep);
@@ -668,6 +730,9 @@
 }
 
 .rpt-muted-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   border: none;
   background: transparent;
   color: var(--text-muted);
@@ -680,7 +745,8 @@
   overflow-x: auto;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .rpt-schedule-table {
@@ -721,8 +787,15 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 0.9rem;
-  padding: 0.2rem;
+  padding: 0.25rem;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rpt-schedule-actions button:hover {
+  color: var(--brand-blue-deep);
 }
 
 .rpt-builder-grid {

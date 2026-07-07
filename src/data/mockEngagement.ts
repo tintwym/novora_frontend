@@ -48,8 +48,9 @@ export const SUGGESTIONS: SuggestionEntry[] = [
     vibeTone: 'danger',
     id: 'SUG-651',
     date: '2026-06-14',
-    text: 'Our team is putting in late night deployments consistently during overlapping milestone windows.',
+    text: 'Our team is putting in late night deployments consistently due to overlapping milestones. We need better buffer estimates on sprint planning to avoid cumulative exhaustion.',
     tag: '#Sprint Buffer',
+    tags: ['#Sprint Buffer', '#Overtime Weary', '#Planning Guardrails'],
     nlp: 'Detected high fatigue pattern. Overlap noted in Engineering metrics.',
     upvotes: 18,
   },
@@ -59,8 +60,9 @@ export const SUGGESTIONS: SuggestionEntry[] = [
     vibeTone: 'success',
     id: 'SUG-648',
     date: '2026-06-12',
-    text: 'Can we install free premium single-origin coffee beans in the pantry?',
-    tag: '#Culture Perks',
+    text: 'Can we install free premium single-origin coffee beans in the kitchen? This is a very minor adjustment that would instantly lift morning team bonding sessions!',
+    tag: '#Pantry Perks',
+    tags: ['#Pantry Perks', '#Morning Routine', '#Morale Boost'],
     nlp: 'High affinity cultural item. Positive enhancement request.',
     upvotes: 35,
   },
@@ -70,19 +72,20 @@ export const SUGGESTIONS: SuggestionEntry[] = [
     vibeTone: 'info',
     id: 'SUG-642',
     date: '2026-06-10',
-    text: 'We require a formal policy framework covering electric vehicle charging reimbursements.',
-    tag: '#Sustainability',
+    text: 'We require a formal policy framework covering electric vehicle (EV) charging reimbursements under commuting budgets. Several colleagues own EVs now.',
+    tag: '#Car Commuting',
+    tags: ['#Car Commuting', '#Green Initiatives', '#Deduction Guidelines'],
     nlp: 'Proactive policy feedback. High alignment with sustainability goals.',
     upvotes: 11,
   },
 ]
 
 export const SHOUT_OUT_MEDALS: ShoutOutMedal[] = [
-  { name: 'Collaborative Hero', icon: '💎', description: 'Excellent assistance across project verticals' },
-  { name: 'Innovation Spark', icon: '💡', description: 'Invented or customized clever workflow operations' },
-  { name: 'Super Speed Deliverer', icon: '🚀', description: 'Demonstrated rapid execution in times of crunch' },
-  { name: 'Welfare Champion', icon: '💗', description: 'Showed empathy, guidance, or extreme support' },
-  { name: 'Pristine Deliverer', icon: '✨', description: 'Demonstrated deep expertise and faultless design' },
+  { name: 'Collaborative Hero', icon: 'medal-diamond', tone: 'gold', description: 'Excellent assistance across project verticals.' },
+  { name: 'Innovation Spark', icon: 'medal-bulb', tone: 'blue', description: 'Invented or customized clever workflow operations.' },
+  { name: 'Super Speed Deliverer', icon: 'medal-rocket', tone: 'orange', description: 'Demonstrated rapid execution in times of crunch.' },
+  { name: 'Welfare Champion', icon: 'medal-heart', tone: 'pink', description: 'Showed empathy, guidance, or extreme support.' },
+  { name: 'Pristine Deliverer', icon: 'medal-trophy', tone: 'gold', description: 'Demonstrated deep expertise and faultless design.' },
 ]
 
 export const SHOUT_OUTS: ShoutOutCard[] = [
@@ -91,7 +94,9 @@ export const SHOUT_OUTS: ShoutOutCard[] = [
     name: 'Sarah Lim',
     role: 'Lead Software Architect • Engineering',
     badge: 'PRISTINE DELIVERER',
-    message: 'Massive high-fives to Sarah for single-handedly managing the continuous integration server database upgrades. Everything ran with perfect uptime on deployment!',
+    badgeTone: 'gold',
+    message:
+      'Massive high-fives to Sarah for single-handedly managing the continuous integration server database upgrades. Everything ran with perfect uptime on deployment!',
     meta: 'Anonymous • Product Lead • 2 hours ago',
     applause: 14,
   },
@@ -100,7 +105,9 @@ export const SHOUT_OUTS: ShoutOutCard[] = [
     name: 'Raj Kumar',
     role: 'Senior Backend Engineer • Engineering',
     badge: 'COLLABORATIVE HERO',
-    message: 'Raj helped me clear several pending transit insurance claims with alliance representatives under tight time boxes. Truly cooperative teammate!',
+    badgeTone: 'orange',
+    message:
+      'Raj helped me clear several pending transit insurance claims with alliance representatives under tight time boxes. Truly cooperative teammate!',
     meta: 'Pinky Sharma • Yesterday',
     applause: 9,
   },
@@ -114,8 +121,8 @@ export const ACTION_LOGS: ActionLogEntry[] = [
     ref: 'ACT-201',
     title: 'Workload & Buffer reallocation audits',
     body: 'HR to sit in Sprint Estimation rounds and ensure developers are not double-booked on projects.',
-    footer: 'Owner: HR Operations Group • Target end: 2026-06-25',
-    status: 'Ongoing',
+    footer: 'Owner: HR Operations Group • Target end: 2026-08-25',
+    status: '⚡ Ongoing',
     statusTone: 'warning',
   },
   {
@@ -126,7 +133,7 @@ export const ACTION_LOGS: ActionLogEntry[] = [
     title: 'Equip ergonomic workstation sit-stand accessories',
     body: 'Procurement team preparing sample units for third floor testing groups.',
     footer: 'Owner: Facilities Admin • Target end: 2026-07-02',
-    status: 'Pending Entry',
+    status: '✕ Pending Entry',
     statusTone: 'neutral',
   },
   {
@@ -137,7 +144,7 @@ export const ACTION_LOGS: ActionLogEntry[] = [
     title: 'Publish clean mental resilience app program link',
     body: 'Calm app enterprise invitations delivered to corporate email accounts.',
     footer: 'Owner: Welfare benefits team • Target end: 2026-06-20',
-    status: 'Completed',
+    status: '✓ Completed',
     statusTone: 'success',
   },
 ]
@@ -173,7 +180,7 @@ export const ENPS_GROUP_RATIOS: RatioBar[] = [
 ]
 
 export const BADGE_DISTRIBUTION: RatioBar[] = [
-  { label: '🌸 Zen Master of Mindfulness', pct: 45, color: '#db2777', trailing: '12 shared (45%)' },
-  { label: '🚀 Speed Demon Excellence', pct: 30, color: '#ea580c', trailing: '8 shared (30%)' },
-  { label: '🤝 Peerless Cohesion Architect', pct: 25, color: '#059669', trailing: '7 shared (25%)' },
+  { label: 'Zen Master of Mindfulness', pct: 45, color: '#db2777', trailing: '12 shared (45%)' },
+  { label: 'Speed Demon Excellence', pct: 30, color: '#ea580c', trailing: '8 shared (30%)' },
+  { label: 'Peerless Cohesion Architect', pct: 25, color: '#059669', trailing: '7 shared (25%)' },
 ]

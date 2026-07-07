@@ -15,6 +15,8 @@ import {
   EngCard,
   EngField,
   EngHBar,
+  EngIcon,
+  EngProgressKpi,
   EngSectionTitle,
   EngTableScroll,
 } from './EngagementShared'
@@ -77,7 +79,8 @@ export function EngagementPulseTab() {
             <span className="tone-success">10 - EXTREMELY LIKELY</span>
           </div>
           <p className="eng-vote-secure">
-            <span aria-hidden>🛡</span> Encrypted with SHA-256 peer-shuffling algorithms
+            <EngIcon name="shield" className="eng-vote-shield" />
+            Encrypted with SHA-256 peer-shuffling algorithms
           </p>
         </EngCard>
       </div>
@@ -110,7 +113,7 @@ export function EngagementSentimentTab() {
     <div className="eng-tab eng-split">
       <EngCard className="eng-split-side">
         <div className="eng-card-head">
-          <span aria-hidden>💡</span>
+          <EngIcon name="lightbulb" className="eng-card-icon" />
           <span className="eng-section-title sm">ANONYMITY SUGGESTION BOX</span>
         </div>
         <EngField label="Target area category">
@@ -127,14 +130,18 @@ export function EngagementSentimentTab() {
           />
         </EngField>
         <div className="eng-sentiment-check">
-          <span>AI text sentiment pre-check</span>
+          <span>
+            <EngIcon name="pulse-line" className="eng-inline-icon" /> AI text sentiment pre-check
+          </span>
           <RecruitPill label="NEUTRAL" tone="neutral" />
         </div>
         <p className="eng-muted sm eng-proxy-note">
-          <span aria-hidden>✎</span> Automated secure proxy strips author email, identity ID, and terminal logs.
+          <EngIcon name="pen" className="eng-inline-icon" />
+          Automated secure proxy strips author email, identity ID, and terminal logs.
         </p>
         <button type="button" className="eng-primary-btn">
-          ✈ File Safe Suggestion
+          <EngIcon name="send" className="eng-btn-icon" />
+          File Safe Suggestion
         </button>
       </EngCard>
 
@@ -152,16 +159,18 @@ export function EngagementSentimentTab() {
                   </span>
                 </div>
                 <p className="eng-suggestion-text">&ldquo;{s.text}&rdquo;</p>
-                <p className="eng-suggestion-tag">AI TAGS: {s.tag}</p>
+                <p className="eng-suggestion-tags">
+                  {(s.tags ?? [s.tag]).map((tag) => (
+                    <span key={tag}>{tag}</span>
+                  ))}
+                </p>
                 <div className="eng-nlp-box">
-                  <span aria-hidden>〰</span>
+                  <EngIcon name="pulse-line" className="eng-inline-icon" />
                   <span>NLP DIAGNOSTIC: {s.nlp}</span>
                 </div>
               </div>
               <div className="eng-upvote-col">
-                <span className="eng-heart" aria-hidden>
-                  ♥
-                </span>
+                <EngIcon name="heart" className="eng-heart-icon" />
                 <strong>{s.upvotes}</strong>
                 <span className="eng-upvote-label">
                   VOUCH &amp;
@@ -184,7 +193,7 @@ export function EngagementShoutOutTab() {
     <div className="eng-tab eng-split">
       <EngCard className="eng-split-side">
         <div className="eng-card-head">
-          <span aria-hidden>🏅</span>
+          <EngIcon name="ribbon" className="eng-card-icon gold" />
           <span className="eng-section-title sm">SEND A VIRTUAL HIGH-FIVE</span>
         </div>
         <EngField label="Pick recipient colleague">
@@ -202,8 +211,8 @@ export function EngagementShoutOutTab() {
               className={`eng-medal-item${selectedMedal === medal.name ? ' selected' : ''}`}
               onClick={() => setSelectedMedal(medal.name)}
             >
-              <span className="eng-medal-icon" aria-hidden>
-                {medal.icon}
+              <span className={`eng-medal-icon tone-${medal.tone}`} aria-hidden>
+                <EngIcon name={medal.icon} />
               </span>
               <span>
                 <strong>{medal.name}</strong>
@@ -223,7 +232,12 @@ export function EngagementShoutOutTab() {
       <EngCard className="eng-split-main">
         <EngSectionTitle
           title="PUBLIC PEER RECOGNITION STREAM"
-          trailing={<span className="tone-primary sm bold">Values in Action</span>}
+          trailing={
+            <span className="eng-values-pill">
+              <EngIcon name="sparkle" className="eng-inline-icon" />
+              Values In Action
+            </span>
+          }
         />
         <div className="eng-shoutout-list">
           {SHOUT_OUTS.map((card) => (
@@ -234,13 +248,14 @@ export function EngagementShoutOutTab() {
                   <strong>{card.name}</strong>
                   <p className="eng-muted sm">{card.role}</p>
                 </div>
-                <span className="eng-badge-pill">{card.badge}</span>
+                <span className={`eng-badge-pill tone-${card.badgeTone}`}>{card.badge}</span>
               </div>
               <p className="eng-shoutout-message">{card.message}</p>
               <div className="eng-shoutout-foot">
                 <span className="eng-muted sm">via {card.meta}</span>
                 <button type="button" className="eng-applause-btn">
-                  👏 Applause {card.applause}
+                  <EngIcon name="clap" className="eng-btn-icon" />
+                  Applause {card.applause}
                 </button>
               </div>
             </article>
@@ -256,42 +271,42 @@ export function EngagementManagerTab() {
     <div className="eng-tab">
       <div className="eng-kpi-row">
         <RecruitIconKpi
-          title="OPERATIONAL BURNOUT INDEX"
+          title="Operational Burnout Index"
           value="High Risk (64%)"
           subtext="Flagged: Operations & QA"
-          icon="🔥"
+          icon="flame"
           iconColor="#dc2626"
           valueTone="danger"
         />
         <RecruitIconKpi
-          title="TEAM PARTICIPATION RATE"
+          title="Team Participation Rate"
           value="88.5% casted"
-          subtext="Exceeds compliance targets"
-          icon="👥"
+          subtext=""
+          icon="users"
           iconColor="#059669"
           trend="Exceeds compliance targets"
+          trendTone="success"
         />
         <RecruitIconKpi
-          title="WELLNESS BUDGET AFFINITY"
+          title="Wellness Budget Affinity"
           value="92% score"
           subtext="HSA programs approved"
-          icon="😊"
+          icon="smile"
           iconColor="#2563eb"
         />
         <RecruitIconKpi
-          title="ACTION DOCKET COUNT"
+          title="Action Docket Count"
           value="2 Pending"
           subtext="1 completed objective today"
-          icon="📋"
+          icon="clipboard"
           iconColor="#7c3aed"
-          trend="1 completed objective today"
         />
       </div>
 
       <div className="eng-split">
         <EngCard className="eng-split-side">
           <div className="eng-card-head">
-            <span aria-hidden>🎯</span>
+            <EngIcon name="target" className="eng-card-icon" />
             <span className="eng-section-title sm">CREATE ENGAGEMENT ACTION PLAN</span>
           </div>
           <EngField label="Action docket title">
@@ -335,9 +350,7 @@ export function EngagementManagerTab() {
                 <h4>{log.title}</h4>
                 <p className="eng-muted sm">{log.body}</p>
                 <div className="eng-action-foot">
-                  <span className="eng-muted sm">
-                    <span aria-hidden>🕐</span> {log.footer}
-                  </span>
+                  <span className="eng-muted sm">{log.footer}</span>
                   <RecruitPill label={log.status} tone={log.statusTone} />
                 </div>
               </article>
@@ -347,7 +360,7 @@ export function EngagementManagerTab() {
       </div>
 
       <div className="eng-alert-banner" role="alert">
-        <span aria-hidden>🛡</span>
+        <EngIcon name="warning" className="eng-alert-icon" />
         <div>
           <strong>Operational Friction Alerts Under Alarm</strong>
           <p>
@@ -366,43 +379,40 @@ export function EngagementReportsTab() {
     <div className="eng-tab">
       <div className="eng-kpi-row">
         <RecruitIconKpi
-          title="UNIFIED ENPS RATING"
+          title="Unified eNPS Rating"
           value="+54 eNPS"
           subtext="38 Promoters • 6 Detractors"
-          icon="😊"
+          icon="smile"
           iconColor="#059669"
-          trend="● HIGH MORALE TIER"
+          trend="HIGH MORALE TIER"
+          trendTone="success"
         />
-        <RecruitIconKpi
-          title="PULSE POLLS CASTED"
+        <EngProgressKpi
+          title="Pulse Polls Casted"
           value="133 votes"
           subtext="Across 3 micro-topic survey polls"
-          icon="📋"
+          icon="clipboard"
           iconColor="#2563eb"
+          progress={70}
         />
         <RecruitIconKpi
-          title="PEER APPRECIATION"
+          title="Peer Appreciation"
           value="2 Shout-Outs"
           subtext="23 claps and badges shared"
-          icon="💬"
+          icon="message"
           iconColor="#7c3aed"
-          trend="⚡ HIGHLY ENGAGED PEER CULTURE"
+          trend="HIGHLY ENGAGED PEER CULTURE"
+          trendTone="warning"
         />
-        <article className="recruit-kpi-card eng-action-progress-kpi">
-          <div className="recruit-kpi-top">
-            <div>
-              <span className="recruit-kpi-title">ACTION PLAN PROGRESS</span>
-              <strong className="tone-pink">1 / 3 Done</strong>
-              <span className="muted">Mitigation items completed in 48-hour SLAs</span>
-            </div>
-            <span className="recruit-kpi-icon" style={{ background: '#fce7f3', color: '#db2777' }}>
-              🎯
-            </span>
-          </div>
-          <div className="eng-progress-track">
-            <span style={{ width: '33%' }} />
-          </div>
-        </article>
+        <EngProgressKpi
+          title="Action Plan Progress"
+          value="1 / 3 Done"
+          subtext="Mitigation items completed in 48-hour SLAs"
+          icon="target"
+          iconColor="#db2777"
+          progress={33}
+          valueClassName="tone-pink"
+        />
       </div>
 
       <div className="eng-reports-split">
@@ -437,10 +447,16 @@ export function EngagementReportsTab() {
                       <RecruitPill label={row.vibe} tone={row.vibeTone} />
                     </td>
                     <td>
-                      <span className="eng-safe-pass">✓ ENCRYPTED SAFE</span>
+                      <span className="eng-safe-pass">
+                        <EngIcon name="shield" className="eng-inline-icon" />
+                        ENCRYPTED SAFE
+                      </span>
                     </td>
                     <td>
-                      <strong>♥ {row.claps}</strong>
+                      <span className="eng-clap-cell">
+                        <EngIcon name="heart" className="eng-heart-icon sm" />
+                        <strong>{row.claps}</strong>
+                      </span>
                     </td>
                   </tr>
                 ))}

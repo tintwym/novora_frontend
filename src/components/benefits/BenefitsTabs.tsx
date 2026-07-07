@@ -9,15 +9,17 @@ import {
   VENDOR_ALLOCATION,
   WELLNESS_CATEGORIES,
 } from '../../data/mockBenefits'
-import { RecruitIconKpi, RecruitPill } from '../recruitment/RecruitmentPrimitives'
+import { RecruitIconKpi, RecruitKpiIcon, RecruitPill } from '../recruitment/RecruitmentPrimitives'
 import {
   BenCard,
   BenCheckItem,
   BenField,
   BenRatioBar,
+  BenReportKpi,
   BenSectionTitle,
   BenTableScroll,
   BenWalletKpi,
+  BenefIcon,
 } from './BenefitsShared'
 
 export function BenefitsEnrollmentTab() {
@@ -37,7 +39,12 @@ export function BenefitsEnrollmentTab() {
             <BenCheckItem key={item} label={item} />
           ))}
           <div className="ben-plan-foot">
-            <span className="ben-muted">✕ Not enrolled</span>
+            <span className="ben-muted ben-not-enrolled">
+              <svg viewBox="0 0 24 24" aria-hidden className="ben-x-icon">
+                <path d="M18 6 6 18M6 6l12 12" fill="none" stroke="currentColor" strokeWidth="2" />
+              </svg>
+              Not enrolled
+            </span>
             <button type="button" className="ben-navy-btn">
               Request Enrollment
             </button>
@@ -61,7 +68,7 @@ export function BenefitsWellnessTab() {
           utilization={0.25}
           utilizationLabel="25% (500 Spent)"
           color="#2563eb"
-          icon="◎"
+          icon="coins"
         />
         <BenWalletKpi
           title="Wellness & Fitness Budget Wallet"
@@ -70,7 +77,7 @@ export function BenefitsWellnessTab() {
           utilization={0.2}
           utilizationLabel="20% (100 Spent)"
           color="#059669"
-          icon="♥"
+          icon="heart"
         />
       </div>
       <div className="ben-split">
@@ -108,7 +115,7 @@ export function BenefitsWellnessTab() {
         <BenCard>
           <BenSectionTitle
             title="FSA claims database receipts"
-            trailing={<span className="ben-muted sm">Total processed item list</span>}
+            trailing={<span className="ben-muted sm">Total processed items list</span>}
           />
           <BenTableScroll>
             <table className="ben-table">
@@ -128,7 +135,9 @@ export function BenefitsWellnessTab() {
                     <td className="tone-primary">
                       <strong>{row.id}</strong>
                     </td>
-                    <td>{row.employee}</td>
+                    <td>
+                      <strong>{row.employee}</strong>
+                    </td>
                     <td>
                       <RecruitPill label={row.classification} tone={row.classTone} />
                     </td>
@@ -192,12 +201,12 @@ export function BenefitsDependentsTab() {
             trailing={<RecruitPill label="0 active covers" tone="info" />}
           />
           <div className="ben-empty-state">
-            <span aria-hidden>👥</span>
+            <BenefIcon name="users-empty" className="ben-empty-icon" />
             <p>No dependent family members registered for this candidate.</p>
           </div>
         </BenCard>
         <div className="ben-policy-notice">
-          <span aria-hidden>🛡</span>
+          <BenefIcon name="shield-alert" className="ben-notice-icon" />
           <div>
             <strong>Dependent Coverage Policy Notice</strong>
             <p>
@@ -221,8 +230,9 @@ export function BenefitsPayrollTab() {
             Configure corporate taxable perks, deductible co-pays, and pre-tax HSA benefits as automated payroll line items.
           </p>
         </div>
-        <button type="button" className="ben-navy-btn">
-          ⟳ Synchronize June Payroll Run
+        <button type="button" className="ben-navy-btn ben-sync-btn">
+          <BenefIcon name="sync" className="ben-sync-icon" />
+          Synchronize June Payroll Run
         </button>
       </div>
       <BenCard>
@@ -276,25 +286,30 @@ export function BenefitsVendorTab() {
           title="Active Welfare Vendors"
           value="3 Providers"
           subtext="SLA response target: 24h"
-          icon="🏢"
-          iconColor="#2563eb"
+          icon="building"
+          iconColor="#7c3aed"
         />
         <RecruitIconKpi
           title="Average Premium / Capita"
           value="RM 450.00"
-          subtext="Per enrolled employee monthly"
-          icon="💰"
+          subtext=""
+          icon="coins"
           iconColor="#7c3aed"
           trend="92% utilization rate score"
+          trendTone="success"
         />
-        <RecruitIconKpi
-          title="Upcoming Renewal Cycle"
-          value="In 60 days"
-          subtext="SmileCare Dental core next"
-          icon="📄"
-          iconColor="#d97706"
-          trend="UPCOMING RENEWAL CYCLE"
-        />
+        <article className="recruit-kpi-card ben-renewal-kpi">
+          <div className="recruit-kpi-top">
+            <div>
+              <RecruitPill label="UPCOMING RENEWAL CYCLE" tone="info" />
+              <strong>In 60 days</strong>
+              <span className="muted">SmileCare Dental core next</span>
+            </div>
+            <span className="recruit-kpi-icon" style={{ background: '#d977061f', color: '#d97706' }}>
+              <RecruitKpiIcon name="file" />
+            </span>
+          </div>
+        </article>
       </div>
       <BenSectionTitle title="Contracted vendor platforms" />
       {VENDORS.map((vendor) => (
@@ -306,7 +321,8 @@ export function BenefitsVendorTab() {
               <span className="ben-muted sm">{vendor.site}</span>
             </div>
             <p className="ben-muted">
-              Covered Employees: {vendor.employees} • Total monthly Premium cost: RM {vendor.premium} • Renewal point:{' '}
+              Covered Employees: {vendor.employees} • Total monthly Premium cost:{' '}
+              <strong className="tone-primary">RM {vendor.premium}</strong> • Renewal point:{' '}
               <strong className="tone-warning">{vendor.renewal}</strong>
             </p>
           </div>
@@ -332,47 +348,36 @@ export function BenefitsReportsTab() {
           title="Total Monthly Premium"
           value="RM 14,240"
           subtext="Consolidated 4 primary plans + vendor slabs"
-          icon="∞"
+          icon="infinity"
           iconColor="#7c3aed"
-          trend="● SLA & BUDGET COMPLIANT"
+          trend="SLA & BUDGET COMPLIANT"
+          trendTone="success"
         />
-        <article className="ben-report-kpi">
-          <div className="ben-report-kpi-head">
-            <div>
-              <span className="recruit-kpi-title">Wallet FSA Usage</span>
-              <strong>35%</strong>
-              <span className="muted">RM 2,300 spent of RM 6,500 FSA cap</span>
-            </div>
-            <span className="recruit-kpi-icon" style={{ background: '#2563eb1f', color: '#2563eb' }}>
-              ⟳
-            </span>
-          </div>
-          <div className="ben-util-track">
-            <span style={{ width: '35%', background: '#2563eb' }} />
-          </div>
-        </article>
-        <article className="ben-report-kpi">
-          <div className="ben-report-kpi-head">
-            <div>
-              <span className="recruit-kpi-title">Wellness Wallet Usage</span>
-              <strong className="tone-success">36%</strong>
-              <span className="muted">RM 590 spent of RM 1,650 cap</span>
-            </div>
-            <span className="recruit-kpi-icon" style={{ background: '#0596691f', color: '#059669' }}>
-              ♥
-            </span>
-          </div>
-          <div className="ben-util-track">
-            <span style={{ width: '36%', background: '#059669' }} />
-          </div>
-        </article>
+        <BenReportKpi
+          title="Wallet FSA Usage"
+          value="35%"
+          subtext="RM 2,300 spent of RM 6,500 FSA cap"
+          utilization={35}
+          color="#2563eb"
+          icon="refresh"
+        />
+        <BenReportKpi
+          title="Wellness Wallet Usage"
+          value="36%"
+          subtext="RM 590 spent of RM 1,650 cap"
+          utilization={36}
+          color="#059669"
+          icon="heart"
+          valueClassName="tone-success"
+        />
         <RecruitIconKpi
           title="Covered Dependents"
           value="3 Covered"
           subtext="Full panel medical + dental alignment"
-          icon="👤"
+          icon="users"
           iconColor="#7c3aed"
-          trend="✔ ALL CREDENTIALS VALID"
+          trend="ALL CREDENTIALS VALID"
+          trendTone="success"
         />
       </div>
       <div className="ben-split reports">

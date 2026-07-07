@@ -57,7 +57,7 @@ export function PayrollBonusTab({ addSignal = 0 }: { addSignal?: number }) {
       ) : null}
       {sub === 1 ? (
         <PayCard>
-          <PayAttachmentZone icon="📎" iconColor="#ea580c" title="Attach bonus policy documents or performance evaluation records" subtitle="Supports PDF files up to 10MB (Click to simulate attach)" />
+          <PayAttachmentZone iconColor="#ea580c" title="Attach bonus policy documents or performance evaluation records" subtitle="Supports PDF files up to 10MB (Click to simulate attach)" />
           <PaySectionTitle title="Bonus policy archive" />
         </PayCard>
       ) : null}

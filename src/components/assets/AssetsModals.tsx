@@ -14,7 +14,7 @@ import {
   statusToneFor,
 } from '../../data/mockAssets'
 import type { AssetAllocationRecord, AssetCategoryRecord, AssetIncidentRecord, AssetRegistryEntry, AssetRequestRecord } from '../../types/assets'
-import { AstCheckboxCard, AstField, AstFieldRow } from './AssetsShared'
+import { AstCheckboxCard, AstClockIcon, AstCloseIcon, AstField, AstFieldRow } from './AssetsShared'
 
 type ModalProps = { open: boolean; onClose: () => void }
 
@@ -52,7 +52,8 @@ function AstModalShell({
         <div className="ast-modal-head">
           <h2>{title}</h2>
           <button type="button" className="ast-modal-close-link" onClick={onClose}>
-            ✕ Close
+            <AstCloseIcon />
+            Close
           </button>
         </div>
         <div className="ast-modal-body">{children}</div>
@@ -209,7 +210,7 @@ export function ViewAssetModal({ open, onClose, entry, activeCheckoutDate, onEdi
             <h2>{entry.name}</h2>
           </div>
           <button type="button" className="ast-icon-btn" onClick={onClose} aria-label="Close">
-            ✕
+            <AstCloseIcon />
           </button>
         </div>
         <div className="ast-view-body">
@@ -236,7 +237,9 @@ export function ViewAssetModal({ open, onClose, entry, activeCheckoutDate, onEdi
             <>
               <span className="ast-section-label">Active allocation route</span>
               <div className="ast-allocation-card">
-                <span className="ast-allocation-icon" aria-hidden>↻</span>
+                <span className="ast-allocation-icon" aria-hidden>
+                  <AstClockIcon />
+                </span>
                 <div>
                   <strong>Checked out to {entry.assigneeLabel}</strong>
                   <small>{activeCheckoutDate ?? entry.purchaseDate}</small>

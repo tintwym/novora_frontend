@@ -52,6 +52,7 @@
   color: var(--brand-blue-deep);
   font-weight: 700;
   border-bottom-color: var(--brand-blue-deep);
+  background: rgba(37, 99, 235, 0.08);
 }
 
 .ast-module-body {
@@ -75,7 +76,8 @@
   padding: 0.85rem 1rem;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md, 12px);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .ast-toolbar-left,
@@ -89,8 +91,9 @@
 .ast-table-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .ast-table-scroll {
@@ -355,12 +358,17 @@
   z-index: 1000;
 }
 
+.ast-view-modal {
+  width: min(100%, 520px);
+  border-radius: 16px;
+}
+
 .ast-modal {
   width: min(100%, 600px);
   max-height: 90vh;
   overflow: auto;
   background: #fff;
-  border-radius: 14px;
+  border-radius: 16px;
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
 }
 
@@ -383,13 +391,32 @@
 }
 
 .ast-modal-close-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   border: none;
   background: transparent;
   color: var(--brand-blue-deep);
   font: inherit;
   font-size: 0.8125rem;
   cursor: pointer;
-  text-decoration: underline;
+}
+
+.ast-close-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.ast-clock-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.ast-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
 }
 
 .ast-modal-body {
@@ -471,10 +498,6 @@
 }
 
 /* View asset modal */
-.ast-view-modal {
-  width: min(100%, 520px);
-}
-
 .ast-view-head {
   display: flex;
   align-items: flex-start;
@@ -616,8 +639,15 @@
 }
 
 .ast-allocation-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #d1fae5;
   color: #059669;
-  font-size: 1.1rem;
+  flex-shrink: 0;
 }
 
 .ast-allocation-active {

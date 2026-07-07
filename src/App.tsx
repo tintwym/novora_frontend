@@ -9,6 +9,7 @@ import { EmployeesPage } from './pages/EmployeesPage'
 import { DisciplinaryPage } from './pages/DisciplinaryPage'
 import { LeavePage } from './pages/LeavePage'
 import { LoginPage } from './pages/LoginPage'
+import { LandingPage } from './pages/LandingPage'
 import { OnboardingPage } from './pages/OnboardingPage'
 import { PerformancePage } from './pages/PerformancePage'
 import { HelpdeskPage } from './pages/HelpdeskPage'
@@ -28,6 +29,8 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
+
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -59,8 +62,7 @@ export default function App() {
             </Route>
           </Route>
 
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

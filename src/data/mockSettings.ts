@@ -24,36 +24,36 @@ export const SETTINGS_NAV_SECTIONS: SettingsNavSection[] = [
   {
     title: 'ORGANISATION',
     items: [
-      { id: 'company_profile', label: 'Company profile', icon: '🏢' },
-      { id: 'modules', label: 'Modules', icon: '▦' },
-      { id: 'branch_location', label: 'Branch & location', icon: '🌳' },
-      { id: 'department_position', label: 'Department & position', icon: '🔗' },
+      { id: 'company_profile', label: 'Company profile', icon: 'building' },
+      { id: 'modules', label: 'Modules', icon: 'grid' },
+      { id: 'branch_location', label: 'Branch & location', icon: 'branch' },
+      { id: 'department_position', label: 'Department & position', icon: 'org' },
     ],
   },
   {
     title: 'ACCESS CONTROL',
     items: [
-      { id: 'users_accounts', label: 'Users & accounts', icon: '👥' },
-      { id: 'roles_permissions', label: 'Roles & permissions', icon: '🛡' },
-      { id: 'approval_workflow', label: 'Approval workflow', icon: '✓' },
+      { id: 'users_accounts', label: 'Users & accounts', icon: 'users' },
+      { id: 'roles_permissions', label: 'Roles & permissions', icon: 'shield' },
+      { id: 'approval_workflow', label: 'Approval workflow', icon: 'check-circle' },
     ],
   },
   {
     title: 'SYSTEM',
     items: [
-      { id: 'notifications', label: 'Notifications', icon: '🔔' },
-      { id: 'integrations', label: 'Integrations', icon: '🧩' },
-      { id: 'security', label: 'Security', icon: '🔒' },
-      { id: 'audit_log', label: 'Audit log', icon: '📄' },
+      { id: 'notifications', label: 'Notifications', icon: 'bell' },
+      { id: 'integrations', label: 'Integrations', icon: 'puzzle' },
+      { id: 'security', label: 'Security', icon: 'lock' },
+      { id: 'audit_log', label: 'Audit log', icon: 'file' },
     ],
   },
   {
     title: 'PREFERENCES',
     items: [
-      { id: 'appearance', label: 'Appearance', icon: '◐' },
-      { id: 'language', label: 'Language', icon: '🌐' },
-      { id: 'email_templates', label: 'Email templates', icon: '✉' },
-      { id: 'backup_data', label: 'Backup & data', icon: '💾' },
+      { id: 'appearance', label: 'Appearance', icon: 'palette' },
+      { id: 'language', label: 'Language', icon: 'globe' },
+      { id: 'email_templates', label: 'Email templates', icon: 'mail' },
+      { id: 'backup_data', label: 'Backup & data', icon: 'database' },
     ],
   },
 ]
@@ -62,8 +62,8 @@ export const EMPLOYEE_SETTINGS_SECTIONS: SettingsNavSection[] = [
   {
     title: 'PREFERENCES',
     items: [
-      { id: 'appearance', label: 'Appearance', icon: '◐' },
-      { id: 'language', label: 'Language', icon: '🌐' },
+      { id: 'appearance', label: 'Appearance', icon: 'palette' },
+      { id: 'language', label: 'Language', icon: 'globe' },
     ],
   },
 ]

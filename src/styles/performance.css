@@ -22,6 +22,8 @@
   overflow-x: auto;
   flex: 1;
   min-width: 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .perf-module-tabs button {
@@ -38,12 +40,27 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  border-radius: 8px 8px 0 0;
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.perf-tab-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.perf-icon {
+  width: 100%;
+  height: 100%;
 }
 
 .perf-module-tabs button.active {
   color: var(--brand-blue-deep);
   font-weight: 700;
   border-bottom-color: var(--brand-blue-deep);
+  background: rgba(37, 99, 235, 0.08);
 }
 
 .perf-tab-badge {
@@ -89,9 +106,10 @@
 .perf-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1rem;
+  border-radius: 16px;
+  padding: 1.25rem;
   margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .perf-card:last-child {
@@ -131,15 +149,35 @@
   text-transform: uppercase;
 }
 
+.perf-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.perf-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
 .perf-search,
 .perf-select {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: #f8fafc;
   padding: 0.55rem 0.75rem;
   font: inherit;
   font-size: 0.8125rem;
   min-width: 180px;
+}
+
+.perf-search-wrap .perf-search {
+  width: 100%;
+  padding-left: 2.25rem;
 }
 
 .perf-primary-btn {
@@ -799,11 +837,302 @@
   font-size: 0.8125rem;
 }
 
+.perf-outline-btn.danger {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: var(--card);
+  font-size: 0.75rem;
+  padding: 0.35rem 0.65rem;
+}
+
+.perf-kpi-split,
+.perf-setup-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.perf-setup-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.perf-setup-card-head strong {
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+
+.perf-setup-categories-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--brand-blue-deep);
+  margin-bottom: 0.5rem;
+}
+
+.perf-setup-category-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.perf-setup-category-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  margin-bottom: 0.35rem;
+  color: var(--text-muted);
+}
+
+.perf-check-mark {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  background: #f8fafc;
+}
+
+.perf-check-mark.checked {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #2563eb;
+}
+
+.perf-check-mark svg {
+  width: 12px;
+  height: 12px;
+}
+
+.perf-setup-settings {
+  margin: 0;
+}
+
+.perf-setup-setting-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  margin-bottom: 0.35rem;
+}
+
+.perf-setup-setting-row dt {
+  color: var(--text-muted);
+}
+
+.perf-setup-setting-row dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.perf-setup-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1rem 0;
+}
+
+.perf-eval-entry-card .perf-eval-entry-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.perf-eval-entry-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.perf-readonly-field span {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.perf-readonly-field strong {
+  font-size: 0.875rem;
+}
+
+.perf-block-title {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--brand-blue-deep);
+}
+
+.perf-kpi-block .perf-block-title {
+  color: #059669;
+}
+
+.perf-rating-circles {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.perf-rating-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #f1f5f9;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.perf-rating-circle.selected {
+  background: var(--brand-blue-deep);
+  color: #fff;
+}
+
+.perf-rating-fraction {
+  font-weight: 700;
+  min-width: 2rem;
+  text-align: right;
+}
+
+.perf-category-score {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--brand-blue-deep);
+}
+
+.perf-outline-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  margin-bottom: 0.5rem;
+}
+
+.perf-sidebar-section {
+  display: block;
+  margin: 1rem 0 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.perf-profile-header-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.perf-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.perf-profile-stats dt {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 0.15rem;
+}
+
+.perf-profile-stats dd {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.perf-overall-score {
+  margin: 1rem 0 0;
+  font-family: 'Sora', var(--font-sans);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--brand-blue-deep);
+}
+
+.perf-training-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.perf-training-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.perf-appraiser-note-box {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 0.85rem 1rem;
+}
+
+.perf-appraiser-note {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  font-style: italic;
+}
+
+.perf-appraiser-sig {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--brand-blue-deep);
+  text-align: right;
+}
+
+.perf-modal-close-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.perf-modal-close-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.perf-toolbar-trailing-only {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.perf-search-narrow {
+  min-width: 160px;
+}
+
+.perf-muted.italic {
+  font-style: italic;
+}
+
 @media (max-width: 1100px) {
   .perf-kpi-grid,
+  .perf-kpi-split,
   .perf-setup-grid,
+  .perf-setup-split,
   .perf-eval-split,
-  .perf-profile-split {
+  .perf-eval-entry-fields,
+  .perf-profile-split,
+  .perf-profile-stats {
     grid-template-columns: 1fr;
   }
 }

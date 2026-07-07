@@ -35,6 +35,7 @@ export const ALLOWANCE_PAYMENTS: AllowancePaymentRow[] = [
   { name: 'Ahmad Wahid', department: 'Operations', transport: '300.00', meals: '200.00', bonus: '—', total: '500.00' },
   { name: 'David Ng', department: 'Engineering', transport: '—', meals: '200.00', bonus: '150.00', total: '350.00' },
   { name: 'Sarah Lim', department: 'Engineering', transport: '300.00', meals: '200.00', bonus: '—', total: '500.00' },
+  { name: 'Sarah Lim Wei Ling', department: 'Engineering', transport: '—', meals: '200.00', bonus: '—', total: '200.00' },
 ]
 
 export const BONUS_TYPES: BonusTypeRow[] = [
@@ -71,8 +72,6 @@ export const DEPOSIT_TYPES: DepositTypeRow[] = [
 
 export const DEDUCTION_TYPES: DeductionTypeRow[] = [
   { name: 'EPF (employee)', type: 'Statutory', rule: 'Based on salary', amount: '11%', onPayslip: true, status: 'Active' },
-  { name: 'SOCSO', type: 'Statutory', rule: 'Statutory table', amount: '0.5%', onPayslip: true, status: 'Active' },
-  { name: 'Income tax (PCB)', type: 'Tax', rule: 'PCB schedule', amount: 'Varied', onPayslip: true, status: 'Active' },
   { name: 'Late deduction', type: 'Rota rule', rule: 'Per minute late', amount: 'MYR 0.50/min', onPayslip: true, status: 'Active' },
   { name: 'Missing swipe', type: 'Attendance', rule: 'Per occurrence', amount: 'MYR 20.00', onPayslip: true, status: 'Active' },
   { name: 'Unpaid leave', type: 'Leave', rule: 'Normal rate/day', amount: 'Salary ÷ work days', onPayslip: true, status: 'Active' },
@@ -93,14 +92,15 @@ export const EMOLUMENTS: EmolumentRow[] = [
 ]
 
 export const PAYROLL_PREP: PayrollPrepRow[] = [
-  { name: 'Ahmad L', department: 'Operations', basic: 'MYR 4,200', allowances: 'MYR 500', deductions: 'MYR 612', status: 'Ready', tone: 'success' },
-  { name: 'Fatimah H', department: 'HR', basic: 'MYR 5,025', allowances: 'MYR 350', deductions: 'MYR 804', status: 'Ready', tone: 'success' },
-  { name: 'Johnathan D', department: 'Finance', basic: 'MYR 3,900', allowances: 'MYR 200', deductions: 'MYR 623', status: 'Needs Audit', tone: 'warning' },
+  { name: 'Ahmad L', compliance: 'Standard PCB / EPF 11%', banking: 'Maybank •••••431', claims: 'MYR 120.00', status: 'Ready', tone: 'success' },
+  { name: 'Fatimah H', compliance: 'Standard PCB / EPF 11%', banking: 'CIMB Bank •••••980', claims: 'None', claimsNone: true, status: 'Ready', tone: 'success' },
+  { name: 'Johnathan D', compliance: 'Standard PCB / EPF 11%', banking: 'Public Bank •••••103', claims: 'MYR 340.00', status: 'Needs Audit', tone: 'warning' },
 ]
 
 export const PAYROLL_HISTORY: PayrollHistoryRow[] = [
   { period: 'April 2026 Period', headcount: '428 Staff', amount: 'MYR 1,184,330.12', released: '2026-04-28' },
   { period: 'March 2026 Period', headcount: '427 Staff', amount: 'MYR 1,172,890.00', released: '2026-03-28' },
+  { period: 'February 2026 Period', headcount: '426 Staff', amount: 'MYR 1,165,420.50', released: '2026-02-27' },
 ]
 
 export const DEPT_PAYROLL: DeptPayrollRow[] = [
@@ -112,9 +112,19 @@ export const DEPT_PAYROLL: DeptPayrollRow[] = [
 ]
 
 export const PAYROLL_LEDGER: PayrollLedgerRow[] = [
-  { name: 'Ahmad Wahid', meta: 'EMP-0001 • Operations', basic: 'MYR 3,450', allowance: '+MYR 230', ot: '+MYR 120', gross: 'MYR 3,800', epf: '-MYR 380', socsoTax: '-MYR 171', deductions: 'MYR 551', net: 'MYR 3,249' },
-  { name: 'David Ng', meta: 'EMP-0012 • Engineering', basic: 'MYR 3,900', allowance: '+MYR 350', ot: '+MYR 0', gross: 'MYR 4,250', epf: '-MYR 425', socsoTax: '-MYR 192', deductions: 'MYR 617', net: 'MYR 3,633' },
-  { name: 'Sarah Lim', meta: 'EMP-0285 • Engineering', basic: 'MYR 3,900', allowance: '+MYR 500', ot: '+MYR 210', gross: 'MYR 4,610', epf: '-MYR 461', socsoTax: '-MYR 208', deductions: 'MYR 669', net: 'MYR 3,941' },
+  { name: 'Ahmad Wahid', meta: 'EMP-0001 • Operations', basic: 'MYR 3,450', allowance: '+MYR 230', ot: '+MYR 120', gross: 'MYR 3,800', epf: '-MYR 380', socsoTax: '-MYR 171', deductions: '-MYR 551', net: 'MYR 3,249' },
+  { name: 'Alex Wong', meta: 'EMP-0010 • HR', basic: 'MYR 7,050', allowance: '+MYR 470', ot: '+MYR 360', gross: 'MYR 7,880', epf: '-MYR 776', socsoTax: '-MYR 349', deductions: '-MYR 1,125', net: 'MYR 6,755' },
+  { name: 'Wei Chen', meta: 'EMP-0144 • Finance', basic: 'MYR 4,800', allowance: '+MYR 470', ot: '+MYR 0', gross: 'MYR 5,270', epf: '-MYR 528', socsoTax: '-MYR 238', deductions: '-MYR 766', net: 'MYR 4,504' },
+  { name: 'David Ng', meta: 'EMP-0012 • Engineering', basic: 'MYR 3,900', allowance: '+MYR 350', ot: '+MYR 0', gross: 'MYR 4,250', epf: '-MYR 425', socsoTax: '-MYR 192', deductions: '-MYR 617', net: 'MYR 3,633' },
+  { name: 'Sarah Lim', meta: 'EMP-0285 • Engineering', basic: 'MYR 3,900', allowance: '+MYR 500', ot: '+MYR 210', gross: 'MYR 4,610', epf: '-MYR 461', socsoTax: '-MYR 208', deductions: '-MYR 669', net: 'MYR 3,941' },
+  { name: 'Raj Kumar', meta: 'EMP-0049 • Finance', basic: 'MYR 4,200', allowance: '+MYR 200', ot: '+MYR 80', gross: 'MYR 4,480', epf: '-MYR 448', socsoTax: '-MYR 201', deductions: '-MYR 649', net: 'MYR 3,831' },
+  { name: 'Nadia Chen', meta: 'EMP-0198 • Marketing', basic: 'MYR 3,450', allowance: '+MYR 230', ot: '+MYR 0', gross: 'MYR 3,680', epf: '-MYR 368', socsoTax: '-MYR 166', deductions: '-MYR 534', net: 'MYR 3,146' },
+  { name: 'Kevin Lim', meta: 'EMP-0036 • Engineering', basic: 'MYR 3,900', allowance: '+MYR 300', ot: '+MYR 120', gross: 'MYR 4,320', epf: '-MYR 432', socsoTax: '-MYR 195', deductions: '-MYR 627', net: 'MYR 3,693' },
+  { name: 'Siti Aminah', meta: 'EMP-0122 • HR', basic: 'MYR 5,025', allowance: '+MYR 350', ot: '+MYR 0', gross: 'MYR 5,375', epf: '-MYR 538', socsoTax: '-MYR 242', deductions: '-MYR 780', net: 'MYR 4,595' },
+  { name: 'Malik Said', meta: 'EMP-0077 • Engineering', basic: 'MYR 4,500', allowance: '+MYR 400', ot: '+MYR 150', gross: 'MYR 5,050', epf: '-MYR 505', socsoTax: '-MYR 228', deductions: '-MYR 733', net: 'MYR 4,317' },
+  { name: 'Priya Sharma', meta: 'EMP-0312 • Operations', basic: 'MYR 4,688', allowance: '+MYR 280', ot: '+MYR 60', gross: 'MYR 5,028', epf: '-MYR 503', socsoTax: '-MYR 226', deductions: '-MYR 729', net: 'MYR 4,299' },
+  { name: 'James Wong', meta: 'EMP-0440 • Marketing', basic: 'MYR 3,450', allowance: '+MYR 200', ot: '+MYR 0', gross: 'MYR 3,650', epf: '-MYR 365', socsoTax: '-MYR 164', deductions: '-MYR 529', net: 'MYR 3,121' },
+  { name: 'Lisa Tan', meta: 'EMP-0520 • Operations', basic: 'MYR 3,600', allowance: '+MYR 180', ot: '+MYR 40', gross: 'MYR 3,820', epf: '-MYR 382', socsoTax: '-MYR 172', deductions: '-MYR 554', net: 'MYR 3,266' },
 ]
 
 export const OT_APPROVAL_BADGE = 4

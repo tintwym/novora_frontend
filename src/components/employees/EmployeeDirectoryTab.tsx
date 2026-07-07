@@ -83,7 +83,11 @@ export function EmployeeDirectoryTab({
           </thead>
           <tbody>
             {visible.map((row) => (
-              <DirectoryRow key={row.id} row={row} onOpen={() => onOpenProfile(row.id.startsWith('mock-') ? null : row.id)} />
+              <DirectoryRow
+                key={row.id}
+                row={row}
+                onOpen={() => onOpenProfile(row.id.startsWith('mock-') ? null : row.id)}
+              />
             ))}
           </tbody>
         </table>
@@ -105,12 +109,15 @@ function DirectoryRow({ row, onOpen }: { row: EmployeeDirectoryRow; onOpen: () =
       <td className="emp-code">{row.employeeCode}</td>
       <td>
         <div className="emp-directory-name">
-          <span className="emp-directory-avatar" style={{ color, background: `${color}26` }}>
+          <span
+            className="emp-directory-avatar"
+            style={{ color, background: `${color}22` }}
+          >
             {employeeInitials(row)}
           </span>
           <div>
             <strong>{name}</strong>
-            <span>Joined {row.hireDate}</span>
+            <span className="emp-directory-joined">Joined {row.hireDate}</span>
           </div>
         </div>
       </td>
@@ -124,7 +131,10 @@ function DirectoryRow({ row, onOpen }: { row: EmployeeDirectoryRow; onOpen: () =
       </td>
       <td>
         <button type="button" className="emp-open-link" onClick={onOpen}>
-          Open ›
+          Open
+          <svg viewBox="0 0 24 24" aria-hidden>
+            <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" />
+          </svg>
         </button>
       </td>
     </tr>

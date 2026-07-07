@@ -121,31 +121,32 @@ export function AssetsPage() {
           title="Total Portfolio Value"
           value={`RM ${formatAssetValue(kpis.totalValue)}.00`}
           subtext={`${kpis.total} items catalogued`}
-          icon="📦"
+          icon="box"
           iconColor="#2563eb"
         />
         <RecruitIconKpi
           title="Active In Use"
           value={`${kpis.inUse} / ${kpis.total}`}
-          subtext="Deployed to workforce employees"
-          icon="👤"
+          subtext=""
+          icon="users"
           iconColor="#059669"
-          trend="✓ DEPLOYED"
+          trend="Deployed to workforce employees"
+          trendTone="success"
         />
         <RecruitIconKpi
           title="Warehouse Stock"
           value={`${kpis.available} available`}
           subtext="Ready for instant assignment"
-          icon="▤"
+          icon="layers"
           iconColor="#7c3aed"
         />
         <RecruitIconKpi
           title="Damage & Refurbish"
           value={`${kpis.maintenance} flagged`}
           subtext="Diagnostics / repair workshop"
-          icon="🔧"
+          icon="wrench"
           iconColor="#d97706"
-          trend="● ATTENTION"
+          valueTone="warning"
         />
       </div>
 

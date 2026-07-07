@@ -62,7 +62,7 @@ export const REPORT_CATEGORIES: { id: ReportCategoryId; label: string }[] = [
 ]
 
 export const REPORT_PANELS: { id: ReportPanelId; label: string }[] = [
-  { id: 'report_centre', label: 'Report centre' },
-  { id: 'scheduled', label: 'Scheduled reports' },
-  { id: 'custom_builder', label: 'Custom builder' },
+  { id: 'report_centre', label: 'Report Centre' },
+  { id: 'scheduled', label: 'Scheduled Reports' },
+  { id: 'custom_builder', label: 'Custom Builder' },
 ]

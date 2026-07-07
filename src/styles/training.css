@@ -44,6 +44,7 @@
   color: var(--brand-blue-deep);
   font-weight: 700;
   border-bottom-color: var(--brand-blue-deep);
+  background: rgba(37, 99, 235, 0.08);
 }
 
 .train-tab-badge {
@@ -89,7 +90,8 @@
   padding: 1rem;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .train-toolbar-left,
@@ -103,8 +105,9 @@
 .train-table-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 0.5rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .train-table-scroll {
@@ -153,6 +156,35 @@
 
 .train-search.sm {
   min-width: 160px;
+}
+
+.train-search-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.train-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.train-btn-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.train-inline-check {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  vertical-align: -1px;
+  color: #059669;
+}
+
+.train-date-input {
+  min-width: 120px;
 }
 
 .train-search input {
@@ -265,7 +297,7 @@
 /* Split panels */
 .train-split {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr);
+  grid-template-columns: minmax(260px, 2fr) minmax(0, 3fr);
   gap: 1rem;
   align-items: start;
 }
@@ -273,8 +305,9 @@
 .train-panel {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 1.125rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .train-panel-title {
@@ -392,10 +425,14 @@
   padding: 1.125rem;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .train-pending-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.75rem;
   font-weight: 700;
   color: #c2410c;
@@ -403,6 +440,11 @@
   padding: 0.45rem 0.75rem;
   border-radius: 999px;
   white-space: nowrap;
+}
+
+.train-pending-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .train-approvers {
@@ -444,6 +486,9 @@
 }
 
 .train-approve-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   border: none;
   border-radius: 8px;
   background: #059669;
@@ -456,6 +501,9 @@
 }
 
 .train-deny-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   border: 1px solid #fecaca;
   border-radius: 8px;
   background: #fff;
@@ -467,9 +515,33 @@
   cursor: pointer;
 }
 
-.train-attendance-actions {
+.train-action-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.train-radio-row {
   display: flex;
-  justify-content: flex-end;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.train-radio-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.train-employee-list {
+  max-height: 120px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.5rem 0.65rem;
+  margin-bottom: 0.75rem;
+  background: #f8fafc;
 }
 
 /* Reports */
@@ -482,16 +554,22 @@
   padding: 1.125rem;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
-.train-report-toggles {
-  display: flex;
-  gap: 0.35rem;
-  flex-wrap: wrap;
+.train-title-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--brand-blue-deep);
+  vertical-align: -3px;
+  margin-right: 0.35rem;
 }
 
 .train-report-toggles button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: #fff;
@@ -501,6 +579,17 @@
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
+}
+
+.train-toggle-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.train-report-toggles {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
 }
 
 .train-report-toggles button.active {
@@ -513,6 +602,46 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.85rem;
+}
+
+.train-progress-track {
+  display: flex;
+  height: 6px;
+  border-radius: 4px;
+  background: var(--border);
+  margin-top: 0.65rem;
+  overflow: hidden;
+}
+
+.train-progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: 0;
+}
+
+.train-progress-track > span:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.train-progress-track > span:last-child {
+  border-radius: 0 4px 4px 0;
+}
+
+.train-export-history-btn,
+.train-export-report-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: var(--brand-blue-deep);
+  padding: 0.45rem 0.85rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .train-skill-tags {
@@ -567,9 +696,16 @@
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 1.1rem;
   cursor: pointer;
   padding: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.train-modal-close-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .train-modal-body {

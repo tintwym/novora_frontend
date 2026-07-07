@@ -27,6 +27,7 @@ import {
   SettingsTextarea,
   SettingsToggle,
   SettingsTwoCol,
+  SetIcon,
   showSettingsSaved,
 } from './SettingsShared'
 
@@ -178,12 +179,13 @@ function ModulesPanel() {
         subtitle="Enable or disable HRMS modules globally company-wide."
         trailing={
           <SettingsBtn
+            icon="save"
             onClick={() => {
               saveModules()
               showSettingsSaved('Modules setup saved')
             }}
           >
-            💾 Save Modules Setup
+            Save Modules Setup
           </SettingsBtn>
         }
       />
@@ -641,7 +643,7 @@ function NotificationsPanel() {
       <SettingsPageHeader
         title="Notification Channels Setup"
         subtitle="Configure system-wide dispatch metrics, chat integrations, emails, alerts, and mobile notifications."
-        trailing={<SettingsBtn onClick={() => showSettingsSaved('Notification preferences saved')}>💾 Save state</SettingsBtn>}
+        trailing={<SettingsBtn icon="save" onClick={() => showSettingsSaved('Notification preferences saved')}>Save state</SettingsBtn>}
       />
       <div className="set-split-panels">
         <SettingsCard title="ALERT CHANNELS">
@@ -699,7 +701,12 @@ function IntegrationsPanel() {
         ))}
       </SettingsCard>
       <SettingsCard
-        title="⚙ Developer API Access Keys"
+        title={
+          <span className="set-card-title-row">
+            <SetIcon name="sliders" className="set-card-title-icon" />
+            Developer API Access Keys
+          </span>
+        }
         trailing={
           <SettingsBtn
             onClick={() => {
@@ -725,6 +732,7 @@ function IntegrationsPanel() {
           </SettingsBtn>
           <SettingsBtn
             variant="outline"
+            icon="copy"
             onClick={async () => {
               const key = store.apiKeyRevealed ? store.apiKeyFull : store.apiKeyMasked
               try {
@@ -735,7 +743,7 @@ function IntegrationsPanel() {
               }
             }}
           >
-            📋 Copy
+            Copy
           </SettingsBtn>
         </div>
       </SettingsCard>
@@ -752,7 +760,7 @@ function SecurityPanel() {
       <SettingsPageHeader
         title="Global Security & Access Directives"
         subtitle="Establish password expiration indices, multi-factor logins, and directory whitelists."
-        trailing={<SettingsBtn onClick={() => showSettingsSaved('Security directives enforced')}>🛡 Enforce directives</SettingsBtn>}
+        trailing={<SettingsBtn icon="shield" onClick={() => showSettingsSaved('Security directives enforced')}>Enforce directives</SettingsBtn>}
       />
       <div className="set-split-panels">
         <SettingsCard title="ACCESS CONTROL & 2FA">
@@ -793,10 +801,10 @@ function AuditLogPanel() {
       <SettingsPageHeader
         title="System Audit Log Trace"
         subtitle="Immutable historic sequence of administrative interventions and personnel files edits."
-        trailing={<SettingsBtn onClick={() => showSettingsSaved('Audit log export queued')}>⬇ Export log</SettingsBtn>}
+        trailing={<SettingsBtn icon="download" onClick={() => showSettingsSaved('Audit log export queued')}>Export log</SettingsBtn>}
       />
       <div className="set-search-row">
-        <span aria-hidden>🔍</span>
+        <SetIcon name="search" className="set-search-icon" />
         <input
           type="search"
           placeholder="Search audit trail by User or Module..."
@@ -909,7 +917,8 @@ function LanguagePanel() {
         </ul>
       </SettingsCard>
       <SettingsSaveFooter
-        label="💾 Save Localisation"
+        label="Save Localisation"
+        icon="save"
         onClick={() => {
           saveLocalization(l)
           showSettingsSaved('Localisation saved')
@@ -1030,12 +1039,13 @@ function BackupDataPanel() {
         subtitle="Configure automated daily backups, retention lifespans, and manual downloads."
         trailing={
           <SettingsBtn
+            icon="refresh"
             onClick={() => {
               runBackup()
               showSettingsSaved('Backup completed')
             }}
           >
-            🔄 Run backup now
+            Run backup now
           </SettingsBtn>
         }
       />
@@ -1061,9 +1071,15 @@ function BackupDataPanel() {
         <SettingsCard title="DATA EXPORT CENTER">
           <p>Instantly compile and packaging corporate database tables into pristine spreadsheet assets.</p>
           <div className="set-export-grid">
-            {['Export Employees', 'Export Payrolls', 'Export Attendance', 'Export Audit log'].map((label) => (
+            {[
+              { label: 'Export Employees', icon: 'users' },
+              { label: 'Export Payrolls', icon: 'database' },
+              { label: 'Export Attendance', icon: 'calendar' },
+              { label: 'Export Audit log', icon: 'file' },
+            ].map(({ label, icon }) => (
               <button key={label} type="button" className="set-export-btn" onClick={() => showSettingsSaved(`${label} queued`)}>
-                📄 {label}
+                <SetIcon name={icon} className="set-export-icon" />
+                {label}
               </button>
             ))}
           </div>

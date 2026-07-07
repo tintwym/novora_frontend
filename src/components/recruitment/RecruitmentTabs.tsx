@@ -40,10 +40,10 @@ export function JobRequisitionTab() {
     <>
       {showWizard ? <JobRequisitionWizard onClose={() => setShowWizard(false)} /> : null}
       <div className="recruit-kpi-row">
-        <RecruitIconKpi title="TOTAL REQUISITIONS" value="5" subtext="Active recruitment templates" icon="📋" iconColor="#2563eb" />
-        <RecruitIconKpi title="ACTIVE OPEN STATUS" value="3" subtext="Awaiting fill or approval" icon="✓" iconColor="#10b981" />
-        <RecruitIconKpi title="FILLED POSITIONS" value="1" subtext="Closed this quarter" icon="👥" iconColor="#8b5cf6" />
-        <RecruitIconKpi title="TOTAL APPLICANTS LISTED" value="104" valueTone="primary" subtext="Across all open requisitions" icon="📈" iconColor="#f59e0b" />
+        <RecruitIconKpi title="TOTAL REQUISITIONS" value="5" subtext="Active recruitment templates" icon="clipboard" iconColor="#2563eb" />
+        <RecruitIconKpi title="ACTIVE OPEN STATUS" value="3" subtext="Awaiting fill or approval" icon="check" iconColor="#10b981" />
+        <RecruitIconKpi title="FILLED POSITIONS" value="1" subtext="Closed this quarter" icon="users" iconColor="#8b5cf6" />
+        <RecruitIconKpi title="TOTAL APPLICANTS LISTED" value="104" valueTone="primary" subtext="Across all open requisitions" icon="chart" iconColor="#f59e0b" />
       </div>
       <div className="recruit-toolbar">
         <div className="recruit-search">
@@ -120,7 +120,7 @@ export function JobPostingTab() {
             <h3>Active postings template records</h3>
             <p>Published channels linked to applicant counts.</p>
           </div>
-          <RecruitPill label="5 Live" tone="success" />
+          <RecruitPill label="8 Live" tone="success" />
         </div>
         <PostingRow letter="J" title="HR Business Partner" portal="JOBSTREET PORTAL — 1,240 impressions" applicants="14 applicants" status="Live" />
         <PostingRow letter="L" title="HR Business Partner" portal="LINKEDIN JOBS — 890 impressions" applicants="8 applicants" status="Live" />
@@ -132,7 +132,7 @@ export function JobPostingTab() {
         <h3 className="recruit-section-label">APPLICANT SOURCE BREAKDOWN %</h3>
         <RecruitHBar label="JobStreet.com" value={62} max={62} color="#2563eb" trailing="62 applicants (45%)" />
         <RecruitHBar label="LinkedIn Jobs" value={33} max={62} color="#60a5fa" trailing="33 (25%)" />
-        <RecruitHBar label="Internal Referral Portal" value={26} max={62} color="#10b981" trailing="26 (18%)" />
+        <RecruitHBar label="Internal Referral Portal" value={26} max={62} color="#10b981" trailing="26 applicants (15%)" />
         <RecruitHBar label="Website careers page" value={14} max={62} color="#f59e0b" trailing="14 (9%)" />
         <RecruitHBar label="Recruitment Agency partners" value={12} max={62} color="#ef4444" trailing="12 (2%)" />
       </RecruitCard>
@@ -201,8 +201,9 @@ export function CandidatePipelineTab() {
         {PIPELINE_COLUMNS.map((col) => (
           <div key={col.stage} className="recruit-kanban-col">
             <div className="recruit-kanban-head">
-              <span>{col.stage}</span>
-              <em>{col.count}</em>
+              <span>
+                {col.stage} ({col.count})
+              </span>
             </div>
             <div className="recruit-kanban-body">
               {col.candidates.length === 0 ? (
@@ -232,9 +233,13 @@ export function InterviewsTab() {
   return (
     <>
       {showSchedule ? <ScheduleInterviewModal onClose={() => setShowSchedule(false)} /> : null}
-      <div className="recruit-toolbar">
+      <div className="recruit-toolbar recruit-toolbar-split">
         <span className="recruit-upcoming-badge">5 upcoming today</span>
         <button type="button" className="recruit-primary-btn" onClick={() => setShowSchedule(true)}>
+          <svg viewBox="0 0 24 24" aria-hidden className="recruit-btn-icon">
+            <rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
+            <path d="M16 2v4M8 2v4M3 10h18" fill="none" stroke="currentColor" strokeWidth="2" />
+          </svg>
           Schedule interview
         </button>
       </div>
@@ -289,7 +294,12 @@ export function InterviewsTab() {
               <span>PANEL RECOMMENDATION</span>
               <strong>Proceed to contract offer</strong>
             </div>
-            <span aria-hidden>✓</span>
+            <span aria-hidden className="recruit-rec-check">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="#10b981" />
+                <path d="M8 12l3 3 5-6" fill="none" stroke="#fff" strokeWidth="2" />
+              </svg>
+            </span>
           </div>
         </RecruitCard>
       </div>
@@ -306,10 +316,10 @@ export function OfferManagementTab() {
     <>
       {showDraft ? <DraftOfferModal onClose={() => setShowDraft(false)} /> : null}
       <div className="recruit-toolbar end">
-        <button type="button" className="recruit-outline-btn" onClick={() => setShowDraft(true)}>
-          Draft offer
-        </button>
         <button type="button" className="recruit-primary-btn" onClick={() => setShowDraft(true)}>
+          <svg viewBox="0 0 24 24" aria-hidden className="recruit-btn-icon">
+            <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z" fill="none" stroke="currentColor" strokeWidth="2" />
+          </svg>
           Create offer
         </button>
       </div>
@@ -371,7 +381,7 @@ export function OfferManagementTab() {
             </div>
             <div>
               <dt>Grade Level</dt>
-              <dd>G-6 / Sub A</dd>
+              <dd>G-6 / Sub 4</dd>
             </div>
             <div>
               <dt>Probation duration</dt>
@@ -404,14 +414,16 @@ export function PreOnboardingTab() {
         </RecruitCard>
         <RecruitCard>
           <h3 className="recruit-section-label">ONBOARDING AUDIT LOGS</h3>
-          <LogLine date="8 May" text="Employment contract accepted — Ahmad Bakri" color="#10b981" />
+          <LogLine date="6 May" text="Employment contract accepted — Ahmad Bakri" color="#10b981" />
           <LogLine date="5 May" text="Document upload request delivered — Lena Wong" color="#2563eb" />
           <LogLine date="25 Apr" text="IT Equipment assignment booked — Operations Lead" color="#2563eb" />
         </RecruitCard>
       </div>
       <RecruitCard>
-        <h3 className="recruit-section-label">VERIFICATION CHECK</h3>
-        <strong className="recruit-score-name">Ahmad Bakri</strong>
+        <div className="recruit-card-head">
+          <h3 className="recruit-section-label">VERIFICATION CHECK</h3>
+          <strong className="recruit-score-name inline">Ahmad Bakri</strong>
+        </div>
         <h4 className="recruit-section-label">DOCUMENT REPOSITORY</h4>
         <CheckRow label="Signed Offer" done />
         <CheckRow label="Nric Passport" done />
@@ -425,8 +437,8 @@ export function PreOnboardingTab() {
           <h4>IT & PAYROLL PROVISIONING TRIGGERS</h4>
           <CheckRow label="Create permanent HRMS employee account" done />
           <CheckRow label="Provision GSuite email accounts" done />
+          <CheckRow label="Register biometric scans and keycards" done />
           <CheckRow label="Assign pre-configured laptop asset" done />
-          <CheckRow label="Register biometric scans and keycards" />
           <CheckRow label="Enrol in monthly banking payroll roster" />
         </div>
         <button type="button" className="recruit-primary-btn full">
@@ -450,15 +462,22 @@ function QueueItem({
   progress: string
   selected?: boolean
 }) {
+  const initials = name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
   return (
     <div className={`recruit-queue-item${selected ? ' selected' : ''}`}>
-      <div>
+      <span className="recruit-queue-avatar">{initials}</span>
+      <div className="recruit-queue-main">
         <strong>{name}</strong>
         <span>
           {role} · Start Date: {start}
         </span>
       </div>
-      <div>
+      <div className="recruit-queue-meta">
         <em>{progress}</em>
         <RecruitPill label="docs pending" tone="warning" />
       </div>
@@ -521,9 +540,9 @@ export function ReportsTab() {
         </button>
       </div>
       <div className="recruit-kpi-row three">
-        <RecruitIconKpi title="AVG. TIME TO CLOSE" value="28 days" trend="↑ 4d vs last qtr" subtext="Duration from approved REQ to candidate signed contract" icon="⏱" iconColor="#2563eb" />
-        <RecruitIconKpi title="OFFER ACCEPTANCE RATE" value="82%" trend="↑ 8% from last qtr" subtext="Percent of extended contract offer packets signed by talent" icon="%" iconColor="#8b5cf6" />
-        <RecruitIconKpi title="RECRUITMENT COST YTD" value="MYR 8,400" valueTone="primary" subtext="Jobboard credits + external recruitment agency payouts" icon="🔗" iconColor="#10b981" />
+        <RecruitIconKpi title="AVG. TIME TO CLOSE" value="28 days" trend="↑ 4d vs last qtr" subtext="Duration from approved REQ to candidate signed contract" icon="clock" iconColor="#2563eb" />
+        <RecruitIconKpi title="OFFER ACCEPTANCE RATE" value="82%" trend="↑ 8% from last qtr" subtext="Percent of extended contract offer packets signed by talent" icon="percent" iconColor="#8b5cf6" />
+        <RecruitIconKpi title="RECRUITMENT COST YTD" value="MYR 8,400" valueTone="primary" subtext="Jobboard credits + external recruitment agency payouts" icon="wallet" iconColor="#10b981" />
       </div>
       <div className="recruit-split">
         <div>
@@ -619,7 +638,7 @@ export function ReportsTab() {
               <th>REQ CODE</th>
               <th>JOB POSITION & SECTOR</th>
               <th>LEAD RECRUITER</th>
-              <th>CONVERSION FUNNEL</th>
+              <th>CONVERSION FUNNEL STAGES (A → S → I → O → H)</th>
               <th>CHANNEL SPEND</th>
               <th>CYCLE TIME</th>
               <th>AUDITING STATUS</th>

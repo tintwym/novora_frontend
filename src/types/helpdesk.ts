@@ -17,6 +17,7 @@ export type HelpdeskTicket = {
   breached?: boolean
   escalated?: boolean
   secure?: boolean
+  transcript: string
 }
 
 export type DigitalCertificate = {

@@ -34,9 +34,9 @@ export const SPEND_LIMITS: SpendLimitRow[] = [
   { category: 'Transport', daily: 'MYR 200', monthly: 'MYR 2,000', receipt: '> MYR 50', receiptTone: 'warning' },
   { category: 'Hotel / stay', daily: 'MYR 350/night', monthly: '—', receipt: 'Always', receiptTone: 'danger' },
   { category: 'Air ticket', daily: '—', monthly: 'MYR 5,000', receipt: 'Always', receiptTone: 'danger' },
-  { category: 'Mileage', daily: 'MYR 0.55/km', monthly: '—', receipt: 'MYR 0.55/km', receiptTone: 'neutral' },
-  { category: 'Entertainment', daily: '—', monthly: 'MYR 1,500', receipt: 'Always', receiptTone: 'danger' },
-  { category: 'Wellness', daily: '—', monthly: 'MYR 300', receipt: '> MYR 30', receiptTone: 'warning' },
+  { category: 'Mileage', daily: '—', monthly: 'MYR 500', receipt: 'MYR 0.55/km', receiptTone: 'warning' },
+  { category: 'Entertainment', daily: 'MYR 150', monthly: 'MYR 1,000', receipt: 'Always', receiptTone: 'danger' },
+  { category: 'Wellness', daily: '—', monthly: 'MYR 300/yr', receipt: '> MYR 50', receiptTone: 'warning' },
 ]
 
 export const VALIDATION_RULES = [
@@ -78,7 +78,12 @@ export const FX_LOG: FxLogRow[] = [
 export const REPORT_CLAIMS: ReportClaimRow[] = [
   { id: 'CLM-081', name: 'Sarah Lim', department: 'Engineering', category: 'Meal allowance', date: '2026-05-05', vendor: "Nando's", amount: '38.50', flag: 'Clear', flagTone: 'success', status: 'Pending', statusTone: 'warning' },
   { id: 'CLM-082', name: 'Raj Kumar', department: 'Operations', category: 'Hotel / stay', date: '2026-05-04', vendor: 'Marriott KL', amount: '450.00', flag: 'Clear', flagTone: 'success', status: 'Approved', statusTone: 'success' },
-  { id: 'CLM-083', name: 'Ahmad L', department: 'HR', category: 'Meal allowance', date: '2026-05-06', vendor: 'Subway', amount: '42.00', flag: 'Flagged / Over limit', flagTone: 'danger', status: 'Pending', statusTone: 'warning' },
+  { id: 'CLM-083', name: 'Ahmad L', department: 'HR', category: 'Meal allowance', date: '2026-05-06', vendor: 'Subway', amount: '42.00', flag: 'Over limit', flagTone: 'danger', status: 'Pending', statusTone: 'warning' },
+  { id: 'CLM-084', name: 'Maya Tan', department: 'Finance', category: 'Air ticket', date: '2026-04-25', vendor: 'AirAsia', amount: '1310.40', flag: 'Flagged', flagTone: 'danger', status: 'Pending', statusTone: 'warning' },
+  { id: 'CLM-085', name: 'Nadia Chen', department: 'Marketing', category: 'Transport', date: '2026-05-03', vendor: 'Grab', amount: '120.00', flag: 'Clear', flagTone: 'success', status: 'Approved', statusTone: 'success' },
+  { id: 'CLM-086', name: 'Zara Nor', department: 'Engineering', category: 'Meal allowance', date: '2026-04-28', vendor: 'Subway', amount: '28.00', flag: 'Clear', flagTone: 'success', status: 'Approved', statusTone: 'success' },
+  { id: 'CLM-087', name: 'Kevin Lim', department: 'Engineering', category: 'Mileage', date: '2026-05-02', vendor: '—', amount: '78.40', flag: 'Clear', flagTone: 'success', status: 'Approved', statusTone: 'success' },
+  { id: 'CLM-088', name: 'Sarah Lim', department: 'Engineering', category: 'Wellness', date: '2026-04-20', vendor: '—', amount: '180.00', flag: 'Clear', flagTone: 'success', status: 'Rejected', statusTone: 'danger' },
 ]
 
 export const HISTORY_CLAIMS: HistoryClaimRow[] = [
@@ -133,6 +138,8 @@ export const DEFAULT_CLAIM_VIEW: ClaimViewData = {
   intent: 'Project wrap-up dinner with front-end development lead.',
   receiptVendor: "NANDO'S",
   receiptTotal: '38.50',
+  isoDate: '2026-05-05',
+  approver: 'David Ng',
 }
 
 export const NADIA_CLAIM_VIEW: ClaimViewData = {
@@ -149,4 +156,6 @@ export const NADIA_CLAIM_VIEW: ClaimViewData = {
   intent: 'Client roadshow transport.',
   receiptVendor: 'GRAB',
   receiptTotal: '120.00',
+  isoDate: '2026-05-03',
+  approver: 'Kevin Lim',
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { HrToolbarPill } from '../components/hr/HrPrimitives'
+import { PerfIcon } from '../components/performance/PerformanceShared'
 import {
   PerformanceCompetencyTab,
   PerformanceEmployeeProfileTab,
@@ -19,18 +20,18 @@ import '../styles/performance.css'
 import '../styles/recruitment.css'
 
 const MODULE_TABS = [
-  { id: 'level', label: 'Perf. Level' },
-  { id: 'grade', label: '% Perf. Grade' },
-  { id: 'kpi', label: 'KPI Setting' },
-  { id: 'evalType', label: 'Eval. Type' },
-  { id: 'evalCategory', label: 'Eval. Category' },
-  { id: 'evalSetup', label: 'Eval. Setup' },
-  { id: 'grant', label: 'Grant Permissions' },
-  { id: 'evaluation', label: 'Evaluation', badge: PERF_EVAL_BADGE },
-  { id: 'result', label: 'Perf. Result' },
-  { id: 'competency', label: 'Competency List' },
-  { id: 'review', label: 'Review Report' },
-  { id: 'profile', label: 'Employee Profile' },
+  { id: 'level', label: 'Perf. Level', icon: 'level' },
+  { id: 'grade', label: '% Perf. Grade', icon: 'grade' },
+  { id: 'kpi', label: 'KPI Setting', icon: 'kpi' },
+  { id: 'evalType', label: 'Eval. Type', icon: 'evalType' },
+  { id: 'evalCategory', label: 'Eval. Category', icon: 'evalCategory' },
+  { id: 'evalSetup', label: 'Eval. Setup', icon: 'evalSetup' },
+  { id: 'grant', label: 'Grant Permissions', icon: 'grant' },
+  { id: 'evaluation', label: 'Evaluation', icon: 'evaluation', badge: PERF_EVAL_BADGE },
+  { id: 'result', label: 'Perf. Result', icon: 'result' },
+  { id: 'competency', label: 'Competency List', icon: 'competency' },
+  { id: 'review', label: 'Review Report', icon: 'review' },
+  { id: 'profile', label: 'Employee Profile', icon: 'profile' },
 ] as const
 
 type ModuleTab = (typeof MODULE_TABS)[number]['id']
@@ -44,6 +45,7 @@ export function PerformancePage() {
         <nav className="perf-module-tabs" aria-label="Performance modules">
           {MODULE_TABS.map((t) => (
             <button key={t.id} type="button" className={moduleTab === t.id ? 'active' : ''} onClick={() => setModuleTab(t.id)}>
+              <PerfIcon name={t.icon} className="perf-tab-icon" />
               {t.label}
               {'badge' in t && t.badge ? <span className="perf-tab-badge">{t.badge}</span> : null}
             </button>

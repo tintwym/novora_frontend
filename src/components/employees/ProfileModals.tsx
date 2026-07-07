@@ -15,6 +15,13 @@ import {
   HrFieldRow,
   HrInput,
   HrModal,
+  HrModalBriefcaseIcon,
+  HrModalGraduationIcon,
+  HrModalLocationIcon,
+  HrModalNotesIcon,
+  HrModalPlusIcon,
+  HrModalUploadIcon,
+  HrModalUserIcon,
   HrSelect,
   HrTextarea,
 } from '../hr/HrModal'
@@ -140,7 +147,7 @@ function EmploymentModal({
       open
       title="EDIT EMPLOYMENT DETAILS"
       subtitle="Update role, department and employment dates"
-      icon={<span>💼</span>}
+      icon={<HrModalBriefcaseIcon />}
       onClose={onClose}
       onConfirm={() => {
         const employment = summary.employment.map((e) => {
@@ -173,7 +180,7 @@ function HrNotesModal({ notes, onClose, onSave }: { notes: string; onClose: () =
       open
       title="HR NOTES"
       subtitle="Internal notes visible to HR admins only"
-      icon={<span>📝</span>}
+      icon={<HrModalNotesIcon />}
       onClose={onClose}
       onConfirm={() => { onSave(value); onClose() }}
     >
@@ -198,7 +205,7 @@ function PersonalModal({
       open
       title="EDIT PERSONAL INFORMATION"
       subtitle="Update employee personal and contact details"
-      icon={<span>👤</span>}
+      icon={<HrModalUserIcon />}
       wide
       onClose={onClose}
       onConfirm={() => { onSave(form); onClose() }}
@@ -235,7 +242,7 @@ function AddressModal({
       open
       title="EDIT CURRENT ADDRESS"
       subtitle="Update residential address for payroll and correspondence"
-      icon={<span>📍</span>}
+      icon={<HrModalLocationIcon />}
       wide
       onClose={onClose}
       onConfirm={() => { onSave(form); onClose() }}
@@ -273,7 +280,8 @@ function AllowanceModal({
       open
       title={row ? 'EDIT ALLOWANCE' : 'ADD ALLOWANCE'}
       subtitle="Configure recurring or one-off positive wage component"
-      icon={<span>+</span>}
+      icon={<HrModalPlusIcon />}
+      confirmLabel={row ? 'Save Changes' : 'Confirm Add'}
       onClose={onClose}
       onConfirm={() => {
         onSave({ label, amount, frequency, taxable, active })
@@ -322,7 +330,8 @@ function DeductionModal({
       open
       title={row ? 'EDIT DEDUCTION' : 'ADD DEDUCTION'}
       subtitle="Configure regular, statutory or voluntary wage reduction"
-      icon={<span>+</span>}
+      icon={<HrModalPlusIcon />}
+      confirmLabel={row ? 'Save Changes' : 'Confirm Add'}
       onClose={onClose}
       onConfirm={() => {
         onSave({ label, amount, frequency, ref, active })
@@ -370,7 +379,8 @@ function CareerModal({
       open
       title={row ? 'EDIT CAREER ENTRY' : 'ADD CAREER ENTRY'}
       subtitle="Record past employee experience and roles"
-      icon={<span>💼</span>}
+      icon={<HrModalBriefcaseIcon />}
+      confirmLabel={row ? 'Save Changes' : 'Confirm Add'}
       onClose={onClose}
       onConfirm={() => {
         onSave({ company, position, fromLabel, toLabel, reason })
@@ -407,7 +417,8 @@ function EducationModal({
       open
       title={row ? 'EDIT EDUCATION' : 'ADD EDUCATION'}
       subtitle="Record employee academic history"
-      icon={<span>🎓</span>}
+      icon={<HrModalGraduationIcon />}
+      confirmLabel={row ? 'Save Changes' : 'Confirm Add'}
       onClose={onClose}
       onConfirm={() => {
         onSave({ institution, qualification, field, year, gradeLabel })
@@ -442,7 +453,7 @@ function UploadDocumentModal({
       open
       title="UPLOAD DOCUMENT"
       subtitle={`Store secure files in the system dossier for ${employeeName}.`}
-      icon={<span>⬆</span>}
+      icon={<HrModalUploadIcon />}
       confirmLabel="Upload"
       onClose={onClose}
       onConfirm={() => {
@@ -458,6 +469,12 @@ function UploadDocumentModal({
       confirmDisabled={!name.trim()}
     >
       <div className="hr-dropzone">
+        <span className="hr-dropzone-icon" aria-hidden>
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3v12M7 10l5-5 5 5" fill="none" stroke="currentColor" strokeWidth="2" />
+            <path d="M5 21h14" fill="none" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        </span>
         <strong>Drag & drop your file here</strong>
         <button type="button" className="hr-dropzone-link">browse your computer</button>
         <span>Accepts documents up to 10MB (PDF, PNG, JPG)</span>
@@ -482,12 +499,14 @@ function ViewDocumentModal({ doc, onClose }: { doc: DocumentRow; onClose: () => 
     <HrModal
       open
       title={doc.name.toUpperCase()}
-      subtitle={`${doc.type} | Last modified ${doc.uploaded}`}
+      subtitle={`${doc.type.toUpperCase()} • ${doc.uploaded}`}
+      icon={<HrModalUploadIcon />}
       wide
       onClose={onClose}
       cancelLabel="Close document frame"
     >
       <div className="hr-doc-preview">
+        <div className="hr-doc-preview-ref">REF: 1-NVR-2026</div>
         <div className="hr-doc-preview-header">
           <h3>NOVORA BUSINESS SYSTEMS SDN BHD</h3>
           <p>LEVEL 28, MENARA BINJAI, NO. 2 JALAN BINJAI, 50450 KUALA LUMPUR, MALAYSIA</p>
@@ -532,8 +551,8 @@ function FamilyModal({
       open
       title="ADD FAMILY RELATION"
       subtitle="Register dependent or next-of-kin for benefits and tax"
-      icon={<span>👨‍👩‍👧</span>}
-      confirmLabel="Confirm Add"
+      icon={<HrModalPlusIcon />}
+      confirmLabel="Add Member"
       onClose={onClose}
       onConfirm={() => {
         onSave({ name, relationship, dob, nric, taxExempt, passport: 'N/A' })

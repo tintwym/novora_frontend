@@ -2,8 +2,34 @@ import { HrField, HrFieldRow, HrInput, HrModal, HrSelect } from '../hr/HrModal'
 import { VALIDATION_RULES } from '../../data/mockClaims'
 import type { ClaimViewData } from '../../types/claims'
 import { RecruitPill } from '../recruitment/RecruitmentPrimitives'
+import { ClaimIcon } from './ClaimsShared'
 
 type ModalProps = { open: boolean; onClose: () => void }
+
+function ClaimModalIcon({ name }: { name: 'shield' | 'check' | 'gear' }) {
+  if (name === 'shield') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path d="M12 8v4M12 16h.01" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    )
+  }
+  if (name === 'check') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.12" />
+        <path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden>
+      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2" fill="none" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  )
+}
 
 export function EditClaimLimitModal({
   open,
@@ -17,7 +43,7 @@ export function EditClaimLimitModal({
     <HrModal
       open={open}
       title={`EDIT LIMIT: ${category.toUpperCase()}`}
-      icon={<span aria-hidden>🛡</span>}
+      icon={<ClaimModalIcon name="shield" />}
       confirmLabel="Save limits"
       cancelLabel="Close"
       onClose={onClose}
@@ -46,7 +72,7 @@ export function EditClaimLimitModal({
 
 export function AutoValidationRulesModal({ open, onClose }: ModalProps) {
   return (
-    <HrModal open={open} title="AUTO-VALIDATION CHECKS" icon={<span aria-hidden>✓</span>} onClose={onClose} wide>
+    <HrModal open={open} title="AUTO-VALIDATION CHECKS" icon={<ClaimModalIcon name="check" />} onClose={onClose} wide>
       <p className="claim-modal-desc">
         Management scripts run in real-time immediately when an employee records any receipt item. Toggle or define validation rules below:
       </p>
@@ -81,7 +107,7 @@ export function ApprovalRoutingMatrixModal({ open, onClose }: ModalProps) {
   ]
 
   return (
-    <HrModal open={open} title="TIERED APPROVAL ROUTING MATRIX" icon={<span aria-hidden>⚙</span>} confirmLabel="Save matrix" onClose={onClose} onConfirm={onClose} wide>
+    <HrModal open={open} title="TIERED APPROVAL ROUTING MATRIX" icon={<ClaimModalIcon name="gear" />} confirmLabel="Save matrix" onClose={onClose} onConfirm={onClose} wide>
       <p className="claim-modal-desc">
         Configure tier boundaries and approval workflows based on the total claim value (MYR equivalent). Changes will affect any claim submitted from this point onward.
       </p>
@@ -117,6 +143,9 @@ export function ViewClaimModal({ open, onClose, claim }: ModalProps & { claim: C
   if (!open) return null
 
   const approved = claim.status === 'Approved'
+  const isoDate = claim.isoDate ?? '2026-05-05'
+  const approver = claim.approver ?? 'David Ng'
+  const salesTax = (parseFloat(claim.receiptTotal) * 0.06).toFixed(2)
 
   return (
     <div className="claim-dossier-overlay" role="presentation" onClick={onClose}>
@@ -125,7 +154,7 @@ export function ViewClaimModal({ open, onClose, claim }: ModalProps & { claim: C
           <div className="claim-dossier-main">
             <div className="claim-dossier-head">
               <span className="claim-dossier-icon" aria-hidden>
-                🧾
+                <ClaimIcon name="receipt" />
               </span>
               <div>
                 <span className="claim-dossier-id">TRANSACTION: {claim.id}</span>
@@ -148,8 +177,8 @@ export function ViewClaimModal({ open, onClose, claim }: ModalProps & { claim: C
             </div>
             <div className="claim-timeline">
               <span>AUDIT TIMELINE & APPROVAL ROUTE</span>
-              <ClaimTimelineStep title="Claim Entry Registered" sub="2026-05-05 09:00 • Initiated by claimant" done />
-              <ClaimTimelineStep title="Manager Level Assessment" sub={`Assigned Route: ${approved ? 'Kevin Lim' : 'David Ng'}`} active={!approved} done={approved} />
+              <ClaimTimelineStep title="Claim Entry Registered" sub={`${isoDate} 09:00 • Initiated by claimant`} done />
+              <ClaimTimelineStep title="Manager Level Assessment" sub={`Assigned Route: ${approver}`} active={!approved} done={approved} />
               <ClaimTimelineStep
                 title="Final Ledger Audit & Completion"
                 sub={approved ? 'Approved — Queued for month May 2026' : 'Awaiting general finance verify'}
@@ -162,20 +191,21 @@ export function ViewClaimModal({ open, onClose, claim }: ModalProps & { claim: C
               <em>{claim.receiptVendor}</em>
               <small>KUALA LUMPUR, MALAYSIA</small>
               <hr />
-              <ReceiptLine label="DATE" value="2026-05-05" />
+              <ReceiptLine label="DATE" value={isoDate} />
               <ReceiptLine label="TX ID" value={`TXN-${claim.id}`} />
               <ReceiptLine label="CATEGORY" value={claim.category.toUpperCase()} />
               <ReceiptLine label="CURRENCY" value="MYR" />
               <hr />
               <ReceiptLine label="SUB-TOTAL" value={claim.receiptTotal} />
-              <ReceiptLine label="SALES TAX (6%)" value={(parseFloat(claim.receiptTotal) * 0.06).toFixed(2)} />
+              <ReceiptLine label="SALES TAX (6%)" value={salesTax} />
               <hr />
               <strong>TOTAL AMT: MYR {claim.receiptTotal}</strong>
               <span className="claim-receipt-badge">● RECEIPT SECURELY ATTACHED</span>
             </div>
             <div className="claim-receipt-actions">
-              <button type="button" className="claim-outline-btn">
-                🖨 Print Receipt
+              <button type="button" className="claim-outline-btn claim-print-btn">
+                <ClaimIcon name="print" />
+                Print Receipt
               </button>
               <button type="button" className="claim-navy-btn full" onClick={onClose}>
                 Dismiss Record

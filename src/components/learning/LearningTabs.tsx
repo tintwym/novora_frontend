@@ -13,6 +13,7 @@ import { RecruitIconKpi } from '../recruitment/RecruitmentPrimitives'
 import { ImportScormModal } from './LearningModals'
 import {
   LrnCard,
+  LrnIcon,
   LrnOutlineBtn,
   LrnPill,
   LrnPrimaryBtn,
@@ -60,10 +61,17 @@ export function LearningCatalogTab() {
   return (
     <div className="lrn-tab">
       <div className="lrn-kpi-row">
-        <RecruitIconKpi title="CATALOG INVENTORY SIZE" value={`${courses.length}`} subtext="courses deployed" icon="📚" iconColor="#2563eb" />
-        <RecruitIconKpi title="MY CURRENT CLASSES" value="3" subtext="active courses" icon="✓" iconColor="#059669" />
-        <RecruitIconKpi title="AVERAGE COMPLETION PROGRESS" value="53%" subtext="certified" icon="🎖" iconColor="#7c3aed" />
-        <RecruitIconKpi title="COMPLIANCE RISKS PENDING" value="2" subtext="require attention" icon="⚠" iconColor="#dc2626" valueTone="danger" />
+        <RecruitIconKpi title="Catalog Inventory Size" value="6 courses deployed" subtext="" icon="book" iconColor="#2563eb" />
+        <RecruitIconKpi title="My Current Classes" value="3 active courses" subtext="" icon="check" iconColor="#059669" />
+        <RecruitIconKpi title="Average Completion Progress" value="53% certified" subtext="" icon="medal" iconColor="#7c3aed" />
+        <RecruitIconKpi
+          title="Compliance Risks Pending"
+          value="2 require attention"
+          subtext=""
+          icon="alert"
+          iconColor="#dc2626"
+          valueTone="danger"
+        />
       </div>
 
       <LrnCard className="lrn-toolbar-card">
@@ -79,7 +87,10 @@ export function LearningCatalogTab() {
               <option key={o}>{o}</option>
             ))}
           </select>
-          <LrnPrimaryBtn onClick={() => setImportOpen(true)}>⬆ Import SCORM/xAPI Packet</LrnPrimaryBtn>
+          <LrnPrimaryBtn onClick={() => setImportOpen(true)}>
+            <LrnIcon name="upload" className="lrn-btn-icon" />
+            Import SCORM/xAPI Packet
+          </LrnPrimaryBtn>
         </div>
       </LrnCard>
 
@@ -90,13 +101,16 @@ export function LearningCatalogTab() {
         </div>
         <div className="lrn-integration-links">
           <button type="button" className="lrn-link-btn">
-            ↗ Connect LinkedIn Learning
+            <LrnIcon name="external" className="lrn-btn-icon" />
+            Connect LinkedIn Learning
           </button>
           <button type="button" className="lrn-link-btn">
-            ↗ Connect Coursera
+            <LrnIcon name="external" className="lrn-btn-icon" />
+            Connect Coursera
           </button>
           <button type="button" className="lrn-link-btn">
-            ↗ Connect Udemy Business
+            <LrnIcon name="external" className="lrn-btn-icon" />
+            Connect Udemy Business
           </button>
         </div>
       </LrnCard>
@@ -107,7 +121,8 @@ export function LearningCatalogTab() {
             <div className="lrn-course-head">
               <LrnPill label={course.category} tone="info" />
               <span className="lrn-rating">
-                ★ {course.rating}
+                <LrnIcon name="star" className="lrn-star-icon" />
+                {course.rating}
               </span>
             </div>
             <h4>{course.title}</h4>
@@ -141,10 +156,14 @@ export function LearningCatalogTab() {
                 )}
                 {course.completed ? (
                   <button type="button" className="lrn-success-btn">
-                    ✓ Completed
+                    <LrnIcon name="check" className="lrn-btn-icon" />
+                    Completed
                   </button>
                 ) : course.enrolled ? (
-                  <LrnPrimaryBtn onClick={() => study(course.id)}>▶ Study +20%</LrnPrimaryBtn>
+                  <LrnPrimaryBtn onClick={() => study(course.id)}>
+                    <LrnIcon name="play" className="lrn-btn-icon" />
+                    Study +20%
+                  </LrnPrimaryBtn>
                 ) : (
                   <LrnPrimaryBtn onClick={() => enroll(course.id)}>Enroll as Student</LrnPrimaryBtn>
                 )}
@@ -205,10 +224,12 @@ export function LearningPathsTab() {
         <LrnCard className="lrn-path-builder">
           <div className="lrn-path-builder-head">
             <span>
-              <span aria-hidden>⚙</span> HR LEARNING PATH BUILDER BUNDLE
+              <LrnIcon name="settings" className="lrn-inline-icon" />
+              HR LEARNING PATH BUILDER BUNDLE
             </span>
             <button type="button" className="lrn-link-btn" onClick={() => setBuilderOpen(false)}>
-              ✕ Close Creator
+              <LrnIcon name="close" className="lrn-btn-icon" />
+              Close Creator
             </button>
           </div>
           <div className="lrn-path-builder-form">
@@ -287,7 +308,9 @@ export function LearningComplianceTab() {
             <strong>Deadline Status: Lapsed yesterday</strong>
           </p>
           <div className="lrn-alert-actions">
-            <LrnPrimaryBtn>Email Warning Alert</LrnPrimaryBtn>
+            <button type="button" className="lrn-dark-btn">
+              Email Warning Alert
+            </button>
             <button type="button" className="lrn-blue-btn">
               Renew Overrides
             </button>
@@ -306,7 +329,9 @@ export function LearningComplianceTab() {
             <strong>Deadline Status: Expires in 24 days</strong>
           </p>
           <div className="lrn-alert-actions">
-            <LrnPrimaryBtn>Email Warning Alert</LrnPrimaryBtn>
+            <button type="button" className="lrn-dark-btn">
+              Email Warning Alert
+            </button>
             <button type="button" className="lrn-blue-btn">
               Renew Overrides
             </button>
@@ -314,14 +339,14 @@ export function LearningComplianceTab() {
         </div>
 
         <div className="lrn-audit-warning">
-          <span aria-hidden>🛡</span>
+          <LrnIcon name="shield" className="lrn-audit-shield" />
           <h4>OFFICIAL AUDIT WARNING</h4>
           <p>
-            Mandatory compliance certifications must remain active. Failure to renew before expiry may trigger audit flags and restrict system
-            access.
+            ISO 27001 requires all staff with system access to maintain active InfoSec certification. Lapsed credentials may trigger audit flags
+            and restrict production environment access.
           </p>
           <div className="lrn-audit-foot">
-            <span aria-hidden>⚠</span>
+            <LrnIcon name="warning" className="lrn-audit-warn-icon" />
             <span>GDPR fine caps may apply: €20M / 4% turnover for lapsed representative certifications.</span>
           </div>
         </div>
@@ -411,12 +436,16 @@ export function LearningAssessmentsTab() {
             }}
           >
             <span className="tone-primary sm bold">{a.id}: {a.title}</span>
-            <p className="lrn-muted sm">🕐 {a.duration}</p>
+            <p className="lrn-muted sm">
+              <LrnIcon name="clock" className="lrn-inline-icon" /> {a.duration}
+            </p>
             <p className="lrn-muted sm">{a.itemCount}</p>
           </button>
         ))}
         <div className="lrn-rubric-box">
-          <strong>⚠ GRADING RUBRICS</strong>
+          <strong>
+            <LrnIcon name="warning" className="lrn-inline-icon" /> GRADING RUBRICS
+          </strong>
           <p className="lrn-muted sm">Requires 75% score or above to grant course certifications. Users are permitted multiple attempts.</p>
         </div>
       </LrnCard>
@@ -513,7 +542,7 @@ export function LearningAnalyticsTab() {
             </div>
           </div>
           <div className="lrn-insight-box">
-            <span aria-hidden>💡</span>
+            <LrnIcon name="lightbulb" className="lrn-insight-icon" />
             <p>
               <strong>Coaching Insight:</strong> High density completion detected in HR and Accounting. Engineering exhibits completion lag due to
               tight sprints. Buffer allocations recommended.
@@ -533,7 +562,10 @@ export function LearningAnalyticsTab() {
               <p className="lrn-muted sm">
                 {ch.classes} · {ch.hours}
               </p>
-              <span className="lrn-champion-badge">{ch.badge}</span>
+              <span className={`lrn-champion-badge tone-${ch.badgeTone}`}>
+                <LrnIcon name="trophy" className="lrn-btn-icon" />
+                {ch.badge}
+              </span>
             </article>
           ))}
         </div>

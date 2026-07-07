@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -23,7 +24,7 @@ function assertProductionApiConfig(mode: string) {
 export default defineConfig(({ mode }) => {
   assertProductionApiConfig(mode)
   return {
-    plugins: [react()],
+    plugins: [tailwindcss(), react()],
     server: {
       port: 5173,
       proxy: {

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { DEPT_PAYROLL, PAYROLL_LEDGER } from '../../data/mockPayroll'
 import { RecruitIconKpi, RecruitPill } from '../recruitment/RecruitmentPrimitives'
-import { PayCard, PaySubPills, PayTableScroll } from './PayrollShared'
+import { PayCard, PayIcon, PaySubPills, PayTableScroll } from './PayrollShared'
 
 const SUB = ['Interactive Dashboard Reports', 'Payroll Ledger']
 
@@ -20,14 +20,21 @@ function ReportsDashboardView() {
   return (
     <>
       <div className="pay-kpi-row">
-        <RecruitIconKpi title="Gross Payout" value="MYR 60,590" subtext="Basic + Allowance + OT" icon="◎" iconColor="#2563eb" />
-        <RecruitIconKpi title="Net Disbursements" value="MYR 51,778" subtext="Transferred basic sum" icon="👤" iconColor="#059669" valueTone="primary" />
-        <RecruitIconKpi title="Withholding & Taxes" value="MYR 8,812" subtext="EPF + SOCSO + PCB" icon="%" iconColor="#ef4444" valueTone="danger" />
-        <RecruitIconKpi title="Avg Paycheck" value="MYR 3,983" subtext="Average salary net" icon="📄" iconColor="#7c3aed" valueTone="primary" />
+        <RecruitIconKpi title="GROSS PAYOUT" value="MYR 60,590" subtext="Basic + Allowance + OT" icon="wallet" iconColor="#2563eb" trend="Basic + Allowance + OT" trendTone="primary" />
+        <RecruitIconKpi title="NET DISBURSEMENTS" value="MYR 51,778" subtext="Transferred basic sum" icon="check" iconColor="#059669" valueTone="success" trend="Transferred basic sum" trendTone="success" />
+        <RecruitIconKpi title="WITHHOLDING & TAXES" value="MYR 8,812" subtext="EPF + SOCSO + PCB" icon="percent" iconColor="#ef4444" valueTone="danger" trend="EPF + SOCSO + PCB" trendTone="danger" />
+        <RecruitIconKpi title="AVG PAYCHECK" value="MYR 3,983" subtext="Average salary net" icon="clipboard" iconColor="#7c3aed" valueTone="purple" />
       </div>
       <PayCard>
-        <h3>Departmental Budget & Payroll Cost Allocation Matrix</h3>
-        <p className="pay-muted">Aggregate gross payouts, average basics, total deductions, and budget metrics by business division.</p>
+        <div className="pay-matrix-head">
+          <div>
+            <h3 className="pay-matrix-title">
+              <PayIcon name="trend" className="pay-matrix-icon" />
+              Departmental Budget & Payroll Cost Allocation Matrix
+            </h3>
+            <p className="pay-muted">Aggregate gross payouts, average basics, total deductions, and budget metrics by business division.</p>
+          </div>
+        </div>
         <PayTableScroll>
           <table className="pay-table">
             <thead>
@@ -72,7 +79,10 @@ function PayrollLedgerView() {
           <option>All departments</option>
         </select>
         <span className="pay-muted">Showing 13 of 13 entries</span>
-        <button type="button" className="pay-primary-btn">Download Ledger</button>
+        <button type="button" className="pay-primary-btn pay-download-btn">
+          <PayIcon name="download" />
+          Download Ledger
+        </button>
       </div>
       <PayTableScroll>
         <table className="pay-table ledger">
@@ -102,7 +112,7 @@ function PayrollLedgerView() {
                 <td><strong>{row.gross}</strong></td>
                 <td className="tone-danger">{row.epf}</td>
                 <td className="tone-danger">{row.socsoTax}</td>
-                <td className="tone-danger">{row.deductions}</td>
+                <td className="tone-danger"><strong>{row.deductions}</strong></td>
                 <td className="tone-success"><strong>{row.net}</strong></td>
               </tr>
             ))}

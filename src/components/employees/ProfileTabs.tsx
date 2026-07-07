@@ -74,14 +74,6 @@ function SummaryTab({ data, actions }: TabProps) {
   const { summary } = data
   return (
     <div className="emp-tab-stack">
-      <div className="emp-summary-actions">
-        <button type="button" className="emp-danger-link" onClick={actions.onDeleteEmployee}>
-          Delete Employee
-        </button>
-        <button type="button" className="emp-text-btn" onClick={actions.onResetPassword}>
-          Reset Password
-        </button>
-      </div>
       <div className="emp-tab-grid emp-tab-grid-2">
       <div className="emp-tab-col">
         <HrCard title="Employment details" trailing={<HrEditLink onClick={actions.onEditEmployment} />}>
@@ -368,11 +360,22 @@ function PayRateTab({ data, actions }: TabProps) {
         />
       </HrCard>
       <div className="emp-net-pay">
-        <div>
-          <strong>ESTIMATED NET PAY (MONTHLY)</strong>
-          <span>Basic + Allowances − Deductions</span>
+        <div className="emp-net-pay-copy">
+          <span className="emp-net-pay-icon" aria-hidden>
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2" />
+              <path d="M12 7v10M9 10h4.5a2.5 2.5 0 010 5H9" fill="none" stroke="currentColor" strokeWidth="2" />
+            </svg>
+          </span>
+          <div>
+            <strong>ESTIMATED NET PAY (MONTHLY)</strong>
+            <span>Basic + Allowances − Deductions</span>
+          </div>
         </div>
-        <strong className="emp-net-amount">MYR {pay.estimatedNetMonthly}</strong>
+        <div className="emp-net-pay-total">
+          <span className="emp-net-pay-arrow" aria-hidden>↓</span>
+          <strong className="emp-net-amount">MYR {pay.estimatedNetMonthly}</strong>
+        </div>
       </div>
     </div>
   )
@@ -478,7 +481,15 @@ function DocumentsTab({ data, actions }: TabProps) {
       <HrDataTable
         columns={['DOCUMENT NAME', 'TYPE', 'UPLOADED', 'EXPIRY', 'ACTIONS']}
         rows={data.documents.rows.map((r, i) => [
-          <span key="n" className="emp-doc-name">📄 {r.name}</span>,
+          <span key="n" className="emp-doc-name">
+            <span className="emp-doc-icon" aria-hidden>
+              <svg viewBox="0 0 24 24">
+                <path d="M7 4h7l5 5v11H7V4z" fill="none" stroke="currentColor" strokeWidth="2" />
+                <path d="M14 4v5h5" fill="none" stroke="currentColor" strokeWidth="2" />
+              </svg>
+            </span>
+            {r.name}
+          </span>,
           <HrPill key="t" tone="info">{r.type}</HrPill>,
           r.uploaded,
           r.expiry,

@@ -1,5 +1,5 @@
 import { type CSSProperties, useMemo, useState } from 'react'
-import { flattenOrgChart, mockOrgChartRoot, openPositionNode } from '../../data/mockOrgChart'
+import { flattenOrgChart, mockOrgChartRoot } from '../../data/mockOrgChart'
 import type { ChartLayout, OrgChartNode } from '../../types/orgChart'
 import {
   DEPT_COUNT,
@@ -29,6 +29,7 @@ export function OrganisationChartTab({ onOpenProfile }: OrganisationChartTabProp
   const [orgView, setOrgView] = useState(true)
   const [deptFilter, setDeptFilter] = useState<string>('All')
   const [layout, setLayout] = useState<ChartLayout>('standard')
+  const [zoomFit, setZoomFit] = useState(true)
   const [selected, setSelected] = useState<OrgChartNode | null>(null)
 
   const root = useMemo(() => mockOrgChartRoot(), [])
@@ -72,21 +73,23 @@ export function OrganisationChartTab({ onOpenProfile }: OrganisationChartTabProp
           </div>
         </div>
 
-        <div className="org-filter-bar">
-          <span className="org-filter-label">DEPARTMENT:</span>
-          {DEPT_FILTERS.map((d) => (
-            <button
-              key={d}
-              type="button"
-              className={`org-filter-chip${deptFilter === d ? ' active' : ''}`}
-              onClick={() => setDeptFilter(d)}
-            >
-              {d}
-            </button>
-          ))}
-          <span className="org-filter-meta">
+        <div className="org-filter-panel">
+          <div className="org-filter-bar">
+            <span className="org-filter-label">DEPARTMENT:</span>
+            {DEPT_FILTERS.map((d) => (
+              <button
+                key={d}
+                type="button"
+                className={`org-filter-chip${deptFilter === d ? ' active' : ''}${d === 'All' && deptFilter === 'All' ? ' active-all' : ''}`}
+                onClick={() => setDeptFilter(d)}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+          <p className="org-filter-meta-center">
             {TOTAL_EMPLOYEES.toLocaleString()} employees · {DEPT_COUNT} departments
-          </span>
+          </p>
         </div>
 
         {orgView ? (
@@ -103,42 +106,56 @@ export function OrganisationChartTab({ onOpenProfile }: OrganisationChartTabProp
                   {l.label}
                 </button>
               ))}
-              <span className="org-zoom-badge">
+              <button
+                type="button"
+                className={`org-zoom-badge${zoomFit ? ' on' : ''}`}
+                onClick={() => setZoomFit((v) => !v)}
+                aria-pressed={zoomFit}
+              >
                 <span aria-hidden />
                 SMOOTH ZOOM FIT
-              </span>
+              </button>
             </div>
 
-            <div className="org-chart-viewport">
+            <div className={`org-chart-viewport org-layout-${layout}${zoomFit ? ' zoom-fit' : ''}`}>
               <div className="org-tree">
                 <div className="org-tree-ceo">
-                  <OrgNodeCard node={root} isCeo selectedId={selected?.id} onSelect={setSelected} layout={layout} />
-                </div>
-                <div className="org-tree-connector" aria-hidden />
-                {visibleHeads.length === 0 ? (
-                  <p className="org-chart-empty">No departments match this filter.</p>
-                ) : (
-                  <div className="org-tree-columns">
-                    {visibleHeads.map((head) => (
-                      <DeptColumn
-                        key={head.id}
-                        head={head}
-                        layout={layout}
-                        search={search}
-                        selectedId={selected?.id}
-                        onSelect={setSelected}
-                      />
-                    ))}
-                  </div>
-                )}
-                <div className="org-tree-open">
                   <OrgNodeCard
-                    node={openPositionNode()}
+                    node={root}
+                    isCeo
                     selectedId={selected?.id}
                     onSelect={setSelected}
                     layout={layout}
                   />
                 </div>
+                {visibleHeads.length > 0 ? (
+                  <>
+                    <div className="org-tree-rail" aria-hidden>
+                      <span className="org-tree-rail-down" />
+                      <span
+                        className="org-tree-rail-across"
+                        style={{ '--org-cols': visibleHeads.length } as CSSProperties}
+                      />
+                    </div>
+                    <div
+                      className="org-tree-columns"
+                      style={{ '--org-cols': visibleHeads.length } as CSSProperties}
+                    >
+                      {visibleHeads.map((head) => (
+                        <DeptColumn
+                          key={head.id}
+                          head={head}
+                          layout={layout}
+                          search={search}
+                          selectedId={selected?.id}
+                          onSelect={setSelected}
+                        />
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <p className="org-chart-empty">No departments match this filter.</p>
+                )}
               </div>
             </div>
           </div>
@@ -155,7 +172,11 @@ export function OrganisationChartTab({ onOpenProfile }: OrganisationChartTabProp
               </thead>
               <tbody>
                 {listRows.map((row) => (
-                  <tr key={row.id} className={selected?.id === row.id ? 'selected' : ''} onClick={() => setSelected(row)}>
+                  <tr
+                    key={row.id}
+                    className={selected?.id === row.id ? 'selected' : ''}
+                    onClick={() => setSelected(row)}
+                  >
                     <td className="org-list-name">{row.name}</td>
                     <td>{row.role}</td>
                     <td>{row.deptLabel}</td>
@@ -175,22 +196,19 @@ export function OrganisationChartTab({ onOpenProfile }: OrganisationChartTabProp
           <SummaryCard label="Total" count={TOTAL_EMPLOYEES} accent="#1e3a5f" emphasized />
         </div>
 
-        <p className="org-footnote">Click any node to view details · Dashed lines = direct reports</p>
-
-        <div className="org-legend">
-          {LEGEND_DEPTS.map((dept) => {
-            const p = deptPaletteForLabel(dept)
-            return (
-              <span key={dept} className="org-legend-item">
-                <i style={{ background: p.cardBg, borderColor: p.border }} aria-hidden />
-                {dept}
-              </span>
-            )
-          })}
-          <span className="org-legend-item">
-            <i className="open" aria-hidden />
-            Open position
-          </span>
+        <div className="org-chart-footer">
+          <p className="org-footnote">Click any node to view details · Dashed lines = direct reports</p>
+          <div className="org-legend">
+            {LEGEND_DEPTS.map((dept) => {
+              const p = deptPaletteForLabel(dept)
+              return (
+                <span key={dept} className="org-legend-item">
+                  <i style={{ background: p.cardBg, borderColor: p.border }} aria-hidden />
+                  {dept}
+                </span>
+              )
+            })}
+          </div>
         </div>
       </div>
 
@@ -223,46 +241,54 @@ function DeptColumn({
 }) {
   const maxGrand = maxVisibleGrandchildren(layout)
   const compactGrand = layout !== 'standard'
+  const children = (head.children ?? []).filter((c) => nodeMatchesSearch(c, search))
 
   return (
     <div className="org-dept-column">
+      <span className="org-col-stub" aria-hidden />
       <OrgNodeCard node={head} selectedId={selectedId} onSelect={onSelect} layout={layout} />
-      {(head.children ?? []).length > 0 ? (
+      {children.length > 0 ? (
         <>
           <div className="org-col-connector" aria-hidden />
-          {(head.children ?? []).filter((c) => nodeMatchesSearch(c, search)).map((child) => {
-            const grandchildren = child.children ?? []
-            const visibleGrand = grandchildren.slice(0, maxGrand)
-            const extra =
-              child.moreCount && child.moreCount > 0
-                ? child.moreCount
-                : Math.max(0, grandchildren.length - maxGrand)
+          <div className={`org-children-row${layout === 'concise' ? ' stacked' : ''}`}>
+            {children.map((child) => {
+              const grandchildren = child.children ?? []
+              const visibleGrand = grandchildren.slice(0, maxGrand)
+              const extra =
+                child.moreCount && child.moreCount > 0
+                  ? child.moreCount
+                  : Math.max(0, grandchildren.length - maxGrand)
 
-            return (
-              <div key={child.id} className="org-child-block">
-                <OrgNodeCard node={child} selectedId={selectedId} onSelect={onSelect} layout={layout} />
-                {visibleGrand.length > 0 ? (
-                  <div className="org-grandchildren">
-                    {visibleGrand.map((g) => (
-                      <OrgNodeCard
-                        key={g.id}
-                        node={g}
-                        compact={compactGrand}
-                        selectedId={selectedId}
-                        onSelect={onSelect}
-                        layout={layout}
-                      />
-                    ))}
-                    {extra > 0 ? (
-                      <button type="button" className="org-more-btn" onClick={() => alert(`+${extra} more (mock)`)}>
-                        +{extra} more members
-                      </button>
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
-            )
-          })}
+              return (
+                <div key={child.id} className="org-child-block">
+                  <OrgNodeCard node={child} selectedId={selectedId} onSelect={onSelect} layout={layout} />
+                  {visibleGrand.length > 0 || extra > 0 ? (
+                    <div className="org-grandchildren">
+                      {visibleGrand.map((g) => (
+                        <OrgNodeCard
+                          key={g.id}
+                          node={g}
+                          compact={compactGrand}
+                          selectedId={selectedId}
+                          onSelect={onSelect}
+                          layout={layout}
+                        />
+                      ))}
+                      {extra > 0 ? (
+                        <button
+                          type="button"
+                          className="org-more-btn"
+                          onClick={() => onSelect(child)}
+                        >
+                          +{extra} more members
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              )
+            })}
+          </div>
         </>
       ) : null}
     </div>
@@ -286,7 +312,7 @@ function OrgNodeCard({
 }) {
   const palette = deptPaletteForKey(node.deptKey)
   const selected = selectedId === node.id
-  const showCounts = showMemberCounts(layout) && !compact
+  const showCounts = showMemberCounts(layout) && !compact && node.memberCount != null
 
   if (node.isOpenPosition) {
     return (
@@ -322,9 +348,7 @@ function OrgNodeCard({
       <span className="org-node-body">
         <strong>{node.name}</strong>
         <span>{node.role}</span>
-        {showCounts && node.memberCount != null ? (
-          <em>{node.memberCount} members</em>
-        ) : null}
+        {showCounts ? <em>{node.memberCount} members</em> : null}
       </span>
     </button>
   )
@@ -363,7 +387,13 @@ function DetailPanel({
 
   return (
     <div className="org-detail-panel">
-      <div className="org-detail-avatar" style={{ background: node.isOpenPosition ? undefined : palette.avatarBg, color: palette.avatarFg }}>
+      <div
+        className="org-detail-avatar"
+        style={{
+          background: node.isOpenPosition ? undefined : palette.avatarBg,
+          color: palette.avatarFg,
+        }}
+      >
         {node.isOpenPosition ? '+' : node.initials}
       </div>
       <div className="org-detail-body">
@@ -376,7 +406,8 @@ function DetailPanel({
         </div>
         <p className="org-detail-role">{node.role}</p>
         <p className="org-detail-meta">
-          Dept: {node.deptLabel} · Grade: {node.grade ?? '—'} · Since: {node.since ?? '—'} · Team: {node.team ?? '—'}
+          Dept: {node.deptLabel} · Grade: {node.grade ?? '—'} · Since: {node.since ?? '—'} · Team:{' '}
+          {node.team ?? '—'}
         </p>
         {!node.isOpenPosition ? (
           <button type="button" className="org-detail-profile-btn" onClick={onOpenProfile}>

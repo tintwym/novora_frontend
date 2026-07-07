@@ -1,0 +1,6 @@
+/* Tailwind v4 + Novora legacy module styles (load order matters) */
+@import './tailwind.css';
+@import '../index.css';
+@import './module-shell.css';
+@import './buttons.css';
+@import './refine.css';

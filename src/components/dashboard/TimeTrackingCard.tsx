@@ -83,11 +83,15 @@ export function TimeTrackingCard() {
     .toUpperCase()
 
   return (
-    <DashboardCard>
+    <DashboardCard className="dash-time-card">
       <CardHeader title="TIME TRACKING" action={<LiveBadge />} />
-      <p className="dash-clock">{clock}</p>
-      <p className="dash-clock-date">{dateLabel}</p>
-      <div className="dash-status-pill">{status.toUpperCase()}</div>
+      <div className="dash-time-head">
+        <div>
+          <p className="dash-clock">{clock}</p>
+          <p className="dash-clock-date">{dateLabel}</p>
+        </div>
+        <div className="dash-status-pill">{status.toUpperCase()}</div>
+      </div>
       <div className="dash-punch-row">
         <div className="dash-punch-box">
           <span>CLOCK IN</span>
@@ -99,27 +103,39 @@ export function TimeTrackingCard() {
         </div>
       </div>
       <div className="dash-session-bar">
-        <span>Total session time</span>
+        <span>TOTAL SESSION TIME</span>
         <strong>{sessionLabel(today)}</strong>
       </div>
+      {error ? <p className="dash-time-error">{error}</p> : null}
+      {actionError ? <p className="dash-time-error">{actionError}</p> : null}
       <div className="dash-punch-actions">
-        {error ? <p className="auth-form-error">{error}</p> : null}
-        {actionError ? <p className="auth-form-error">{actionError}</p> : null}
         <button
           type="button"
-          className="btn-primary dash-punch-btn"
+          className="dash-punch-outline-btn"
           disabled={busy || !canCheckIn}
           onClick={() => void onCheckIn()}
         >
-          Punch In
+          <svg viewBox="0 0 24 24" aria-hidden>
+            <path
+              d="M12 11c1.66 0 3-1.34 3-3S13.66 5 12 5 9 6.34 9 8s1.34 3 3 3zM18 21v-1a5 5 0 00-5-5H11a5 5 0 00-5 5v1"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+            <path d="M16 11l2 2 4-4" fill="none" stroke="currentColor" strokeWidth="2" />
+          </svg>
+          PUNCH IN
         </button>
         <button
           type="button"
-          className="btn-outline dash-punch-btn"
+          className="dash-punch-outline-btn"
           disabled={busy || !canCheckOut}
           onClick={() => void onCheckOut()}
         >
-          Punch Out
+          <svg viewBox="0 0 24 24" aria-hidden>
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" fill="none" stroke="currentColor" strokeWidth="2" />
+          </svg>
+          PUNCH OUT
         </button>
       </div>
     </DashboardCard>

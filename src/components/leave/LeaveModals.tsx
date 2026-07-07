@@ -4,6 +4,28 @@ import { LEAVE_COLOR_SWATCHES } from '../../data/mockLeave'
 
 type ModalProps = { open: boolean; onClose: () => void }
 
+function LeaveModalIcon({ name }: { name: 'gear' | 'document' }) {
+  if (name === 'gear') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden>
+        <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path
+          d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" fill="none" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  )
+}
+
 export function ConfigureLeaveTypeModal({ open, onClose, existingName }: ModalProps & { existingName?: string }) {
   const [colorIdx, setColorIdx] = useState(0)
 
@@ -11,7 +33,7 @@ export function ConfigureLeaveTypeModal({ open, onClose, existingName }: ModalPr
     <HrModal
       open={open}
       title="Configure Leave Type"
-      icon={<span aria-hidden>⚙</span>}
+      icon={<LeaveModalIcon name="gear" />}
       confirmLabel={existingName ? 'Save Changes' : 'Create Type'}
       onClose={onClose}
       onConfirm={onClose}
@@ -48,14 +70,14 @@ export function ConfigureLeaveTypeModal({ open, onClose, existingName }: ModalPr
         </HrField>
       </HrFieldRow>
       <div className="leave-color-field">
-        <span>Theme badge accent color</span>
+        <span>THEME BADGE ACCENT COLOR</span>
         <div className="leave-color-swatches">
           {LEAVE_COLOR_SWATCHES.map((c, i) => (
             <button
               key={c}
               type="button"
               className={colorIdx === i ? 'active' : ''}
-              style={{ background: c }}
+              style={{ background: c, borderColor: colorIdx === i ? c : 'transparent' }}
               onClick={() => setColorIdx(i)}
               aria-label={`Color ${i + 1}`}
             />
@@ -73,7 +95,7 @@ export function CreateLeavePolicyModal({ open, onClose }: ModalProps) {
     <HrModal
       open={open}
       title="CREATE NEW LEAVE POLICY"
-      icon={<span aria-hidden>📄</span>}
+      icon={<LeaveModalIcon name="document" />}
       confirmLabel="Create & Apply Policy"
       onClose={onClose}
       onConfirm={onClose}

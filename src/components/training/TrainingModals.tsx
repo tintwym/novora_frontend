@@ -34,7 +34,9 @@ function TrainModalShell({
           <span className="train-modal-dot" aria-hidden />
           <h2>{title}</h2>
           <button type="button" className="train-modal-close" onClick={onClose} aria-label="Close">
-            ✕
+            <svg viewBox="0 0 24 24" aria-hidden className="train-modal-close-icon">
+              <path d="M18 6 6 18M6 6l12 12" fill="none" stroke="currentColor" strokeWidth="2" />
+            </svg>
           </button>
         </div>
         <div className="train-modal-body">{children}</div>

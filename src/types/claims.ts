@@ -104,6 +104,8 @@ export type ClaimViewData = {
   intent: string
   receiptVendor: string
   receiptTotal: string
+  isoDate?: string
+  approver?: string
 }
 
 export type TopClaimantRow = {

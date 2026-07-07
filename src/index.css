@@ -381,9 +381,9 @@ code {
 
 .topbar-titles h1 {
   font-family: var(--font-display);
-  font-size: 0.9375rem;
+  font-size: 1.125rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 .topbar-titles p {
@@ -394,7 +394,7 @@ code {
 
 .topbar-search {
   flex: 1;
-  max-width: 280px;
+  max-width: 420px;
   margin-left: auto;
   position: relative;
 }
@@ -463,13 +463,19 @@ code {
 
 .topbar-badge {
   position: absolute;
-  top: 7px;
-  right: 7px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  top: 4px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
   background: var(--danger);
   border: 1.5px solid var(--card);
+  color: #fff;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  line-height: 13px;
+  text-align: center;
 }
 
 .topbar-user-menu {
@@ -788,14 +794,16 @@ code {
 .dash-page {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.35rem;
 }
 
 .dash-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md, 12px);
-  padding: 1.25rem;
+  border-radius: var(--radius-lg, 16px);
+  padding: 1.35rem;
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
 }
 
 .dash-card-header {
@@ -803,19 +811,21 @@ code {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  margin-bottom: 0.15rem;
 }
 
 .dash-section-title {
   margin: 0;
   font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  color: #94a3b8;
 }
 
 .dash-card-subtitle {
-  margin: 0.35rem 0 1rem;
+  margin: 0.25rem 0 1.1rem;
   font-size: 0.75rem;
+  line-height: 1.45;
   color: var(--text-muted);
 }
 
@@ -826,7 +836,7 @@ code {
   font: inherit;
   font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   cursor: pointer;
   padding: 0;
 }
@@ -835,12 +845,13 @@ code {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.15rem 0.5rem;
+  padding: 0.2rem 0.55rem;
   border-radius: 999px;
   background: #dcfce7;
   color: #065f46;
   font-size: 0.625rem;
   font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .dash-live-dot {
@@ -853,49 +864,53 @@ code {
 .dash-stat-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .dash-stat-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md, 12px);
-  padding: 0.875rem;
-  min-height: 108px;
+  border-radius: var(--radius-lg, 16px);
+  padding: 1rem 1.1rem;
+  min-height: 118px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  box-shadow: var(--shadow-sm);
 }
 
 .dash-stat-top {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 0.5rem;
 }
 
 .dash-stat-label {
   margin: 0;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: #94a3b8;
 }
 
 .dash-stat-value {
-  margin: 0.35rem 0 0;
+  margin: 0.4rem 0 0;
   font-family: 'Sora', var(--font-sans);
-  font-size: 1.375rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
 }
 
 .dash-stat-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
@@ -905,11 +920,12 @@ code {
 }
 
 .dash-stat-trend {
-  margin: 0.5rem 0 0;
+  margin: 0.65rem 0 0;
   font-size: 0.625rem;
   font-weight: 600;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.2rem;
 }
 
@@ -924,17 +940,17 @@ code {
 .dash-stat-trend-muted {
   color: #94a3b8;
   font-weight: 400;
-  margin-left: 0.15rem;
 }
 
 .dash-mid-row,
 .dash-bottom-row {
   display: grid;
-  gap: 1rem;
+  gap: 1.15rem;
+  align-items: stretch;
 }
 
 .dash-mid-row {
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
 }
 
 .dash-bottom-row {
@@ -951,17 +967,18 @@ code {
 
 .dash-period-chip {
   border: none;
-  background: #e3f2fd;
+  background: #e8f1fd;
   color: var(--brand-blue-deep);
-  border-radius: 8px;
-  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
   font: inherit;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  white-space: nowrap;
 }
 
 .dash-period-spinner {
@@ -976,16 +993,16 @@ code {
 .dash-period-menu {
   position: absolute;
   right: 0;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   list-style: none;
   margin: 0;
-  padding: 0.35rem;
+  padding: 0.4rem;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
-  z-index: 10;
-  min-width: 150px;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  z-index: 20;
+  min-width: 168px;
 }
 
 .dash-period-menu button {
@@ -993,32 +1010,35 @@ code {
   border: none;
   background: transparent;
   text-align: left;
-  padding: 0.45rem 0.55rem;
-  border-radius: 6px;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
   font: inherit;
   font-size: 0.8125rem;
   cursor: pointer;
+  color: var(--text);
 }
 
 .dash-period-menu button:hover,
 .dash-period-menu button.active {
-  background: var(--bg);
+  background: #eff6ff;
   color: var(--brand-blue-deep);
   font-weight: 600;
 }
 
 .dash-chart-wrap {
   overflow-x: auto;
+  margin-top: 0.15rem;
 }
 
 .dash-line-chart {
   width: 100%;
   min-width: 420px;
   height: auto;
+  display: block;
 }
 
 .dash-chart-grid {
-  stroke: var(--border);
+  stroke: #f1f5f9;
   stroke-width: 1;
 }
 
@@ -1029,30 +1049,32 @@ code {
 
 .dash-chart-line {
   fill: none;
-  stroke: var(--brand-blue-deep);
-  stroke-width: 2.5;
+  stroke: var(--brand-blue);
+  stroke-width: 2.75;
 }
 
 .dash-chart-dot {
-  fill: var(--brand-blue-deep);
+  fill: var(--brand-blue);
+  stroke: #fff;
+  stroke-width: 1.5;
 }
 
 .dash-donut-wrap {
   position: relative;
-  width: 150px;
-  height: 150px;
-  margin: 0.75rem auto;
+  width: 164px;
+  height: 164px;
+  margin: 0.5rem auto 0.75rem;
 }
 
 .dash-donut {
-  width: 150px;
-  height: 150px;
+  width: 164px;
+  height: 164px;
 }
 
 .dash-donut-track,
 .dash-donut-segment {
   fill: none;
-  stroke-width: 14;
+  stroke-width: 13;
 }
 
 .dash-donut-track {
@@ -1067,30 +1089,38 @@ code {
   align-items: center;
   justify-content: center;
   text-align: center;
+  pointer-events: none;
 }
 
 .dash-donut-center strong {
   font-family: 'Sora', var(--font-sans);
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 800;
+  line-height: 1.1;
 }
 
 .dash-donut-center span {
+  margin-top: 0.15rem;
   font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--text-muted);
 }
 
 .dash-donut-legend {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.35rem 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  justify-content: center;
 }
 
 .dash-legend-row {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
+  white-space: nowrap;
 }
 
 .dash-legend-dot {
@@ -1101,49 +1131,67 @@ code {
 }
 
 .dash-legend-label {
-  flex: 1;
   color: var(--text-muted);
 }
 
 .dash-legend-value {
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dash-time-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-time-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
 }
 
 .dash-clock {
-  margin: 0.5rem 0 0;
+  margin: 0;
   font-family: 'Sora', var(--font-sans);
-  font-size: 2rem;
+  font-size: 2.125rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  line-height: 1;
 }
 
 .dash-clock-date {
-  margin: 0 0 0.5rem;
-  font-size: 0.75rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--text-muted);
 }
 
 .dash-status-pill {
-  align-self: flex-end;
-  padding: 0.15rem 0.5rem;
-  border-radius: 6px;
+  flex-shrink: 0;
+  padding: 0.25rem 0.55rem;
+  border-radius: 8px;
   background: var(--bg);
+  border: 1px solid var(--border);
   font-size: 0.625rem;
   font-weight: 700;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
-  margin-bottom: 0.75rem;
 }
 
 .dash-punch-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
+  margin-top: 0.85rem;
 }
 
 .dash-punch-box {
-  padding: 0.75rem;
+  padding: 0.8rem 0.85rem;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--bg);
 }
 
@@ -1151,69 +1199,115 @@ code {
   display: block;
   font-size: 0.625rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  color: #94a3b8;
 }
 
 .dash-punch-box strong {
   display: block;
-  margin-top: 0.25rem;
-  font-size: 1rem;
+  margin-top: 0.35rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .dash-session-bar {
-  margin-top: 0.75rem;
-  padding: 0.65rem 0.85rem;
-  border-radius: 10px;
+  margin-top: 0.85rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
   background: var(--navy);
   color: #fff;
   display: flex;
   justify-content: space-between;
-  font-size: 0.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 .dash-session-bar strong {
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 0.8125rem;
+}
+
+.dash-time-error {
+  margin: 0.65rem 0 0;
+  font-size: 0.75rem;
+  color: var(--danger);
 }
 
 .dash-punch-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.65rem;
-  margin-top: 0.85rem;
+  margin-top: auto;
+  padding-top: 0.85rem;
 }
 
-.dash-punch-btn {
+.dash-punch-outline-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   width: 100%;
-  padding: 0.75rem 0.5rem;
-  font-size: 0.8125rem;
+  min-height: 42px;
+  padding: 0.65rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.dash-punch-outline-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.dash-punch-outline-btn:hover:not(:disabled) {
+  background: var(--bg);
+  border-color: #cbd5e1;
+}
+
+.dash-punch-outline-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .dash-list {
   list-style: none;
-  margin: 0.75rem 0 0;
+  margin: 0.85rem 0 0;
   padding: 0;
 }
 
 .dash-list li {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.5rem 0;
+  gap: 0.75rem;
+  padding: 0.65rem 0;
 }
 
 .dash-list li.with-divider {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .dash-avatar {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.75rem;
   font-weight: 700;
+  line-height: 1;
   flex-shrink: 0;
 }
 
@@ -1225,24 +1319,28 @@ code {
 .dash-list-body strong {
   display: block;
   font-size: 0.8125rem;
+  font-weight: 700;
 }
 
 .dash-list-body span {
   display: block;
+  margin-top: 0.1rem;
   font-size: 0.6875rem;
   color: var(--text-muted);
 }
 
 .dash-list-meta {
   font-size: 0.6875rem;
-  color: var(--text-muted);
+  font-weight: 500;
+  color: #94a3b8;
   white-space: nowrap;
 }
 
 .dash-status-badge {
   font-size: 0.5625rem;
   font-weight: 700;
-  padding: 0.2rem 0.45rem;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.5rem;
   border-radius: 6px;
   white-space: nowrap;
 }
@@ -1263,30 +1361,58 @@ code {
 }
 
 .dash-empty {
-  margin: 0.75rem 0 0;
+  margin: 0.85rem 0 0;
   color: #94a3b8;
   font-size: 0.8125rem;
 }
 
+.dash-payroll-header-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: #ecfdf5;
+  color: #059669;
+  cursor: pointer;
+}
+
+.dash-payroll-header-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.dash-payroll-header-btn:hover {
+  background: #d1fae5;
+}
+
 .dash-payroll-total {
-  margin: 0.75rem 0 0;
+  margin: 0.65rem 0 0;
   font-family: 'Sora', var(--font-sans);
-  font-size: 1.625rem;
+  font-size: 1.75rem;
   font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 
 .dash-payroll-sub {
-  margin: 0 0 1rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
+  margin: 0.2rem 0 1.1rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #94a3b8;
 }
 
 .dash-payroll-bar {
   display: flex;
-  height: 8px;
-  border-radius: 4px;
+  height: 10px;
+  border-radius: 999px;
   overflow: hidden;
-  margin-bottom: 1rem;
+  margin-bottom: 1.1rem;
+  background: #f1f5f9;
 }
 
 .dash-payroll-bar .seg-net {
@@ -1305,7 +1431,7 @@ code {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.55rem;
   font-size: 0.75rem;
 }
 
@@ -1313,6 +1439,7 @@ code {
   width: 10px;
   height: 10px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .dash-payroll-label {
@@ -1321,27 +1448,33 @@ code {
 }
 
 .dash-payroll-value {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .dash-payroll-value em {
   font-style: normal;
-  color: var(--text-muted);
-  font-weight: 400;
+  color: #94a3b8;
+  font-weight: 500;
 }
 
 .dash-audit-btn {
   width: 100%;
-  margin-top: 1rem;
-  padding: 0.85rem;
+  margin-top: 1.15rem;
+  padding: 0.9rem;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--navy);
   color: #fff;
   font: inherit;
   font-size: 0.8125rem;
   font-weight: 700;
+  letter-spacing: 0.04em;
   cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dash-audit-btn:hover {
+  background: var(--navy-mid);
 }
 
 @media (max-width: 1200px) {
@@ -1349,7 +1482,8 @@ code {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .dash-mid-row {
+  .dash-mid-row,
+  .dash-bottom-row {
     grid-template-columns: 1fr;
   }
 }

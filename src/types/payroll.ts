@@ -95,10 +95,10 @@ export type EmolumentRow = {
 
 export type PayrollPrepRow = {
   name: string
-  department: string
-  basic: string
-  allowances: string
-  deductions: string
+  compliance: string
+  banking: string
+  claims: string
+  claimsNone?: boolean
   status: string
   tone: RecruitPillTone
 }

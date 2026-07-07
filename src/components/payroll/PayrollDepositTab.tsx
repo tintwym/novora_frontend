@@ -57,8 +57,12 @@ export function PayrollDepositTab({ addSignal = 0 }: { addSignal?: number }) {
         </>
       ) : (
         <PayCard>
-          <PayAttachmentZone icon="📎" iconColor="#2563eb" title="Attach deposit policy documents or employee deposit agreements" subtitle="Supports PDF files up to 10MB (Click to simulate attach)" />
-          <PaySectionTitle title="Deposit agreements archive" />
+          <PayAttachmentZone
+            iconColor="#7c3aed"
+            title="Attach asset return records or equipment bonds proof"
+            subtitle="Supports PDF and image files up to 10MB (Click to simulate attach)"
+          />
+          <PaySectionTitle title="Deposit receipts archive" />
         </PayCard>
       )}
       <AddDepositTypeModal open={addOpen} onClose={() => setAddOpen(false)} />

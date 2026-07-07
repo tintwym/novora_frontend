@@ -81,8 +81,12 @@ export function PayrollTaxTab({ addSignal = 0 }: { addSignal?: number }) {
       ) : null}
       {sub === 1 ? (
         <PayCard>
-          <PayAttachmentZone icon="📎" iconColor="#2563eb" title="Attach tax policy documents or statutory compliance certificates" subtitle="Supports PDF files up to 10MB (Click to simulate attach)" />
-          <PaySectionTitle title="Tax policy archive" />
+          <PayAttachmentZone
+            iconColor="#ec4899"
+            title="Attach government withholding filings or advisory reference briefs"
+            subtitle="Supports standard PDF or Image documentation (Click to simulate attach)"
+          />
+          <PaySectionTitle title="Tax circular archives" />
         </PayCard>
       ) : null}
       {sub === 2 ? (
@@ -99,7 +103,7 @@ export function PayrollTaxTab({ addSignal = 0 }: { addSignal?: number }) {
           <PayCard>
             <h3>Verify active policies</h3>
             <p className="pay-muted">Click to request full local government guideline re-validations.</p>
-            <button type="button" className="pay-navy-btn">Audit Withholding Standards</button>
+            <button type="button" className="pay-primary-btn">Audit Withholding Standards</button>
             <p className="pay-muted small">Latest synchronization audit completed: Today, 10:43 UTC</p>
           </PayCard>
         </div>

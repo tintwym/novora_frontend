@@ -64,4 +64,5 @@ export type LearningChampion = {
   classes: string
   hours: string
   badge: string
+  badgeTone: string
 }

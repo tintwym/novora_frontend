@@ -6,7 +6,7 @@ import type {
   RequisitionRow,
 } from '../types/recruitment'
 
-export const INTERVIEW_BADGE = 5
+export const INTERVIEW_BADGE = 8
 
 export const REQUISITIONS: RequisitionRow[] = [
   { id: 'REQ-2023-047', position: 'HR Business Partner', department: 'HR', deptTone: 'pink', type: 'Permanent', requestedBy: 'Nina Reza', openDate: '8 Apr', targetFill: '13 May', applicants: 14, status: 'Open', statusTone: 'success' },
@@ -63,8 +63,8 @@ export const OFFERS: OfferRow[] = [
 
 export const LEDGER_ROWS: LedgerRow[] = [
   { reqCode: 'REQ-2024-001', position: 'HR Business Partner', sector: 'HR department', recruiter: 'Maya Tan', funnel: [45, 22, 8, 2, 1], spend: 'MYR 2,400', cycleTime: '25 days', status: 'Completed', statusTone: 'success' },
+  { reqCode: 'REQ-2024-002', position: 'Senior Back-End Engineer (Node.js)', sector: 'Engineering department', recruiter: 'Maya Tan', funnel: [78, 45, 12, 3, 1], spend: 'MYR 5,100', cycleTime: '38 days', status: 'Completed', statusTone: 'success' },
   { reqCode: 'REQ-2024-012', position: 'Sr. Frontend Developer', sector: 'Engineering', recruiter: 'Zainal Abidin', funnel: [62, 30, 12, 3, 0], spend: 'MYR 3,100', cycleTime: '36 days', status: 'In Progress', statusTone: 'info' },
   { reqCode: 'REQ-2024-018', position: 'Finance Analyst', sector: 'Finance', recruiter: 'Maya Tan', funnel: [18, 10, 4, 1, 1], spend: 'MYR 1,200', cycleTime: '28 days', status: 'Completed', statusTone: 'success' },
-  { reqCode: 'REQ-2024-022', position: 'Operations Lead', sector: 'Operations', recruiter: 'Zainal Abidin', funnel: [28, 14, 6, 2, 0], spend: 'MYR 1,700', cycleTime: 'Pending', status: 'In Progress', statusTone: 'info' },
-  { reqCode: 'REQ-2024-031', position: 'Digital Marketing Lead', sector: 'Marketing', recruiter: 'Maya Tan', funnel: [12, 6, 2, 0, 0], spend: 'MYR 900', cycleTime: '19 days', status: 'Completed', statusTone: 'success' },
+  { reqCode: 'REQ-2024-007', position: 'Compensation & Benefits Associate', sector: 'HR department', recruiter: 'Zainal Abidin', funnel: [11, 4, 1, 0, 0], spend: 'MYR 800', cycleTime: 'Pending', status: 'In Progress', statusTone: 'info' },
 ]

@@ -139,7 +139,7 @@ export const TRAINING_BEHALF_EMPLOYEES = [
 export const TRAINING_BEHALF_SUBMITTED: TrainingBehalfRow[] = [
   { initials: 'SL', name: 'Sarah Lim', avatarColor: '#3b82f6', course: 'Leadership', date: '12 May', status: 'Allocated', statusTone: 'success' },
   { initials: 'RK', name: 'Raj Kumar', avatarColor: '#10b981', course: 'Leadership', date: '12 May', status: 'Pending', statusTone: 'warning' },
-  { initials: 'AL', name: 'Ahmad Luqman', avatarColor: '#f97316', course: 'ISO 9001', date: '2 May', status: 'Completed', statusTone: 'success' },
+  { initials: 'AL', name: 'Ahmad Luqman', avatarColor: '#f97316', course: 'ISO 9001', date: '2 May', status: 'Completed', statusTone: 'warning' },
 ]
 
 export const TRAINING_COMPLIANCE_REPORT: TrainingComplianceRow[] = [
