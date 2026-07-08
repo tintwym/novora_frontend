@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
+import { showActionToast } from '../../utils/actionToast'
 import { EditIconBtn } from '../ui/EditIconBtn'
+import { ViewIconBtn } from '../ui/ViewIconBtn'
 
 export function HrPill({
   children,
@@ -17,6 +19,10 @@ export function HrEditLink({ onClick, label = 'Edit' }: { onClick?: () => void; 
 
 export function HrEditBtn({ onClick, label = 'Edit' }: { onClick?: () => void; label?: string }) {
   return <EditIconBtn onClick={onClick} label={label} className="hr-icon-btn" />
+}
+
+export function HrViewBtn({ onClick, label = 'View' }: { onClick?: () => void; label?: string }) {
+  return <ViewIconBtn onClick={onClick} label={label} className="hr-icon-btn" />
 }
 
 export function HrCard({
@@ -91,6 +97,18 @@ export function HrToolbarPill({
   onClick?: () => void
 }) {
   const className = `hr-toolbar-pill hr-toolbar-pill-${variant}`
+
+  if (variant === 'export') {
+    return (
+      <button
+        type="button"
+        className={className}
+        onClick={onClick ?? (() => showActionToast('Export started…'))}
+      >
+        {children}
+      </button>
+    )
+  }
 
   if (onClick) {
     return (

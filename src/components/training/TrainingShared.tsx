@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { EditIconBtn } from '../ui/EditIconBtn'
+import { ViewIconBtn } from '../ui/ViewIconBtn'
 import { RecruitHBar, RecruitPill } from '../recruitment/RecruitmentPrimitives'
 
 export function TrainIcon({ name, className = '' }: { name: string; className?: string }) {
@@ -186,6 +187,9 @@ export function TrainStatusPill({ label, tone }: { label: string; tone: Paramete
 }
 
 export function TrainEditBtn({ onClick, label = 'Edit' }: { onClick?: () => void; label?: string }) {
+  if (label === 'View') {
+    return <ViewIconBtn onClick={onClick} label={label} className="train-edit-btn" />
+  }
   if (label !== 'Edit') {
     return (
       <button type="button" className="train-link-btn" onClick={onClick}>

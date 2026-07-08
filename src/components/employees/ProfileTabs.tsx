@@ -12,6 +12,7 @@ import {
   HrKvGrid,
   HrPill,
   HrProgressBar,
+  HrViewBtn,
 } from '../hr/HrPrimitives'
 
 export type ProfileTabActions = {
@@ -495,7 +496,7 @@ function DocumentsTab({ data, actions }: TabProps) {
           r.uploaded,
           r.expiry,
           <div key="a" className="emp-row-actions">
-            <button type="button" className="hr-outline-btn" onClick={() => actions.onViewDocument(i)}>View</button>
+            <HrViewBtn onClick={() => actions.onViewDocument(i)} />
             <HrIconBtn label="Delete">
               <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" fill="none" stroke="currentColor" strokeWidth="2"/></svg>
             </HrIconBtn>

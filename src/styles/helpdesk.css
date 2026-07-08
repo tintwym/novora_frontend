@@ -39,6 +39,12 @@
   transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
+.hd-module-tabs button svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
 .hd-tab-icon {
   width: 16px;
   height: 16px;
@@ -46,8 +52,16 @@
 }
 
 .hd-icon {
-  width: 100%;
-  height: 100%;
+  display: block;
+  flex-shrink: 0;
+}
+
+svg.hd-tab-icon,
+.hd-tab-icon.hd-icon {
+  width: 16px;
+  height: 16px;
+  max-width: 16px;
+  max-height: 16px;
 }
 
 .hd-module-tabs button.active {

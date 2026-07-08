@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ViewIconBtn } from '../ui/ViewIconBtn'
 import {
   TRAINING_APPROVALS,
   TRAINING_ATTENDANCE,
@@ -447,9 +448,7 @@ export function TrainingRequestTab() {
                     <TrainStatusPill label={row.status} tone={row.statusTone} />
                   </td>
                   <td>
-                    <button type="button" className="train-link-btn">
-                      View
-                    </button>
+                    <ViewIconBtn className="train-edit-btn" />
                   </td>
                 </tr>
               ))}

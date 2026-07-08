@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { EditIconBtn } from '../ui/EditIconBtn'
+import { ViewIconBtn } from '../ui/ViewIconBtn'
 import {
   DEPT_LEAVE_MATRIX,
   LEAVE_APPROVALS,
@@ -224,9 +225,13 @@ export function LeaveAttachmentTab() {
                     <RecruitPill label={row.activation} tone={row.activation === 'Manual' ? 'warning' : 'success'} />
                   </td>
                   <td>
-                    <button type="button" className="leave-outline-btn sm">
-                      {row.attached ? 'View' : 'Attach'}
-                    </button>
+                    {row.attached ? (
+                      <ViewIconBtn className="leave-icon-btn" />
+                    ) : (
+                      <button type="button" className="leave-outline-btn sm">
+                        Attach
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -595,9 +600,7 @@ export function LeaveHistoryTab() {
                     <RecruitPill label={row.status} tone={row.statusTone} />
                   </td>
                   <td>
-                    <button type="button" className="leave-link-btn">
-                      View
-                    </button>
+                    <ViewIconBtn className="leave-icon-btn" />
                   </td>
                 </tr>
               ))}

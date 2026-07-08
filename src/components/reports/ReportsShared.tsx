@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react'
 import type { ReportExecutiveBriefing, ReportInsightMetric, ReportProgressBar, ReportQuickSnapshot } from '../../types/reports'
+import { showActionToast } from '../../utils/actionToast'
+
+export const showReportToast = showActionToast
 
 const stroke = {
   fill: 'none' as const,
@@ -151,10 +154,6 @@ export function RptIcon({ name, className = '' }: { name: string; className?: st
       {RPT_ICONS[name] ?? RPT_ICONS.overview}
     </svg>
   )
-}
-
-export function showReportToast(message: string) {
-  window.alert(message)
 }
 
 export function RptSectionCaption({ children }: { children: ReactNode }) {

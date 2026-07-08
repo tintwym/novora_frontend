@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import { ProtectedRoute, PublicOnlyRoute } from './auth/ProtectedRoute'
 import { AppShell } from './components/layout/AppShell'
+import { DemoButtonRoot } from './components/layout/DemoButtonRoot'
 import { AttendancePage } from './pages/AttendancePage'
 import { ClaimsPage } from './pages/ClaimsPage'
 import { DashboardPage } from './pages/DashboardPage'
@@ -28,6 +29,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <DemoButtonRoot>
         <Routes>
           <Route path="/" element={<LandingPage />} />
 
@@ -64,6 +66,7 @@ export default function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </DemoButtonRoot>
       </BrowserRouter>
     </AuthProvider>
   )

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ViewIconBtn } from '../ui/ViewIconBtn'
 import {
   APPROVAL_CLAIMS,
   AUDIT_TRAIL,
@@ -224,9 +225,10 @@ export function ClaimsApprovalTab({ onView }: { onView: (claim: ClaimViewData) =
                   <td>
                     {row.pending ? (
                       <div className="claim-approve-reject">
-                        <button type="button" className="view" onClick={() => onView(row.name === 'Nadia Chen' ? NADIA_CLAIM_VIEW : DEFAULT_CLAIM_VIEW)}>
-                          View
-                        </button>
+                        <ViewIconBtn
+                          className="claim-icon-btn"
+                          onClick={() => onView(row.name === 'Nadia Chen' ? NADIA_CLAIM_VIEW : DEFAULT_CLAIM_VIEW)}
+                        />
                         <button type="button" className="approve">
                           Approve
                         </button>
