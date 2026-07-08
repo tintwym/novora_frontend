@@ -555,7 +555,7 @@
 .hr-card-head {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.85rem;
 }
@@ -915,6 +915,8 @@
   flex: 1;
 }
 
+.hr-field > label,
+.hr-field > .hr-field-label,
 .hr-field > span {
   font-size: 0.625rem;
   font-weight: 700;

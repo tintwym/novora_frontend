@@ -4,6 +4,7 @@ import type {
   DocumentRow,
   EducationRow,
   EmployeeProfileDetail,
+  EmergencyContactRow,
   FamilyMemberRow,
   PayLineRow,
   ProfilePersonal,
@@ -22,7 +23,6 @@ import {
   HrModalPlusIcon,
   HrModalUploadIcon,
   HrModalUserIcon,
-  HrSelect,
   HrTextarea,
 } from '../hr/HrModal'
 
@@ -54,7 +54,8 @@ type ProfileModalsProps = {
   onSaveCareer: (row: CareerRow, index: number | null) => void
   onSaveEducation: (row: EducationRow, index: number | null) => void
   onSaveDocument: (row: DocumentRow) => void
-  onSaveFamily: (row: FamilyMemberRow) => void
+  onSaveFamily: (row: FamilyMemberRow, index: number | null) => void
+  onSaveKin: (row: EmergencyContactRow, index: number | null) => void
 }
 
 export function ProfileModals({
@@ -70,6 +71,7 @@ export function ProfileModals({
   onSaveEducation,
   onSaveDocument,
   onSaveFamily,
+  onSaveKin,
 }: ProfileModalsProps) {
   if (modal === 'employment') {
     return <EmploymentModal summary={data.summary} onClose={onClose} onSave={onSaveSummary} />
@@ -120,7 +122,24 @@ export function ProfileModals({
     return <ViewDocumentModal doc={data.documents.rows[editIndex]} onClose={onClose} />
   }
   if (modal === 'family') {
-    return <FamilyModal onClose={onClose} onSave={onSaveFamily} />
+    const row = editIndex != null ? data.family.members[editIndex] : undefined
+    return (
+      <FamilyModal
+        row={row}
+        onClose={onClose}
+        onSave={(member) => onSaveFamily(member, editIndex)}
+      />
+    )
+  }
+  if (modal === 'kin') {
+    const row = editIndex != null ? data.family.emergencyContacts[editIndex] : undefined
+    return (
+      <KinModal
+        row={row}
+        onClose={onClose}
+        onSave={(contact) => onSaveKin(contact, editIndex)}
+      />
+    )
   }
   return null
 }
@@ -292,19 +311,29 @@ function AllowanceModal({
       <HrFieldRow>
         <HrField label="Amount (MYR)" required><HrInput value={amount} onChange={(e) => setAmount(e.target.value)} /></HrField>
         <HrField label="Frequency" required>
-          <HrSelect value={frequency} onChange={(e) => setFrequency(e.target.value)}>
+          <select
+            className="hr-input hr-select"
+            aria-label="Frequency"
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value)}
+          >
             <option>Monthly</option>
             <option>One-off</option>
-          </HrSelect>
+          </select>
         </HrField>
       </HrFieldRow>
       <HrFieldRow>
         <HrCheckbox label="Is Taxable" checked={taxable} onChange={setTaxable} />
         <HrField label="Status" required>
-          <HrSelect value={active ? 'Active' : 'Inactive'} onChange={(e) => setActive(e.target.value === 'Active')}>
+          <select
+            className="hr-input hr-select"
+            aria-label="Status"
+            value={active ? 'Active' : 'Inactive'}
+            onChange={(e) => setActive(e.target.value === 'Active')}
+          >
             <option>Active</option>
             <option>Inactive</option>
-          </HrSelect>
+          </select>
         </HrField>
       </HrFieldRow>
     </HrModal>
@@ -342,18 +371,28 @@ function DeductionModal({
       <HrFieldRow>
         <HrField label="Amount (MYR)" required><HrInput value={amount} onChange={(e) => setAmount(e.target.value)} /></HrField>
         <HrField label="Frequency" required>
-          <HrSelect value={frequency} onChange={(e) => setFrequency(e.target.value)}>
+          <select
+            className="hr-input hr-select"
+            aria-label="Frequency"
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value)}
+          >
             <option>Monthly</option>
-          </HrSelect>
+          </select>
         </HrField>
       </HrFieldRow>
       <HrFieldRow>
         <HrField label="Reference / type"><HrInput value={ref} onChange={(e) => setRef(e.target.value)} /></HrField>
         <HrField label="Status" required>
-          <HrSelect value={active ? 'Active' : 'Inactive'} onChange={(e) => setActive(e.target.value === 'Active')}>
+          <select
+            className="hr-input hr-select"
+            aria-label="Status"
+            value={active ? 'Active' : 'Inactive'}
+            onChange={(e) => setActive(e.target.value === 'Active')}
+          >
             <option>Active</option>
             <option>Inactive</option>
-          </HrSelect>
+          </select>
         </HrField>
       </HrFieldRow>
     </HrModal>
@@ -482,11 +521,16 @@ function UploadDocumentModal({
       <HrField label="Document name" required><HrInput placeholder="e.g. Appointment Letter" value={name} onChange={(e) => setName(e.target.value)} /></HrField>
       <HrFieldRow>
         <HrField label="Doc type" required>
-          <HrSelect value={type} onChange={(e) => setType(e.target.value)}>
+          <select
+            className="hr-input hr-select"
+            aria-label="Document type"
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+          >
             <option>Contract / Offer</option>
             <option>ID</option>
             <option>Certificate</option>
-          </HrSelect>
+          </select>
         </HrField>
         <HrCheckbox label="Has expiry date" checked={hasExpiry} onChange={setHasExpiry} />
       </HrFieldRow>
@@ -535,44 +579,98 @@ function ViewDocumentModal({ doc, onClose }: { doc: DocumentRow; onClose: () => 
 }
 
 function FamilyModal({
+  row,
   onClose,
   onSave,
 }: {
+  row?: FamilyMemberRow
   onClose: () => void
   onSave: (r: FamilyMemberRow) => void
 }) {
-  const [name, setName] = useState('')
-  const [relationship, setRelationship] = useState('Spouse')
-  const [dob, setDob] = useState('')
-  const [nric, setNric] = useState('')
-  const [taxExempt, setTaxExempt] = useState(false)
+  const [name, setName] = useState(row?.name ?? '')
+  const [relationship, setRelationship] = useState(row?.relationship ?? 'Spouse')
+  const [dob, setDob] = useState(row?.dob ?? '')
+  const [nric, setNric] = useState(row?.nric ?? '')
+  const [taxExempt, setTaxExempt] = useState(row?.taxExempt ?? false)
   return (
     <HrModal
       open
-      title="ADD FAMILY RELATION"
+      title={row ? 'EDIT FAMILY MEMBER' : 'ADD FAMILY RELATION'}
       subtitle="Register dependent or next-of-kin for benefits and tax"
       icon={<HrModalPlusIcon />}
-      confirmLabel="Add Member"
+      confirmLabel={row ? 'Save Changes' : 'Add Member'}
       onClose={onClose}
       onConfirm={() => {
-        onSave({ name, relationship, dob, nric, taxExempt, passport: 'N/A' })
+        onSave({ name, relationship, dob, nric, taxExempt, passport: row?.passport ?? 'N/A' })
         onClose()
       }}
     >
       <HrField label="Name" required><HrInput value={name} onChange={(e) => setName(e.target.value)} /></HrField>
       <HrField label="Relationship" required>
-        <HrSelect value={relationship} onChange={(e) => setRelationship(e.target.value)}>
+        <select
+          className="hr-input hr-select"
+          aria-label="Relationship"
+          value={relationship}
+          onChange={(e) => setRelationship(e.target.value)}
+        >
           <option>Spouse</option>
           <option>Child</option>
           <option>Mother</option>
           <option>Father</option>
-        </HrSelect>
+        </select>
       </HrField>
       <HrFieldRow>
         <HrField label="Date of birth"><HrInput value={dob} onChange={(e) => setDob(e.target.value)} /></HrField>
         <HrField label="NRIC / ID"><HrInput value={nric} onChange={(e) => setNric(e.target.value)} /></HrField>
       </HrFieldRow>
       <HrCheckbox label="Tax exempt" checked={taxExempt} onChange={setTaxExempt} />
+    </HrModal>
+  )
+}
+
+function KinModal({
+  row,
+  onClose,
+  onSave,
+}: {
+  row?: EmergencyContactRow
+  onClose: () => void
+  onSave: (r: EmergencyContactRow) => void
+}) {
+  const [name, setName] = useState(row?.name ?? '')
+  const [relationship, setRelationship] = useState(row?.relationship ?? 'Spouse')
+  const [phone, setPhone] = useState(row?.phone ?? '')
+  const [address, setAddress] = useState(row?.address ?? '')
+  return (
+    <HrModal
+      open
+      title={row ? 'EDIT EMERGENCY CONTACT' : 'ADD EMERGENCY CONTACT'}
+      subtitle="Next of kin or emergency contact details"
+      icon={<HrModalPlusIcon />}
+      confirmLabel={row ? 'Save Changes' : 'Add Contact'}
+      onClose={onClose}
+      onConfirm={() => {
+        onSave({ name, relationship, phone, address })
+        onClose()
+      }}
+    >
+      <HrField label="Name" required><HrInput value={name} onChange={(e) => setName(e.target.value)} /></HrField>
+      <HrField label="Relationship" required>
+        <select
+          className="hr-input hr-select"
+          aria-label="Relationship"
+          value={relationship}
+          onChange={(e) => setRelationship(e.target.value)}
+        >
+          <option>Spouse</option>
+          <option>Parent</option>
+          <option>Sibling</option>
+          <option>Child</option>
+          <option>Other</option>
+        </select>
+      </HrField>
+      <HrField label="Contact no." required><HrInput value={phone} onChange={(e) => setPhone(e.target.value)} /></HrField>
+      <HrField label="Address"><HrInput value={address} onChange={(e) => setAddress(e.target.value)} /></HrField>
     </HrModal>
   )
 }

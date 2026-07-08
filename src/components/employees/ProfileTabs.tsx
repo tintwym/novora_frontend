@@ -23,7 +23,9 @@ export type ProfileTabActions = {
   onEditPersonal: () => void
   onEditAddress: () => void
   onAddFamily: () => void
+  onEditFamily: (index: number) => void
   onAddKin: () => void
+  onEditKin: (index: number) => void
   onAddBiometric: () => void
   onEditPayRate: () => void
   onAddAllowance: () => void
@@ -117,7 +119,7 @@ function SummaryTab({ data, actions }: TabProps) {
               right={`${s.percent}%`}
             />
           ))}
-          <div className="hr-kv-list hr-kv-list-spaced">
+          <dl className="hr-kv-list hr-kv-list-spaced">
             <div className="hr-kv-row">
               <dt>Last appraisal</dt>
               <dd>{summary.lastAppraisal}</dd>
@@ -126,7 +128,7 @@ function SummaryTab({ data, actions }: TabProps) {
               <dt>Next review</dt>
               <dd>{summary.nextReview}</dd>
             </div>
-          </div>
+          </dl>
         </HrCard>
         <HrCard title="HR notes" trailing={<HrEditLink onClick={actions.onEditHrNotes} />}>
           <p className="emp-notes">{summary.hrNotes}</p>
@@ -222,14 +224,16 @@ function FamilyTab({ data, actions }: TabProps) {
       <HrCard title="Family members" trailing={<HrAddButton label="Add member" onClick={actions.onAddFamily} />}>
         <HrDataTable
           columns={['NAME', 'RELATIONSHIP', 'DATE OF BIRTH', 'NRIC / ID', 'TAX EXEMPT', 'PASSPORT', 'ACTIONS']}
-          rows={family.members.map((m) => [
+          rows={family.members.map((m, i) => [
             <strong key="n">{m.name}</strong>,
             m.relationship,
             m.dob,
             m.nric,
             <HrPill key="t" tone={m.taxExempt ? 'success' : 'danger'}>{m.taxExempt ? 'YES' : 'NO'}</HrPill>,
             m.passport,
-            <button key="e" type="button" className="hr-text-danger">EDIT</button>,
+            <div key="e" className="emp-row-actions">
+              <HrEditBtn onClick={() => actions.onEditFamily(i)} />
+            </div>,
           ])}
         />
       </HrCard>
@@ -239,12 +243,14 @@ function FamilyTab({ data, actions }: TabProps) {
       >
         <HrDataTable
           columns={['NAME', 'RELATIONSHIP', 'CONTACT NO.', 'ADDRESS', 'ACTIONS']}
-          rows={family.emergencyContacts.map((c) => [
+          rows={family.emergencyContacts.map((c, i) => [
             c.name,
             c.relationship,
             c.phone,
             c.address,
-            <button key="e" type="button" className="hr-text-danger">EDIT</button>,
+            <div key="e" className="emp-row-actions">
+              <HrEditBtn onClick={() => actions.onEditKin(i)} />
+            </div>,
           ])}
         />
       </HrCard>

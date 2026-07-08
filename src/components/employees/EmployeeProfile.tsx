@@ -4,6 +4,7 @@ import type {
   CareerRow,
   DocumentRow,
   EducationRow,
+  EmergencyContactRow,
   EmployeeProfileDetail,
   FamilyMemberRow,
   PayLineRow,
@@ -48,7 +49,9 @@ export function EmployeeProfile({
       onEditPersonal: () => openModal('personal'),
       onEditAddress: () => openModal('address'),
       onAddFamily: () => openModal('family'),
+      onEditFamily: (i) => openModal('family', i),
       onAddKin: () => openModal('kin'),
+      onEditKin: (i) => openModal('kin', i),
       onAddBiometric: () => openModal('biometric'),
       onEditPayRate: () => {},
       onAddAllowance: () => openModal('allowance'),
@@ -160,11 +163,21 @@ export function EmployeeProfile({
         onSaveDocument={(row: DocumentRow) =>
           setData((d) => ({ ...d, documents: { rows: [...d.documents.rows, row] } }))
         }
-        onSaveFamily={(row: FamilyMemberRow) =>
-          setData((d) => ({
-            ...d,
-            family: { ...d.family, members: [...d.family.members, row] },
-          }))
+        onSaveFamily={(row: FamilyMemberRow, index) =>
+          setData((d) => {
+            const members = [...d.family.members]
+            if (index != null) members[index] = row
+            else members.push(row)
+            return { ...d, family: { ...d.family, members } }
+          })
+        }
+        onSaveKin={(row: EmergencyContactRow, index) =>
+          setData((d) => {
+            const emergencyContacts = [...d.family.emergencyContacts]
+            if (index != null) emergencyContacts[index] = row
+            else emergencyContacts.push(row)
+            return { ...d, family: { ...d.family, emergencyContacts } }
+          })
         }
       />
     </div>
