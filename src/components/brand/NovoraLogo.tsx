@@ -42,26 +42,36 @@ export function NovoraLogoMark({ className, idPrefix, ...props }: NovoraLogoMark
       {...props}
     >
       <defs>
-        <linearGradient id={`${prefix}Badge`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#0a58a4" />
-          <stop offset="55%" stopColor="#00a7e1" />
-          <stop offset="100%" stopColor="#00b2a9" />
+        <linearGradient id={`${prefix}CyanTeal`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#00a7e1" />
+          <stop offset="60%" stopColor="#00b2a9" />
+          <stop offset="100%" stopColor="#7cb342" />
         </linearGradient>
-        <linearGradient id={`${prefix}Spark`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#ffb74d" />
+        <linearGradient id={`${prefix}OrangeYellow`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ff9800" />
           <stop offset="100%" stopColor="#f57c00" />
         </linearGradient>
+        <linearGradient id={`${prefix}Blue`} x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#0a58a4" />
+          <stop offset="100%" stopColor="#00a7e1" />
+        </linearGradient>
       </defs>
-      <rect x="6" y="6" width="88" height="88" rx="24" fill={`url(#${prefix}Badge)`} />
+      <circle cx="42" cy="23" r="8" fill="#e2e8f0" />
+      <path d="M 42 35 C 33 39, 36 50, 48 53 C 48 53, 49 43, 42 35 Z" fill="#cbd5e1" />
+      <circle cx="24" cy="28" r="8" fill="#00a7e1" />
       <path
-        d="M34 71 V33 L66 67 V29"
-        fill="none"
-        stroke="#ffffff"
-        strokeWidth="11"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M 12 70 C 14 55, 18 40, 28 38 C 38 36, 42 50, 48 58 C 55 67, 60 70, 68 62 C 60 74, 45 74, 38 66 C 30 57, 24 45, 18 56 C 14 62, 13 67, 12 70 Z"
+        fill={`url(#${prefix}CyanTeal)`}
       />
-      <circle cx="69" cy="27" r="6.5" fill={`url(#${prefix}Spark)`} />
+      <circle cx="68" cy="27" r="8" fill={`url(#${prefix}OrangeYellow)`} />
+      <path
+        d="M 68 35 C 58 45, 52 58, 52 68 C 52 75, 58 78, 64 70 C 70 60, 78 45, 88 25 C 80 23, 72 28, 68 35 Z"
+        fill={`url(#${prefix}OrangeYellow)`}
+      />
+      <path
+        d="M 52 68 C 52 75, 58 84, 68 84 C 78 84, 82 72, 88 50 C 85 64, 78 74, 68 74 C 62 74, 56 71, 52 68 Z"
+        fill={`url(#${prefix}Blue)`}
+      />
     </svg>
   )
 }
