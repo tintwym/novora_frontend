@@ -179,12 +179,12 @@ button:focus-visible {
 }
 
 .hr-add-btn {
-  min-height: var(--btn-height-sm);
-  padding: 0.45rem 0.85rem;
+  min-height: var(--btn-height);
+  padding: 0.55rem 1rem;
   border: 1px solid #bfdbfe;
   background: #fff;
   color: var(--brand-blue-deep);
-  font-size: 0.75rem;
+  font-size: var(--btn-font);
   font-weight: 700;
 }
 

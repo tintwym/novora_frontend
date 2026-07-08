@@ -1,4 +1,4 @@
-import { type FormEvent, type ReactNode, useEffect } from 'react'
+import { cloneElement, isValidElement, type FormEvent, type ReactNode, useEffect, useId } from 'react'
 
 type HrModalProps = {
   open: boolean
@@ -175,14 +175,30 @@ export function HrField({
   children: ReactNode
   className?: string
 }) {
+  const fieldId = useId().replace(/:/g, '')
+  const labelId = `${fieldId}-label`
+  const control = isValidElement<{
+    id?: string
+    'aria-label'?: string
+    'aria-labelledby'?: string
+    'aria-required'?: boolean
+  }>(children)
+    ? cloneElement(children, {
+        id: children.props.id ?? fieldId,
+        'aria-labelledby': children.props['aria-labelledby'] ?? labelId,
+        'aria-label': children.props['aria-label'] ?? label,
+        'aria-required': required ? true : children.props['aria-required'],
+      })
+    : children
+
   return (
-    <label className={`hr-field ${className}`.trim()}>
-      <span>
+    <div className={`hr-field ${className}`.trim()}>
+      <span id={labelId} className="hr-field-label">
         {label}
         {required ? <em>*</em> : null}
       </span>
-      {children}
-    </label>
+      {control}
+    </div>
   )
 }
 
