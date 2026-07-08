@@ -45,6 +45,12 @@
   transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
+.perf-module-tabs button svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
 .perf-tab-icon {
   width: 15px;
   height: 15px;
@@ -52,8 +58,16 @@
 }
 
 .perf-icon {
-  width: 100%;
-  height: 100%;
+  display: block;
+  flex-shrink: 0;
+}
+
+svg.perf-tab-icon,
+.perf-tab-icon.perf-icon {
+  width: 15px;
+  height: 15px;
+  max-width: 15px;
+  max-height: 15px;
 }
 
 .perf-module-tabs button.active {

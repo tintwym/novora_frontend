@@ -13,6 +13,14 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
+button:not(:disabled):not([aria-disabled='true']) {
+  cursor: pointer;
+}
+
+button:not(:disabled):not([aria-disabled='true']):active {
+  opacity: 0.92;
+}
+
 button:focus-visible {
   outline: 2px solid var(--brand-blue);
   outline-offset: 2px;
@@ -67,7 +75,19 @@ button:focus-visible {
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s, border-color 0.15s, opacity 0.1s;
+}
+
+.hr-toolbar-pill-export {
+  border: 1px solid #bfdbfe;
+  background: #fff;
+  color: var(--brand-blue-deep);
+}
+
+.hr-toolbar-pill-filter {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
 }
 
 .hr-toolbar-pill-filter:hover {
@@ -77,6 +97,11 @@ button:focus-visible {
 
 .hr-toolbar-pill-export:hover {
   background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.hr-toolbar-pill-export:active {
+  background: #dbeafe;
 }
 
 .hr-toolbar-pill select {
@@ -140,6 +165,19 @@ button:focus-visible {
   background: #1d4ed8;
 }
 
+.disc-header-primary-btn:active,
+.att-manual-punch-btn:active,
+.pay-run-btn:active,
+.emp-add-employee-btn:active,
+.leave-new-request-btn:active,
+.pay-header-add-btn:active,
+.hd-navy-btn:active,
+.train-primary-btn:active,
+.perf-primary-btn:active,
+.ast-primary-btn:active {
+  background: #1e40af;
+}
+
 .hr-add-btn {
   min-height: var(--btn-height-sm);
   padding: 0.45rem 0.85rem;
@@ -152,6 +190,10 @@ button:focus-visible {
 
 .hr-add-btn:hover {
   background: #eff6ff;
+}
+
+.hr-add-btn:active {
+  background: #dbeafe;
 }
 
 /* —— In-content primary / outline buttons —— */
@@ -227,6 +269,99 @@ button:focus-visible {
   border: none;
   background: #1e293b;
   color: #fff;
+}
+
+.recruit-primary-btn:hover,
+.att-primary-btn:hover,
+.disc-primary-btn:hover,
+.claim-primary-btn:hover,
+.leave-primary-btn:hover,
+.onboard-primary-btn:hover,
+.pay-primary-btn:hover,
+.eng-primary-btn:hover,
+.lrn-primary-btn:hover,
+.rpt-primary-btn:hover,
+.rpt-run-btn:hover {
+  background: #1d4ed8;
+}
+
+.recruit-outline-btn:hover,
+.att-outline-btn:hover,
+.disc-outline-btn:hover,
+.eng-outline-btn:hover,
+.hr-outline-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.disc-navy-btn:hover,
+.claim-navy-btn:hover,
+.onboard-navy-btn:hover,
+.pay-navy-btn:hover,
+.ben-navy-btn:hover,
+.rpt-navy-btn:hover {
+  background: #334155;
+}
+
+.hr-icon-btn {
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.hr-icon-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.hr-icon-btn:active {
+  background: #f1f5f9;
+}
+
+.claim-icon-btn:hover,
+.train-edit-btn:hover,
+.disc-icon-btn:hover,
+.leave-icon-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.claim-icon-btn:active,
+.train-edit-btn:active,
+.disc-icon-btn:active,
+.leave-icon-btn:active {
+  background: #f1f5f9;
+}
+
+/* —— Demo action toast —— */
+.action-toast-host {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.action-toast {
+  max-width: min(22rem, calc(100vw - 2.5rem));
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #0f172a;
+  color: #f8fafc;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.28);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.action-toast-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* —— Wizard / modal footers —— */

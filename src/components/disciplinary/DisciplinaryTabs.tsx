@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { EditIconBtn } from '../ui/EditIconBtn'
+import { ViewIconBtn } from '../ui/ViewIconBtn'
 import {
   DEPT_DISCIPLINARY,
   DISCIPLINARY_HISTORY,
@@ -378,17 +379,13 @@ export function DisciplinaryHistoryTab() {
                     <HistoryStatus row={row} />
                   </td>
                   <td>
-                    <button
-                      type="button"
-                      className="disc-outline-btn sm disc-view-btn"
+                    <ViewIconBtn
+                      className="disc-icon-btn"
                       onClick={() => {
                         setViewEmployee(row.name)
                         setViewOpen(true)
                       }}
-                    >
-                      <DiscActionIcon name="eye" />
-                      View
-                    </button>
+                    />
                   </td>
                 </tr>
               ))}
