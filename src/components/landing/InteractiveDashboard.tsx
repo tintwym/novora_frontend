@@ -239,7 +239,7 @@ export default function InteractiveDashboard() {
               className="space-y-4"
             >
               {/* Highlight Banner */}
-              <div className="bg-gradient-to-r from-blue-950/50 via-slate-900 to-slate-900 border border-blue-500/10 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="bg-linear-to-r from-blue-950/50 via-slate-900 to-slate-900 border border-blue-500/10 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h4 className="text-sm font-semibold text-slate-100 flex items-center gap-1.5">
                     Welcome to your automated HR cockpit <Hand className="w-4 h-4 text-cyan-400 animate-wave inline-block" />
@@ -569,7 +569,7 @@ export default function InteractiveDashboard() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-4"
             >
-              <div className="bg-gradient-to-r from-slate-900 to-slate-900/40 p-4 border border-slate-800 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="bg-linear-to-r from-slate-900 to-slate-900/40 p-4 border border-slate-800 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
                   <div className="p-3 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg shrink-0">
                     <Scan className="w-5 h-5 animate-pulse" />
@@ -689,7 +689,7 @@ export default function InteractiveDashboard() {
                 {payrollStatus === 'Processing' && (
                   <div className="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800">
                     <motion.div
-                      className="bg-gradient-to-r from-blue-600 to-indigo-500 h-full"
+                      className="bg-linear-to-r from-blue-600 to-indigo-500 h-full"
                       style={{ width: `${payrollProgress}%` }}
                     />
                   </div>

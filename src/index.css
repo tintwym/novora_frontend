@@ -721,10 +721,15 @@ code {
 
 .app-content {
   flex: 1;
+  min-height: 0;
   padding: 1.25rem;
   overflow-y: auto;
   overflow-x: hidden;
   background: var(--bg);
+}
+
+.page-transition {
+  min-height: 100%;
 }
 
 .desktop-only-notice {

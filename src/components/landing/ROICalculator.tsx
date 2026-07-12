@@ -26,7 +26,7 @@ export default function ROICalculator() {
         <div>
           <span className="bg-slate-50 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full border border-slate-150 flex items-center gap-1.5 w-fit shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-cyan-500" />
-            <span className="bg-gradient-to-r from-cyan-600 via-lime-600 to-orange-500 bg-clip-text text-transparent font-extrabold">ROI Calculator</span>
+            <span className="bg-linear-to-r from-cyan-600 via-lime-600 to-orange-500 bg-clip-text text-transparent font-extrabold">ROI Calculator</span>
           </span>
           <h4 className="text-xl font-bold text-slate-900 mt-2.5">Estimate your organization's savings</h4>
           <p className="text-sm text-slate-500 mt-1">Drag the sliders below to calculate the impact Novora can have on your internal HR operations and overhead expenses.</p>

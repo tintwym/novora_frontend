@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useMinDesktopWidth } from '../../config/shell'
 import { DesktopOnlyNotice } from './DesktopOnlyNotice'
+import { PageTransition } from './PageTransition'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 
@@ -40,7 +41,9 @@ export function AppShell() {
           onToggleSidebar={() => setSidebarCollapsed((collapsed) => !collapsed)}
         />
         <main className="app-content">
-          <Outlet />
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </main>
       </div>
     </div>

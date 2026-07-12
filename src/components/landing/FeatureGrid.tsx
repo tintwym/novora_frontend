@@ -60,7 +60,7 @@ const getAccentColor = (id: string, isSelected: boolean) => {
     default:
       return {
         text: isSelected ? 'text-cyan-400' : 'text-slate-600',
-        bg: isSelected ? 'bg-gradient-to-r from-cyan-500/15 via-lime-500/15 to-orange-500/15' : 'bg-slate-50',
+        bg: isSelected ? 'bg-linear-to-r from-cyan-500/15 via-lime-500/15 to-orange-500/15' : 'bg-slate-50',
         border: isSelected ? 'border-slate-800' : 'border-slate-100',
       };
   }
@@ -247,7 +247,7 @@ export default function FeatureGrid() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="bg-slate-50 text-slate-800 text-xs font-bold px-3.5 py-1.5 rounded-full border border-slate-150 uppercase tracking-wider shadow-sm inline-block">
-            <span className="bg-gradient-to-r from-cyan-600 via-lime-600 to-orange-500 bg-clip-text text-transparent font-extrabold">All-In-One HR Command</span>
+            <span className="bg-linear-to-r from-cyan-600 via-lime-600 to-orange-500 bg-clip-text text-transparent font-extrabold">All-In-One HR Command</span>
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 tracking-tight">
             Comprehensive suite of modules to run your entire workforce.
