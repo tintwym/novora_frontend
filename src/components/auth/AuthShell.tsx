@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { motion, useReducedMotion } from 'motion/react'
 import { NovoraBrand } from '../brand/NovoraLogo'
 
 type AuthShellProps = {
@@ -9,9 +10,25 @@ type AuthShellProps = {
 }
 
 export function AuthShell({ title, subtitle, children, secureLabel }: AuthShellProps) {
+  const reduceMotion = useReducedMotion()
+  const formMotion = reduceMotion
+    ? undefined
+    : {
+        initial: { opacity: 0, x: -16 },
+        animate: { opacity: 1, x: 0 },
+        transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const },
+      }
+  const heroMotion = reduceMotion
+    ? undefined
+    : {
+        initial: { opacity: 0, x: 24 },
+        animate: { opacity: 1, x: 0 },
+        transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const, delay: 0.08 },
+      }
+
   return (
     <div className="auth-split">
-      <section className="auth-split-form" aria-label="Authentication form">
+      <motion.section className="auth-split-form" aria-label="Authentication form" {...formMotion}>
         <header className="auth-split-header">
           <NovoraBrand size="md" />
         </header>
@@ -33,9 +50,9 @@ export function AuthShell({ title, subtitle, children, secureLabel }: AuthShellP
           </svg>
           <span>{secureLabel ?? 'Secure access powered by Novora HRMS'}</span>
         </footer>
-      </section>
+      </motion.section>
 
-      <aside className="auth-split-hero" aria-hidden>
+      <motion.aside className="auth-split-hero" aria-hidden {...heroMotion}>
         <h2 className="auth-hero-title">
           Manage Your <span>Workforce</span> with Precision.
         </h2>
@@ -80,7 +97,7 @@ export function AuthShell({ title, subtitle, children, secureLabel }: AuthShellP
             Workforce Excellence
           </li>
         </ul>
-      </aside>
+      </motion.aside>
     </div>
   )
 }

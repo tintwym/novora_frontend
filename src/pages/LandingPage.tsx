@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { motion, useReducedMotion } from 'motion/react'
 import {
   ArrowRight,
   Clock,
@@ -19,11 +20,23 @@ import Testimonials from '../components/landing/Testimonials'
 import BookingModal from '../components/landing/BookingModal'
 import TrialModal from '../components/landing/TrialModal'
 import { NovoraBrand } from '../components/brand/NovoraLogo'
+import { Reveal, Stagger, StaggerItem } from '../components/motion/Reveal'
 import '../styles/landing.css'
 
 export function LandingPage() {
   const [isBookingOpen, setIsBookingOpen] = useState(false)
   const [isTrialOpen, setIsTrialOpen] = useState(false)
+  const reduceMotion = useReducedMotion()
+
+  const heroEase = [0.22, 1, 0.36, 1] as const
+  const hero = (delay: number) =>
+    reduceMotion
+      ? undefined
+      : {
+          initial: { opacity: 0, y: 20 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.5, ease: heroEase, delay },
+        }
 
   return (
     <div className="landing-page min-h-screen bg-slate-50 text-slate-900 font-sans antialiased overflow-x-hidden selection:bg-blue-600 selection:text-white">
@@ -38,35 +51,44 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-5 space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-slate-50 text-slate-800 text-xs font-bold px-3.5 py-1.5 rounded-full border border-slate-100 uppercase tracking-wider mx-auto lg:mx-0 shadow-sm">
+              <motion.div
+                className="inline-flex items-center gap-2 bg-slate-50 text-slate-800 text-xs font-bold px-3.5 py-1.5 rounded-full border border-slate-100 uppercase tracking-wider mx-auto lg:mx-0 shadow-sm"
+                {...hero(0)}
+              >
                 <span className="flex h-2 w-2 relative">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
                 </span>
-                <span className="bg-gradient-to-r from-cyan-500 via-lime-600 to-orange-500 bg-clip-text text-transparent font-extrabold">
+                <span className="bg-linear-to-r from-cyan-500 via-lime-600 to-orange-500 bg-clip-text text-transparent font-extrabold">
                   All-in-One HR Operating System
                 </span>
-              </div>
+              </motion.div>
 
-              <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-5xl text-slate-900 leading-tight tracking-tight">
+              <motion.h1
+                className="font-display font-extrabold text-4xl sm:text-5xl lg:text-5xl text-slate-900 leading-tight tracking-tight"
+                {...hero(0.08)}
+              >
                 The Workforce OS for Forward-Thinking Teams.
-              </h1>
+              </motion.h1>
 
-              <p className="text-slate-500 text-sm sm:text-base leading-relaxed max-w-xl mx-auto lg:mx-0 font-medium">
+              <motion.p
+                className="text-slate-500 text-sm sm:text-base leading-relaxed max-w-xl mx-auto lg:mx-0 font-medium"
+                {...hero(0.16)}
+              >
                 Sync hardware biometric readers directly to automated payroll logs, leave management pools, and custom performance reviews. Created for businesses of all sizes looking to unlock administrative speed.
-              </p>
+              </motion.p>
             </div>
 
-            <div className="lg:col-span-7 w-full">
+            <motion.div className="lg:col-span-7 w-full" {...hero(0.2)}>
               <InteractiveDashboard />
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       <section id="benefits" className="py-20 bg-white font-sans border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <Reveal className="text-center max-w-3xl mx-auto mb-16">
             <span className="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-full border border-blue-100 uppercase tracking-wider">
               Tangible Impact
             </span>
@@ -76,10 +98,10 @@ export function LandingPage() {
             <p className="text-slate-500 text-sm mt-3 leading-relaxed">
               Novora replaces disparate silos. By creating a direct, continuous sync from physical hardware check-ins to automated wage calculations, we optimize core key operational indices.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
-            <div className="bg-slate-50 border border-slate-100/80 rounded-2xl p-5 space-y-3.5">
+          <Stagger className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
+            <StaggerItem className="bg-slate-50 border border-slate-100/80 rounded-2xl p-5 space-y-3.5">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-700 border border-blue-500/20 flex items-center justify-center">
                 <Clock className="w-5 h-5" />
               </div>
@@ -89,9 +111,9 @@ export function LandingPage() {
                   Automate leave requests, document updates, and timesheet approvals. Saves managers an average of 45 hours every month.
                 </p>
               </div>
-            </div>
+            </StaggerItem>
 
-            <div className="bg-slate-50 border border-slate-100/80 rounded-2xl p-5 space-y-3.5">
+            <StaggerItem className="bg-slate-50 border border-slate-100/80 rounded-2xl p-5 space-y-3.5">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-700 border border-blue-500/20 flex items-center justify-center">
                 <ShieldCheck className="w-5 h-5" />
               </div>
@@ -101,9 +123,9 @@ export function LandingPage() {
                   Tying biometric terminal check-ins directly to automated tax & deductions calculators ensures error-free disbursements every cycle.
                 </p>
               </div>
-            </div>
+            </StaggerItem>
 
-            <div className="bg-slate-50 border border-slate-100/80 rounded-2xl p-5 space-y-3.5">
+            <StaggerItem className="bg-slate-50 border border-slate-100/80 rounded-2xl p-5 space-y-3.5">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-700 border border-blue-500/20 flex items-center justify-center">
                 <Heart className="w-5 h-5" />
               </div>
@@ -113,9 +135,9 @@ export function LandingPage() {
                   Empower employees with high-security iOS & Android portals. Request leaves, clock-in, and check compensation in seconds.
                 </p>
               </div>
-            </div>
+            </StaggerItem>
 
-            <div className="bg-slate-50 border border-slate-100/80 rounded-2xl p-5 space-y-3.5">
+            <StaggerItem className="bg-slate-50 border border-slate-100/80 rounded-2xl p-5 space-y-3.5">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-700 border border-blue-500/20 flex items-center justify-center">
                 <LayoutDashboard className="w-5 h-5" />
               </div>
@@ -125,23 +147,35 @@ export function LandingPage() {
                   Continuous visibility of active leave logs, headcount overhead indicators, tax ledgers, and department attendance averages.
                 </p>
               </div>
-            </div>
-          </div>
+            </StaggerItem>
+          </Stagger>
 
-          <ROICalculator />
+          <Reveal>
+            <ROICalculator />
+          </Reveal>
         </div>
       </section>
 
-      <FeatureGrid />
-      <HowItWorks />
-      <Pricing onOpenTrial={() => setIsTrialOpen(true)} onOpenDemo={() => setIsBookingOpen(true)} />
-      <Testimonials />
-      <FAQ />
+      <Reveal>
+        <FeatureGrid />
+      </Reveal>
+      <Reveal>
+        <HowItWorks />
+      </Reveal>
+      <Reveal>
+        <Pricing onOpenTrial={() => setIsTrialOpen(true)} onOpenDemo={() => setIsBookingOpen(true)} />
+      </Reveal>
+      <Reveal>
+        <Testimonials />
+      </Reveal>
+      <Reveal>
+        <FAQ />
+      </Reveal>
 
       <section className="py-20 bg-slate-950 text-slate-100 relative overflow-hidden font-sans border-t border-slate-900">
         <div className="absolute top-0 right-1/4 w-[350px] h-[350px] bg-blue-500/5 rounded-full blur-[80px] pointer-events-none" />
 
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-6 relative">
+        <Reveal className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-6 relative">
           <span className="bg-blue-500/10 text-blue-400 text-xs font-bold px-3 py-1 rounded-full border border-blue-500/20 uppercase tracking-wider">
             Upgrade Your Internal Operations
           </span>
@@ -158,7 +192,7 @@ export function LandingPage() {
             <button
               type="button"
               onClick={() => setIsTrialOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-6 py-3.5 rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-6 py-3.5 rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 hover:-translate-y-0.5"
             >
               Start Free Trial <ArrowRight className="w-4 h-4" />
             </button>
@@ -174,7 +208,7 @@ export function LandingPage() {
           <p className="text-[10px] text-slate-600 font-semibold uppercase tracking-wider pt-2">
             Fully Compliant • No Credit Card Setup • 14-Day Free License
           </p>
-        </div>
+        </Reveal>
       </section>
 
       <footer className="bg-white border-t border-slate-100 py-12 text-slate-500 font-sans">
