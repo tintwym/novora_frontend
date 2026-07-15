@@ -39,10 +39,10 @@ export function mockEmployeeProfile(): EmployeeProfileDetail {
         { label: 'Punctuality', percent: 95, colorKey: 'green' },
         { label: 'Leadership', percent: 78, colorKey: 'purple' },
       ],
-      lastAppraisal: 'Dec 2024 — Grade A',
-      nextReview: 'Dec 2025',
+      lastAppraisal: 'Dec 2025 — Grade A',
+      nextReview: 'Dec 2026',
       hrNotes:
-        'Strong technical contributor. Nominated for tech lead role in Q3 2025. No disciplinary records. Eligible for promotion review.',
+        'Strong technical contributor. Nominated for tech lead role in Q3 2026. No disciplinary records. Eligible for promotion review.',
       blacklisted: false,
       autoClockIn: false,
     },
@@ -141,7 +141,7 @@ export function mockEmployeeProfile(): EmployeeProfileDetail {
       payType: 'Monthly',
       currency: 'MYR',
       basicSalary: '7,500.00',
-      effectiveDate: '1 Mar 2024',
+      effectiveDate: '1 Jan 2026',
       bankMasked: 'Maybank ●●●● 4521',
       allowances: [
         { label: 'Transport allowance', amount: '300.00', frequency: 'Monthly', taxable: false, active: true },

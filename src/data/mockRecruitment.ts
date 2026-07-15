@@ -9,11 +9,11 @@ import type {
 export const INTERVIEW_BADGE = 8
 
 export const REQUISITIONS: RequisitionRow[] = [
-  { id: 'REQ-2023-047', position: 'HR Business Partner', department: 'HR', deptTone: 'pink', type: 'Permanent', requestedBy: 'Nina Reza', openDate: '8 Apr', targetFill: '13 May', applicants: 14, status: 'Open', statusTone: 'success' },
-  { id: 'REQ-2023-051', position: 'Sr. Frontend Developer', department: 'Engineering', deptTone: 'info', type: 'Permanent', requestedBy: 'David Ng', openDate: '1 Apr', targetFill: '30 Apr', applicants: 28, status: 'In review', statusTone: 'info' },
-  { id: 'REQ-2023-038', position: 'Finance Analyst', department: 'Finance', deptTone: 'success', type: 'Contract', requestedBy: 'Rachel Tan', openDate: '15 Apr', targetFill: '15 Jan', applicants: 8, status: 'Filled', statusTone: 'purple' },
-  { id: 'REQ-2023-029', position: 'Operations Lead', department: 'Operations', deptTone: 'warning', type: 'Permanent', requestedBy: 'Malik Said', openDate: '20 Mar', targetFill: '20 May', applicants: 11, status: 'Open', statusTone: 'success' },
-  { id: 'REQ-2023-055', position: 'Digital Marketing Lead', department: 'Marketing', deptTone: 'pink', type: 'Permanent', requestedBy: 'Kevin Lim', openDate: '25 Apr', targetFill: '25 Jan', applicants: 4, status: 'On hold', statusTone: 'warning' },
+  { id: 'REQ-2026-047', position: 'HR Business Partner', department: 'HR', deptTone: 'pink', type: 'Permanent', requestedBy: 'Nina Reza', openDate: '8 Apr', targetFill: '13 May', applicants: 14, status: 'Open', statusTone: 'success' },
+  { id: 'REQ-2026-051', position: 'Sr. Frontend Developer', department: 'Engineering', deptTone: 'info', type: 'Permanent', requestedBy: 'David Ng', openDate: '1 Apr', targetFill: '30 Apr', applicants: 28, status: 'In review', statusTone: 'info' },
+  { id: 'REQ-2026-038', position: 'Finance Analyst', department: 'Finance', deptTone: 'success', type: 'Contract', requestedBy: 'Rachel Tan', openDate: '15 Apr', targetFill: '15 Jun', applicants: 8, status: 'Filled', statusTone: 'purple' },
+  { id: 'REQ-2026-029', position: 'Operations Lead', department: 'Operations', deptTone: 'warning', type: 'Permanent', requestedBy: 'Malik Said', openDate: '20 Mar', targetFill: '20 May', applicants: 11, status: 'Open', statusTone: 'success' },
+  { id: 'REQ-2026-055', position: 'Digital Marketing Lead', department: 'Marketing', deptTone: 'pink', type: 'Permanent', requestedBy: 'Kevin Lim', openDate: '25 Apr', targetFill: '25 Jun', applicants: 4, status: 'On hold', statusTone: 'warning' },
 ]
 
 export const PIPELINE_COLUMNS: PipelineColumn[] = [
@@ -62,9 +62,9 @@ export const OFFERS: OfferRow[] = [
 ]
 
 export const LEDGER_ROWS: LedgerRow[] = [
-  { reqCode: 'REQ-2024-001', position: 'HR Business Partner', sector: 'HR department', recruiter: 'Maya Tan', funnel: [45, 22, 8, 2, 1], spend: 'MYR 2,400', cycleTime: '25 days', status: 'Completed', statusTone: 'success' },
-  { reqCode: 'REQ-2024-002', position: 'Senior Back-End Engineer (Node.js)', sector: 'Engineering department', recruiter: 'Maya Tan', funnel: [78, 45, 12, 3, 1], spend: 'MYR 5,100', cycleTime: '38 days', status: 'Completed', statusTone: 'success' },
-  { reqCode: 'REQ-2024-012', position: 'Sr. Frontend Developer', sector: 'Engineering', recruiter: 'Zainal Abidin', funnel: [62, 30, 12, 3, 0], spend: 'MYR 3,100', cycleTime: '36 days', status: 'In Progress', statusTone: 'info' },
-  { reqCode: 'REQ-2024-018', position: 'Finance Analyst', sector: 'Finance', recruiter: 'Maya Tan', funnel: [18, 10, 4, 1, 1], spend: 'MYR 1,200', cycleTime: '28 days', status: 'Completed', statusTone: 'success' },
-  { reqCode: 'REQ-2024-007', position: 'Compensation & Benefits Associate', sector: 'HR department', recruiter: 'Zainal Abidin', funnel: [11, 4, 1, 0, 0], spend: 'MYR 800', cycleTime: 'Pending', status: 'In Progress', statusTone: 'info' },
+  { reqCode: 'REQ-2026-001', position: 'HR Business Partner', sector: 'HR department', recruiter: 'Maya Tan', funnel: [45, 22, 8, 2, 1], spend: 'MYR 2,400', cycleTime: '25 days', status: 'Completed', statusTone: 'success' },
+  { reqCode: 'REQ-2026-002', position: 'Senior Back-End Engineer (Node.js)', sector: 'Engineering department', recruiter: 'Maya Tan', funnel: [78, 45, 12, 3, 1], spend: 'MYR 5,100', cycleTime: '38 days', status: 'Completed', statusTone: 'success' },
+  { reqCode: 'REQ-2026-012', position: 'Sr. Frontend Developer', sector: 'Engineering', recruiter: 'Zainal Abidin', funnel: [62, 30, 12, 3, 0], spend: 'MYR 3,100', cycleTime: '36 days', status: 'In Progress', statusTone: 'info' },
+  { reqCode: 'REQ-2026-018', position: 'Finance Analyst', sector: 'Finance', recruiter: 'Maya Tan', funnel: [18, 10, 4, 1, 1], spend: 'MYR 1,200', cycleTime: '28 days', status: 'Completed', statusTone: 'success' },
+  { reqCode: 'REQ-2026-007', position: 'Compensation & Benefits Associate', sector: 'HR department', recruiter: 'Zainal Abidin', funnel: [11, 4, 1, 0, 0], spend: 'MYR 800', cycleTime: 'Pending', status: 'In Progress', statusTone: 'info' },
 ]

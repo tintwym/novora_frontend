@@ -179,7 +179,7 @@ export function seedRegistry(): AssetRegistryEntry[] {
       status: 'Maintenance',
       statusTone: 'warning',
       location: 'Service bay — AutoServ',
-      notes: 'Scheduled transmission service — ETA 2026-06-25.',
+      notes: 'Scheduled transmission service — ETA 2026-07-28.',
     },
   ]
 }

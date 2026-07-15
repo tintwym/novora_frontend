@@ -28,9 +28,9 @@ export const WARNING_ACTIONS: WarningAction[] = [
 ]
 
 export const DISCIPLINARY_HISTORY: DisciplinaryHistoryRow[] = [
-  { initials: 'AL', name: 'Ahmad Luqman', meta: 'EMP-0281 · Operations', offence: 'Unauthorised absence', incidentDate: '2024-05-06', actionDate: '2024-05-07', warningLevel: 'L1 — Verbal warning', issuedBy: 'Nina Reza (Head of HR)', status: 'Pending', statusKind: 'pending' },
-  { initials: 'ZN', name: 'Zara Nor', meta: 'EMP-0142 · Engineering', offence: 'Persistent lateness', incidentDate: '2024-04-25', actionDate: '2024-04-28', warningLevel: 'L2 — First written warning', issuedBy: 'Malik Said (Tech Lead)', status: 'Acknowledged', statusKind: 'acknowledged' },
-  { initials: 'RK', name: 'Raj Kumar', meta: 'EMP-0049 · Finance', offence: 'Dress code violation', incidentDate: '2024-03-08', actionDate: '2024-03-10', warningLevel: 'L1 — Verbal warning', issuedBy: 'David Ng (Finance Director)', status: 'Closed', statusKind: 'closed' },
+  { initials: 'AL', name: 'Ahmad Luqman', meta: 'EMP-0281 · Operations', offence: 'Unauthorised absence', incidentDate: '2026-05-06', actionDate: '2026-05-07', warningLevel: 'L1 — Verbal warning', issuedBy: 'Nina Reza (Head of HR)', status: 'Pending', statusKind: 'pending' },
+  { initials: 'ZN', name: 'Zara Nor', meta: 'EMP-0142 · Engineering', offence: 'Persistent lateness', incidentDate: '2026-04-25', actionDate: '2026-04-28', warningLevel: 'L2 — First written warning', issuedBy: 'David Ng (Head of Engineering)', status: 'Acknowledged', statusKind: 'acknowledged' },
+  { initials: 'RK', name: 'Raj Kumar', meta: 'EMP-0049 · Finance', offence: 'Dress code violation', incidentDate: '2026-03-08', actionDate: '2026-03-10', warningLevel: 'L1 — Verbal warning', issuedBy: 'Rachel Tan (CFO)', status: 'Closed', statusKind: 'closed' },
 ]
 
 export const DEPT_DISCIPLINARY: DeptDisciplinaryRow[] = [
@@ -73,9 +73,9 @@ export const WARNING_GUIDE = [
 ]
 
 export const RECENT_CASES = [
-  { id: 'DISC-2024-001', name: 'Ahmad Luqman', reason: 'Unauthorised absence', date: '2026-05-06', status: 'Pending', tone: 'warning' as const },
-  { id: 'DISC-2024-002', name: 'Zara Nor', reason: 'Persistent lateness', date: '2026-04-25', status: 'Acknowledged', tone: 'info' as const },
-  { id: 'DISC-2024-003', name: 'Raj Kumar', reason: 'Dress code violation', date: '2026-03-08', status: 'Closed', tone: 'success' as const },
+  { id: 'DISC-2026-001', name: 'Ahmad Luqman', reason: 'Unauthorised absence', date: '2026-05-06', status: 'Pending', tone: 'warning' as const },
+  { id: 'DISC-2026-002', name: 'Zara Nor', reason: 'Persistent lateness', date: '2026-04-25', status: 'Acknowledged', tone: 'info' as const },
+  { id: 'DISC-2026-003', name: 'Raj Kumar', reason: 'Dress code violation', date: '2026-03-08', status: 'Closed', tone: 'success' as const },
 ]
 
 export const WARNING_LEVEL_OPTIONS = [
