@@ -1,5 +1,4 @@
-import { type CSSProperties, useEffect, useMemo, useState } from 'react'
-import { fetchOrgChart, type OrgChartData } from '../../api/employees'
+import { type CSSProperties, useMemo, useState } from 'react'
 import { flattenOrgChart, mockOrgChartRoot } from '../../data/mockOrgChart'
 import type { ChartLayout, OrgChartNode } from '../../types/orgChart'
 import {
@@ -32,25 +31,8 @@ export function OrganisationChartTab({ onOpenProfile }: OrganisationChartTabProp
   const [layout, setLayout] = useState<ChartLayout>('standard')
   const [zoomFit, setZoomFit] = useState(true)
   const [selected, setSelected] = useState<OrgChartNode | null>(null)
-  const [orgData, setOrgData] = useState<OrgChartData | null>(null)
 
-  const mockRoot = useMemo(() => mockOrgChartRoot(), [])
-
-  useEffect(() => {
-    let active = true
-    fetchOrgChart().then((data) => {
-      if (active && data) setOrgData(data)
-    })
-    return () => {
-      active = false
-    }
-  }, [])
-
-  const root = orgData?.root ?? mockRoot
-  const deptSummary = orgData?.summary ?? DEPT_SUMMARY
-  const totalEmployees = orgData?.total ?? TOTAL_EMPLOYEES
-  const deptCount = orgData?.deptCount ?? DEPT_COUNT
-  const deptFilters: readonly string[] = orgData?.deptFilters ?? DEPT_FILTERS
+  const root = useMemo(() => mockOrgChartRoot(), [])
 
   const visibleHeads = useMemo(() => {
     const heads = root.children ?? []
@@ -94,7 +76,7 @@ export function OrganisationChartTab({ onOpenProfile }: OrganisationChartTabProp
         <div className="org-filter-panel">
           <div className="org-filter-bar">
             <span className="org-filter-label">DEPARTMENT:</span>
-            {deptFilters.map((d) => (
+            {DEPT_FILTERS.map((d) => (
               <button
                 key={d}
                 type="button"
@@ -106,7 +88,7 @@ export function OrganisationChartTab({ onOpenProfile }: OrganisationChartTabProp
             ))}
           </div>
           <p className="org-filter-meta-center">
-            {totalEmployees.toLocaleString()} employees · {deptCount} departments
+            {TOTAL_EMPLOYEES.toLocaleString()} employees · {DEPT_COUNT} departments
           </p>
         </div>
 
@@ -208,10 +190,10 @@ export function OrganisationChartTab({ onOpenProfile }: OrganisationChartTabProp
         )}
 
         <div className="org-summary-row">
-          {Object.entries(deptSummary).map(([label, count]) => (
+          {Object.entries(DEPT_SUMMARY).map(([label, count]) => (
             <SummaryCard key={label} label={label} count={count} accent={deptPaletteForLabel(label).accent} />
           ))}
-          <SummaryCard label="Total" count={totalEmployees} accent="#1e3a5f" emphasized />
+          <SummaryCard label="Total" count={TOTAL_EMPLOYEES} accent="#1e3a5f" emphasized />
         </div>
 
         <div className="org-chart-footer">
