@@ -55,6 +55,8 @@ export function EmployeesPage() {
                   <option>Operations</option>
                   <option>HR</option>
                   <option>Finance</option>
+                  <option>Marketing</option>
+                  <option>Sales</option>
                 </select>
               </HrToolbarPill>
               <HrToolbarPill variant="export">

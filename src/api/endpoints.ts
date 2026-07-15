@@ -15,4 +15,7 @@ export const Endpoints = {
   dashboardLeaveRequests: '/api/admin/dashboard/leave-requests',
   dashboardPayrollSummary: '/api/admin/dashboard/payroll-summary',
   dashboardAttendanceOverview: '/api/admin/dashboard/attendance-overview',
+  adminEmployees: '/api/admin/employees',
+  adminDepartments: '/api/admin/departments',
+  orgChart: '/api/org-chart',
 } as const

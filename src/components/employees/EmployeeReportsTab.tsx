@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { fetchStaffingRegister } from '../../api/employees'
 import { mockStaffingRegister } from '../../data/mockStaffingRegister'
 import {
   CONTRACT_MIX,
@@ -61,8 +62,17 @@ export function EmployeeReportsTab() {
   const [sector, setSector] = useState<string>(REPORT_SECTORS[0])
   const [employmentType, setEmploymentType] = useState<string>(REPORT_EMPLOYMENT_TYPES[0])
   const [registerSearch, setRegisterSearch] = useState('')
+  const [allRows, setAllRows] = useState<StaffingRegisterEntry[]>(() => mockStaffingRegister())
 
-  const allRows = useMemo(() => mockStaffingRegister(), [])
+  useEffect(() => {
+    let active = true
+    fetchStaffingRegister().then((rows) => {
+      if (active && rows) setAllRows(rows)
+    })
+    return () => {
+      active = false
+    }
+  }, [])
 
   const registerRows = useMemo(() => {
     const q = registerSearch.trim().toLowerCase()

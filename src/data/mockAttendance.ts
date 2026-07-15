@@ -14,11 +14,11 @@ import type {
 export const UNKNOWN_SWIPE_BADGE = 4
 
 export const RECENT_DAY_LOGS: RecentDayLog[] = [
-  { date: '2025-06-12', range: '09:02 AM → 06:05 PM', hours: '9.0 hrs completed', present: true },
-  { date: '2025-06-11', range: '08:10 AM → 06:00 PM', hours: '8.8 hrs completed', present: true },
-  { date: '2025-06-10', range: '08:05 AM → 06:12 PM', hours: '9.1 hrs completed', present: true },
-  { date: '2025-06-09', range: '08:00 AM → 05:58 PM', hours: '8.9 hrs completed', present: true },
-  { date: '2025-06-02', range: '— → —', hours: '0.0 hrs completed', present: true },
+  { date: '2026-07-14', range: '09:02 AM → 06:05 PM', hours: '9.0 hrs completed', present: true },
+  { date: '2026-07-13', range: '08:10 AM → 06:00 PM', hours: '8.8 hrs completed', present: true },
+  { date: '2026-07-10', range: '08:05 AM → 06:12 PM', hours: '9.1 hrs completed', present: true },
+  { date: '2026-07-09', range: '08:00 AM → 05:58 PM', hours: '8.9 hrs completed', present: true },
+  { date: '2026-07-08', range: '— → —', hours: '0.0 hrs completed', present: true },
 ]
 
 export const ROSTER_DAYS = ['MON 5', 'TUE 6', 'WED 7', 'THU 8', 'FRI 9', 'SAT 10', 'SUN 11']

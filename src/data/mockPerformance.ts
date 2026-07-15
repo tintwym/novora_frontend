@@ -107,9 +107,9 @@ export const SETUP_LINKED_CATEGORIES = [
 ]
 
 export const GRANT_PERMISSIONS: GrantPermissionRow[] = [
-  { initials: 'DN', avatarBg: '#dbeafe', evaluator: 'David Ng', evalType: 'Year-end appraisal', from: '1 Jan 2026', to: '31 Jan 2026', pending: '8 employees', pendingLink: true, status: 'Active', statusTone: 'success' },
-  { initials: 'NR', avatarBg: '#d1fae5', evaluator: 'Nina Reza', evalType: 'Year-end appraisal', from: '1 Jan 2026', to: '31 Jan 2026', pending: '5 employees', pendingLink: true, status: 'Active', statusTone: 'success' },
-  { initials: 'KL', avatarBg: '#ffe4e6', evaluator: 'Kevin Lim', evalType: 'Mid-year appraisal', from: '1 Jun 2025', to: '30 Jun 2025', pending: '0 pending', status: 'Expired', statusTone: 'neutral', expired: true },
+  { initials: 'DN', avatarBg: '#dbeafe', evaluator: 'David Ng', evalType: 'Mid-year appraisal', from: '1 Jul 2026', to: '31 Jul 2026', pending: '8 employees', pendingLink: true, status: 'Active', statusTone: 'success' },
+  { initials: 'NR', avatarBg: '#d1fae5', evaluator: 'Nina Reza', evalType: 'Mid-year appraisal', from: '1 Jul 2026', to: '31 Jul 2026', pending: '5 employees', pendingLink: true, status: 'Active', statusTone: 'success' },
+  { initials: 'KL', avatarBg: '#ffe4e6', evaluator: 'Kevin Lim', evalType: 'Year-end appraisal', from: '1 Jan 2026', to: '31 Jan 2026', pending: '0 pending', status: 'Expired', statusTone: 'neutral', expired: true },
 ]
 
 export const GRANT_VIEW_LIST_ROSTER = [
@@ -118,10 +118,10 @@ export const GRANT_VIEW_LIST_ROSTER = [
 ]
 
 export const EVALUATION_LIST: EvaluationListRow[] = [
-  { initials: 'SL', avatarBg: '#dbeafe', name: 'Sarah Lim', reviewType: 'Year-end appraisal', reviewDate: '15 Jan 2026', reviewPeriod: 'Jan-Dec 2025', status: 'Pending', statusTone: 'warning', action: 'Open' },
-  { initials: 'RK', avatarBg: '#d1fae5', name: 'Raj Kumar', reviewType: 'Year-end appraisal', reviewDate: '15 Jan 2026', reviewPeriod: 'Jan-Dec 2025', status: 'Pending', statusTone: 'warning', action: 'Open' },
-  { initials: 'AL', avatarBg: '#ede9fe', name: 'Ahmad L', reviewType: 'Probation review', reviewDate: '10 Jan 2026', reviewPeriod: 'Oct-Dec 2025', status: 'Pending', statusTone: 'warning', action: 'Open' },
-  { initials: 'NC', avatarBg: '#ffe4e6', name: 'Nadia Chen', reviewType: 'Mid-year appraisal', reviewDate: '30 Jun 2025', reviewPeriod: 'Jan-Jun 2025', status: 'Completed', statusTone: 'success', action: 'Download' },
+  { initials: 'SL', avatarBg: '#dbeafe', name: 'Sarah Lim', reviewType: 'Mid-year appraisal', reviewDate: '15 Jul 2026', reviewPeriod: 'Jan-Jun 2026', status: 'Pending', statusTone: 'warning', action: 'Open' },
+  { initials: 'RK', avatarBg: '#d1fae5', name: 'Raj Kumar', reviewType: 'Mid-year appraisal', reviewDate: '15 Jul 2026', reviewPeriod: 'Jan-Jun 2026', status: 'Pending', statusTone: 'warning', action: 'Open' },
+  { initials: 'AL', avatarBg: '#ede9fe', name: 'Ahmad L', reviewType: 'Probation review', reviewDate: '10 Jul 2026', reviewPeriod: 'Apr-Jun 2026', status: 'Pending', statusTone: 'warning', action: 'Open' },
+  { initials: 'NC', avatarBg: '#ffe4e6', name: 'Nadia Chen', reviewType: 'Mid-year appraisal', reviewDate: '30 Jun 2026', reviewPeriod: 'Jan-Jun 2026', status: 'Completed', statusTone: 'success', action: 'Download' },
 ]
 
 export const PERF_RESULTS: PerfResultRow[] = [
