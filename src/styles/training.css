@@ -221,12 +221,12 @@
 .train-primary-btn {
   border: none;
   border-radius: 10px;
-  background: var(--navy);
+  background: var(--brand-blue-deep);
   color: #fff;
-  padding: 0.45rem 0.85rem;
+  padding: 0.55rem 1rem;
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
 }

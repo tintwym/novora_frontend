@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { fetchEmployeeDirectory } from '../../api/employees'
+import { useMemo, useState } from 'react'
 import { mockEmployeeDirectory } from '../../data/mockEmployeeDirectory'
 import type { EmployeeDirectoryRow } from '../../types/employeeDirectory'
 import {
@@ -21,17 +20,7 @@ export function EmployeeDirectoryTab({
 }: EmployeeDirectoryTabProps) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
-  const [employees, setEmployees] = useState<EmployeeDirectoryRow[]>(() => mockEmployeeDirectory())
-
-  useEffect(() => {
-    let active = true
-    fetchEmployeeDirectory().then((rows) => {
-      if (active && rows) setEmployees(rows)
-    })
-    return () => {
-      active = false
-    }
-  }, [])
+  const employees = useMemo(() => mockEmployeeDirectory(), [])
 
   const visible = employees.filter((e) => {
     if (departmentFilter !== 'All departments' && e.departmentName !== departmentFilter) return false
