@@ -24,7 +24,7 @@ export default function ROICalculator() {
       {/* Input Sliders */}
       <div className="flex-1 space-y-6">
         <div>
-          <span className="bg-slate-50 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full border border-slate-150 flex items-center gap-1.5 w-fit shadow-sm">
+          <span className="bg-slate-50 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full border border-slate-100 flex items-center gap-1.5 w-fit shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-cyan-500" />
             <span className="bg-linear-to-r from-cyan-600 via-lime-600 to-orange-500 bg-clip-text text-transparent font-extrabold">ROI Calculator</span>
           </span>

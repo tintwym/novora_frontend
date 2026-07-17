@@ -143,7 +143,7 @@ export default function Pricing({ onOpenTrial, onOpenDemo }: PricingProps) {
                   {plan.features.map((feature, idx) => (
                     <div key={idx} className="flex items-start gap-2 text-xs">
                       <Check className={`w-4 h-4 shrink-0 mt-0.5 ${plan.highlighted ? 'text-blue-400' : 'text-blue-600'}`} />
-                      <span className={plan.highlighted ? 'text-slate-300' : 'text-slate-650'}>{feature}</span>
+                      <span className={plan.highlighted ? 'text-slate-300' : 'text-slate-600'}>{feature}</span>
                     </div>
                   ))}
                 </div>

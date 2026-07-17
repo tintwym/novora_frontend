@@ -72,8 +72,9 @@ export function settingsSectionsFor(isHrAdmin: boolean): SettingsNavSection[] {
   return isHrAdmin ? SETTINGS_NAV_SECTIONS : EMPLOYEE_SETTINGS_SECTIONS
 }
 
-export function defaultSettingsPanel(isHrAdmin: boolean): SettingsPanelId {
-  return isHrAdmin ? 'company_profile' : 'appearance'
+/** Downloads SettingsTab keys panels by label, not id. */
+export function defaultSettingsPanel(isHrAdmin: boolean): string {
+  return isHrAdmin ? 'Company profile' : 'Appearance'
 }
 
 export function allPanelIds(sections: SettingsNavSection[]): SettingsPanelId[] {

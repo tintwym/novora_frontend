@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useMinDesktopWidth } from '../../config/shell'
+import { ShellNavProvider } from '../../context/ShellNavContext'
 import { DesktopOnlyNotice } from './DesktopOnlyNotice'
 import { PageTransition } from './PageTransition'
 import { Sidebar } from './Sidebar'
+import { ToastHost } from './ToastHost'
 import { TopBar } from './TopBar'
 
 const SIDEBAR_COLLAPSED_KEY = 'novora-sidebar-collapsed'
@@ -33,19 +35,22 @@ export function AppShell() {
   }
 
   return (
-    <div className="app-shell">
-      <Sidebar collapsed={sidebarCollapsed} />
-      <div className="app-main">
-        <TopBar
-          sidebarCollapsed={sidebarCollapsed}
-          onToggleSidebar={() => setSidebarCollapsed((collapsed) => !collapsed)}
-        />
-        <main className="app-content">
-          <PageTransition>
-            <Outlet />
-          </PageTransition>
-        </main>
+    <ShellNavProvider>
+      <div className="app-shell">
+        <Sidebar collapsed={sidebarCollapsed} />
+        <div className="app-main">
+          <TopBar
+            sidebarCollapsed={sidebarCollapsed}
+            onToggleSidebar={() => setSidebarCollapsed((collapsed) => !collapsed)}
+          />
+          <main className="app-content">
+            <PageTransition>
+              <Outlet />
+            </PageTransition>
+          </main>
+        </div>
+        <ToastHost />
       </div>
-    </div>
+    </ShellNavProvider>
   )
 }
