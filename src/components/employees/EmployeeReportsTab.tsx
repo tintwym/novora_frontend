@@ -1,426 +1,531 @@
-import { useMemo, useState } from 'react'
-import { mockStaffingRegister } from '../../data/mockStaffingRegister'
+import { useState } from 'react'
 import {
-  CONTRACT_MIX,
-  DEPT_DISTRIBUTION,
-  REPORT_EMPLOYMENT_TYPES,
-  REPORT_SECTORS,
-  TENURE_BREAKDOWN,
-  formatHireDate,
-  staffingFullName,
-  staffingInitials,
-  type ContractSlice,
-  type DeptDistribution,
-  type StaffingRegisterEntry,
-  type TenureBar,
-} from '../../types/employeeReports'
+  Users,
+  Building,
+  Briefcase,
+  Clock,
+  Search,
+  Download,
+  Printer,
+  FileSpreadsheet,
+  ShieldCheck,
+  Heart,
+} from 'lucide-react'
+import { showActionToast } from '../../utils/actionToast'
+import type { ModuleEmployee } from '../../types/moduleEmployee'
 
-const KPI_CARDS = [
-  {
-    title: 'TOTAL ROSTER CHECKED',
-    value: '13',
-    subtext: 'of 13 corporate staff',
-    footer: '13 Currently Active in operations',
-    footerColor: 'success',
-    icon: 'people',
-    iconColor: '#3b82f6',
-  },
-  {
-    title: 'PERMANENT CORE STABILITY',
-    value: '92%',
-    subtext: '↑ 2.1% YoY gain',
-    subtextTone: 'success',
-    footer: '12 permanent positions securely staffed',
-    footerColor: 'primary',
-    icon: 'building',
-    iconColor: '#8b5cf6',
-  },
-  {
-    title: 'ACTIVE OUT-OF-OFFICE STATE',
-    value: '0',
-    subtext: 'On approved leaves',
-    subtextTone: 'warning',
-    footer: 'No staff currently out-of-office',
-    footerColor: 'warning',
-    icon: 'clock',
-    iconColor: '#ef4444',
-  },
-  {
-    title: 'FAMILY INSURED DEPENDENTS',
-    value: '8',
-    valueTone: 'primary',
-    subtext: 'insured units',
-    footer: '100% full panel insurance coverage',
-    footerColor: 'success',
-    icon: 'heart',
-    iconColor: '#10b981',
-  },
-] as const
+type EmployeeReportsTabProps = {
+  employees: ModuleEmployee[]
+}
 
-export function EmployeeReportsTab() {
-  const [sector, setSector] = useState<string>(REPORT_SECTORS[0])
-  const [employmentType, setEmploymentType] = useState<string>(REPORT_EMPLOYMENT_TYPES[0])
-  const [registerSearch, setRegisterSearch] = useState('')
-  const allRows = useMemo(() => mockStaffingRegister(), [])
+export function EmployeeReportsTab({ employees }: EmployeeReportsTabProps) {
+  const addToast = (text: string, type?: 'success' | 'loading' | 'error' | 'info') => {
+    showActionToast(text, type)
+  }
 
-  const registerRows = useMemo(() => {
-    const q = registerSearch.trim().toLowerCase()
-    return allRows.filter((e) => {
-      if (sector !== REPORT_SECTORS[0] && e.sector !== sector) return false
-      if (employmentType !== REPORT_EMPLOYMENT_TYPES[0] && e.employmentType !== employmentType) return false
-      if (!q) return true
-      return (
-        staffingFullName(e).toLowerCase().includes(q) ||
-        e.email.toLowerCase().includes(q) ||
-        e.employeeCode.toLowerCase().includes(q) ||
-        e.position.toLowerCase().includes(q) ||
-        e.identityDoc.toLowerCase().includes(q)
-      )
-    })
-  }, [allRows, sector, employmentType, registerSearch])
+  const [selectedDept, setSelectedDept] = useState<string>('All');
+  const [selectedEmploymentType, setSelectedEmploymentType] = useState<string>('All');
+  const [reportSearchQuery, setReportSearchQuery] = useState<string>('');
+
+  // 1. Calculate General Statistics
+  const totalCount = employees.length;
+
+  const permanentCount = employees.filter(e => e.employmentStatus === 'Permanent').length;
+  const contractCount = employees.filter(e => e.employmentStatus === 'Contract').length;
+  const internCount = employees.filter(e => e.employmentStatus === 'Intern').length;
+  const partTimeCount = employees.filter(e => e.employmentStatus === 'Part-time').length;
+
+  // Filtered dataset for reports exploration
+  const filteredEmployees = employees.filter(emp => {
+    const matchesDept = selectedDept === 'All' || emp.department === selectedDept;
+    const matchesStatus = selectedEmploymentType === 'All' || emp.employmentStatus === selectedEmploymentType;
+    const matchesSearch = reportSearchQuery.trim() === '' ||
+      emp.name.toLowerCase().includes(reportSearchQuery.toLowerCase()) ||
+      emp.id.toLowerCase().includes(reportSearchQuery.toLowerCase()) ||
+      emp.position.toLowerCase().includes(reportSearchQuery.toLowerCase()) ||
+      emp.department.toLowerCase().includes(reportSearchQuery.toLowerCase());
+    return matchesDept && matchesStatus && matchesSearch;
+  });
+
+  // Calculate stats for current selection
+  const currentSelectionCount = filteredEmployees.length;
+  const selectionActiveCount = filteredEmployees.filter(e => e.status === 'Active').length;
+  const selectionLeaveCount = filteredEmployees.filter(e => e.status === 'On Leave').length;
+
+  // 2. Department Breakdown data logic
+  const deptCountMap = employees.reduce((acc, emp) => {
+    acc[emp.department] = (acc[emp.department] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const departmentData = Object.entries(deptCountMap).map(([dept, count]) => ({
+    name: dept,
+    count,
+    percentage: Math.round((count / totalCount) * 100),
+  })).sort((a, b) => b.count - a.count);
+
+  // 3. Tenure Analysis helper
+  const calculateTenureGroup = (joinDateStr: string) => {
+    try {
+      // Formats expected like "15 Jan 2018", "12 Mar 2022"
+      const yearStr = joinDateStr.split(' ').pop();
+      if (!yearStr) return 'Unknown';
+      const joinYear = parseInt(yearStr, 10);
+      const currentYear = 2026; // System reference year is 2026
+      const diff = currentYear - joinYear;
+      if (diff >= 5) return '5+ Years Veteran';
+      if (diff >= 3) return '3-5 Years Experienced';
+      if (diff >= 1) return '1-3 Years Solid';
+      return 'Under 1 Year';
+    } catch {
+      return '1-3 Years Solid';
+    }
+  };
+
+  const tenureGroupsMap = employees.reduce((acc, emp) => {
+    const group = calculateTenureGroup(emp.joinDate);
+    acc[group] = (acc[group] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const tenureData = Object.entries(tenureGroupsMap).map(([group, count]) => ({
+    group,
+    count,
+    percentage: Math.round((count / totalCount) * 100)
+  }));
+
+  // Initial letter generator
+  const getInitials = (fullName: string) => {
+    return fullName
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  };
 
   return (
-    <div className="emp-reports-tab">
-      <div className="emp-reports-filter-bar">
-        <div className="emp-reports-filters">
-          <FilterDropdown
-            label="TARGET SECTOR"
-            value={sector}
-            options={[...REPORT_SECTORS]}
-            onChange={setSector}
-          />
-          <FilterDropdown
-            label="EMPLOYMENT TYPE"
-            value={employmentType}
-            options={[...REPORT_EMPLOYMENT_TYPES]}
-            onChange={setEmploymentType}
-          />
-        </div>
-        <div className="emp-reports-actions">
-          <button type="button" className="emp-reports-export-demo">
-            <svg viewBox="0 0 24 24" aria-hidden>
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" strokeWidth="2" />
-              <polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" strokeWidth="2" />
-            </svg>
-            Export Demographics
-          </button>
-          <button type="button" className="emp-reports-print-btn">
-            <svg viewBox="0 0 24 24" aria-hidden>
-              <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" fill="none" stroke="currentColor" strokeWidth="2" />
-              <rect x="6" y="14" width="12" height="8" fill="none" stroke="currentColor" strokeWidth="2" />
-            </svg>
-            Print Executive Staff Audit
-          </button>
-        </div>
-      </div>
-
-      <div className="emp-reports-kpi-row">
-        {KPI_CARDS.map((kpi) => (
-          <KpiCard key={kpi.title} {...kpi} />
-        ))}
-      </div>
-
-      <div className="emp-reports-analytics">
-        <section className="emp-reports-card emp-reports-dept-card">
-          <h3>INTERNAL ROSTER DISTRIBUTION BY DEPARTMENT</h3>
-          <p>Calculated percent of total database staff mapped to sectors.</p>
-          <div className="emp-reports-dept-list">
-            {DEPT_DISTRIBUTION.map((d) => (
-              <DeptDistributionRow key={d.label} data={d} />
-            ))}
+    <div id="employees-reports-tab-container" className="space-y-6 animate-in fade-in duration-150">
+      
+      {/* 1. REPORT FILTERING & CONTROL DECK */}
+      <div className="bg-slate-50 border border-slate-100 p-5 rounded-3xl flex flex-col md:flex-row gap-4 items-center justify-between shadow-xs">
+        
+        {/* Left Side: Filter Dropdowns */}
+        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+          
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Sector</span>
+            <select
+              value={selectedDept}
+              onChange={(e) => {
+                setSelectedDept(e.target.value);
+                addToast(`Report focused on ${e.target.value} department`, 'info');
+              }}
+              className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer"
+            >
+              <option value="All">All Departments &bull; Consolidated</option>
+              <option value="Engineering">Engineering Department</option>
+              <option value="Finance">Finance Team</option>
+              <option value="HR">Human Resources</option>
+              <option value="Marketing">Marketing &amp; Sales</option>
+              <option value="Operations">Operations Support</option>
+            </select>
           </div>
-        </section>
 
-        <div className="emp-reports-analytics-right">
-          <section className="emp-reports-card">
-            <h3>INTERNAL SERVICE LONGEVITY / TENURE BREAKDOWN</h3>
-            <p>Years of service calculated from historical joining rosters.</p>
-            <div className="emp-reports-tenure-list">
-              {TENURE_BREAKDOWN.map((t) => (
-                <TenureBarRow key={t.label} data={t} />
-              ))}
-            </div>
-          </section>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Employment Type</span>
+            <select
+              value={selectedEmploymentType}
+              onChange={(e) => {
+                setSelectedEmploymentType(e.target.value);
+                addToast(`Report filtered to: ${e.target.value}`, 'info');
+              }}
+              className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer"
+            >
+              <option value="All">All Types (Permanent &amp; Temp)</option>
+              <option value="Permanent">Permanent Staff</option>
+              <option value="Contract">Contract Roster</option>
+              <option value="Intern">Internships</option>
+              <option value="Part-time">Part-time</option>
+            </select>
+          </div>
 
-          <section className="emp-reports-card">
-            <h3>CONTRACT TYPOLOGY RATIO</h3>
-            <ContractRatioBar slices={CONTRACT_MIX} />
-            <div className="emp-reports-contract-legend">
-              {CONTRACT_MIX.map((s) => (
-                <span key={s.label}>
-                  <i style={{ background: s.color }} aria-hidden />
-                  {s.label} ({s.count})
-                </span>
-              ))}
-            </div>
-          </section>
         </div>
+
+        {/* Right Side: Print and Export Trigger actions */}
+        <div className="flex items-center gap-2.5 w-full md:w-auto md:justify-end border-t md:border-t-0 pt-4 md:pt-0 border-slate-100">
+          <button
+            onClick={() => {
+              addToast('Compiling employee metrics & demographics reports...', 'loading');
+              setTimeout(() => {
+                addToast('Comprehensive Employee Demographics spreadsheet downloaded!', 'success');
+              }, 1200);
+            }}
+            className="flex-1 md:flex-initial bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-600 px-4 py-2 rounded-xl border border-slate-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-500" />
+            <span>Export Demographics</span>
+          </button>
+          
+          <button
+            onClick={() => {
+              addToast('Formatting dashboard report layout for print queues...', 'loading');
+              setTimeout(() => {
+                addToast('Staff Audit Report print blueprint sent to printer queue!', 'success');
+              }, 1000);
+            }}
+            className="flex-1 md:flex-initial bg-[#2f66e0] hover:bg-opacity-95 text-[11px] font-extrabold text-white px-4 py-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            <span>Print Executive Staff Audit</span>
+          </button>
+        </div>
+
       </div>
 
-      <section className="emp-reports-card emp-reports-register">
-        <div className="emp-reports-register-head">
-          <div>
-            <h2>Dynamic Granular Staffing Register • Audit Trail</h2>
-            <p>
-              Refined with NRIC codes, private mobile numbers, emergency contacts, and active insurance
-              dependents.
+      {/* 2. DYNAMIC SUMMARY METRIC CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        {/* Total Active Headcount */}
+        <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs relative overflow-hidden">
+          <div className="absolute top-0 right-0 h-10 w-10 bg-blue-50/40 rounded-bl-3xl flex items-center justify-center">
+            <Users className="h-4.5 w-4.5 text-blue-500" />
+          </div>
+          <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">Total Roster Checked</span>
+          <div className="flex items-baseline gap-2 mt-1.5">
+            <span className="text-3xl font-black text-slate-800">{currentSelectionCount}</span>
+            <span className="text-[10.5px] font-bold text-slate-400">of {totalCount} corporate staff</span>
+          </div>
+          <div className="flex items-center gap-1 mt-3">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <p className="text-[10px] text-slate-500 font-semibold">{selectionActiveCount} Currently Active in operations</p>
+          </div>
+        </div>
+
+        {/* Permanent Composition Ratio */}
+        <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs relative overflow-hidden">
+          <div className="absolute top-0 right-0 h-10 w-10 bg-indigo-50/40 rounded-bl-3xl flex items-center justify-center">
+            <Briefcase className="h-4.5 w-4.5 text-indigo-500" />
+          </div>
+          <span className="text-[10px] font-bold text-[#4b5563] tracking-wider uppercase block">Permanent Core Stability</span>
+          <div className="flex items-baseline gap-2 mt-1.5">
+            <span className="text-3xl font-black text-slate-800">
+              {Math.round((employees.filter(e => e.employmentStatus === 'Permanent').length / totalCount) * 100)}%
+            </span>
+            <span className="text-[10.5px] font-bold text-emerald-500">↑ 2.1% YoY gain</span>
+          </div>
+          <div className="flex items-center gap-1 mt-3">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#2f66e0]" />
+            <p className="text-[10px] text-slate-500 font-semibold">{permanentCount} permanent positions securely staffed</p>
+          </div>
+        </div>
+
+        {/* Active vs On Leave Balance */}
+        <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs relative overflow-hidden">
+          <div className="absolute top-0 right-0 h-10 w-10 bg-pink-50/40 rounded-bl-3xl flex items-center justify-center">
+            <Clock className="h-4.5 w-4.5 text-pink-500" />
+          </div>
+          <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">Active Out-of-Office State</span>
+          <div className="flex items-baseline gap-2 mt-1.5">
+            <span className="text-3xl font-black text-slate-800">{selectionLeaveCount}</span>
+            <span className="text-xs font-semibold text-amber-600">On approved leaves</span>
+          </div>
+          <div className="flex items-center gap-1 mt-3">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            <p className="text-[10px] text-slate-500 font-semibold">
+              {selectionLeaveCount > 0 ? `${Math.round((selectionLeaveCount / currentSelectionCount) * 100)}% active leave ratio today` : 'No staff currently out-of-office'}
             </p>
           </div>
-          <div className="emp-reports-register-tools">
-            <div className="emp-reports-register-search">
-              <svg viewBox="0 0 24 24" aria-hidden>
-                <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
-                <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" strokeWidth="2" />
-              </svg>
-              <input
-                type="search"
-                placeholder="Find name, position, ID..."
-                value={registerSearch}
-                onChange={(e) => setRegisterSearch(e.target.value)}
-              />
+        </div>
+
+        {/* Support Ratios Dependents & Protection */}
+        <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs relative overflow-hidden">
+          <div className="absolute top-0 right-0 h-10 w-10 bg-emerald-50/40 rounded-bl-3xl flex items-center justify-center">
+            <Heart className="h-4.5 w-4.5 text-emerald-500" />
+          </div>
+          <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">Family Insured Dependents</span>
+          <div className="flex items-baseline gap-2 mt-1.5">
+            <span className="text-3xl font-black text-[#2f66e0]">
+              {employees.filter(e => e.dependents && e.dependents !== 'None').length}
+            </span>
+            <span className="text-xs font-semibold text-slate-400">insured units</span>
+          </div>
+          <div className="flex items-center gap-1 mt-3">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <p className="text-[10px] text-slate-500 font-semibold">100% full panel insurance coverage</p>
+          </div>
+        </div>
+
+      </div>
+
+      {/* 3. INTERACTIVE VISUAL CHART BLOCKS */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        {/* Left Aspect: Headcount Distribution Bar Chart Widget */}
+        <div className="lg:col-span-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-5">
+          <div className="border-b border-slate-50 pb-3">
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Internal Roster Distribution by Department</h3>
+            <p className="text-[10px] text-slate-400 font-medium italic mt-0.5">Calculated percent of total database staff mapped to sectors</p>
+          </div>
+
+          <div className="space-y-4">
+            {departmentData.map((dept) => {
+              // Color schemes specifically matching department personalities
+              let color = 'bg-[#2f66e0]';
+              if (dept.name === 'Engineering') color = 'bg-blue-600';
+              if (dept.name === 'Finance') color = 'bg-emerald-500';
+              if (dept.name === 'HR') color = 'bg-purple-500';
+              if (dept.name === 'Marketing') color = 'bg-pink-500';
+              if (dept.name === 'Operations') color = 'bg-orange-500';
+
+              const isFocused = selectedDept === 'All' || selectedDept === dept.name;
+
+              return (
+                <div key={dept.name} className={`space-y-1 ${!isFocused ? 'opacity-35 transition-opacity' : 'transition-opacity'}`}>
+                  <div className="flex justify-between text-xs font-bold text-slate-700">
+                    <span className="flex items-center gap-1.5">
+                      <Building className="h-3.5 w-3.5 text-slate-400" />
+                      <span>{dept.name} Team</span>
+                    </span>
+                    <span>{dept.count} Members &bull; <strong className="text-slate-800">{dept.percentage}%</strong></span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                    <div 
+                      className={`${color} h-full transition-all duration-500 rounded-full`} 
+                      style={{ width: `${dept.percentage}%` }} 
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right Aspect: Tenure Seniority Analysis & Employment Composition */}
+        <div className="lg:col-span-6 space-y-6">
+          
+          {/* Employee Seniority & Tenure Levels Widget */}
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs">
+            <div className="border-b border-slate-50 pb-3 mb-4">
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Internal Service Longevity / Tenure Breakdown</h3>
+              <p className="text-[10px] text-slate-400 font-medium italic mt-0.5">Years of service calculated from historical joining rosters</p>
             </div>
-            <button type="button" className="emp-reports-export-records">
-              <svg viewBox="0 0 24 24" aria-hidden>
-                <path d="M12 3v12M7 10l5 5 5-5M5 21h14" fill="none" stroke="currentColor" strokeWidth="2" />
-              </svg>
-              Export Records
+
+            <div className="space-y-3.5">
+              {tenureData.map((data) => (
+                <div key={data.group} className="flex items-center justify-between text-xs font-semibold">
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <span className="h-2 w-2 rounded-full bg-indigo-500" />
+                    <span>{data.group}</span>
+                  </div>
+                  <div className="flex items-center gap-3 w-40">
+                    <div className="w-24 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${data.percentage}%` }} />
+                    </div>
+                    <span className="font-bold text-slate-800 text-right w-12">{data.count} ({data.percentage}%)</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Staffing Typology status breakdown */}
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Contract Typology Ratio</h3>
+            
+            {/* Balanced composite graphic indicator of types */}
+            <div className="w-full h-4.5 bg-slate-100 rounded-lg overflow-hidden flex font-bold text-[8.5px] text-white select-none">
+              <div 
+                className="bg-[#2f66e0] h-full flex items-center justify-center transition-all" 
+                style={{ width: `${Math.round((permanentCount / totalCount) * 100)}%` }}
+                title="Permanent employees"
+              >
+                {permanentCount > 1 && `${Math.round((permanentCount / totalCount) * 100)}%`}
+              </div>
+              <div 
+                className="bg-indigo-500 h-full flex items-center justify-center transition-all" 
+                style={{ width: `${Math.round((contractCount / totalCount) * 100)}%` }}
+                title="Contract personnel"
+              >
+                {contractCount > 1 && `${Math.round((contractCount / totalCount) * 100)}%`}
+              </div>
+              <div 
+                className="bg-emerald-500 h-full flex items-center justify-center transition-all" 
+                style={{ width: `${Math.round((internCount / totalCount) * 100)}%` }}
+                title="Internships"
+              >
+                {internCount > 0 && `${Math.round((internCount / totalCount) * 100)}%`}
+              </div>
+              <div 
+                className="bg-amber-500 h-full flex items-center justify-center transition-all" 
+                style={{ width: `${Math.round((partTimeCount / totalCount) * 100)}%` }}
+                title="Part-time"
+              >
+                {partTimeCount > 0 && `${Math.round((partTimeCount / totalCount) * 100)}%`}
+              </div>
+            </div>
+
+            {/* Micro Legended counts */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-[10.5px] font-bold">
+              <div className="flex items-center gap-1.5 text-slate-600">
+                <span className="h-2 w-2 rounded-full bg-[#2f66e0]" />
+                <span>Permanent ({permanentCount})</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-slate-600">
+                <span className="h-2 w-2 rounded-full bg-indigo-500" />
+                <span>Contract ({contractCount})</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-slate-600">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span>Intern ({internCount})</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-slate-600">
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                <span>Part-Time ({partTimeCount})</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* 4. EXHAUSTIVE, DETAILED AUDITABLE EMPLOYEE LEDGER TABLE */}
+      <div id="employees-granularity-ledger-card" className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+        
+        {/* Table header with search */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <h3 className="text-sm font-bold text-slate-800">Dynamic Granular Staffing Register &bull; Audit Trail</h3>
+            <p className="text-[11px] text-slate-400 font-semibold mt-0.5">
+              Refined with NRIC codes, private mobile numbers, emergency contacts, and active insurance dependents
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-2 w-3.5 h-3.5 text-slate-400" />
+              <input
+                type="text"
+                value={reportSearchQuery}
+                onChange={(e) => setReportSearchQuery(e.target.value)}
+                placeholder="Find name, position, ID..."
+                className="bg-slate-50 border border-slate-200 focus:border-slate-300 rounded-xl pl-8.5 pr-7 py-1.5 text-xs font-semibold text-slate-700 outline-none w-60"
+              />
+              {reportSearchQuery && (
+                <button
+                  onClick={() => setReportSearchQuery('')}
+                  className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 font-bold text-xs"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => {
+                addToast(`Exported ${filteredEmployees.length} filtered employee records to payroll ledger format`, 'success');
+              }}
+              className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold text-xs px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
+            >
+              <Download className="h-3 w-3" />
+              <span>Export Records</span>
             </button>
           </div>
         </div>
 
-        <div className="emp-reports-table-wrap">
-          <table className="emp-reports-table">
+        {/* Ledger Table rendering container */}
+        <div className="overflow-x-auto border border-slate-100 rounded-2xl">
+          <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr>
-                <th>STAFF NO.</th>
-                <th>EMPLOYEE NAME</th>
-                <th>SECTOR &amp; POSITION</th>
-                <th>TYPE • HIRE DATE</th>
-                <th>IDENTITIES (NRIC / PASS)</th>
-                <th>EMERGENCY CONTACT &amp; DEPENDENTS</th>
-                <th>OPERATION STATUS</th>
+              <tr className="bg-slate-50/75 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                <th className="py-3 px-4.5">Staff No.</th>
+                <th className="py-3 px-4.5">Employee Name</th>
+                <th className="py-3 px-4.5">Sector &amp; Position</th>
+                <th className="py-3 px-4.5">Type &bull; Hire Date</th>
+                <th className="py-3 px-4.5">Identities (NRIC / Pass)</th>
+                <th className="py-3 px-4.5">Emergency contact &amp; dependents</th>
+                <th className="py-3 px-4.5 text-center">Operation Status</th>
               </tr>
             </thead>
-            <tbody>
-              {registerRows.map((row) => (
-                <RegisterRow key={row.employeeCode} row={row} />
+            <tbody className="divide-y divide-slate-100 font-semibold text-slate-600">
+              {filteredEmployees.map((emp) => (
+                <tr key={emp.id} className="hover:bg-slate-50/30 transition-colors">
+                  <td className="py-3.5 px-4.5 font-mono text-[11px] text-slate-505">{emp.id}</td>
+                  <td className="py-3.5 px-4.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className={`h-7 w-7 rounded-md flex items-center justify-center text-white font-bold text-[10.5px] shrink-0 ${emp.avatarColor}`}>
+                        {getInitials(emp.name)}
+                      </div>
+                      <div>
+                        <span className="text-slate-800 font-bold block">{emp.name}</span>
+                        <span className="text-[10px] text-slate-400 font-semibold block">{emp.email}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3.5 px-4.5">
+                    <span className="text-slate-750 block">{emp.position}</span>
+                    <span className="text-[10px] text-[#2f66e0] bg-blue-50 px-2 py-0.5 rounded font-bold inline-block mt-0.5">{emp.department}</span>
+                  </td>
+                  <td className="py-3.5 px-4.5">
+                    <span className="text-slate-700 block">{emp.employmentStatus}</span>
+                    <span className="text-[10px] text-slate-400 font-medium block">Joined {emp.joinDate}</span>
+                  </td>
+                  <td className="py-3.5 px-4.5 font-mono text-[11px] text-slate-655">
+                    <div>{emp.nric}</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5 font-sans font-semibold">{emp.mobile}</div>
+                  </td>
+                  <td className="py-3.5 px-4.5">
+                    <div className="max-w-xs space-y-0.5 text-[10.5px]">
+                      <div className="text-slate-700 truncate" title={emp.emergencyContact}>
+                        <strong>Emerg:</strong> {emp.emergencyContact}
+                      </div>
+                      <div className="text-slate-400 truncate font-medium" title={emp.dependents}>
+                        <strong>Kids/Spouse:</strong> {emp.dependents}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3.5 px-4.5 text-center">
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9.5px] font-bold border ${
+                      emp.status === 'Active'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100/50'
+                        : emp.status === 'On Leave'
+                        ? 'bg-amber-50 text-amber-700 border-amber-100/50'
+                        : 'bg-slate-50 text-slate-700 border-slate-100/50'
+                    }`}>
+                      <span className={`h-1 w-1 rounded-full ${emp.status === 'Active' ? 'bg-emerald-500' : emp.status === 'On Leave' ? 'bg-amber-500' : 'bg-slate-400'}`} />
+                      {emp.status}
+                    </span>
+                  </td>
+                </tr>
               ))}
+              {filteredEmployees.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-400 italic font-semibold">
+                    No active employees matching filters {"'"}
+                    {selectedDept} / {selectedEmploymentType}
+                    {"'"} are listed inside the organization record.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
-        <div className="emp-reports-register-foot">
+        {/* Ledger checksum footer */}
+        <div className="flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 font-semibold pt-1">
           <span>
-            Displaying {registerRows.length} qualified logs — Cross-checked with Novora HRM ledger keys
+            Displaying {filteredEmployees.length} qualified logs &bull; Cross-checked with Novora HRM ledger keys
           </span>
-          <span className="emp-reports-verified">
-            <svg viewBox="0 0 24 24" aria-hidden>
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" strokeWidth="2" />
-            </svg>
-            ENCRYPTED LEDGER VERIFIED
-          </span>
-        </div>
-      </section>
-    </div>
-  )
-}
-
-function FilterDropdown({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string
-  value: string
-  options: string[]
-  onChange: (v: string) => void
-}) {
-  return (
-    <label className="emp-reports-filter">
-      <span>{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)}>
-        {options.map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
-      </select>
-    </label>
-  )
-}
-
-function KpiCard({
-  title,
-  value,
-  subtext,
-  subtextTone,
-  valueTone,
-  footer,
-  footerColor,
-  icon,
-  iconColor,
-}: {
-  title: string
-  value: string
-  subtext: string
-  subtextTone?: string
-  valueTone?: string
-  footer: string
-  footerColor: string
-  icon: string
-  iconColor: string
-}) {
-  return (
-    <article className="emp-reports-kpi-card">
-      <div className="emp-reports-kpi-top">
-        <div>
-          <span className="emp-reports-kpi-title">{title}</span>
-          <strong className={valueTone ? `tone-${valueTone}` : ''}>{value}</strong>
-          <span className={subtextTone ? `tone-${subtextTone}` : 'muted'}>{subtext}</span>
-        </div>
-        <span className="emp-reports-kpi-icon" style={{ background: `${iconColor}1f`, color: iconColor }}>
-          <KpiIcon name={icon} />
-        </span>
-      </div>
-      <p className={`emp-reports-kpi-footer footer-${footerColor}`}>
-        <span aria-hidden />
-        {footer}
-      </p>
-    </article>
-  )
-}
-
-function KpiIcon({ name }: { name: string }) {
-  if (name === 'people') {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden>
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" strokeWidth="2" />
-      </svg>
-    )
-  }
-  if (name === 'building') {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden>
-        <rect x="4" y="2" width="16" height="20" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
-        <path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M8 10h.01M16 10h.01M12 10h.01M8 14h.01M16 14h.01M12 14h.01" stroke="currentColor" strokeWidth="2" />
-      </svg>
-    )
-  }
-  if (name === 'clock') {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden>
-        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
-        <path d="M12 6v6l4 2" fill="none" stroke="currentColor" strokeWidth="2" />
-      </svg>
-    )
-  }
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden>
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="none" stroke="currentColor" strokeWidth="2" />
-    </svg>
-  )
-}
-
-function DeptDistributionRow({ data }: { data: DeptDistribution }) {
-  const pct = Math.round(data.fraction * 100)
-  return (
-    <div className="emp-reports-dept-row">
-      <div className="emp-reports-dept-row-head">
-        <i style={{ background: data.color }} aria-hidden />
-        <span>{data.label}</span>
-        <em>
-          {data.count} Members • {pct}%
-        </em>
-      </div>
-      <div className="emp-reports-bar-track">
-        <span style={{ width: `${pct}%`, background: data.color }} />
-      </div>
-    </div>
-  )
-}
-
-function TenureBarRow({ data }: { data: TenureBar }) {
-  const pct = Math.round(data.fraction * 100)
-  return (
-    <div className="emp-reports-tenure-row">
-      <div className="emp-reports-tenure-head">
-        <span>{data.label}</span>
-        <em>
-          {data.count} ({pct}%)
-        </em>
-      </div>
-      <div className="emp-reports-bar-track tall">
-        <span style={{ width: `${pct}%`, background: data.color }} />
-      </div>
-    </div>
-  )
-}
-
-function ContractRatioBar({ slices }: { slices: ContractSlice[] }) {
-  const total = slices.reduce((s, e) => s + e.count, 0)
-  if (total === 0) return <div className="emp-reports-contract-bar empty" />
-
-  return (
-    <div className="emp-reports-contract-bar">
-      {slices
-        .filter((s) => s.count > 0)
-        .map((s) => (
-          <span key={s.label} style={{ flex: s.count, background: s.color }} title={`${s.label} (${s.count})`} />
-        ))}
-    </div>
-  )
-}
-
-function RegisterRow({ row }: { row: StaffingRegisterEntry }) {
-  const name = staffingFullName(row)
-  const sectorColor =
-    {
-      Engineering: '#2563eb',
-      Finance: '#059669',
-      HR: '#9333ea',
-      Marketing: '#db2777',
-      Operations: '#d97706',
-    }[row.sector] ?? '#64748b'
-
-  return (
-    <tr>
-      <td className="emp-reports-code">{row.employeeCode}</td>
-      <td>
-        <div className="emp-reports-person">
-          <span className="emp-reports-avatar" style={{ background: row.avatarColor }}>
-            {staffingInitials(row)}
-          </span>
-          <div>
-            <strong>{name}</strong>
-            <span>{row.email}</span>
+          <div className="flex items-center gap-1 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+            <span>Encrypted Ledger Verified</span>
           </div>
         </div>
-      </td>
-      <td>
-        <strong>{row.position}</strong>
-        <span className="emp-reports-sector-text" style={{ color: sectorColor }}>
-          {row.sector}
-        </span>
-      </td>
-      <td>
-        <strong>{row.employmentType}</strong>
-        <span>Joined {formatHireDate(row.hireDate)}</span>
-      </td>
-      <td>
-        <strong>{row.identityDoc}</strong>
-        <span>{row.phone}</span>
-      </td>
-      <td className="emp-reports-emergency">
-        <strong>{row.emergencyContact}</strong>
-        <span>{row.dependents}</span>
-      </td>
-      <td>
-        <span className="emp-reports-status">
-          <span aria-hidden />
-          {row.status}
-        </span>
-      </td>
-    </tr>
-  )
+
+      </div>
+
+    </div>
+  );
 }
