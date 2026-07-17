@@ -461,10 +461,10 @@ export function RecruitmentTab({ onAddEmployeeAsRecord }: RecruitmentTabProps) {
     <div id="recruitment-module-stage" className="space-y-6">
       
       {/* 2nd Navigation menu - cleanly merged with top level controls. Removed Novora banner to eliminate redundancy! */}
-      <div id="recruitment-unified-navigator" className="flex flex-col xl:flex-row xl:items-center justify-between border-b border-slate-200 pb-4 gap-4 align-middle">
+      <div id="recruitment-unified-navigator" className="flex flex-col xl:flex-row xl:items-center justify-between border-b border-slate-200 pb-4 gap-4 min-w-0">
         
-        {/* Concise Sub-navigation Items */}
-        <div id="recruitment-navigation-tabs" className="flex flex-wrap items-center gap-1.5 select-none">
+        {/* Concise Sub-navigation Items — scroll horizontally instead of wrapping */}
+        <div id="recruitment-navigation-tabs" className="flex items-center gap-1.5 select-none overflow-x-auto flex-1 min-w-0 scrollbar-none pb-1 xl:pb-0">
           {subTabs.map((tab) => {
             const isActive = activeSubTab === tab;
             const isInterviewWithBadge = tab === 'Interviews';
@@ -472,19 +472,20 @@ export function RecruitmentTab({ onAddEmployeeAsRecord }: RecruitmentTabProps) {
               <button
                 id={`tab-${tab.replace(/\s+/g, '-').toLowerCase()}`}
                 key={tab}
+                type="button"
                 onClick={() => {
                   setActiveSubTab(tab);
                   setSearchValue('');
                 }}
-                className={`text-xs font-semibold px-4 py-2.5 rounded-xl transition-all relative flex items-center gap-1.5 cursor-pointer ${
+                className={`text-xs font-semibold px-4 py-2.5 rounded-xl transition-all relative flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap ${
                   isActive
                     ? 'text-[#2f66e0] bg-[#2f66e0]/8 border border-[#2f66e0]/10 font-bold'
                     : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
                 }`}
               >
-                <span>{tab}</span>
+                <span className="whitespace-nowrap">{tab}</span>
                 {isInterviewWithBadge && (
-                  <span className="bg-[#2f66e0] text-white text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full">
+                  <span className="bg-[#2f66e0] text-white text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full shrink-0">
                     5
                   </span>
                 )}
@@ -496,16 +497,16 @@ export function RecruitmentTab({ onAddEmployeeAsRecord }: RecruitmentTabProps) {
           })}
         </div>
 
-        {/* Professional filters / export actions */}
-        <div id="recruitment-top-controls" className="flex items-center gap-3 self-end xl:self-auto relative select-none">
+        {/* Professional filters / export actions — fixed width, never wrap label text */}
+        <div id="recruitment-top-controls" className="flex items-center gap-3 self-end xl:self-auto relative select-none shrink-0 flex-nowrap">
           
           {/* Department filter selection */}
-          <div id="dept-filter-dropdown" className="relative">
+          <div id="dept-filter-dropdown" className="relative shrink-0">
             <button
               id="dept-filter-btn"
               type="button"
               onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 transition-colors rounded-xl cursor-pointer whitespace-nowrap shrink-0"
+              className="inline-flex items-center gap-2 h-9 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 transition-colors rounded-xl cursor-pointer whitespace-nowrap shrink-0"
             >
               <span className="whitespace-nowrap">{deptFilter}</span>
               <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
@@ -516,12 +517,13 @@ export function RecruitmentTab({ onAddEmployeeAsRecord }: RecruitmentTabProps) {
                 {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map((dept) => (
                   <button
                     key={dept}
+                    type="button"
                     onClick={() => {
                       setDeptFilter(dept);
                       setDeptDropdownOpen(false);
                       addToast(dept === 'All departments' ? 'Showing all department candidates' : `Screening for ${dept} team`, 'info');
                     }}
-                    className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-[#2f66e0] transition-colors"
+                    className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-[#2f66e0] transition-colors whitespace-nowrap"
                   >
                     {dept}
                   </button>
@@ -531,14 +533,15 @@ export function RecruitmentTab({ onAddEmployeeAsRecord }: RecruitmentTabProps) {
           </div>
 
           {/* Highly Professional, Slick Export Button */}
-          <div id="export-actions-dropdown" className="relative">
+          <div id="export-actions-dropdown" className="relative shrink-0">
             <button
               id="export-options-btn"
+              type="button"
               onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
-              className="bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/20 font-bold text-xs text-slate-700 px-3.5 py-2 rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer"
+              className="h-9 bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/20 font-bold text-xs text-slate-700 px-3.5 rounded-xl transition-all shadow-xs inline-flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0"
             >
               <Download className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-              <span>Export</span>
+              <span className="whitespace-nowrap">Export</span>
               <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
             </button>
 
@@ -549,6 +552,7 @@ export function RecruitmentTab({ onAddEmployeeAsRecord }: RecruitmentTabProps) {
                 </div>
                 <button
                   id="export-excel-item"
+                  type="button"
                   onClick={() => triggerRecruitmentExport('Excel')}
                   className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                 >
@@ -557,6 +561,7 @@ export function RecruitmentTab({ onAddEmployeeAsRecord }: RecruitmentTabProps) {
                 </button>
                 <button
                   id="export-csv-item"
+                  type="button"
                   onClick={() => triggerRecruitmentExport('CSV')}
                   className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                 >
@@ -565,6 +570,7 @@ export function RecruitmentTab({ onAddEmployeeAsRecord }: RecruitmentTabProps) {
                 </button>
                 <button
                   id="export-pdf-item"
+                  type="button"
                   onClick={() => triggerRecruitmentExport('PDF')}
                   className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                 >
@@ -578,38 +584,42 @@ export function RecruitmentTab({ onAddEmployeeAsRecord }: RecruitmentTabProps) {
           {/* Contextual primary trigger action button */}
           {activeSubTab === 'Job Requisition' && (
             <button
+              type="button"
               onClick={() => setRequisitionModalOpen(true)}
-              className="bg-[#2f66e0] hover:bg-opacity-95 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              className="h-9 bg-[#2f66e0] hover:opacity-95 text-white font-bold text-xs px-4 rounded-xl transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap shrink-0"
             >
-              <Plus className="h-4.5 w-4.5" />
-              <span>New Requisition</span>
+              <Plus className="h-4 w-4 shrink-0" />
+              <span className="whitespace-nowrap">New Requisition</span>
             </button>
           )}
           {activeSubTab === 'Candidate Pipeline' && (
             <button
+              type="button"
               onClick={() => setCandidateModalOpen(true)}
-              className="bg-[#2f66e0] hover:bg-opacity-95 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              className="h-9 bg-[#2f66e0] hover:opacity-95 text-white font-bold text-xs px-4 rounded-xl transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap shrink-0"
             >
-              <UserPlus className="h-4.5 w-4.5" />
-              <span>Add Candidate</span>
+              <UserPlus className="h-4 w-4 shrink-0" />
+              <span className="whitespace-nowrap">Add Candidate</span>
             </button>
           )}
           {activeSubTab === 'Interviews' && (
             <button
+              type="button"
               onClick={() => setInterviewModalOpen(true)}
-              className="bg-[#2f66e0] hover:bg-opacity-95 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              className="h-9 bg-[#2f66e0] hover:opacity-95 text-white font-bold text-xs px-4 rounded-xl transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap shrink-0"
             >
-              <CalendarDays className="h-4.5 w-4.5" />
-              <span>Schedule Interview</span>
+              <CalendarDays className="h-4 w-4 shrink-0" />
+              <span className="whitespace-nowrap">Schedule Interview</span>
             </button>
           )}
           {activeSubTab === 'Offer Management' && (
             <button
+              type="button"
               onClick={() => setOfferModalOpen(true)}
-              className="bg-[#2f66e0] hover:bg-opacity-95 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              className="h-9 bg-[#2f66e0] hover:opacity-95 text-white font-bold text-xs px-4 rounded-xl transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap shrink-0"
             >
-              <Send className="h-4.5 w-4.5" />
-              <span>Create Offer</span>
+              <Send className="h-4 w-4 shrink-0" />
+              <span className="whitespace-nowrap">Create Offer</span>
             </button>
           )}
         </div>
