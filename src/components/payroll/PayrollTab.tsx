@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { showActionToast } from '../../utils/actionToast'
 import type { ModuleEmployee } from '../../types/moduleEmployee'
+import { nextSeq } from '../../utils/nextSeq';
 
 // Sub Tabs Definitions
 export type PayrollMainTab =
@@ -372,7 +373,7 @@ export function PayrollTab({ employees }: PayrollTabProps) {
       return;
     }
     const n: AllowanceType = {
-      id: String(allowanceTypes.length + 1),
+      id: String(nextSeq(allowanceTypes.map(a => a.id))),
       name: newAllowanceName,
       policyType: newAllowancePolicy,
       amount: newAllowanceAmount || '150.00',
@@ -396,7 +397,7 @@ export function PayrollTab({ employees }: PayrollTabProps) {
       return;
     }
     const n: BonusType = {
-      id: String(bonusTypes.length + 1),
+      id: String(nextSeq(bonusTypes.map(b => b.id))),
       name: newBonusName,
       policyType: newBonusPolicy,
       payMonth: newBonusPayMonth,
@@ -417,7 +418,7 @@ export function PayrollTab({ employees }: PayrollTabProps) {
       return;
     }
     const n: DepositType = {
-      id: String(depositTypes.length + 1),
+      id: String(nextSeq(depositTypes.map(d => d.id))),
       name: newDepositName,
       code: newDepositCode.toUpperCase(),
       employmentStatus: 'All staff',
@@ -440,7 +441,7 @@ export function PayrollTab({ employees }: PayrollTabProps) {
       return;
     }
     const n: DeductionType = {
-      id: String(deductions.length + 1),
+      id: String(nextSeq(deductions.map(d => d.id))),
       name: newDeductionName,
       type: newDeductionType,
       deductionRule: 'Custom formula policy',
@@ -462,7 +463,7 @@ export function PayrollTab({ employees }: PayrollTabProps) {
       return;
     }
     const n: TaxCategory = {
-      id: String(taxes.length + 1),
+      id: String(nextSeq(taxes.map(t => t.id))),
       name: newTaxName,
       code: newTaxCode.toUpperCase(),
       calculateOn: newTaxOn,
@@ -1005,7 +1006,7 @@ export function PayrollTab({ employees }: PayrollTabProps) {
                         return;
                       }
                       const claim: TravelClaim = {
-                        id: `TRV-${100 + travelClaims.length + 1}`,
+                        id: `TRV-${nextSeq(travelClaims.map(t => t.id), 100)}`,
                         employeeName: newTravelStaffName,
                         amount: parseFloat(newTravelAmt).toFixed(2),
                         purpose: newTravelPurpose || 'Official Travel',

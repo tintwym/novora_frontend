@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import type { Department, EmploymentStatus, ModuleEmployee } from '../../types/moduleEmployee'
 import { showActionToast } from '../../utils/actionToast'
+import { nextSeq } from '../../utils/nextSeq';
 
 type AddEmployeeModalProps = {
   onClose: () => void
@@ -131,10 +132,10 @@ export function AddEmployeeModal({ onClose, onAddEmployee }: AddEmployeeModalPro
 
   // Terminal Row Adders
   const handleAddTerminal = () => {
-    const nextId = (terminalsList.length + 1).toString();
+    const seq = nextSeq(terminalsList.map(t => t.id));
     setTerminalsList([
       ...terminalsList,
-      { id: nextId, taNumber: `TA-00${450 + terminalsList.length + 1}`, terminal: 'Level 3 — Terminal 2' }
+      { id: String(seq), taNumber: `TA-00${450 + seq}`, terminal: 'Level 3 — Terminal 2' }
     ]);
   };
 

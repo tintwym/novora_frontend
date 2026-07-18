@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { showActionToast } from '../../utils/actionToast'
 import type { ModuleEmployee } from '../../types/moduleEmployee'
+import { nextSeq } from '../../utils/nextSeq';
 
 type EngagementTabProps = {
   employees: ModuleEmployee[]
@@ -408,7 +409,7 @@ export function EngagementTab({ employees }: EngagementTabProps) {
     const badgePreset = badgePresets[selectedBadgeIndex];
 
     const newShoutOut: ShoutOut = {
-      id: `SO-0${shoutOuts.length + 1}`,
+      id: `SO-${String(nextSeq(shoutOuts.map(s => s.id))).padStart(2, '0')}`,
       senderName: 'You (Authenticated)',
       receiverId: selectedEmployee.id,
       receiverName: selectedEmployee.name,
