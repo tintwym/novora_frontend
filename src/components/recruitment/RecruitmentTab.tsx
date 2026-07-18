@@ -45,6 +45,7 @@ import type {
   Offer,
   PreOnboarding,
 } from '../../data/mockRecruitment'
+import { nextSeq } from '../../utils/nextSeq'
 
 type RecruitmentTabProps = {
   onAddEmployeeAsRecord?: (newEmp: ModuleEmployee) => void
@@ -299,7 +300,7 @@ export function RecruitmentTab({ onAddEmployeeAsRecord }: RecruitmentTabProps) {
     e.preventDefault();
     const posTitle = newPost.position || 'New Position';
     const post: JobPosting = {
-      id: `POST-00${postings.length + 1}`,
+      id: `POST-${String(nextSeq(postings.map(p => p.id))).padStart(3, '0')}`,
       position: posTitle,
       channel: newPost.channel,
       views: 120,
@@ -347,7 +348,7 @@ export function RecruitmentTab({ onAddEmployeeAsRecord }: RecruitmentTabProps) {
     e.preventDefault();
     const cand = candidates.find(c => c.id === newInt.candidateId) || candidates[0];
     const item: Interview = {
-      id: `INT-0${interviews.length + 1}`,
+      id: `INT-${String(nextSeq(interviews.map(i => i.id))).padStart(2, '0')}`,
       candidateName: cand.name,
       position: cand.positionApplied,
       stage: newInt.stage.replace(' interview', '').replace(' screening', ''),
@@ -367,10 +368,10 @@ export function RecruitmentTab({ onAddEmployeeAsRecord }: RecruitmentTabProps) {
     if (!newOffer.candidateName) return;
 
     const item: Offer = {
-      id: `OFFER-00${offers.length + 1}`,
+      id: `OFFER-${String(nextSeq(offers.map(o => o.id))).padStart(3, '0')}`,
       candidateName: newOffer.candidateName,
       position: newOffer.position || 'Recruitment Officer',
-      salary: Number(newOffer.salary).toLocaleString(),
+      salary: Number(String(newOffer.salary).replace(/,/g, '')).toLocaleString(),
       sentDate: 'Today',
       expiryDate: '14 Days From Now',
       status: 'Sent',
@@ -1497,7 +1498,7 @@ export function RecruitmentTab({ onAddEmployeeAsRecord }: RecruitmentTabProps) {
                   cancelled: 0,
                   interviews: `${Math.round(3 * periodMultiplier)} loops`,
                   offers: `${Math.round(1 * periodMultiplier)} extended`,
-                  signed: `${Math.round(0 * periodMultiplier)} signed`,
+                  signed: `0 signed`,
                   text: 'HR entries require cross-evaluation from Nina Reza.'
                 };
               default:
@@ -2817,7 +2818,7 @@ export function RecruitmentTab({ onAddEmployeeAsRecord }: RecruitmentTabProps) {
                       <div className="flex justify-between md:border-r border-slate-800/50 pr-4">
                         <span className="text-slate-400">Salary range</span>
                         <span className="text-white font-bold">
-                          MYR {Number(reqForm.salaryMin).toLocaleString()} &mdash; {Number(reqForm.salaryMax).toLocaleString()}
+                          MYR {Number(String(reqForm.salaryMin).replace(/,/g, '')).toLocaleString()} &mdash; {Number(String(reqForm.salaryMax).replace(/,/g, '')).toLocaleString()}
                         </span>
                       </div>
                       <div className="flex justify-between pl-0 md:pl-4">

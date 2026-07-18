@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { showActionToast } from '../../utils/actionToast'
 import type { ModuleEmployee } from '../../types/moduleEmployee'
+import { nextSeq } from '../../utils/nextSeq';
 
 type OnOffBoardingTabProps = {
   employees: ModuleEmployee[]
@@ -198,7 +199,7 @@ export function OnOffBoardingTab({ employees }: OnOffBoardingTabProps) {
       return;
     }
     const newDoc: PreBoardingDoc = {
-      id: `DOC0${preBoardingDocs.length + 1}`,
+      id: `DOC${String(nextSeq(preBoardingDocs.map(d => d.id))).padStart(2, '0')}`,
       name: newDocName,
       category: newDocCategory,
       status: 'Verification Required',

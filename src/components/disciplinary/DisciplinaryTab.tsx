@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { showActionToast } from '../../utils/actionToast'
 import type { ModuleEmployee } from '../../types/moduleEmployee'
+import { nextSeq } from '../../utils/nextSeq';
 
 type DisciplinaryTabProps = {
   employees: ModuleEmployee[]
@@ -328,7 +329,7 @@ export function DisciplinaryTab({ employees }: DisciplinaryTabProps) {
     }
 
     const newReasonObj: DisciplinaryReason = {
-      id: `REC-${String(reasons.length + 1).padStart(3, '0')}`,
+      id: `REC-${String(nextSeq(reasons.map(r => r.id))).padStart(3, '0')}`,
       name: newReasonName,
       severity: newReasonSeverity,
       description: newReasonDesc,
@@ -443,7 +444,7 @@ export function DisciplinaryTab({ employees }: DisciplinaryTabProps) {
     }
 
     const empObj = employees.find((x) => x.id === formEmployeeId);
-    const caseIdNum = cases.length + 1;
+    const caseIdNum = nextSeq(cases.map(c => c.id));
 
     const newCase: DisciplinaryCase = {
       id: `DISC-2026-${String(caseIdNum).padStart(3, '0')}`,

@@ -16,6 +16,7 @@ import {
   Eye,
 } from 'lucide-react'
 import { showActionToast } from '../../utils/actionToast'
+import { nextSeq } from '../../utils/nextSeq';
 
 export type AssetsEmployeeOption = {
   id: string
@@ -459,7 +460,7 @@ export function AssetsTab({ employees }: AssetsTabProps) {
       addToast(`Asset ${editingItem.id} updated successfully`, 'success');
     } else {
       // Add Brand New Asset
-      const newId = `AST-${1000 + assets.length + 1}`;
+      const newId = `AST-${nextSeq(assets.map(a => a.id), 1000)}`;
       const newAsset = {
         id: newId,
         name: formAssetName,
@@ -521,7 +522,7 @@ export function AssetsTab({ employees }: AssetsTabProps) {
       addToast(`Category ${formCatName} updated successfully`, 'success');
     } else {
       const newCategory = {
-        id: `CAT-${categories.length + 1}`,
+        id: `CAT-${nextSeq(categories.map(c => c.id))}`,
         name: formCatName,
         code: formCatCode.toUpperCase(),
         description: formCatDesc || 'No summary configured',
@@ -631,7 +632,7 @@ export function AssetsTab({ employees }: AssetsTabProps) {
       addToast(`Incident report ${editingItem.id} updated`, 'success');
     } else {
       const newInc = {
-        id: `INC-50${incidents.length + 1}`,
+        id: `INC-${nextSeq(incidents.map(i => i.id), 500)}`,
         assetId: formIncAssetId,
         assetName: matchedAsset.name,
         employeeId: formIncEmployeeId,
@@ -669,7 +670,7 @@ export function AssetsTab({ employees }: AssetsTabProps) {
     }
 
     const matchedEmp = employees.find(emp => emp.id === formReqEmployeeId) || employees[0];
-    const newReqId = `REQ-40${requests.length + 1}`;
+    const newReqId = `REQ-${nextSeq(requests.map(r => r.id), 400)}`;
     const newReq = {
       id: newReqId,
       employeeId: matchedEmp.id,
@@ -724,7 +725,7 @@ export function AssetsTab({ employees }: AssetsTabProps) {
       addToast(`Request approved! Standard stock item ${availableMatch.id} allocated.`, 'success');
     } else {
       // Provision a fresh virtual asset
-      const newId = `AST-${1000 + assets.length + 1}`;
+      const newId = `AST-${nextSeq(assets.map(a => a.id), 1000)}`;
       const newAsset = {
         id: newId,
         name: req.assetRequested,

@@ -19,6 +19,7 @@ import {
   Printer,
 } from 'lucide-react'
 import { showActionToast } from '../../utils/actionToast'
+import { nextSeq } from '../../utils/nextSeq';
 
 export type ModuleEmployeeOption = {
   id: string
@@ -352,7 +353,8 @@ export function ClaimsTab({ employees }: ClaimsTabProps) {
       addToast('Please select a valid claim category.', 'error');
       return;
     }
-    if (parseFloat(claimAmount) <= 0) {
+    const parsedAmount = parseFloat(claimAmount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
       addToast('Please input an amount greater than 0.', 'error');
       return;
     }
@@ -365,14 +367,15 @@ export function ClaimsTab({ employees }: ClaimsTabProps) {
     if (claimCategory === 'Meal allowance' && myrEquiv > 30.00) badgeFlg = 'Over limit';
     if (claimCategory === 'Transport' && myrEquiv > 200.00) badgeFlg = 'Over limit';
 
+    const claimSeq = nextSeq(claims.map(c => c.id), 300);
     const newClaimObj: Claim = {
-      id: `CLM-${300 + claims.length + 1}`,
-      empId: `EMP-${100 + claims.length + 1}`,
+      id: `CLM-${claimSeq}`,
+      empId: `EMP-${claimSeq - 200}`,
       empName: nameToUse,
       department: deptToUse,
       category: claimCategory,
       date: claimDate,
-      amount: parseFloat(claimAmount),
+      amount: parsedAmount,
       currency: claimCurrency,
       myrEquivalent: myrEquiv,
       vendor: claimVendor || 'Direct Submission',
@@ -2337,7 +2340,7 @@ export function ClaimsTab({ employees }: ClaimsTabProps) {
                     onClick={() => {
                       if (!newRuleInput.trim()) return;
                       const newRule = {
-                        id: validationRules.length + 1,
+                        id: nextSeq(validationRules.map(r => r.id)),
                         label: newRuleInput,
                         enabled: true
                       };

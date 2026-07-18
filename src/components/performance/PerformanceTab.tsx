@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { showActionToast } from '../../utils/actionToast'
 import type { ModuleEmployee } from '../../types/moduleEmployee'
+import { nextSeq } from '../../utils/nextSeq';
 
 type PerformanceTabProps = {
   employees: ModuleEmployee[]
@@ -262,7 +263,9 @@ export function PerformanceTab({ employees }: PerformanceTabProps) {
           return `${day} ${months[monthIdx]} ${year}`;
         }
       }
-    } catch (e) {}
+    } catch {
+      // fall through to returning the raw string
+    }
     return dateStr;
   };
 
@@ -321,7 +324,7 @@ export function PerformanceTab({ employees }: PerformanceTabProps) {
     }
     if (activeModal === 'level_new') {
       const newLvl = {
-        no: levels.length + 1,
+        no: nextSeq(levels.map(l => l.no)),
         name: lvlName,
         description: lvlDesc || 'Performance expectations',
         employees: Math.floor(Math.random() * 40),

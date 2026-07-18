@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react'
+import { useState, useEffect, useRef, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ChevronLeft,
@@ -274,6 +274,11 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
   // Track state changes to allow overall saving
   const [_isStateModified, setIsStateModified] = useState(false);
 
+  // Keep a ref of the docs map so the sync effect below can read it without
+  // re-running (and wiping unsaved edits) every time a document is added/removed
+  const employeeDocsMapRef = useRef(employeeDocsMap);
+  employeeDocsMapRef.current = employeeDocsMap;
+
   // Sync profile data when selected employee changes
   useEffect(() => {
     if (!employee) return
@@ -282,7 +287,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
     const isSarah = employee.name.toLowerCase().includes('sarah lim');
 
     // Retrieve this employee's documents, or seed some default ones
-    const existingDocs = employeeDocsMap[employee.id] || [
+    const existingDocs = employeeDocsMapRef.current[employee.id] || [
       { id: '1', name: `Offer Letter - ${employee.name}`, type: 'Contract', uploaded: '12 Jan 2021', expiry: '—' },
       { id: '2', name: 'NRIC Copy', type: 'ID', uploaded: '12 Jan 2021', expiry: '—' },
       { id: '3', name: 'Passport', type: 'ID', uploaded: '10 Jan 2020', expiry: '9 Jan 2030' }
@@ -321,7 +326,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
       documentsList: existingDocs,
     }));
 
-    if (!employeeDocsMap[employee.id]) {
+    if (!employeeDocsMapRef.current[employee.id]) {
       setEmployeeDocsMap(prev => ({
         ...prev,
         [employee.id]: existingDocs
@@ -329,7 +334,10 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
     }
     
     setIsStateModified(false);
-  }, [employee, employeeDocsMap]);
+    // Reset only when the selected employee changes; docs are read via ref so
+    // document uploads/deletes don't wipe in-progress form edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [employee?.id]);
 
   // Handle local state edit auto-saves directly to parent
   const triggerAutoSave = (newJobType?: EmploymentStatus, newMobile?: string) => {
@@ -1015,7 +1023,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2.5">
                 <h2 className="text-xl font-bold tracking-tight text-slate-800 leading-none">{employee.name}</h2>
-                <span className="bg-emerald-50 text-[#059669] border border-emerald-100/30 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                <span className="bg-emerald-50 text-emerald-600 border border-emerald-100/30 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Active
                 </span>
@@ -1467,7 +1475,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                             type="text" 
                             value={(profileData as any)[field.key]} 
                             onChange={(e) => { setProfileData({...profileData, [field.key]: e.target.value}); setIsStateModified(true); }}
-                            className="bg-slate-50 bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 px-2 py-1 rounded text-xs font-bold text-slate-800"
+                            className="bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 px-2 py-1 rounded text-xs font-bold text-slate-800"
                           />
                         ) : (
                           <span className="text-slate-800 font-bold block pt-0.5">{field.value}</span>
@@ -2176,7 +2184,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                     <span className="p-2.5 bg-white text-blue-700/60 rounded-full border border-blue-50/50">
                       <ArrowDown className="h-4.5 w-4.5 shrink-0" />
                     </span>
-                    <span className="text-[#1d4ed8] font-black text-2xl font-mono tracking-tighter">
+                    <span className="text-blue-700 font-black text-2xl font-mono tracking-tighter">
                       MYR {estimatedNetPay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
@@ -2302,7 +2310,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                               <td className="py-3.5 text-slate-500 font-medium">{edu.fieldOfStudy}</td>
                               <td className="py-3.5 font-mono text-slate-500">{edu.year}</td>
                               <td className="py-3.5">
-                                <span className="bg-[#ecfdf5] text-[#059669] px-2.5 py-0.5 rounded font-black text-[9.5px] uppercase tracking-wider border border-[#ecfdf5]">
+                                <span className="bg-[#ecfdf5] text-emerald-600 px-2.5 py-0.5 rounded font-black text-[9.5px] uppercase tracking-wider border border-[#ecfdf5]">
                                   {edu.grade || 'Pass'}
                                 </span>
                               </td>
@@ -2677,7 +2685,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                 <button 
                   type="button"
                   onClick={() => setShowUploadModal(false)}
-                  className="px-3.5 py-2 text-[10.5px] font-black rounded-xl text-slate-500 hover:text-slate-800 bg-slate-50 uppercase tracking-widest cursor-pointer font-bold transition-colors"
+                  className="px-3.5 py-2 text-[10.5px] font-black rounded-xl text-slate-500 hover:text-slate-800 bg-slate-50 uppercase tracking-widest cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
@@ -2827,7 +2835,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
           <div className="bg-white border border-slate-100 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
-                <h4 className="text-xs font-black text-slate-800 text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Plus className="h-4 w-4 text-blue-500 shrink-0" />
                   <span>{editingNok ? 'Edit Next of Kin' : 'Add Next of Kin'}</span>
                 </h4>
@@ -2853,7 +2861,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                   placeholder="e.g. John Connor"
                   value={nokForm.name}
                   onChange={(e) => setNokForm({...nokForm, name: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-800 text-slate-800"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-800"
                 />
               </div>
 
@@ -2883,7 +2891,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                     placeholder="e.g. +6012345678"
                     value={nokForm.contactNo}
                     onChange={(e) => setNokForm({...nokForm, contactNo: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800 text-slate-800"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800"
                   />
                 </div>
               </div>
@@ -2926,7 +2934,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
           <div className="bg-white border border-slate-100 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
-                <h4 className="text-xs font-black text-slate-800 text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Plus className="h-4 w-4 text-blue-550 shrink-0 text-blue-500" />
                   <span>{editingBiometricDevice ? 'Edit Device' : 'Register Device'}</span>
                 </h4>
@@ -2957,7 +2965,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                     className={`w-full border rounded-xl px-3 py-2 text-xs font-bold transition-all ${
                       editingBiometricDevice 
                         ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed font-bold' 
-                        : 'bg-slate-50 border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 text-slate-800 text-slate-800'
+                        : 'bg-slate-50 border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 text-slate-800'
                     }`}
                   />
                 </div>
@@ -2985,7 +2993,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                   placeholder="e.g. Lobby Terminal 4"
                   value={biometricForm.terminalName}
                   onChange={(e) => setBiometricForm({...biometricForm, terminalName: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-800 text-slate-800"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-800"
                 />
               </div>
 
@@ -2997,7 +3005,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                     placeholder="e.g. Lab Floor"
                     value={biometricForm.location}
                     onChange={(e) => setBiometricForm({...biometricForm, location: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800 text-slate-800"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800"
                   />
                 </div>
 
@@ -3060,7 +3068,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
 
             <form onSubmit={handleSaveAllowance} className="mt-4 space-y-4 text-xs font-semibold text-slate-700">
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Allowance Type *</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Allowance Type *</label>
                 <input 
                   type="text" 
                   required
@@ -3073,7 +3081,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Amount (MYR) *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Amount (MYR) *</label>
                   <input 
                     type="number" 
                     required
@@ -3087,7 +3095,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Frequency *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Frequency *</label>
                   <select 
                     value={allowanceForm.frequency}
                     onChange={(e) => setAllowanceForm({...allowanceForm, frequency: e.target.value})}
@@ -3103,7 +3111,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
 
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Taxable Status</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Taxable Status</label>
                   <div className="flex items-center gap-2.5 mt-2.5">
                     <input 
                       type="checkbox" 
@@ -3117,7 +3125,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Status *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Status *</label>
                   <select 
                     value={allowanceForm.status}
                     onChange={(e) => setAllowanceForm({...allowanceForm, status: e.target.value as any})}
@@ -3156,7 +3164,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
           <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
-                <h4 className="text-xs font-black text-slate-800 text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Plus className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                   <span>{editingDeduction ? 'Edit Deduction' : 'Add Deduction'}</span>
                 </h4>
@@ -3175,7 +3183,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
 
             <form onSubmit={handleSaveDeduction} className="mt-4 space-y-4 text-xs font-semibold text-slate-700">
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Deduction Type *</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Deduction Type *</label>
                 <input 
                   type="text" 
                   required
@@ -3188,7 +3196,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Amount (MYR) *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Amount (MYR) *</label>
                   <input 
                     type="number" 
                     required
@@ -3202,7 +3210,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Frequency *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Frequency *</label>
                   <select 
                     value={deductionForm.frequency}
                     onChange={(e) => setDeductionForm({...deductionForm, frequency: e.target.value})}
@@ -3218,7 +3226,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Reference / Type</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Reference / Type</label>
                   <input 
                     type="text" 
                     placeholder="e.g. Statutory, Loan"
@@ -3229,7 +3237,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Status *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Status *</label>
                   <select 
                     value={deductionForm.status}
                     onChange={(e) => setDeductionForm({...deductionForm, status: e.target.value as any})}
@@ -3287,7 +3295,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
 
             <form onSubmit={handleSaveCareer} className="mt-4 space-y-4 text-xs font-semibold text-slate-700">
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Company *</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Company *</label>
                 <input 
                   type="text" 
                   required
@@ -3299,7 +3307,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Position *</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Position *</label>
                 <input 
                   type="text" 
                   required
@@ -3312,7 +3320,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">From</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">From</label>
                   <input 
                     type="text" 
                     placeholder="e.g. Jan 2011"
@@ -3323,7 +3331,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">To</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">To</label>
                   <input 
                     type="text" 
                     placeholder="e.g. Jun 2013 / Present"
@@ -3335,7 +3343,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Reason for leaving</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Reason for leaving</label>
                 <input 
                   type="text" 
                   placeholder="e.g. Better growth opportunities, relocation"
@@ -3391,7 +3399,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
 
             <form onSubmit={handleSaveEducation} className="mt-4 space-y-4 text-xs font-semibold text-slate-700">
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Institution *</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Institution *</label>
                 <input 
                   type="text" 
                   required
@@ -3403,7 +3411,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Qualification *</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Qualification *</label>
                 <input 
                   type="text" 
                   required
@@ -3415,7 +3423,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Field Of Study</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Field Of Study</label>
                 <input 
                   type="text" 
                   placeholder="e.g. Computer Science, Accounting"
@@ -3427,7 +3435,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Year</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Year</label>
                   <input 
                     type="text" 
                     placeholder="e.g. 2015"
@@ -3438,7 +3446,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Grade</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Grade</label>
                   <input 
                     type="text" 
                     placeholder="e.g. Pass, First Class"
@@ -3511,7 +3519,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                 >
                   <Download className="h-4 w-4" />
                 </button>
-                <div className="h-6 w-[1px] bg-slate-200 mx-1"></div>
+                <div className="h-6 w-px bg-slate-200 mx-1"></div>
                 <button 
                   onClick={() => {
                     setShowDocPreviewModal(false);
@@ -3642,7 +3650,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                     </div>
 
                     {/* Simulated Malaysian Identity Card (MyKad clone) */}
-                    <div className="bg-gradient-to-tr from-sky-50 to-indigo-50 border border-slate-200 rounded-2xl p-6 shadow-sm relative overflow-hidden flex flex-col md:flex-row gap-6">
+                    <div className="bg-linear-to-tr from-sky-50 to-indigo-50 border border-slate-200 rounded-2xl p-6 shadow-sm relative overflow-hidden flex flex-col md:flex-row gap-6">
                       
                       {/* Holographic secure element stamp */}
                       <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-yellow-400/10 border border-yellow-500/10 rotate-45 select-none pointer-events-none"></div>
@@ -3650,7 +3658,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                       {/* Photo Section */}
                       <div className="flex flex-col items-center shrink-0 space-y-2">
                         <div className="h-28 w-24 bg-slate-200 border border-slate-300 rounded-md overflow-hidden flex flex-col items-center justify-center text-slate-400 relative shadow-inner">
-                          <div className="absolute inset-0 bg-gradient-to-b from-[#2F66E0]/5 to-[#2F66E0]/15"></div>
+                          <div className="absolute inset-0 bg-linear-to-b from-[#2F66E0]/5 to-[#2F66E0]/15"></div>
                           {/* Circular Badge as Face */}
                           <div className="h-14 w-14 bg-slate-400 rounded-full flex items-center justify-center text-slate-150 text-lg font-black border-2 border-white/80 mt-3 shadow z-10">
                             {employee ? employee.name.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase() : 'EE'}
@@ -3773,7 +3781,7 @@ export function EmployeeProfileTab({ employee, onBackToDirectory, onDeleteEmploy
                                     <p className="font-bold text-slate-800 text-[11px]">{edu.qualification} ({edu.fieldOfStudy})</p>
                                     <div className="text-slate-500 font-medium text-[10px]">
                                       <span>{edu.institution} &bull; Year {edu.year} </span>
-                                      <span className="bg-[#ecfdf5] text-[#059669] px-1 py-0.2 rounded text-[9px] font-extrabold">{edu.grade || 'Pass'}</span>
+                                      <span className="bg-[#ecfdf5] text-emerald-600 px-1 py-0.2 rounded text-[9px] font-extrabold">{edu.grade || 'Pass'}</span>
                                     </div>
                                   </div>
                                 ))

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { showActionToast } from '../../utils/actionToast'
 import type { ModuleEmployee } from '../../types/moduleEmployee'
+import { nextSeq } from '../../utils/nextSeq';
 
 type LearningTabProps = {
   employees: ModuleEmployee[]
@@ -434,7 +435,7 @@ export function LearningTab({ employees }: LearningTabProps) {
     }
 
     const pathItem: LearningPath = {
-      id: `PTH-0${learningPaths.length + 1}`,
+      id: `PTH-${String(nextSeq(learningPaths.map(p => p.id))).padStart(2, '0')}`,
       name: newPathName,
       description: newPathDesc,
       targetDept: newPathDept,

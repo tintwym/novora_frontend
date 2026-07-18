@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { showActionToast } from '../../utils/actionToast'
 import type { ModuleEmployee } from '../../types/moduleEmployee'
+import { nextSeq } from '../../utils/nextSeq';
 
 type LeaveTabProps = {
   employees: ModuleEmployee[]
@@ -174,7 +175,7 @@ export function LeaveTab({ employees }: LeaveTabProps) {
 
   const handleCreateLeavePolicy = (e: FormEvent) => {
     e.preventDefault();
-    const id = `POL0${leavePolicies.length + 1}`;
+    const id = `POL${String(nextSeq(leavePolicies.map(p => p.id))).padStart(2, '0')}`;
     const newPolicy: LeavePolicy = {
       id,
       type: newPolicyData.type,
@@ -320,7 +321,7 @@ export function LeaveTab({ employees }: LeaveTabProps) {
 
   const handleCreateLeaveType = (e: FormEvent) => {
     e.preventDefault();
-    const id = `LT0${leaveTypes.length + 1}`;
+    const id = `LT${String(nextSeq(leaveTypes.map(t => t.id))).padStart(2, '0')}`;
     const newType: LeaveType = {
       id,
       name: newTypeData.name,
@@ -368,15 +369,30 @@ export function LeaveTab({ employees }: LeaveTabProps) {
     return diffDays;
   };
 
+  const validateDateRange = (from: string, to: string): boolean => {
+    const s = new Date(from);
+    const e = new Date(to);
+    if (!from || !to || isNaN(s.getTime()) || isNaN(e.getTime())) {
+      addToast('Please select both a start and end date', 'error');
+      return false;
+    }
+    if (e.getTime() < s.getTime()) {
+      addToast('End date cannot be before the start date', 'error');
+      return false;
+    }
+    return true;
+  };
+
   const handleSelfRequestSubmit = (e: FormEvent) => {
     e.preventDefault();
+    if (!validateDateRange(reqFromDate, reqToDate)) return;
     const days = calculateDays(reqFromDate, reqToDate);
     const formattedFrom = new Date(reqFromDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     const formattedTo = new Date(reqToDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     const dateStr = formattedFrom === formattedTo ? formattedFrom : `${formattedFrom}-${formattedTo}`;
 
     const newReq: LeaveRequestRecord = {
-      id: `REQ${requests.length + 1}`,
+      id: `REQ${String(nextSeq(requests.map(r => r.id))).padStart(2, '0')}`,
       employeeId: 'EMP-0285', // Self ID or active user profile
       name: 'Sarah Lim',
       dept: 'Engineering',
@@ -400,6 +416,7 @@ export function LeaveTab({ employees }: LeaveTabProps) {
       addToast('Please select an employee record first', 'error');
       return;
     }
+    if (!validateDateRange(rfoFromDate, rfoToDate)) return;
     const empObj = employees.find(emp => emp.id === rfoEmployee);
     const days = calculateDays(rfoFromDate, rfoToDate);
     const formattedFrom = new Date(rfoFromDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
@@ -407,7 +424,7 @@ export function LeaveTab({ employees }: LeaveTabProps) {
     const dateStr = formattedFrom === formattedTo ? formattedFrom : `${formattedFrom}-${formattedTo}`;
 
     const newReq: LeaveRequestRecord = {
-      id: `REQ${requests.length + 1}`,
+      id: `REQ${String(nextSeq(requests.map(r => r.id))).padStart(2, '0')}`,
       employeeId: rfoEmployee,
       name: empObj ? empObj.name : 'Unknown Employee',
       dept: empObj ? empObj.department : 'Operations',
