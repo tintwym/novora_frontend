@@ -25,12 +25,12 @@ cd ../novora_backend
    - **Build Command:** `npm run build`
    - **Output Directory:** `dist`
    - **Do not set** `VITE_API_BASE_URL` (leave empty — `vercel.json` proxies `/api` to Render)
-4. Edit `vercel.json` if your Render API host is not `https://novora-backend.onrender.com`.
+4. Edit `vercel.json` if your Render API host is not `https://novora-backend-56ot.onrender.com`.
 5. Deploy. Preferred production URL: `https://novora-hrms.vercel.app` (already allowlisted in backend CORS for direct API use).
 
 ### Backend checklist
 
-- Render service **`novora-backend`** (Spring Boot from `novora_backend` repo) must be live — not the FastAPI “Smart Finance” stub.
-- Confirm `https://novora-backend.onrender.com/api/auth/csrf` returns a JSON `token`.
+- Render service **`novora-backend-56ot`** (Spring Boot from `novora_backend` repo) must be live.
+- Confirm `https://novora-backend-56ot.onrender.com/api/auth/csrf` returns a JSON `token`.
 - If you ever call the API host directly from the browser, set on Render:
   `APP_CORS_ADDITIONAL_ORIGIN_PATTERNS=https://novora-hrms.vercel.app`
