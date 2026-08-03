@@ -2,8 +2,9 @@ import { ApiError } from './types'
 
 /**
  * Base URL for API calls.
- * - Dev: leave empty and use Vite proxy (`/api` → backend) so cookies are same-origin.
- * - Prod: set `VITE_API_BASE_URL` to the Render/API origin (e.g. https://api.example.com).
+ * - Local / Vercel: leave empty and use same-origin `/api` (Vite proxy or vercel.json rewrites)
+ *   so session cookies + CSRF stay same-site.
+ * - Only set `VITE_API_BASE_URL` if you intentionally call the API origin directly.
  */
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
@@ -75,6 +76,8 @@ export type ApiRequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown
   /** Skip CSRF header (safe for GET). */
   skipCsrf?: boolean
+  /** Internal: already retried after CSRF refresh. */
+  _csrfRetried?: boolean
 }
 
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
@@ -105,6 +108,11 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   }
 
   if (!res.ok) {
+    if (res.status === 403 && needsCsrf && !options._csrfRetried) {
+      clearCsrfCache()
+      await ensureCsrfToken(true)
+      return apiRequest<T>(path, { ...options, _csrfRetried: true })
+    }
     if (res.status === 403) {
       clearCsrfCache()
     }

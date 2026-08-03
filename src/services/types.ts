@@ -12,6 +12,8 @@ export interface AuthResponse {
   tokenType: string
   userId: string
   email: string
+  /** Display name from linked employee profile when available. */
+  fullName?: string | null
   roles: string[]
   organization: OrganizationSnapshot | null
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ChevronLeft,
@@ -67,6 +67,8 @@ export default function EmployeeProfileTab({
 
   // Persisted dictionary to separate and save custom documents for each employee
   const [employeeDocsMap, setEmployeeDocsMap] = useState<Record<string, Array<{id: string, name: string, type: string, uploaded: string, expiry: string}>>>({});
+  const employeeDocsMapRef = useRef(employeeDocsMap);
+  employeeDocsMapRef.current = employeeDocsMap;
 
   // Document Upload Form local state
   const [docType, setDocType] = useState('Contract');
@@ -283,17 +285,20 @@ export default function EmployeeProfileTab({
   // Track state changes to allow overall saving
   const [isStateModified, setIsStateModified] = useState(false);
 
-  // Sync profile data when selected employee changes
+  // Sync profile data when selected employee changes (not when docs map updates —
+  // that would wipe in-progress edits after an upload).
   useEffect(() => {
     if (!employee) return;
 
+    const employeeId = employee.id;
     const isSarah = employee.name.toLowerCase().includes('sarah lim');
 
-    const existingDocs = employeeDocsMap[employee.id] || [
+    const defaultDocs = [
       { id: '1', name: `Offer Letter - ${employee.name}`, type: 'Contract', uploaded: '12 Jan 2021', expiry: '—' },
       { id: '2', name: 'NRIC Copy', type: 'ID', uploaded: '12 Jan 2021', expiry: '—' },
       { id: '3', name: 'Passport', type: 'ID', uploaded: '10 Jan 2020', expiry: '9 Jan 2030' }
     ];
+    const existingDocs = employeeDocsMapRef.current[employeeId] || defaultDocs;
 
     const timer = window.setTimeout(() => {
       setProfileData(prev => ({
@@ -326,10 +331,10 @@ export default function EmployeeProfileTab({
         documentsList: existingDocs,
       }));
 
-      if (!employeeDocsMap[employee.id]) {
+      if (!employeeDocsMapRef.current[employeeId]) {
         setEmployeeDocsMap(prev => ({
           ...prev,
-          [employee.id]: existingDocs
+          [employeeId]: existingDocs
         }));
       }
 
@@ -337,11 +342,11 @@ export default function EmployeeProfileTab({
     }, 0);
 
     return () => window.clearTimeout(timer);
-  }, [employee, employeeDocsMap]);
+  }, [employee?.id, employee?.name, employee?.employmentStatus, employee?.mobile]);
 
   if (!employee) {
     return (
-      <div id="no-profile-view" className="bg-white border border-slate-100 rounded-3xl p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
+      <div id="no-profile-view" className="bg-white border border-slate-100 rounded-3xl p-12 text-center flex flex-col items-center justify-center min-h-100">
         <Users className="h-10 w-10 text-slate-300 mb-3" />
         <p className="text-slate-500 text-sm font-semibold">No Employee profile Selected</p>
         <p className="text-slate-400 text-xs mt-1">Please select an employee from the directory list.</p>
@@ -2576,7 +2581,7 @@ export default function EmployeeProfileTab({
                         <FileText className="h-4.5 w-4.5 shrink-0" />
                       </div>
                       <div className="space-y-0.5">
-                        <p className="text-[11px] font-bold text-slate-800 line-clamp-1 truncate max-w-[240px]">
+                        <p className="text-[11px] font-bold text-slate-800 line-clamp-1 truncate max-w-60">
                           {selectedFile.name}
                         </p>
                         <p className="text-[9px] text-slate-450 font-mono">
@@ -2682,7 +2687,7 @@ export default function EmployeeProfileTab({
                 <button 
                   type="button"
                   onClick={() => setShowUploadModal(false)}
-                  className="px-3.5 py-2 text-[10.5px] font-black rounded-xl text-slate-500 hover:text-slate-800 bg-slate-50 uppercase tracking-widest cursor-pointer font-bold transition-colors"
+                  className="px-3.5 py-2 text-[10.5px] font-black rounded-xl text-slate-500 hover:text-slate-800 bg-slate-50 uppercase tracking-widest cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
@@ -3065,7 +3070,7 @@ export default function EmployeeProfileTab({
 
             <form onSubmit={handleSaveAllowance} className="mt-4 space-y-4 text-xs font-semibold text-slate-700">
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Allowance Type *</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Allowance Type *</label>
                 <input 
                   type="text" 
                   required
@@ -3078,7 +3083,7 @@ export default function EmployeeProfileTab({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Amount (MYR) *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Amount (MYR) *</label>
                   <input 
                     type="number" 
                     required
@@ -3092,7 +3097,7 @@ export default function EmployeeProfileTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Frequency *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Frequency *</label>
                   <select 
                     value={allowanceForm.frequency}
                     onChange={(e) => setAllowanceForm({...allowanceForm, frequency: e.target.value})}
@@ -3108,7 +3113,7 @@ export default function EmployeeProfileTab({
 
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Taxable Status</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Taxable Status</label>
                   <div className="flex items-center gap-2.5 mt-2.5">
                     <input 
                       type="checkbox" 
@@ -3122,7 +3127,7 @@ export default function EmployeeProfileTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Status *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Status *</label>
                   <select 
                     value={allowanceForm.status}
                     onChange={(e) => setAllowanceForm({...allowanceForm, status: e.target.value as any})}
@@ -3180,7 +3185,7 @@ export default function EmployeeProfileTab({
 
             <form onSubmit={handleSaveDeduction} className="mt-4 space-y-4 text-xs font-semibold text-slate-700">
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Deduction Type *</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Deduction Type *</label>
                 <input 
                   type="text" 
                   required
@@ -3193,7 +3198,7 @@ export default function EmployeeProfileTab({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Amount (MYR) *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Amount (MYR) *</label>
                   <input 
                     type="number" 
                     required
@@ -3207,7 +3212,7 @@ export default function EmployeeProfileTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Frequency *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Frequency *</label>
                   <select 
                     value={deductionForm.frequency}
                     onChange={(e) => setDeductionForm({...deductionForm, frequency: e.target.value})}
@@ -3223,7 +3228,7 @@ export default function EmployeeProfileTab({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Reference / Type</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Reference / Type</label>
                   <input 
                     type="text" 
                     placeholder="e.g. Statutory, Loan"
@@ -3234,7 +3239,7 @@ export default function EmployeeProfileTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Status *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Status *</label>
                   <select 
                     value={deductionForm.status}
                     onChange={(e) => setDeductionForm({...deductionForm, status: e.target.value as any})}
@@ -3292,7 +3297,7 @@ export default function EmployeeProfileTab({
 
             <form onSubmit={handleSaveCareer} className="mt-4 space-y-4 text-xs font-semibold text-slate-700">
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Company *</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Company *</label>
                 <input 
                   type="text" 
                   required
@@ -3304,7 +3309,7 @@ export default function EmployeeProfileTab({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Position *</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Position *</label>
                 <input 
                   type="text" 
                   required
@@ -3317,7 +3322,7 @@ export default function EmployeeProfileTab({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">From</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">From</label>
                   <input 
                     type="text" 
                     placeholder="e.g. Jan 2011"
@@ -3328,7 +3333,7 @@ export default function EmployeeProfileTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">To</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">To</label>
                   <input 
                     type="text" 
                     placeholder="e.g. Jun 2013 / Present"
@@ -3340,7 +3345,7 @@ export default function EmployeeProfileTab({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Reason for leaving</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Reason for leaving</label>
                 <input 
                   type="text" 
                   placeholder="e.g. Better growth opportunities, relocation"
@@ -3396,7 +3401,7 @@ export default function EmployeeProfileTab({
 
             <form onSubmit={handleSaveEducation} className="mt-4 space-y-4 text-xs font-semibold text-slate-700">
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Institution *</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Institution *</label>
                 <input 
                   type="text" 
                   required
@@ -3408,7 +3413,7 @@ export default function EmployeeProfileTab({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Qualification *</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Qualification *</label>
                 <input 
                   type="text" 
                   required
@@ -3420,7 +3425,7 @@ export default function EmployeeProfileTab({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Field Of Study</label>
+                <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Field Of Study</label>
                 <input 
                   type="text" 
                   placeholder="e.g. Computer Science, Accounting"
@@ -3432,7 +3437,7 @@ export default function EmployeeProfileTab({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Year</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Year</label>
                   <input 
                     type="text" 
                     placeholder="e.g. 2015"
@@ -3443,7 +3448,7 @@ export default function EmployeeProfileTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block font-bold">Grade</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Grade</label>
                   <input 
                     type="text" 
                     placeholder="e.g. Pass, First Class"
@@ -3516,7 +3521,7 @@ export default function EmployeeProfileTab({
                 >
                   <Download className="h-4 w-4" />
                 </button>
-                <div className="h-6 w-[1px] bg-slate-200 mx-1"></div>
+                <div className="h-6 w-px bg-slate-200 mx-1"></div>
                 <button 
                   onClick={() => {
                     setShowDocPreviewModal(false);
@@ -3647,7 +3652,7 @@ export default function EmployeeProfileTab({
                     </div>
 
                     {/* Simulated Malaysian Identity Card (MyKad clone) */}
-                    <div className="bg-gradient-to-tr from-sky-50 to-indigo-50 border border-slate-250 rounded-2xl p-6 shadow-sm relative overflow-hidden flex flex-col md:flex-row gap-6">
+                    <div className="bg-linear-to-tr from-sky-50 to-indigo-50 border border-slate-250 rounded-2xl p-6 shadow-sm relative overflow-hidden flex flex-col md:flex-row gap-6">
                       
                       {/* Holographic secure element stamp */}
                       <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-yellow-400/10 border border-yellow-500/10 rotate-45 select-none pointer-events-none"></div>
@@ -3655,7 +3660,7 @@ export default function EmployeeProfileTab({
                       {/* Photo Section */}
                       <div className="flex flex-col items-center shrink-0 space-y-2">
                         <div className="h-28 w-24 bg-slate-200 border border-slate-300 rounded-md overflow-hidden flex flex-col items-center justify-center text-slate-400 relative shadow-inner">
-                          <div className="absolute inset-0 bg-gradient-to-b from-[#2F66E0]/5 to-[#2F66E0]/15"></div>
+                          <div className="absolute inset-0 bg-linear-to-b from-[#2F66E0]/5 to-[#2F66E0]/15"></div>
                           {/* Circular Badge as Face */}
                           <div className="h-14 w-14 bg-slate-400 rounded-full flex items-center justify-center text-slate-150 text-lg font-black border-2 border-white/80 mt-3 shadow z-10">
                             {employee ? employee.name.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase() : 'EE'}
