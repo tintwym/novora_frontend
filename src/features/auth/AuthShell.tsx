@@ -74,7 +74,7 @@ export default function AuthShell({ title, subtitle, children, footer }: AuthShe
 
       {/* Form panel */}
       <main className="flex-1 flex items-center justify-center px-6 py-10">
-        <div className="w-full max-w-[420px]">
+        <div className="w-full max-w-105">
           <div className="mb-8">
             <BrandLockup
               logoClassName="h-11 w-11 shrink-0"
