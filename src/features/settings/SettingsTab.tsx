@@ -35,6 +35,7 @@ import {
   Info,
 } from 'lucide-react';
 import type { Employee } from '@/types';
+import NovoraMark from '@/components/brand/NovoraMark';
 
 interface SettingsTabProps {
   activeSubTab: string;
@@ -578,10 +579,8 @@ export default function SettingsTab({
 
             {/* Logo Settings Card */}
             <div className="bg-slate-50/50 rounded-2xl border border-slate-100 p-5 flex flex-col sm:flex-row items-center gap-5">
-              <div className="relative h-18 w-18 flex items-center justify-center">
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#0a9cf5] to-[#2563eb] rounded-2xl rotate-12 opacity-80" />
-                <div className="absolute inset-2 bg-white rounded-xl rotate-12" />
-                <div className="absolute h-9 w-9 bg-indigo-500 rounded-full flex items-center justify-center text-white font-extrabold text-[15px] shadow-sm select-none">NV</div>
+              <div className="relative h-18 w-18 flex items-center justify-center shrink-0">
+                <NovoraMark className="h-16 w-16" />
               </div>
               <div className="text-center sm:text-left">
                 <h4 className="text-xs font-bold text-slate-800">Novora Pte Ltd</h4>
@@ -2657,7 +2656,7 @@ export default function SettingsTab({
 
               {/* Data Export Center */}
               <div className="space-y-4 bg-white border border-slate-150/80 rounded-2xl p-5 shadow-2xs">
-                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b pb-1.5 font-bold">Data Export Center</h3>
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b pb-1.5">Data Export Center</h3>
                 <p className="text-[11px] font-bold text-slate-400 leading-normal">Instantly compile and packaging corporate database tables into pristine spreadsheet assets.</p>
                 
                 <div className="grid grid-cols-2 gap-2.5">

@@ -347,8 +347,8 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                   }`}>
                     {isCompleted ? <Check className="h-4.5 w-4.5" strokeWidth={3} /> : sIndex}
                   </div>
-                  <span className={`text-xs font-bold transition-colors ${
-                    isActive ? 'text-[#2f66e0] font-black' : isCompleted ? 'text-slate-700 font-bold' : 'text-slate-400 group-hover:text-slate-600'
+                  <span className={`text-xs transition-colors ${
+                    isActive ? 'text-[#2f66e0] font-black' : isCompleted ? 'text-slate-700 font-bold' : 'text-slate-400 font-bold group-hover:text-slate-600'
                   }`}>
                     {labelText}
                   </span>

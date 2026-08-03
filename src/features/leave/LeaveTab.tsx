@@ -467,7 +467,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
 
       {/* Upper Navigation sub-menus completely aligned with Actions exactly like Attendance Management */}
       <div id="leave-module-navigator" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
-        <div id="leave-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none pb-1 lg:pb-0">
+        <div id="leave-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
           {(
             [
               'Leave type',
@@ -490,8 +490,8 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 onClick={() => setActiveSubTab(tab)}
                 className={`text-xs font-bold px-3.5 py-2 rounded-xl transition-all shrink-0 relative cursor-pointer flex items-center gap-1.5 ${
                   isActive
-                    ? 'text-[#2f66e0] bg-[#2f66e0]/10 border border-[#2f66e0]/15 font-extrabold'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
+                    ? 'bg-blue-50 text-[#2f66e0]'
+                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
                 }`}
               >
                 <span>{tab}</span>
@@ -500,24 +500,21 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     {pendingCount}
                   </span>
                 )}
-                {isActive && (
-                  <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#2f66e0] rounded-sm" />
-                )}
               </button>
             );
           })}
         </div>
 
         {/* Outer Header Actions aligned elegantly with selectors & primary action triggers */}
-        <div id="leave-upper-actions" className="flex items-center gap-3">
+        <div id="leave-upper-actions" className="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
           {/* Year Dropdown */}
-          <div className="relative">
+          <div className="relative shrink-0">
             <button
               onClick={() => { setYearDropdownOpen(!yearDropdownOpen); setDeptDropdownOpen(false); }}
-              className="bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-all"
+              className="h-9 bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 rounded-xl inline-flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-all whitespace-nowrap"
             >
               <span>{selectedYear}</span>
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
             </button>
             {yearDropdownOpen && (
               <div className="absolute right-0 mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl w-32 py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
@@ -535,13 +532,13 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
           </div>
 
           {/* Department Filter */}
-          <div className="relative">
+          <div className="relative shrink-0">
             <button
               onClick={() => { setDeptDropdownOpen(!deptDropdownOpen); setYearDropdownOpen(false); }}
-              className="bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-all"
+              className="h-9 bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 rounded-xl inline-flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-all whitespace-nowrap"
             >
               <span>{selectedDept}</span>
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
             </button>
             {deptDropdownOpen && (
               <div className="absolute right-0 mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl w-48 py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
@@ -561,19 +558,19 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
           {/* Export Button */}
           <button
             onClick={() => addToast('Exporting corporate leave report...', 'loading')}
-            className="bg-white border border-slate-200 text-slate-705 text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-50 transition-all cursor-pointer"
+            className="h-9 bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3.5 rounded-xl inline-flex items-center gap-2 hover:bg-slate-50 transition-all cursor-pointer whitespace-nowrap shrink-0"
           >
-            <Download className="h-4 w-4" />
+            <Download className="h-3.5 w-3.5 shrink-0" />
             <span>Export</span>
           </button>
 
           {/* New Leave Request Button */}
           <button
             onClick={() => { setActiveSubTab('Leave request'); addToast('Loading leave application drawer', 'info'); }}
-            className="bg-[#2f66e0] text-white hover:bg-opacity-95 text-xs font-extrabold px-4.5 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer flex items-center gap-1.5"
+            className="h-9 bg-[#2f66e0] text-white hover:bg-opacity-95 text-xs font-extrabold px-3.5 rounded-xl transition-all shadow-sm cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap shrink-0"
           >
-            <Plus className="h-4 w-4 stroke-[3px]" />
-            <span>+ New Leave Request</span>
+            <Plus className="h-3.5 w-3.5 shrink-0 stroke-[2.5]" />
+            <span>New Leave Request</span>
           </button>
         </div>
       </div>
@@ -687,14 +684,15 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                         <div className="flex items-center justify-end gap-3 text-slate-400">
                           <button
                             onClick={() => { setEditingType(t); setEditTypeModal(true); }}
-                            className="hover:text-slate-700 font-extrabold cursor-pointer"
+                            title="Edit"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer"
                           >
-                            Edit
+                            <Edit2 className="h-3.5 w-3.5" />
                           </button>
-                          <span>&bull;</span>
                           <button
                             onClick={() => handleDeleteLeaveType(t.id, t.name)}
-                            className="hover:text-red-600 transition-colors cursor-pointer"
+                            title="Delete"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -1020,7 +1018,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 <textarea
                   value={reqReason}
                   onChange={(e) => setReqReason(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-150 p-3 text-xs font-bold text-slate-700 rounded-xl focus:bg-white focus:outline-none min-h-[90px]"
+                  className="w-full bg-slate-50 border border-slate-150 p-3 text-xs font-bold text-slate-700 rounded-xl focus:bg-white focus:outline-none min-h-22.5"
                 />
               </div>
 
@@ -1234,7 +1232,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 <textarea
                   value={rfoReason}
                   onChange={(e) => setRfoReason(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-150 p-3 text-xs font-bold text-slate-700 rounded-xl focus:bg-white focus:outline-none min-h-[90px]"
+                  className="w-full bg-slate-50 border border-slate-150 p-3 text-xs font-bold text-slate-700 rounded-xl focus:bg-white focus:outline-none min-h-22.5"
                 />
               </div>
 
@@ -1673,27 +1671,27 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     <span className="bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-lg text-[10px]">Applied</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
-                    <span className="font-bold text-slate-800 font-semibold text-slate-600">Service leave bonus</span>
+                    <span className="font-semibold text-slate-600">Service leave bonus</span>
                     <span className="text-[#2f66e0] font-black text-[11px]">+2 days (3-5 yrs)</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
-                    <span className="font-bold text-slate-800 font-semibold text-slate-600">Medical leave policy</span>
+                    <span className="font-semibold text-slate-600">Medical leave policy</span>
                     <span className="bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-lg text-[10px]">Applied</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
-                    <span className="font-bold text-slate-800 font-semibold text-slate-600">Emergency leave policy</span>
+                    <span className="font-semibold text-slate-600">Emergency leave policy</span>
                     <span className="bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-lg text-[10px]">Applied</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
-                    <span className="font-bold text-slate-800 font-semibold text-slate-600">Maternity leave</span>
+                    <span className="font-semibold text-slate-600">Maternity leave</span>
                     <span className="bg-slate-100 text-slate-500 font-bold px-2 py-0.5 rounded-lg text-[10px]">Not attached</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
-                    <span className="font-bold text-slate-800 font-semibold text-slate-600">Replacement leave</span>
+                    <span className="font-semibold text-slate-600">Replacement leave</span>
                     <span className="bg-amber-5 text-amber-700 font-bold px-2 py-0.5 rounded-lg text-[10px] bg-amber-50 border border-amber-100">Manual attached</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
-                    <span className="font-bold text-slate-800 font-semibold text-slate-600">Unpaid leave</span>
+                    <span className="font-semibold text-slate-600">Unpaid leave</span>
                     <span className="bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-lg text-[10px]">Applied</span>
                   </div>
                 </div>
@@ -1816,7 +1814,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
             </div>
 
             <div className="bg-white border border-slate-150 rounded-xl overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-705 min-w-[700px]">
+              <table className="w-full text-left text-xs text-slate-705 min-w-175">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <th className="p-3 pl-4">Department Unit</th>

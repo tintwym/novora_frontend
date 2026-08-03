@@ -712,7 +712,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
 
       {/* Sub-NavigationBar: Aligned exactly like leave management/ employee management */}
       <div id="helpdesk-sub-navbar-parent" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
-        <div id="helpdesk-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none pb-1 lg:pb-0">
+        <div id="helpdesk-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
           {(
             [
               'Tickets Center & Live Chat',
@@ -734,8 +734,8 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                 onClick={() => setActiveSubTab(tab)}
                 className={`text-xs font-bold px-3.5 py-2 rounded-xl transition-all shrink-0 relative cursor-pointer flex items-center gap-2 ${
                   isActive
-                    ? 'text-[#2f66e0] bg-[#2f66e0]/10 border border-[#2f66e0]/15 font-extrabold'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
+                    ? 'bg-blue-50 text-[#2f66e0]'
+                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
                 }`}
               >
                 {iconElement}
@@ -744,9 +744,6 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   <span className="bg-amber-500 text-white text-[9.5px] font-black h-4 px-1.5 rounded-full flex items-center justify-center shrink-0">
                     {metrics.open} Open
                   </span>
-                )}
-                {isActive && (
-                  <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#2f66e0] rounded-sm" />
                 )}
               </button>
             );

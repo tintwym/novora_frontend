@@ -90,8 +90,8 @@ export default function RegisterPage({ onSuccess, onGoLogin, onGoLanding }: Regi
 
   return (
     <AuthShell
-      title="Create your workspace"
-      subtitle="Start a 30-day trial. You’ll be set up as the workspace admin."
+      title="Create your account"
+      subtitle="You’ll join as an Employee. An Admin assigns your position after reviewing performance."
       footer={
         <>
           {onGoLanding && (
@@ -253,10 +253,10 @@ export default function RegisterPage({ onSuccess, onGoLogin, onGoLanding }: Regi
           {submitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Creating workspace…
+              Creating account…
             </>
           ) : (
-            'Create workspace'
+            'Create account'
           )}
         </button>
       </form>

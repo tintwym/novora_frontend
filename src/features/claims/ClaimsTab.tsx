@@ -23,7 +23,8 @@ import {
   CalendarDays,
   FileSpreadsheet,
   ChevronDown,
-  Printer
+  Printer,
+  Edit2,
 } from 'lucide-react';
 
 interface ClaimsTabProps {
@@ -464,7 +465,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
       <div id="claims-module-navigator" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
         
         {/* Navigation tabs styled as pills with active background */}
-        <div id="claims-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none pb-1 lg:pb-0">
+        <div id="claims-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
           {[
             { id: 'Submit Claim', label: 'Submit Claim', icon: PlusCircle },
             { id: 'Approval', label: 'Approval', icon: CheckCircle, badge: pendingCount, badgeColor: 'bg-amber-100 text-amber-700 border-amber-200' },
@@ -485,8 +486,8 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 }}
                 className={`text-xs font-bold px-3.5 py-2.5 rounded-xl transition-all shrink-0 relative cursor-pointer flex items-center gap-1.5 ${
                   isActive
-                    ? 'text-[#2f66e0] bg-[#2f66e0]/10 border border-[#2f66e0]/15 font-extrabold shadow-xxs'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
+                    ? 'bg-blue-50 text-[#2f66e0]'
+                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -495,9 +496,6 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   <span className={`font-bold text-[10px] h-4.5 min-w-4.5 px-1 rounded-full flex items-center justify-center border ${tab.badgeColor}`}>
                     {tab.badge}
                   </span>
-                )}
-                {isActive && (
-                  <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#2f66e0] rounded-sm" />
                 )}
               </button>
             );
@@ -1159,9 +1157,10 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                                 setSelectedSpendLimitIdx(idx);
                                 setIsEditSpendLimitsModalOpen(true);
                               }} 
-                              className="text-[#2f66e0] hover:underline hover:text-blue-800 text-xs font-bold cursor-pointer"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
+                              title="Edit"
                             >
-                              Edit
+                              <Edit2 className="h-3.5 w-3.5" />
                             </button>
                           </td>
                         </tr>
@@ -2456,7 +2455,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 
                 <div className="space-y-3 pl-2.5">
                   <div className="flex items-start gap-3 relative border-l-2 border-emerald-500 pb-3 pl-3.5">
-                    <div className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-emerald-500" />
+                    <div className="absolute -left-1.25 top-1.5 h-2 w-2 rounded-full bg-emerald-500" />
                     <div>
                       <p className="font-bold text-slate-800 text-[11.5px]">Claim Entry Registered</p>
                       <p className="text-[10px] text-slate-405 font-medium">{selectedClaimDetail.date} 09:00 &bull; Initiated by claimant</p>
@@ -2468,7 +2467,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       ? 'border-l-2 border-emerald-500' 
                       : 'border-l-2 border-slate-200'
                   }`}>
-                    <div className={`absolute -left-[5px] top-1.5 h-2 w-2 rounded-full ${
+                    <div className={`absolute -left-1.25 top-1.5 h-2 w-2 rounded-full ${
                       selectedClaimDetail.status === 'Approved' || selectedClaimDetail.status === 'Rejected' ? 'bg-emerald-500' : 'bg-amber-400'
                     }`} />
                     <div>
@@ -2478,7 +2477,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   </div>
 
                   <div className="flex items-start gap-3 relative pl-3.5">
-                    <div className={`absolute -left-[5px] top-1.5 h-2 w-2 rounded-full ${
+                    <div className={`absolute -left-1.25 top-1.5 h-2 w-2 rounded-full ${
                       selectedClaimDetail.status === 'Approved' ? 'bg-emerald-500' : selectedClaimDetail.status === 'Rejected' ? 'bg-red-500' : 'bg-slate-300'
                     }`} />
                     <div>
@@ -2495,7 +2494,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
             </div>
 
             {/* Right Box: Receipt Voucher Replica preview */}
-            <div className="w-full md:w-[350px] bg-slate-100 border-t md:border-t-0 md:border-l border-slate-200 p-6 flex flex-col justify-between">
+            <div className="w-full md:w-87.5 bg-slate-100 border-t md:border-t-0 md:border-l border-slate-200 p-6 flex flex-col justify-between">
               
               {/* Receipt Visual Body */}
               <div className="bg-white border text-center border-slate-250 p-5 rounded-2xl shadow-md rotate-1 hover:rotate-0 transition-all font-mono text-slate-700 text-xs space-y-4">

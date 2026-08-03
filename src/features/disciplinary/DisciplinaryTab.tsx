@@ -25,6 +25,7 @@ import {
   Trash,
   BarChart3,
   TrendingUp,
+  Edit2,
 } from 'lucide-react';
 import type { Employee } from '@/types';
 
@@ -496,7 +497,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
       <div id="disciplinary-module-navigator" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
         
         {/* Navigation tabs styled as pills with active background */}
-        <div id="disciplinary-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none pb-1 lg:pb-0">
+        <div id="disciplinary-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
           {subTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeSubTab === tab.label;
@@ -507,15 +508,12 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                 onClick={() => setActiveSubTab(tab.label as DisciplinarySubTab)}
                 className={`text-xs font-bold px-3.5 py-2.5 rounded-xl transition-all shrink-0 relative cursor-pointer flex items-center gap-1.5 ${
                   isActive
-                    ? 'text-[#2f66e0] bg-[#2f66e0]/10 border border-[#2f66e0]/15 font-extrabold shadow-xxs'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
+                    ? 'bg-blue-50 text-[#2f66e0]'
+                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
                 <span>{tab.label}</span>
-                {isActive && (
-                  <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#2f66e0] rounded-sm" />
-                )}
               </button>
             );
           })}
@@ -620,7 +618,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
           {/* Reasons Table */}
           <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-705 min-w-[650px]">
+              <table className="w-full text-left text-xs text-slate-705 min-w-162.5">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <th className="p-3.5 pl-5 w-48">Reason / Offence</th>
@@ -678,10 +676,10 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                                   setEditReasonDesc(r.description);
                                   setEditReasonStatus(r.status);
                                 }}
-                                className="text-slate-600 hover:text-[#2f66e0] font-bold text-xs bg-slate-50 hover:bg-[#2f66e0]/10 border border-slate-150 p-1.5 rounded-lg transition-all cursor-pointer"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                                 title="Edit parameter details"
                               >
-                                Edit
+                                <Edit2 className="h-3.5 w-3.5" />
                               </button>
                             </div>
                           </td>
@@ -724,7 +722,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
           {/* Action grid table */}
           <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-705 min-w-[700px]">
+              <table className="w-full text-left text-xs text-slate-705 min-w-175">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <th className="p-4 pl-5 w-20">Level</th>
@@ -769,9 +767,10 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                               setEditActionDesc(a.description);
                               setEditActionPay(a.payImpact);
                             }}
-                            className="bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold border border-slate-150 p-1.5 rounded-lg text-xs transition-all cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
+                            title="Edit"
                           >
-                            Edit
+                            <Edit2 className="h-3.5 w-3.5" />
                           </button>
                         </td>
                       </tr>
@@ -1205,7 +1204,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
           {/* Case History Table */}
           <div className="bg-white border border-slate-100 rounded-2.5xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-750 min-w-[900px]">
+              <table className="w-full text-left text-xs text-slate-750 min-w-225">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <th className="p-4 pl-5">Employee</th>
@@ -1452,7 +1451,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
               </div>
 
               <div className="bg-white border border-slate-150 rounded-xl overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-705 min-w-[700px]">
+                <table className="w-full text-left text-xs text-slate-705 min-w-175">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                       <th className="p-3 pl-4">Department Unit</th>
@@ -1618,7 +1617,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                 </div>
 
                 <div className="bg-white border border-slate-150 rounded-xl overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-705 min-w-[800px]">
+                  <table className="w-full text-left text-xs text-slate-705 min-w-200">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-3 pl-4">Case ID</th>
@@ -1696,7 +1695,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                 </div>
 
                 <div className="bg-white border border-slate-150 rounded-xl overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-705 min-w-[800px]">
+                  <table className="w-full text-left text-xs text-slate-705 min-w-200">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-3 pl-4">Staff Member</th>

@@ -12,7 +12,7 @@ interface FAQItemProps {
 
 function FAQItem({ question, answer, isOpen, onToggle }: FAQItemProps) {
   return (
-    <div className="border-b border-slate-100 bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100 mb-3">
+    <div className="border border-slate-100 bg-white rounded-xl overflow-hidden shadow-sm mb-3">
       <button
         onClick={onToggle}
         className="w-full flex justify-between items-center px-5 py-4 text-left font-sans text-xs font-bold text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"

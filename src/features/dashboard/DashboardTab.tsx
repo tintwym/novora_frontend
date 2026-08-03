@@ -28,15 +28,17 @@ import {
   LogIn,
   LogOut
 } from 'lucide-react';
-import type { Employee } from '@/types';
+import type { Employee, SidebarTab } from '@/types'
+import { canManageFullSystem } from '@/lib/roles'
 
 interface DashboardTabProps {
   employees: Employee[];
-  setActiveSidebarTab: (tab: any) => void;
+  setActiveSidebarTab: (tab: SidebarTab) => void;
   addToast: (text: string, type: 'success' | 'info' | 'error' | 'loading') => void;
+  roles?: string[];
 }
 
-export default function DashboardTab({ employees, setActiveSidebarTab, addToast }: DashboardTabProps) {
+export default function DashboardTab({ employees, setActiveSidebarTab, addToast, roles = [] }: DashboardTabProps) {
   // Live dynamic clock and date state
   const [time, setTime] = useState(new Date());
   useEffect(() => {
@@ -376,7 +378,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast 
           </div>
 
           {/* Core SVG line chart area */}
-          <div className="relative flex-1 h-[145px] mt-2 select-none">
+          <div className="relative flex-1 h-36.25 mt-2 select-none">
             
             {/* Tooltip Overlay */}
             {hoveredPoint && (
@@ -707,16 +709,18 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast 
         <div className="lg:col-span-4 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
           <div className="border-b border-slate-50 pb-3 flex justify-between items-center">
             <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">New Talent</h3>
-            <button 
-              onClick={() => {
-                setActiveSidebarTab('Employees Management');
-                addToast('Transferred scope directory to workforce pipeline grid view.', 'info');
-              }}
-              className="text-[9.5px] font-black uppercase text-[#1d4ed8] hover:underline cursor-pointer flex items-center gap-0.5"
-            >
-              <span>Explorer</span>
-              <ChevronRight className="h-3 w-3" />
-            </button>
+            {canManageFullSystem(roles) && (
+              <button 
+                onClick={() => {
+                  setActiveSidebarTab('Employees Management');
+                  addToast('Transferred scope directory to workforce pipeline grid view.', 'info');
+                }}
+                className="text-[9.5px] font-black uppercase text-[#1d4ed8] hover:underline cursor-pointer flex items-center gap-0.5"
+              >
+                <span>Explorer</span>
+                <ChevronRight className="h-3 w-3" />
+              </button>
+            )}
           </div>
 
           <div className="divide-y divide-slate-100/60 mt-3 flex-1 flex flex-col justify-between">

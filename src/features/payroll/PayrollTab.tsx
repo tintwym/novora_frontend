@@ -650,7 +650,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
       <div id="payroll-module-navigator" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
         
         {/* Navigation tabs styled exactly like Disciplinary Management */}
-        <div id="payroll-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none pb-1 lg:pb-0">
+        <div id="payroll-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
           {mainTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeMainTab === tab.label;
@@ -664,15 +664,12 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 }}
                 className={`text-xs font-bold px-3.5 py-2.5 rounded-xl transition-all shrink-0 relative cursor-pointer flex items-center gap-1.5 ${
                   isActive
-                    ? 'text-[#2f66e0] bg-[#2f66e0]/10 border border-[#2f66e0]/15 font-extrabold shadow-xxs'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
+                    ? 'bg-blue-50 text-[#2f66e0]'
+                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
                 <span>{tab.displayLabel}</span>
-                {isActive && (
-                  <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#2f66e0] rounded-sm" />
-                )}
               </button>
             );
           })}
@@ -972,7 +969,6 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                                 className="text-slate-500 hover:text-[#2f66e0] font-bold text-xs inline-flex items-center gap-1 cursor-pointer hover:underline"
                               >
                                 <Edit className="h-3.5 w-3.5" />
-                                <span>Edit</span>
                               </button>
                             </td>
                           </tr>
@@ -1303,7 +1299,6 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                                 className="text-slate-500 hover:text-[#2f66e0] font-bold text-xs inline-flex items-center gap-1 cursor-pointer hover:underline"
                               >
                                 <Edit className="h-3.5 w-3.5" />
-                                <span>Edit</span>
                               </button>
                             </td>
                           </tr>
@@ -1728,21 +1723,23 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                               <td className="p-3 text-slate-500">{override.condition}</td>
                               <td className="p-3 pr-5 text-right font-bold space-x-3 whitespace-nowrap">
                                 <button
+                                  title="Edit"
                                   type="button"
                                   onClick={() => setEditingOtOverride(override)}
-                                  className="text-[#2f66e0] font-bold hover:underline cursor-pointer"
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                                 >
-                                  Edit
+                                  <Edit className="h-3.5 w-3.5" />
                                 </button>
                                 <button
+                                  title="Delete"
                                   type="button"
                                   onClick={() => {
                                     setOtOverrides(otOverrides.filter(o => o.id !== override.id));
                                     addToast(`Overriding parameter for ${override.deptScope} removed.`, 'success');
                                   }}
-                                  className="text-red-500 font-bold hover:underline cursor-pointer"
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                                 >
-                                  Delete
+                                  <Trash className="h-3.5 w-3.5" />
                                 </button>
                               </td>
                             </tr>
@@ -2034,7 +2031,6 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                               className="text-slate-500 hover:text-[#2f66e0] font-bold text-xs inline-flex items-center gap-1 cursor-pointer hover:underline"
                             >
                               <Edit className="h-3.5 w-3.5" />
-                              <span>Edit</span>
                             </button>
                           </td>
                         </tr>
@@ -2170,7 +2166,6 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                                 className="text-slate-500 hover:text-[#2f66e0] font-bold text-xs inline-flex items-center gap-1 cursor-pointer hover:underline"
                               >
                                 <Edit className="h-3.5 w-3.5" />
-                                <span>Edit</span>
                               </button>
                             </td>
                           </tr>
@@ -2318,21 +2313,23 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                               <td className="p-3 pr-5 text-right font-bold">
                                 <div className="inline-flex gap-2">
                                   <button
+                                    title="Edit"
                                     type="button"
                                     onClick={() => setEditingManualDeduction(item)}
-                                    className="text-[#2f66e0] font-bold hover:underline cursor-pointer"
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                                   >
-                                    Edit
+                                    <Edit className="h-3.5 w-3.5" />
                                   </button>
                                   <button
+                                    title="Delete"
                                     type="button"
                                     onClick={() => {
                                       setManualDeductions(manualDeductions.filter(m => m.id !== item.id));
                                       addToast(`Deduction entry for ${item.empName} deleted.`, 'success');
                                     }}
-                                    className="text-red-500 font-bold hover:underline cursor-pointer"
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                                   >
-                                    Delete
+                                    <Trash className="h-3.5 w-3.5" />
                                   </button>
                                 </div>
                               </td>
@@ -2407,7 +2404,6 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                               className="text-slate-500 hover:text-[#2f66e0] font-bold text-xs inline-flex items-center gap-1 cursor-pointer hover:underline"
                             >
                               <Edit className="h-3.5 w-3.5" />
-                              <span>Edit</span>
                             </button>
                           </td>
                         </tr>
@@ -2579,10 +2575,11 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Payment duration setup</h4>
                     <button
+                      title="Edit"
                       onClick={() => setIsEditActiveDurationModalOpen(true)}
-                      className="text-[#2f66e0] hover:underline text-xs font-bold"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                     >
-                      Edit
+                      <Edit className="h-3.5 w-3.5" />
                     </button>
                   </div>
 

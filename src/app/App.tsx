@@ -32,6 +32,8 @@ import { toAuthSession } from '@/features/auth/mapSession'
 import { fetchMe, logout, ApiError } from '@/services'
 import type { SidebarTab, SubTab, Employee, AuthSession } from '@/types'
 import { mockEmployees } from '@/mocks/mockEmployees'
+import { canAccessTab, canManageFullSystem, defaultTabFor } from '@/lib/roles'
+import BrandLockup from '@/components/brand/BrandLockup'
 import { ChevronDown, Download, FileSpreadsheet, FileText, Loader2 } from 'lucide-react'
 
 type AuthScreen = 'landing' | 'login' | 'register'
@@ -98,7 +100,7 @@ export default function App() {
 
   const handleAuthSuccess = (next: AuthSession) => {
     setSession(next)
-    setActiveSidebarTab('Dashboard')
+    setActiveSidebarTab(defaultTabFor(next.roles))
     addToast(`Welcome to Novora, ${next.fullName}`, 'success')
   }
 
@@ -112,12 +114,28 @@ export default function App() {
     setAuthScreen('landing')
   }
 
+  const setActiveSidebarTabSafe = (tab: SidebarTab) => {
+    if (!session || canAccessTab(session.roles, tab)) {
+      setActiveSidebarTab(tab)
+      return
+    }
+    addToast('That module is limited to Admin and HR roles.', 'info')
+  }
+
+  const activeTab =
+    session && !canAccessTab(session.roles, activeSidebarTab)
+      ? defaultTabFor(session.roles)
+      : activeSidebarTab
+
   if (authBootstrapping) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 font-sans">
-        <div className="flex flex-col items-center gap-3 text-slate-500">
-          <Loader2 className="h-6 w-6 animate-spin text-[#2f66e0]" />
-          <p className="text-xs font-semibold tracking-wide uppercase">Loading Novora…</p>
+        <div className="flex flex-col items-center gap-4 text-slate-500 animate-soft-fade-up">
+          <BrandLockup size="lg" />
+          <div className="flex items-center gap-2 text-slate-400">
+            <Loader2 className="h-4 w-4 animate-spin text-[#2f66e0]" />
+            <p className="text-xs font-semibold tracking-wide uppercase">Loading workspace…</p>
+          </div>
         </div>
       </div>
     )
@@ -150,6 +168,10 @@ export default function App() {
   }
 
   const handleAddEmployee = (newEmp: Employee) => {
+    if (!canManageFullSystem(session?.roles)) {
+      addToast('Only Admin or HR can add employees.', 'error')
+      return
+    }
     setEmployees((prev) => [newEmp, ...prev])
     setSelectedEmployee(newEmp)
     setActiveSidebarTab('Employees Management')
@@ -189,19 +211,20 @@ export default function App() {
   }
 
   return (
-    <div id="novora-hrms-root" className="flex min-h-screen bg-slate-50 select-none font-sans overflow-hidden">
+    <div id="novora-hrms-root" className="flex min-h-screen bg-[#f7f9fc] select-none font-sans overflow-hidden">
       <Sidebar
-        activeTab={activeSidebarTab}
-        setActiveTab={setActiveSidebarTab}
+        activeTab={activeTab}
+        setActiveTab={setActiveSidebarTabSafe}
         reportsSubTab={reportsSubTab}
         setReportsSubTab={setReportsSubTab}
         settingsSubTab={settingsSubTab}
         setSettingsSubTab={setSettingsSubTab}
+        roles={session.roles}
       />
 
       <main id="main-portal-contents" className="flex-1 flex flex-col overflow-hidden">
         <Topbar
-          activeTabName={activeSidebarTab}
+          activeTabName={activeTab}
           searchValue={searchValue}
           onSearchChange={setSearchValue}
           addToast={addToast}
@@ -210,11 +233,11 @@ export default function App() {
         />
 
         <div id="portal-inner-board" className="flex-1 overflow-y-auto px-8 py-6">
-          {activeSidebarTab === 'Employees Management' ? (
+          {!canAccessTab(session.roles, activeTab) ? null : activeTab === 'Employees Management' ? (
             <div id="employees-module-root" className="space-y-6">
               <div
                 id="employees-module-header"
-                className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200/85 pb-4 gap-4 align-middle"
+                className="flex flex-col md:flex-row md:items-center justify-between border border-slate-100 bg-white px-4 py-1.5 rounded-2xl gap-3"
               >
                 <div id="employees-navigation-tabs" className="flex items-center gap-2 select-none">
                   {(
@@ -233,14 +256,11 @@ export default function App() {
                         onClick={() => handleSubTabChange(tab)}
                         className={`text-sm font-semibold px-4.5 py-2.5 rounded-xl transition-all relative cursor-pointer ${
                           isActive
-                            ? 'text-[#2f66e0] bg-[#2f66e0]/8 border border-[#2f66e0]/10 font-bold'
-                            : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
+                            ? 'bg-blue-50 text-[#2f66e0]'
+                            : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
                         }`}
                       >
                         {tab}
-                        {isActive && (
-                          <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-[#2f66e0] rounded-sm" />
-                        )}
                       </button>
                     )
                   })}
@@ -373,48 +393,49 @@ export default function App() {
                 )}
               </div>
             </div>
-          ) : activeSidebarTab === 'Dashboard' ? (
+          ) : activeTab === 'Dashboard' ? (
             <DashboardTab
               employees={employees}
-              setActiveSidebarTab={setActiveSidebarTab}
+              setActiveSidebarTab={setActiveSidebarTabSafe}
               addToast={addToast}
+              roles={session.roles}
             />
-          ) : activeSidebarTab === 'On/Off-boarding Management' ? (
+          ) : activeTab === 'On/Off-boarding Management' ? (
             <OnOffBoardingTab employees={employees} addToast={addToast} />
-          ) : activeSidebarTab === 'Benefits Management' ? (
+          ) : activeTab === 'Benefits Management' ? (
             <BenefitsTab employees={employees} addToast={addToast} />
-          ) : activeSidebarTab === 'Helpdesk & Inquiries Management' ? (
+          ) : activeTab === 'Helpdesk & Inquiries Management' ? (
             <HelpdeskTab employees={employees} addToast={addToast} />
-          ) : activeSidebarTab === 'Engagement Management' ? (
+          ) : activeTab === 'Engagement Management' ? (
             <EngagementTab employees={employees} addToast={addToast} />
-          ) : activeSidebarTab === 'Learning Management' ? (
+          ) : activeTab === 'Learning Management' ? (
             <LearningTab employees={employees} addToast={addToast} />
-          ) : activeSidebarTab === 'Training Management' ? (
+          ) : activeTab === 'Training Management' ? (
             <TrainingTab employees={employees} addToast={addToast} />
-          ) : activeSidebarTab === 'Assets Management' ? (
+          ) : activeTab === 'Assets Management' ? (
             <AssetsTab employees={employees} addToast={addToast} />
-          ) : activeSidebarTab === 'Recruitment Management' ? (
+          ) : activeTab === 'Recruitment Management' ? (
             <RecruitmentTab addToast={addToast} onAddEmployeeAsRecord={handleAddEmployee} />
-          ) : activeSidebarTab === 'Attendance Management' ? (
+          ) : activeTab === 'Attendance Management' ? (
             <AttendanceTab addToast={addToast} />
-          ) : activeSidebarTab === 'Leave Management' ? (
+          ) : activeTab === 'Leave Management' ? (
             <LeaveTab employees={employees} addToast={addToast} />
-          ) : activeSidebarTab === 'Disciplinary Management' ? (
+          ) : activeTab === 'Disciplinary Management' ? (
             <DisciplinaryTab employees={employees} addToast={addToast} />
-          ) : activeSidebarTab === 'Payroll Management' ? (
+          ) : activeTab === 'Payroll Management' ? (
             <PayrollTab employees={employees} addToast={addToast} />
-          ) : activeSidebarTab === 'Claims Management' ? (
+          ) : activeTab === 'Claims Management' ? (
             <ClaimsTab employees={employees} addToast={addToast} />
-          ) : activeSidebarTab === 'Performance Management' ? (
+          ) : activeTab === 'Performance Management' ? (
             <PerformanceTab employees={employees} addToast={addToast} />
-          ) : activeSidebarTab === 'Reports' ? (
+          ) : activeTab === 'Reports' ? (
             <ReportsTab
               employees={employees}
               addToast={addToast}
               activeSubTab={reportsSubTab}
               setActiveSubTab={setReportsSubTab}
             />
-          ) : activeSidebarTab === 'Settings' ? (
+          ) : activeTab === 'Settings' ? (
             <SettingsTab
               employees={employees}
               addToast={addToast}
@@ -425,12 +446,14 @@ export default function App() {
         </div>
       </main>
 
-      <AddEmployeeModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAddEmployee={handleAddEmployee}
-        addToast={addToast}
-      />
+      {canManageFullSystem(session.roles) && (
+        <AddEmployeeModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onAddEmployee={handleAddEmployee}
+          addToast={addToast}
+        />
+      )}
 
       <Toast toast={toast} onClose={removeToast} />
     </div>

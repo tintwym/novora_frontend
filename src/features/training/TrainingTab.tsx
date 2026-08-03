@@ -584,8 +584,12 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
-                        <button onClick={() => triggerEdit('training_type', t)} className="border border-slate-200 hover:bg-slate-50 text-slate-700 text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all cursor-pointer">
-                          Edit
+                        <button
+                          title="Edit"
+                          onClick={() => triggerEdit('training_type', t)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
                         </button>
                       </td>
                     </tr>
@@ -666,8 +670,12 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                       <td className="py-3.5 px-4 text-slate-500 max-w-xs truncate">{c.description}</td>
                       <td className="py-3.5 px-4 text-center font-mono text-slate-900">{c.subjectsCount}</td>
                       <td className="py-3.5 px-4 text-right">
-                        <button onClick={() => triggerEdit('category', c)} className="border border-slate-200 hover:bg-slate-50 text-slate-700 text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all cursor-pointer">
-                          Edit
+                        <button
+                          title="Edit"
+                          onClick={() => triggerEdit('category', c)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
                         </button>
                       </td>
                     </tr>
@@ -760,8 +768,12 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
-                        <button onClick={() => triggerEdit('course', c)} className="border border-slate-200 hover:bg-slate-50 text-slate-700 text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all cursor-pointer">
-                          Edit
+                        <button
+                          title="Edit"
+                          onClick={() => triggerEdit('course', c)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
                         </button>
                       </td>
                     </tr>
@@ -833,8 +845,12 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
-                        <button onClick={() => triggerEdit('subject', s)} className="border border-slate-200 hover:bg-slate-50 text-slate-700 text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all cursor-pointer">
-                          Edit
+                        <button
+                          title="Edit"
+                          onClick={() => triggerEdit('subject', s)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
                         </button>
                       </td>
                     </tr>
@@ -906,8 +922,12 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <button onClick={() => triggerEdit('schedule', s)} className="border border-slate-200 hover:bg-slate-50 text-slate-700 text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all cursor-pointer">
-                        Edit
+                      <button
+                          title="Edit"
+                          onClick={() => triggerEdit('schedule', s)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
+                        >
+                        <Edit2 className="h-3.5 w-3.5" />
                       </button>
                     </td>
                   </tr>
@@ -1331,8 +1351,12 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <button onClick={() => triggerEdit('attendance', att)} className="border border-slate-200 hover:bg-slate-50 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer">
-                        Edit
+                      <button
+                          title="Edit"
+                          onClick={() => triggerEdit('attendance', att)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
+                        >
+                        <Edit2 className="h-3.5 w-3.5" />
                       </button>
                     </td>
                   </tr>
