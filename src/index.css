@@ -105,5 +105,4 @@ body {
 #employees-top-controls select {
   white-space: nowrap !important;
   flex-shrink: 0;
-  min-width: max-content;
 }

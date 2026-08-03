@@ -1387,7 +1387,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                       <span className="font-bold text-slate-800">{enpsTallies.promoters} (64%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '64%' }} />
+                      <div className="bg-emerald-500 h-full rounded-full" style={{ width: '64%' }} />
                     </div>
                   </div>
 
@@ -1397,7 +1397,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                       <span className="font-bold text-slate-800">{enpsTallies.passives} (25%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-amber-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '25%' }} />
+                      <div className="bg-amber-500 h-full rounded-full" style={{ width: '25%' }} />
                     </div>
                   </div>
 
@@ -1407,7 +1407,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                       <span className="font-bold text-rose-700">{enpsTallies.detractors} (11%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-rose-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '11%' }} />
+                      <div className="bg-rose-500 h-full rounded-full" style={{ width: '11%' }} />
                     </div>
                   </div>
                 </div>

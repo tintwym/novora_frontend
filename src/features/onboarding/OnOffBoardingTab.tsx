@@ -860,7 +860,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       <div className="animate-spin h-7 w-7 border-3 border-white border-t-transparent rounded-full mx-auto items-center shrink-0" />
                       <span className="text-[10px] text-white font-extrabold uppercase tracking-widest block">Stream loaded &bull; Play tracking {videoPlayPercentage}%</span>
                       <div className="w-full bg-slate-750 rounded-full h-1 pl-0.5 pr-0.5">
-                        <div className="bg-blue-500 h-full rounded-full transition-all duration-300 inline-flex items-center whitespace-nowrap shrink-0" style={{ width: `${videoPlayPercentage}%` }} />
+                        <div className="bg-blue-500 h-full rounded-full transition-all duration-300" style={{ width: `${videoPlayPercentage}%` }} />
                       </div>
                     </div>
                   ) : (
@@ -1522,7 +1522,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                         </div>
                         <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                           <div 
-                            className="bg-[#2f66e0] h-full rounded-full transition-all duration-300 inline-flex items-center whitespace-nowrap shrink-0" 
+                            className="bg-[#2f66e0] h-full rounded-full transition-all duration-300" 
                             style={{ width: `${Math.min(pct, 100)}%` }} 
                           />
                         </div>

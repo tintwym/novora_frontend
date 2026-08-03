@@ -894,7 +894,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
                 </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                   <div 
-                    className="bg-emerald-500 h-full rounded-full transition-all duration-150 inline-flex items-center whitespace-nowrap shrink-0" 
+                    className="bg-emerald-500 h-full rounded-full transition-all duration-150" 
                     style={{ width: `${auditComplete ? 100 : auditProgress}%` }} 
                   />
                 </div>
