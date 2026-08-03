@@ -611,13 +611,13 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
         </div>
 
         {/* Outer Header Actions aligned elegantly */}
-        <div id="attendance-upper-actions" className="flex items-center gap-3">
+        <div id="attendance-upper-actions" className="flex items-center gap-3 shrink-0 flex-nowrap">
           <div id="department-selector" className="relative">
             <button
               onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
-              className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 transition-colors rounded-xl cursor-pointer"
+              className="h-9 inline-flex items-center gap-2 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 transition-colors rounded-xl cursor-pointer whitespace-nowrap shrink-0"
             >
-              <span>{deptFilter}</span>
+              <span className="whitespace-nowrap">{deptFilter}</span>
               <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
             </button>
             {deptDropdownOpen && (
@@ -641,7 +641,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
 
           <button
             onClick={handleExportRoster}
-            className="bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/20 font-bold text-xs text-slate-700 px-3.5 py-2 rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer"
+            className="h-9 inline-flex items-center gap-2 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/20 rounded-xl transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
           >
             <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
             <span>Export</span>
@@ -649,10 +649,10 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
 
           <button
             onClick={() => handleSubTabChange('Manual Punch')}
-            className="bg-[#2f66e0] hover:bg-opacity-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-white bg-[#2f66e0] hover:bg-opacity-95 rounded-xl transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
           >
-            <Plus className="h-3.5 w-3.5" />
-            <span>+ Manual Punch</span>
+            <Plus className="h-3.5 w-3.5 shrink-0" />
+            <span>Manual Punch</span>
           </button>
         </div>
       </div>
@@ -925,9 +925,9 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                 </button>
                 <button
                   onClick={() => setTimesheetModalOpen(true)}
-                  className="bg-[#2f66e0] hover:bg-opacity-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-xs shrink-0 flex items-center gap-2 cursor-pointer"
+                  className="h-9 inline-flex items-center gap-2 px-3.5 text-xs font-bold text-white bg-[#2f66e0] hover:bg-opacity-95 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer whitespace-nowrap"
                 >
-                  <span>+ Create timesheet</span>
+                  <span>Create timesheet</span>
                 </button>
               </div>
             </div>
@@ -1003,10 +1003,10 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
               </div>
               <button
                 onClick={() => setShiftModalOpen(true)}
-                className="bg-[#2f66e0] hover:bg-opacity-95 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-white bg-[#2f66e0] hover:bg-opacity-95 rounded-xl transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
               >
-                <Plus className="h-4 w-4" />
-                <span>+ New Shift Pattern</span>
+                <Plus className="h-4 w-4 shrink-0" />
+                <span>New Shift Pattern</span>
               </button>
             </div>
 
@@ -1379,7 +1379,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                 </button>
                 <button
                   onClick={() => addToast('Selected tickets marked to resolution workflows', 'info')}
-                  className="bg-[#2f66e0] hover:bg-opacity-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
+                  className="h-9 inline-flex items-center px-3.5 text-xs font-bold text-white bg-[#2f66e0] hover:bg-opacity-95 rounded-xl transition-colors cursor-pointer whitespace-nowrap shrink-0"
                 >
                   Resolve selected
                 </button>
@@ -1463,10 +1463,10 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                 </div>
                 <button
                   onClick={() => setOtSetupModalOpen(true)}
-                  className="bg-white border border-slate-205 hover:border-indigo-300 hover:text-indigo-600 font-bold text-xs px-3.5 py-1.5 rounded-xl cursor-pointer shadow-3xs transition-all flex items-center gap-1.5"
+                  className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold bg-white border border-slate-205 hover:border-indigo-300 hover:text-indigo-600 rounded-xl cursor-pointer shadow-3xs transition-all whitespace-nowrap shrink-0"
                 >
-                  <Plus className="h-3.5 w-3.5 text-slate-500" />
-                  <span>+ Add OT Setup</span>
+                  <Plus className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                  <span>Add OT Setup</span>
                 </button>
               </div>
 

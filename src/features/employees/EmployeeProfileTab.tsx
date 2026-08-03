@@ -1583,7 +1583,7 @@ export default function EmployeeProfileTab({
                     </div>
                     <button 
                       onClick={handleAddFamilyMember}
-                      className="bg-[#2f66e0] hover:bg-[#2051bf] text-white font-bold text-[10px] px-3.5 py-2 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer shadow-xs"
+                      className="bg-[#2f66e0] hover:bg-[#2051bf] text-white font-bold text-[10px] px-3.5 py-2 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer shadow-xs whitespace-nowrap shrink-0"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>Add Member</span>
@@ -1680,7 +1680,7 @@ export default function EmployeeProfileTab({
                     </div>
                     <button 
                       onClick={handleAddNok}
-                      className="bg-[#2f66e0] hover:bg-[#2051bf] text-white font-bold text-[10px] px-3.5 py-2 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer shadow-xs"
+                      className="bg-[#2f66e0] hover:bg-[#2051bf] text-white font-bold text-[10px] px-3.5 py-2 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer shadow-xs whitespace-nowrap shrink-0"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>Add Kin</span>
@@ -2012,7 +2012,7 @@ export default function EmployeeProfileTab({
                     </div>
                     <button 
                       onClick={handleAddAllowance}
-                      className="bg-[#2f66e0] hover:bg-[#2051bf] text-white font-bold text-[10px] px-3.5 py-2 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer border border-transparent shadow-xs"
+                      className="bg-[#2f66e0] hover:bg-[#2051bf] text-white font-bold text-[10px] px-3.5 py-2 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer border border-transparent shadow-xs whitespace-nowrap shrink-0"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>Add Allowance</span>
@@ -2099,7 +2099,7 @@ export default function EmployeeProfileTab({
                     </div>
                     <button 
                       onClick={handleAddDeduction}
-                      className="bg-[#2f66e0] hover:bg-[#2051bf] text-white font-bold text-[10px] px-3.5 py-2 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer border border-transparent shadow-xs"
+                      className="bg-[#2f66e0] hover:bg-[#2051bf] text-white font-bold text-[10px] px-3.5 py-2 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer border border-transparent shadow-xs whitespace-nowrap shrink-0"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>Add Deduction</span>
@@ -2205,7 +2205,7 @@ export default function EmployeeProfileTab({
                     </div>
                     <button 
                       onClick={handleAddCareer}
-                      className="bg-[#2f66e0] hover:bg-[#2051bf] text-white font-bold text-[10px] px-3.5 py-2 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer border border-transparent shadow-xs"
+                      className="bg-[#2f66e0] hover:bg-[#2051bf] text-white font-bold text-[10px] px-3.5 py-2 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer border border-transparent shadow-xs whitespace-nowrap shrink-0"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>Add Career Entry</span>
@@ -2278,7 +2278,7 @@ export default function EmployeeProfileTab({
                     </div>
                     <button 
                       onClick={handleAddEducation}
-                      className="bg-[#2f66e0] hover:bg-[#2051bf] text-white font-bold text-[10px] px-3.5 py-2 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer border border-transparent shadow-xs"
+                      className="bg-[#2f66e0] hover:bg-[#2051bf] text-white font-bold text-[10px] px-3.5 py-2 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer border border-transparent shadow-xs whitespace-nowrap shrink-0"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>Add Education</span>
@@ -2360,10 +2360,10 @@ export default function EmployeeProfileTab({
                         setSelectedFile(null);
                         setShowUploadModal(true);
                       }}
-                      className="bg-[#2f66e0] text-white font-bold text-[10px] px-3.5 py-2.5 rounded-xl transition-all shadow-xs flex items-center gap-1 cursor-pointer hover:bg-opacity-95"
+                      className="h-9 inline-flex items-center gap-1 px-3.5 text-[10px] font-bold text-white bg-[#2f66e0] rounded-xl transition-all shadow-xs cursor-pointer hover:bg-opacity-95 whitespace-nowrap shrink-0"
                     >
-                      <Upload className="h-3.5 w-3.5 animate-bounce" />
-                      <span>+ Upload</span>
+                      <Upload className="h-3.5 w-3.5 shrink-0" />
+                      <span>Upload</span>
                     </button>
                   </div>
 

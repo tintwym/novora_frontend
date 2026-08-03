@@ -74,3 +74,36 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Module toolbar chips — never wrap filter/export/CTA labels */
+[id$="-upper-actions"],
+[id$="-top-controls"],
+#performance-filters,
+#payroll-global-ctrls,
+#employees-top-controls {
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+[id$="-upper-actions"] > *,
+[id$="-top-controls"] > *,
+#performance-filters > *,
+#payroll-global-ctrls > *,
+#employees-top-controls > * {
+  flex-shrink: 0;
+}
+
+[id$="-upper-actions"] button,
+[id$="-upper-actions"] select,
+[id$="-top-controls"] button,
+[id$="-top-controls"] select,
+#performance-filters button,
+#performance-filters select,
+#payroll-global-ctrls button,
+#payroll-global-ctrls select,
+#employees-top-controls button,
+#employees-top-controls select {
+  white-space: nowrap !important;
+  flex-shrink: 0;
+  min-width: max-content;
+}

@@ -676,7 +676,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
         </div>
 
         {/* Global top level dropdown controllers aligned on the right, integrated into the navigation grid */}
-        <div id="payroll-global-ctrls" className="flex items-center gap-2.5 ml-auto sm:ml-0 font-sans text-slate-700">
+        <div id="payroll-global-ctrls" className="flex items-center gap-2.5 ml-auto sm:ml-0 font-sans text-slate-700 shrink-0 flex-nowrap">
           {/* Period selector */}
           <select
             value={reportsPeriod}
@@ -684,7 +684,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               setReportsPeriod(e.target.value);
               addToast(`Transitioned ledger review cycle to active ${e.target.value}`, 'info');
             }}
-            className="bg-white border border-slate-200 hover:border-slate-300 text-xs font-bold px-3.5 py-2 rounded-xl focus:outline-none transition-colors cursor-pointer"
+            className="h-9 bg-white border border-slate-200 hover:border-slate-300 text-xs font-bold px-3.5 rounded-xl focus:outline-none transition-colors cursor-pointer whitespace-nowrap shrink-0"
           >
             <option value="May 2026">May 2026</option>
             <option value="April 2026">April 2026</option>
@@ -699,7 +699,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               setReportsDept(e.target.value);
               addToast(`Focused analytics subset on target department: ${e.target.value}`, 'info');
             }}
-            className="bg-white border border-slate-200 hover:border-slate-300 text-xs font-bold px-3.5 py-2 rounded-xl focus:outline-none transition-colors cursor-pointer"
+            className="h-9 bg-white border border-slate-200 hover:border-slate-300 text-xs font-bold px-3.5 rounded-xl focus:outline-none transition-colors cursor-pointer whitespace-nowrap shrink-0"
           >
             <option value="All departments">All departments</option>
             <option value="Engineering">Engineering</option>
@@ -718,9 +718,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 addToast('Comprehensive ledger exported as NovoraPayroll_Ledger_May2026.xlsx', 'success');
               }, 1500);
             }}
-            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-705 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-tiny"
+            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-705 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-tiny whitespace-nowrap shrink-0"
           >
-            <Download className="h-4 w-4 text-slate-400" />
+            <Download className="h-4 w-4 text-slate-400 shrink-0" />
             <span>Export</span>
           </button>
 
@@ -728,9 +728,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
           <button
             type="button"
             onClick={triggerPayrollRun}
-            className="bg-[#2f66e0] hover:bg-opacity-95 text-white text-xs font-extrabold px-3.5 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer shrink-0"
+            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-extrabold text-white bg-[#2f66e0] hover:bg-opacity-95 rounded-xl transition-all shadow-sm cursor-pointer whitespace-nowrap shrink-0"
           >
-            <Calculator className="h-4 w-4" />
+            <Calculator className="h-4 w-4 shrink-0" />
             <span>Run payroll</span>
           </button>
         </div>
@@ -2958,7 +2958,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         addToast('Downloaded employee ledger dataset successfully.', 'success');
                       }, 1200);
                     }}
-                    className="bg-[#2f66e0] hover:bg-opacity-95 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-tiny flex items-center gap-1.5 cursor-pointer"
+                    className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-white bg-[#2f66e0] hover:bg-opacity-95 rounded-xl transition-all shadow-tiny cursor-pointer whitespace-nowrap shrink-0"
                   >
                     <FileSpreadsheet className="h-3.5 w-3.5" />
                     <span>Download Ledger</span>

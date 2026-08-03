@@ -35,7 +35,7 @@ import {
   Info,
 } from 'lucide-react';
 import type { Employee } from '@/types';
-import NovoraMark from '@/components/brand/NovoraMark';
+import NovoraLogo from '@/components/brand/NovoraLogo';
 
 interface SettingsTabProps {
   activeSubTab: string;
@@ -580,7 +580,7 @@ export default function SettingsTab({
             {/* Logo Settings Card */}
             <div className="bg-slate-50/50 rounded-2xl border border-slate-100 p-5 flex flex-col sm:flex-row items-center gap-5">
               <div className="relative h-18 w-18 flex items-center justify-center shrink-0">
-                <NovoraMark className="h-16 w-16" />
+                <NovoraLogo className="h-16 w-16" />
               </div>
               <div className="text-center sm:text-left">
                 <h4 className="text-xs font-bold text-slate-800">Novora Pte Ltd</h4>

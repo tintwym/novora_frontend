@@ -591,14 +591,14 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
         </div>
 
         {/* Global filter block on the right aligned nicely */}
-        <div id="performance-filters" className="flex items-center gap-2.5 ml-auto sm:ml-0 font-sans text-slate-700">
-          <div className="relative">
+        <div id="performance-filters" className="flex items-center gap-2.5 ml-auto sm:ml-0 font-sans text-slate-700 shrink-0 flex-nowrap">
+          <div className="relative shrink-0">
             <button
               onClick={() => setYearDropdownOpen(!yearDropdownOpen)}
-              className="flex items-center justify-between gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50"
+              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 whitespace-nowrap shrink-0"
             >
-              <span>{selectedYear}</span>
-              <ChevronDown className="h-3 w-3 text-slate-400" />
+              <span className="whitespace-nowrap">{selectedYear}</span>
+              <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
             </button>
             {yearDropdownOpen && (
               <div className="absolute right-0 mt-1 w-24 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
@@ -619,13 +619,13 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
             )}
           </div>
 
-          <div className="relative">
+          <div className="relative shrink-0">
             <button
               onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
-              className="flex items-center justify-between gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50"
+              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 whitespace-nowrap shrink-0"
             >
-              <span>{selectedDept}</span>
-              <ChevronDown className="h-3 w-3 text-slate-400" />
+              <span className="whitespace-nowrap">{selectedDept}</span>
+              <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
             </button>
             {deptDropdownOpen && (
               <div className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
@@ -648,9 +648,9 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
 
           <button
             onClick={() => addToast('Compiling performance statistics report...', 'loading')}
-            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-705 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-tiny"
+            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-705 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-tiny whitespace-nowrap shrink-0"
           >
-            <Download className="h-4 w-4 text-slate-400" />
+            <Download className="h-4 w-4 text-slate-400 shrink-0" />
             <span>Export</span>
           </button>
         </div>
@@ -681,7 +681,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   setSelectedLevelIndex(null);
                   setActiveModal('level_new');
                 }}
-                className="bg-[#2f66e0] hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1"
+                className="h-9 inline-flex items-center gap-1 px-4 text-xs font-bold text-white bg-[#2f66e0] hover:bg-blue-700 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>New Level</span>
@@ -768,7 +768,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   setSelectedGradeIndex(null);
                   setActiveModal('grade_new');
                 }}
-                className="bg-[#2f66e0] hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1"
+                className="h-9 inline-flex items-center gap-1 px-4 text-xs font-bold text-white bg-[#2f66e0] hover:bg-blue-700 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>New Grade</span>
@@ -858,7 +858,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   setSelectedKPIIndex(null);
                   setActiveModal('kpi_new');
                 }}
-                className="bg-[#2f66e0] hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1"
+                className="h-9 inline-flex items-center gap-1 px-4 text-xs font-bold text-white bg-[#2f66e0] hover:bg-blue-700 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>New KPI Setting</span>
@@ -989,7 +989,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   setSelectedTypeIndex(null);
                   setActiveModal('type_new');
                 }}
-                className="bg-[#2f66e0] hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1"
+                className="h-9 inline-flex items-center gap-1 px-4 text-xs font-bold text-white bg-[#2f66e0] hover:bg-blue-700 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>New Evaluation Type</span>
@@ -1081,7 +1081,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   setSelectedCategoryIndex(null);
                   setActiveModal('category_new');
                 }}
-                className="bg-[#2f66e0] hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1"
+                className="h-9 inline-flex items-center gap-1 px-4 text-xs font-bold text-white bg-[#2f66e0] hover:bg-blue-700 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>New Category</span>
@@ -1164,7 +1164,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   ]);
                   setActiveModal('setup_new');
                 }}
-                className="bg-[#2f66e0] hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1"
+                className="h-9 inline-flex items-center gap-1 px-4 text-xs font-bold text-white bg-[#2f66e0] hover:bg-blue-700 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>New Setup</span>
@@ -1288,7 +1288,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   setPrmStatus('Active');
                   setActiveModal('grant_permission');
                 }}
-                className="bg-[#2f66e0] hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1"
+                className="h-9 inline-flex items-center gap-1 px-4 text-xs font-bold text-white bg-[#2f66e0] hover:bg-blue-700 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>Grant Permission</span>
@@ -1431,10 +1431,10 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   setEvalAttendance('98%');
                   setActiveModal('evaluation_new');
                 }}
-                className="bg-[#2f66e0] hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1"
+                className="h-9 inline-flex items-center gap-1 px-4 text-xs font-bold text-white bg-[#2f66e0] hover:bg-blue-700 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
               >
-                <Plus className="h-3.5 w-3.5" />
-                <span>+ New Evaluation</span>
+                <Plus className="h-3.5 w-3.5 shrink-0" />
+                <span>New Evaluation</span>
               </button>
             </div>
 
@@ -1717,7 +1717,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   setSelectedCompetencyIndex(null);
                   setActiveModal('competency_new');
                 }}
-                className="bg-[#2f66e0] hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1"
+                className="h-9 inline-flex items-center gap-1 px-4 text-xs font-bold text-white bg-[#2f66e0] hover:bg-blue-700 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>New Competency</span>

@@ -503,16 +503,16 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
         </div>
 
         {/* Global top level controllers aligned on the right, integrated into the navigation grid */}
-        <div id="claims-upper-actions" className="flex items-center gap-2.5 ml-auto sm:ml-0 font-sans text-slate-700">
+        <div id="claims-upper-actions" className="flex items-center gap-2.5 ml-auto sm:ml-0 font-sans text-slate-700 shrink-0 flex-nowrap">
           
           {/* May 2026 / period selector */}
           <div className="relative">
             <button
               onClick={() => setMonthDropdownOpen(!monthDropdownOpen)}
-              className="flex items-center justify-between gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-705 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl cursor-pointer"
+              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-705 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0"
             >
-              <span>{headerMonth}</span>
-              <ChevronDown className="h-3 w-3 text-slate-400" />
+              <span className="whitespace-nowrap">{headerMonth}</span>
+              <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
             </button>
             {monthDropdownOpen && (
               <div className="absolute right-0 mt-1 w-32 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50 animate-in slide-in-from-top-1">
@@ -533,10 +533,10 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
           <div className="relative">
             <button
               onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
-              className="flex items-center justify-between gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-705 bg-white border border-slate-200 rounded-xl cursor-pointer"
+              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-705 bg-white border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0"
             >
-              <span>{headerDept}</span>
-              <ChevronDown className="h-3 w-3 text-slate-400" />
+              <span className="whitespace-nowrap">{headerDept}</span>
+              <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
             </button>
             {deptDropdownOpen && (
               <div className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-50 animate-in slide-in-from-top-1">
@@ -556,9 +556,9 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
           {/* Export utility */}
           <button
             onClick={() => addToast('Exporting active claims ledger...', 'loading')}
-            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-705 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-tiny"
+            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-705 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-tiny whitespace-nowrap shrink-0"
           >
-            <Download className="h-4 w-4 text-slate-400" />
+            <Download className="h-4 w-4 text-slate-400 shrink-0" />
             <span>Export</span>
           </button>
         </div>
@@ -1418,9 +1418,9 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   </button>
                   <button
                     onClick={handlePushToPayroll}
-                    className="bg-[#2f66e0] hover:bg-blue-700 text-white font-black text-xs px-4 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs cursor-pointer"
+                    className="h-9 inline-flex items-center gap-1.5 px-4 text-xs font-black text-white bg-[#2f66e0] hover:bg-blue-700 rounded-lg shadow-xs cursor-pointer whitespace-nowrap shrink-0"
                   >
-                    <span>+ Push to payroll</span>
+                    <span>Push to payroll</span>
                   </button>
                 </div>
               </div>

@@ -1039,9 +1039,9 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
           <button
             id="btn-assets-export-csv"
             onClick={handleExportCSV}
-            className="h-8.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-xl text-slate-600 text-[11px] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all active:scale-97"
+            className="h-9 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-xl text-slate-600 text-[11px] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all active:scale-97 whitespace-nowrap shrink-0"
           >
-            <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-500" />
+            <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
             Export CSV
           </button>
 
