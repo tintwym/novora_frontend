@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createLocalNumericId } from '@/lib/createLocalId'
 import { motion } from 'motion/react';
 import { 
   X, 
@@ -110,7 +111,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
     if (!isOpen) return
     const timer = window.setTimeout(() => {
       setStep(1)
-      const randNum = Math.floor(100 + Math.random() * 900)
+      const randNum = createLocalNumericId(100) % 900
       setEmployeeNo(`EMP-0${randNum}`)
     }, 0)
     return () => window.clearTimeout(timer)
@@ -120,7 +121,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
 
   // Header Auto Generate handler
   const handleAutoGenerateId = () => {
-    const randNum = Math.floor(100 + Math.random() * 900);
+    const randNum = createLocalNumericId(100) % 900;
     setEmployeeNo(`EMP-0${randNum}`);
     addToast('New Employee number generated.', 'success');
   };
@@ -179,7 +180,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
       'bg-amber-600 text-amber-50',
       'bg-teal-600 text-teal-50',
     ];
-    const pickedColor = randomColors[Math.floor(Math.random() * randomColors.length)];
+    const pickedColor = randomColors[createLocalNumericId() % randomColors.length];
 
     const formatDateString = (dt: string) => {
       try {

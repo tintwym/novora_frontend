@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createLocalId, createLocalNumericId } from '@/lib/createLocalId'
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ChevronLeft,
@@ -68,7 +69,9 @@ export default function EmployeeProfileTab({
   // Persisted dictionary to separate and save custom documents for each employee
   const [employeeDocsMap, setEmployeeDocsMap] = useState<Record<string, Array<{id: string, name: string, type: string, uploaded: string, expiry: string}>>>({});
   const employeeDocsMapRef = useRef(employeeDocsMap);
-  employeeDocsMapRef.current = employeeDocsMap;
+  useEffect(() => {
+    employeeDocsMapRef.current = employeeDocsMap;
+  }, [employeeDocsMap]);
 
   // Document Upload Form local state
   const [docType, setDocType] = useState('Contract');
@@ -342,6 +345,8 @@ export default function EmployeeProfileTab({
     }, 0);
 
     return () => window.clearTimeout(timer);
+    // Intentionally omit full `employee` — syncing on the object would wipe in-progress edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employee?.id, employee?.name, employee?.employmentStatus, employee?.mobile]);
 
   if (!employee) {
@@ -375,7 +380,7 @@ export default function EmployeeProfileTab({
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';
     let pass = '';
     for (let i = 0; i < 12; i++) {
-      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+      pass += chars.charAt(createLocalNumericId() % chars.length);
     }
     setGeneratedPassword(pass);
     setShowResetModal(true);
@@ -441,7 +446,7 @@ export default function EmployeeProfileTab({
       : '—';
 
     const newDoc = {
-      id: `doc-${Date.now()}`,
+      id: createLocalId('doc'),
       name: docCustomName.trim() || selectedFile.name,
       type: docType,
       uploaded: todayStr,
@@ -519,7 +524,7 @@ export default function EmployeeProfileTab({
     } else {
       // Add
       const newMember = {
-        id: `fam-${Date.now()}`,
+        id: createLocalId('fam'),
         ...familyForm,
         name: familyForm.name.trim()
       };
@@ -584,7 +589,7 @@ export default function EmployeeProfileTab({
       addToast(`Emergency contact "${nokForm.name}" updated successfully.`, 'success');
     } else {
       const newNok = {
-        id: `nok-${Date.now()}`,
+        id: createLocalId('nok'),
         ...nokForm,
         name: nokForm.name.trim()
       };
@@ -614,7 +619,7 @@ export default function EmployeeProfileTab({
   const handleAddBiometricDevice = () => {
     setEditingBiometricDevice(null);
     setBiometricForm({
-      taNumber: `TA-004${Math.floor(100 + Math.random() * 900)}`,
+      taNumber: `TA-004${createLocalNumericId(100) % 900}`,
       terminalName: '',
       deviceType: 'Face ID',
       location: '',
@@ -690,7 +695,7 @@ export default function EmployeeProfileTab({
   const handleAddAllowance = () => {
     setEditingAllowance(null);
     setAllowanceForm({
-      id: `ALW-${Math.floor(100 + Math.random() * 900)}`,
+      id: createLocalId('ALW'),
       type: '',
       amount: 0,
       frequency: 'Monthly',
@@ -761,7 +766,7 @@ export default function EmployeeProfileTab({
   const handleAddDeduction = () => {
     setEditingDeduction(null);
     setDeductionForm({
-      id: `DED-${Math.floor(100 + Math.random() * 900)}`,
+      id: createLocalId('DED'),
       type: '',
       amount: 0,
       frequency: 'Monthly',
@@ -832,7 +837,7 @@ export default function EmployeeProfileTab({
   const handleAddCareer = () => {
     setEditingCareer(null);
     setCareerForm({
-      id: `CAR-${Math.floor(100 + Math.random() * 900)}`,
+      id: createLocalId('CAR'),
       company: '',
       position: '',
       from: '',
@@ -904,7 +909,7 @@ export default function EmployeeProfileTab({
   const handleAddEducation = () => {
     setEditingEducation(null);
     setEducationForm({
-      id: `EDU-${Math.floor(100 + Math.random() * 900)}`,
+      id: createLocalId('EDU'),
       institution: '',
       qualification: '',
       fieldOfStudy: '',
@@ -1126,7 +1131,7 @@ export default function EmployeeProfileTab({
                       {!isEditingSummary ? (
                         <button 
                           onClick={() => setIsEditingSummary(true)}
-                          className="text-[10px] font-black text-[#2f66e0] hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all"
+                          className="text-[10px] font-black text-[#2f66e0] hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
                         >
                           <Edit2 className="h-3 w-3" />
                           <span>Edit</span>
@@ -1351,7 +1356,7 @@ export default function EmployeeProfileTab({
                       {!isEditingHRNotes ? (
                         <button 
                           onClick={() => setIsEditingHRNotes(true)}
-                          className="text-[10px] font-black text-[#2f66e0] hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all"
+                          className="text-[10px] font-black text-[#2f66e0] hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
                         >
                           <Edit2 className="h-3 w-3" />
                           <span>Edit</span>
@@ -1435,7 +1440,7 @@ export default function EmployeeProfileTab({
                     {!isEditingPersonal ? (
                       <button 
                         onClick={() => setIsEditingPersonal(true)}
-                        className="text-[10px] font-black text-[#2f66e0] hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all"
+                        className="text-[10px] font-black text-[#2f66e0] hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
                       >
                         <Edit2 className="h-3 w-3" />
                         <span>Edit</span>
@@ -1932,7 +1937,7 @@ export default function EmployeeProfileTab({
                     {!isEditingPayRate ? (
                       <button 
                         onClick={() => setIsEditingPayRate(true)}
-                        className="text-[10px] font-black text-[#2f66e0] hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all"
+                        className="text-[10px] font-black text-[#2f66e0] hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
                       >
                         <Edit2 className="h-3 w-3" />
                         <span>Edit</span>
