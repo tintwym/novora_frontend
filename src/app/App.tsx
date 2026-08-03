@@ -29,9 +29,8 @@ import { SettingsTab } from '@/features/settings'
 import { LoginPage, RegisterPage } from '@/features/auth'
 import LandingPage from '@/features/landing/LandingPage'
 import { toAuthSession } from '@/features/auth/mapSession'
-import { fetchMe, logout, ApiError } from '@/services'
+import { fetchMe, logout, listEmployees, ApiError } from '@/services'
 import type { SidebarTab, SubTab, Employee, AuthSession } from '@/types'
-import { mockEmployees } from '@/mocks/mockEmployees'
 import { canAccessTab, canManageFullSystem, defaultTabFor } from '@/lib/roles'
 import BrandLockup from '@/components/brand/BrandLockup'
 import { ChevronDown, Download, FileSpreadsheet, FileText, Loader2 } from 'lucide-react'
@@ -46,10 +45,8 @@ export default function App() {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('Employee Profile')
   const [reportsSubTab, setReportsSubTab] = useState<'centre' | 'scheduled' | 'builder'>('centre')
   const [settingsSubTab, setSettingsSubTab] = useState<string>('Company profile')
-  const [employees, setEmployees] = useState<Employee[]>(mockEmployees)
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
-    mockEmployees.find((e) => e.id === 'EMP-0285') || mockEmployees[0],
-  )
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [toast, setToast] = useState<ToastMessage | null>(null)
@@ -71,6 +68,30 @@ export default function App() {
     setToast(null)
   }
 
+  const loadEmployees = async (roles: string[]) => {
+    if (!canManageFullSystem(roles)) {
+      setEmployees([])
+      setSelectedEmployee(null)
+      return
+    }
+    try {
+      const rows = await listEmployees()
+      setEmployees(rows)
+      setSelectedEmployee((prev) => {
+        if (prev && rows.some((e) => e.id === prev.id)) {
+          return rows.find((e) => e.id === prev.id) ?? rows[0] ?? null
+        }
+        return rows[0] ?? null
+      })
+    } catch (err) {
+      setEmployees([])
+      setSelectedEmployee(null)
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load employees from the server.', 'error')
+      }
+    }
+  }
+
   useEffect(() => {
     let cancelled = false
 
@@ -78,7 +99,9 @@ export default function App() {
       try {
         const me = await fetchMe()
         if (!cancelled) {
-          setSession(toAuthSession(me))
+          const next = toAuthSession(me)
+          setSession(next)
+          void loadEmployees(next.roles)
         }
       } catch (err) {
         if (!cancelled) {
@@ -96,22 +119,28 @@ export default function App() {
     return () => {
       cancelled = true
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once
   }, [])
 
   const handleAuthSuccess = (next: AuthSession) => {
     setSession(next)
     setActiveSidebarTab(defaultTabFor(next.roles))
     addToast(`Welcome to Novora, ${next.fullName}`, 'success')
+    void loadEmployees(next.roles)
   }
 
   const handleLogout = async () => {
+    // Clear UI immediately so Sign Out never feels stuck on a slow/cold API.
+    setSession(null)
+    setEmployees([])
+    setSelectedEmployee(null)
+    setAuthScreen('landing')
+    addToast('Signed out successfully', 'success')
     try {
       await logout()
     } catch {
-      // Still clear local session even if the network call fails
+      // Still signed out locally
     }
-    setSession(null)
-    setAuthScreen('landing')
   }
 
   const setActiveSidebarTabSafe = (tab: SidebarTab) => {
