@@ -6,7 +6,30 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const API_PROXY_TARGET = process.env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8081'
+const API_PROXY_TARGET = process.env.VITE_API_PROXY_TARGET || 'https://novora-backend-56ot.onrender.com'
+
+/** Production cookies are Secure; strip so HTTP localhost can keep the session via the Vite proxy. */
+function rewriteUpstreamCookies(proxyRes: { headers: Record<string, unknown> }) {
+  const raw = proxyRes.headers['set-cookie']
+  if (!raw) return
+  const list = Array.isArray(raw) ? raw : [raw]
+  proxyRes.headers['set-cookie'] = list.map((cookie) =>
+    String(cookie)
+      .replace(/;\s*Secure/gi, '')
+      .replace(/;\s*Domain=[^;]*/gi, ''),
+  )
+}
+
+function apiProxy() {
+  return {
+    target: API_PROXY_TARGET,
+    changeOrigin: true,
+    secure: true,
+    configure: (proxy: { on: (event: string, fn: (...args: never[]) => void) => void }) => {
+      proxy.on('proxyRes', rewriteUpstreamCookies as (...args: never[]) => void)
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -23,14 +46,8 @@ export default defineConfig({
   server: {
     proxy: {
       // Same-origin cookie sessions in local dev (JSESSIONID + XSRF-TOKEN).
-      '/api': {
-        target: API_PROXY_TARGET,
-        changeOrigin: true,
-      },
-      '/auth': {
-        target: API_PROXY_TARGET,
-        changeOrigin: true,
-      },
+      '/api': apiProxy(),
+      '/auth': apiProxy(),
     },
   },
 })

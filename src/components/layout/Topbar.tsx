@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import type { AuthSession } from '@/types'
 import { primaryRole, roleDisplayLabel } from '@/lib/roles'
+import { sidebarLabel } from '@/lib/navLabels'
 
 interface TopbarProps {
   activeTabName: string
@@ -45,9 +46,7 @@ function personDisplayName(fullName: string): string {
 }
 
 function sectionTitle(tab: string): string {
-  if (tab === 'Helpdesk & Inquiries Management') return 'Helpdesk'
-  if (tab === 'On/Off-boarding Management') return 'On / Off-boarding'
-  return tab.replace(/ Management$/, '') || tab
+  return sidebarLabel(tab)
 }
 
 export default function Topbar({
@@ -258,10 +257,16 @@ export default function Topbar({
               <button
                 type="button"
                 className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors text-left cursor-pointer"
-                onClick={() => {
+                onMouseDown={(e) => {
+                  // Avoid document mousedown-outside closing the menu before click fires.
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
                   setProfileOpen(false)
-                  onLogout?.()
-                  addToast('Signed out successfully', 'success')
+                  void onLogout?.()
                 }}
               >
                 <LogOut className="h-4 w-4" />

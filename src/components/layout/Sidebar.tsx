@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import type { SidebarTab } from '@/types';
 import { canAccessTab, canManageFullSystem } from '@/lib/roles';
+import { sidebarLabel } from '@/lib/navLabels';
 import BrandLockup from '@/components/brand/BrandLockup';
 
 interface SidebarProps {
@@ -186,7 +187,7 @@ export default function Sidebar({
                           className="w-full flex items-center gap-3 px-3.5 py-2 hover:bg-slate-50 text-slate-650 hover:text-slate-900 transition-colors text-left cursor-pointer"
                         >
                           <ItemIcon className="h-4 w-4 text-slate-400 shrink-0" />
-                          <span className="text-[11.5px] font-bold">{item.name}</span>
+                          <span className="text-[11.5px] font-bold">{sidebarLabel(item.name)}</span>
                         </button>
                       );
                     })}
@@ -272,7 +273,7 @@ export default function Sidebar({
                       }`}
                     >
                       <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                      <span className="truncate">{item.name}</span>
+                      <span className="truncate">{sidebarLabel(item.name)}</span>
                     </button>
 
                     {isActive && (
@@ -346,7 +347,7 @@ export default function Sidebar({
                   }`}
                 >
                   <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                  <span className="truncate">{item.name}</span>
+                  <span className="truncate">{sidebarLabel(item.name)}</span>
                 </button>
               );
             })}

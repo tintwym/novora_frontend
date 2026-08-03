@@ -50,9 +50,17 @@ export async function fetchMe(): Promise<AuthResponse> {
 }
 
 export async function logout(): Promise<void> {
+  const controller = new AbortController()
+  const timer = window.setTimeout(() => controller.abort(), 8000)
   try {
-    await apiRequest<void>('/api/auth/logout', { method: 'POST' })
+    await apiRequest<void>('/api/auth/logout', {
+      method: 'POST',
+      signal: controller.signal,
+    })
+  } catch {
+    // Session is cleared client-side regardless (network / CSRF / cold start).
   } finally {
+    window.clearTimeout(timer)
     clearCsrfCache()
   }
 }
