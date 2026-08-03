@@ -75,7 +75,8 @@ export default function AuthShell({ title, subtitle, children, footer }: AuthShe
       {/* Form panel */}
       <main className="flex-1 flex items-center justify-center px-6 py-10">
         <div className="w-full max-w-105">
-          <div className="mb-8">
+          {/* Mobile only — desktop branding lives on the left panel */}
+          <div className="mb-8 lg:hidden">
             <BrandLockup
               logoClassName="h-11 w-11 shrink-0"
               wordmarkClassName="text-lg font-extrabold text-slate-900 tracking-tight leading-none"
