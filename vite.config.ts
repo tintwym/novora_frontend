@@ -1,15 +1,16 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type ProxyOptions } from 'vite'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import type { IncomingMessage, ServerResponse } from 'node:http'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const API_PROXY_TARGET = process.env.VITE_API_PROXY_TARGET || 'https://novora-backend-56ot.onrender.com'
 
 /** Production cookies are Secure; strip so HTTP localhost can keep the session via the Vite proxy. */
-function rewriteUpstreamCookies(proxyRes: { headers: Record<string, unknown> }) {
+function rewriteUpstreamCookies(proxyRes: IncomingMessage) {
   const raw = proxyRes.headers['set-cookie']
   if (!raw) return
   const list = Array.isArray(raw) ? raw : [raw]
@@ -20,13 +21,15 @@ function rewriteUpstreamCookies(proxyRes: { headers: Record<string, unknown> }) 
   )
 }
 
-function apiProxy() {
+function apiProxy(): ProxyOptions {
   return {
     target: API_PROXY_TARGET,
     changeOrigin: true,
     secure: true,
-    configure: (proxy: { on: (event: string, fn: (...args: never[]) => void) => void }) => {
-      proxy.on('proxyRes', rewriteUpstreamCookies as (...args: never[]) => void)
+    configure: (proxy) => {
+      proxy.on('proxyRes', (proxyRes: IncomingMessage, _req: IncomingMessage, _res: ServerResponse) => {
+        rewriteUpstreamCookies(proxyRes)
+      })
     },
   }
 }
