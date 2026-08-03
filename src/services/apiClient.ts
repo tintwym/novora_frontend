@@ -28,24 +28,33 @@ export async function ensureCsrfToken(forceRefresh = false): Promise<string> {
     }
   }
 
-  const res = await fetch(`${API_BASE_URL}/api/auth/csrf`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: { Accept: 'application/json' },
-  })
+  // Render free tier can 502 while waking; retry a couple times.
+  let lastStatus = 0
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await fetch(`${API_BASE_URL}/api/auth/csrf`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
+    })
+    lastStatus = res.status
 
-  if (!res.ok) {
-    throw new ApiError('Could not initialize security token. Is the API running?', res.status)
+    if (res.ok) {
+      const data = (await res.json()) as { token?: string; headerName?: string }
+      if (!data.token) {
+        throw new ApiError('CSRF token missing from server response', res.status)
+      }
+      cachedCsrfToken = data.token
+      if (data.headerName) csrfHeaderName = data.headerName
+      return data.token
+    }
+
+    if (res.status !== 502 && res.status !== 503 && res.status !== 504) {
+      break
+    }
+    await new Promise((r) => setTimeout(r, 800 * (attempt + 1)))
   }
 
-  const data = (await res.json()) as { token?: string; headerName?: string }
-  if (!data.token) {
-    throw new ApiError('CSRF token missing from server response', res.status)
-  }
-
-  cachedCsrfToken = data.token
-  if (data.headerName) csrfHeaderName = data.headerName
-  return data.token
+  throw new ApiError('Could not initialize security token. Is the API running?', lastStatus)
 }
 
 export function clearCsrfCache() {
