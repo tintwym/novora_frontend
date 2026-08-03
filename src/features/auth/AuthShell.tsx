@@ -1,11 +1,31 @@
 import type { ReactNode } from 'react'
-import { Building2 } from 'lucide-react'
+import NovoraLogo from '@/components/brand/NovoraLogo'
 
 interface AuthShellProps {
   title: string
   subtitle: string
   children: ReactNode
   footer: ReactNode
+}
+
+function BrandLockup({
+  wordmarkClassName,
+  subClassName,
+  logoClassName,
+}: {
+  wordmarkClassName: string
+  subClassName: string
+  logoClassName: string
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <NovoraLogo className={logoClassName} />
+      <div>
+        <p className={wordmarkClassName}>Novora</p>
+        <p className={subClassName}>HRMS</p>
+      </div>
+    </div>
+  )
 }
 
 export default function AuthShell({ title, subtitle, children, footer }: AuthShellProps) {
@@ -30,17 +50,11 @@ export default function AuthShell({ title, subtitle, children, footer }: AuthShe
         />
 
         <div className="relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center backdrop-blur-sm">
-              <Building2 className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <p className="text-xl font-extrabold tracking-tight">Novora</p>
-              <p className="text-[11px] font-semibold text-white/55 uppercase tracking-[0.14em]">
-                HRMS
-              </p>
-            </div>
-          </div>
+          <BrandLockup
+            logoClassName="h-12 w-12 shrink-0"
+            wordmarkClassName="text-xl font-extrabold tracking-tight"
+            subClassName="text-[11px] font-semibold text-white/55 uppercase tracking-[0.14em]"
+          />
         </div>
 
         <div className="relative z-10 max-w-md space-y-4">
@@ -61,11 +75,12 @@ export default function AuthShell({ title, subtitle, children, footer }: AuthShe
       {/* Form panel */}
       <main className="flex-1 flex items-center justify-center px-6 py-10">
         <div className="w-full max-w-[420px]">
-          <div className="lg:hidden flex items-center gap-2.5 mb-8">
-            <div className="h-9 w-9 rounded-xl bg-[#2f66e0]/10 text-[#2f66e0] flex items-center justify-center">
-              <Building2 className="h-4.5 w-4.5" />
-            </div>
-            <span className="text-lg font-extrabold text-slate-900 tracking-tight">Novora</span>
+          <div className="mb-8">
+            <BrandLockup
+              logoClassName="h-11 w-11 shrink-0"
+              wordmarkClassName="text-lg font-extrabold text-slate-900 tracking-tight leading-none"
+              subClassName="text-[10px] font-bold text-[#0a58a4] uppercase tracking-[0.14em] mt-1"
+            />
           </div>
 
           <div className="mb-8">
