@@ -371,12 +371,12 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
         </div>
 
         {/* Global Candidate profile selector */}
-        <div className="flex items-center gap-2.5">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Viewing Employee Profile:</span>
+        <div className="flex items-center gap-2.5 shrink-0 flex-nowrap">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider whitespace-nowrap shrink-0">Viewing Employee Profile:</span>
           <select
             value={selectedSubEmployee}
             onChange={(e) => setSelectedSubEmployee(e.target.value)}
-            className="text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl px-3 py-1.5 outline-none cursor-pointer hover:bg-slate-50"
+            className="text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl px-3 py-1.5 outline-none cursor-pointer hover:bg-slate-50 whitespace-nowrap shrink-0"
           >
             {employees.map(emp => (
               <option key={emp.id} value={emp.id}>{emp.name} ({emp.id})</option>
@@ -760,7 +760,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                         <div>
                           <h6 className="text-xs font-bold text-slate-800 flex items-center gap-2">
                             <span>{dep.name}</span>
-                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 inline-flex items-center whitespace-nowrap shrink-0">
                               {dep.relationship}
                             </span>
                           </h6>
@@ -813,7 +813,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
         <div id="benefits-subview-payroll" className="space-y-6">
           <div className="bg-indigo-50/40 border border-indigo-100 p-5.5 rounded-2xl flex flex-col sm:flex-row justify-between sm:items-center gap-4">
             <div>
-              <span className="text-[9.5px] font-black uppercase text-indigo-700 tracking-wider bg-white rounded-full px-2.5 py-0.5 border border-indigo-100">
+              <span className="text-[9.5px] font-black uppercase text-indigo-700 tracking-wider bg-white rounded-full px-2.5 py-0.5 border border-indigo-100 inline-flex items-center whitespace-nowrap shrink-0">
                 Core HR Integration ledger
               </span>
               <h4 className="text-sm font-black text-slate-800 mt-2.5">Payroll Sync & Deduction Audit</h4>
@@ -915,7 +915,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                 <FileText className="h-5.5 w-5.5" />
               </span>
               <div>
-                <span className="text-[10px] font-black text-[#2f66e0] bg-blue-50/50 px-1.5 py-0.5 rounded-full border border-blue-105 uppercase tracking-wider">Upcoming Renewal cycle</span>
+                <span className="text-[10px] font-black text-[#2f66e0] bg-blue-50/50 px-1.5 py-0.5 rounded-full border border-blue-105 uppercase tracking-wider inline-flex items-center whitespace-nowrap shrink-0">Upcoming Renewal cycle</span>
                 <span className="text-xl font-black text-slate-800">In 60 days</span>
                 <p className="text-[10.5px] text-slate-400 font-bold mt-0.5">SmileCare Dental core next</p>
               </div>
@@ -991,7 +991,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                 </span>
               </div>
               <div className="flex items-center gap-1 mt-3">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 items-center shrink-0" />
                 <span className="text-[9.5px] text-emerald-600 font-extrabold uppercase">SLA & Budget Compliant</span>
               </div>
             </div>
@@ -1187,7 +1187,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                     <div key={idx} className="flex justify-between items-center text-xs font-semibold">
                       <span className="text-slate-600 font-bold block truncate max-w-[200px]">{pv.provider}</span>
                       <div className="flex items-center gap-2">
-                        <div className="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div className="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden items-center shrink-0">
                           <div className={`h-full rounded-full ${pv.color}`} style={{ width: `${pv.share}%` }} />
                         </div>
                         <span className="font-bold text-slate-800 w-12 text-right">{pv.share}%</span>

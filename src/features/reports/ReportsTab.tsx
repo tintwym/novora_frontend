@@ -1443,7 +1443,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                       </div>
                       <h3 className="text-xs font-black text-slate-200 uppercase tracking-wider block font-sans">Q2 Executive Summary Desk</h3>
                     </div>
-                    <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                    <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                       Low Risk
                     </span>
                   </div>
@@ -1671,7 +1671,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
 
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-slate-500 font-semibold">Auto-Run Status</span>
-                      <span className="bg-emerald-50 text-emerald-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-full border border-emerald-100/50">
+                      <span className="bg-emerald-50 text-emerald-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-full border border-emerald-100/50 inline-flex items-center whitespace-nowrap shrink-0">
                         {moduleInfo.autoRun}
                       </span>
                     </div>
@@ -1909,7 +1909,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                           <td className="py-3.5 px-4.5 font-bold text-slate-800">{sch.name}</td>
                           <td className="py-3.5 px-4.5 text-slate-655">{sch.frequency}</td>
                           <td className="py-3.5 px-4.5">
-                            <span className="bg-blue-50 text-[#2f66e0] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            <span className="bg-blue-50 text-[#2f66e0] text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                               {execFocus}
                             </span>
                           </td>
@@ -2059,7 +2059,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                     {isChecked ? (
                       <CheckCircle className="h-4.5 w-4.5 text-[#2f66e0]" />
                     ) : (
-                      <div className="h-4.5 w-4.5 rounded-full border-2 border-slate-200" />
+                      <div className="h-4.5 w-4.5 rounded-full border-2 border-slate-200 inline-flex items-center shrink-0" />
                     )}
                   </div>
                 ))}

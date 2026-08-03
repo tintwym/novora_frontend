@@ -1781,7 +1781,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
               </h4>
               <button
                 onClick={() => setNewReasonModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-50"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-50 inline-flex items-center whitespace-nowrap shrink-0"
               >
                 <X className="h-4.5 w-4.5" />
               </button>
@@ -1856,7 +1856,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
               </h4>
               <button
                 onClick={() => setNewActionModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-50"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-50 inline-flex items-center whitespace-nowrap shrink-0"
               >
                 <X className="h-4.5 w-4.5" />
               </button>
@@ -1958,7 +1958,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
               <button
                 type="button"
                 onClick={() => setEditingReason(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-50 cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-50 cursor-pointer inline-flex items-center whitespace-nowrap shrink-0"
               >
                 <X className="h-4.5 w-4.5" />
               </button>
@@ -2046,7 +2046,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
               <button
                 type="button"
                 onClick={() => setEditingAction(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-50 cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-50 cursor-pointer inline-flex items-center whitespace-nowrap shrink-0"
               >
                 <X className="h-4.5 w-4.5" />
               </button>
@@ -2149,7 +2149,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
               </div>
               <button
                 onClick={() => setViewCaseDetailsModal(null)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-50"
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-50 inline-flex items-center whitespace-nowrap shrink-0"
               >
                 <X className="h-5 w-5" />
               </button>

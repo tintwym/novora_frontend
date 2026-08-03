@@ -494,7 +494,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
 
               {/* NDA and Offer Contract E-Signature Section */}
               <div className="bg-white border border-slate-100 rounded-2xl p-6.5 shadow-xs relative overflow-hidden">
-                <div className="absolute right-0 top-0 w-32 h-32 bg-[#2f66e0]/5 rounded-full blur-2xl pointer-events-none" />
+                <div className="absolute right-0 top-0 w-32 h-32 bg-[#2f66e0]/5 rounded-full blur-2xl pointer-events-none inline-flex items-center shrink-0" />
                 <div className="flex items-center gap-2 mb-4">
                   <PenTool className="h-4 w-4 text-[#2f66e0]" />
                   <h5 className="text-[12px] font-black text-slate-800 uppercase tracking-wide">Secure Employment Agreement Sealed Signature</h5>
@@ -857,10 +857,10 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                 <div className="relative aspect-video rounded-xl bg-slate-900 overflow-hidden flex flex-col justify-center items-center text-center p-4">
                   {isVideoPlaying ? (
                     <div className="space-y-3.5 w-full">
-                      <div className="animate-spin h-7 w-7 border-3 border-white border-t-transparent rounded-full mx-auto" />
+                      <div className="animate-spin h-7 w-7 border-3 border-white border-t-transparent rounded-full mx-auto items-center shrink-0" />
                       <span className="text-[10px] text-white font-extrabold uppercase tracking-widest block">Stream loaded &bull; Play tracking {videoPlayPercentage}%</span>
                       <div className="w-full bg-slate-750 rounded-full h-1 pl-0.5 pr-0.5">
-                        <div className="bg-blue-500 h-full rounded-full transition-all duration-300" style={{ width: `${videoPlayPercentage}%` }} />
+                        <div className="bg-blue-500 h-full rounded-full transition-all duration-300 inline-flex items-center whitespace-nowrap shrink-0" style={{ width: `${videoPlayPercentage}%` }} />
                       </div>
                     </div>
                   ) : (
@@ -910,7 +910,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
         <div id="subview-offboarding" className="space-y-6">
           <div className="bg-rose-50/40 border border-rose-100 p-5.5 rounded-2xl flex flex-col sm:flex-row justify-between sm:items-center gap-3">
             <div>
-              <span className="text-[9.5px] font-black uppercase text-rose-700 tracking-wider bg-white rounded-full px-2.5 py-0.5 border border-rose-100">
+              <span className="text-[9.5px] font-black uppercase text-rose-700 tracking-wider bg-white rounded-full px-2.5 py-0.5 border border-rose-100 inline-flex items-center whitespace-nowrap shrink-0">
                 Departures & Resignations Workflow
               </span>
               <h4 className="text-sm font-black text-slate-850 mt-2.5">Official Exit Clearance Protocols</h4>
@@ -1401,7 +1401,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                 </span>
               </div>
               <div className="flex items-center gap-1 mt-3">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse items-center shrink-0" />
                 <span className="text-[9.5px] text-amber-600 font-extrabold uppercase">Department reviews in-progress</span>
               </div>
             </div>
@@ -1522,7 +1522,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                         </div>
                         <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                           <div 
-                            className="bg-[#2f66e0] h-full rounded-full transition-all duration-300" 
+                            className="bg-[#2f66e0] h-full rounded-full transition-all duration-300 inline-flex items-center whitespace-nowrap shrink-0" 
                             style={{ width: `${Math.min(pct, 100)}%` }} 
                           />
                         </div>

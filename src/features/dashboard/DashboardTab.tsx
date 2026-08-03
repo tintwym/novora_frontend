@@ -291,33 +291,33 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
   ];
 
   return (
-    <div id="dynamic-combined-dashboard-root" className="space-y-6 select-none animate-in fade-in duration-300">
+    <div id="dynamic-combined-dashboard-root" className="space-y-4 select-none animate-in fade-in duration-300">
       
       {/* SECTION 1: Top Row Strategic Stat cards (Matching screenshot perfectly) */}
-      <div id="strategic-indicators-grid" className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+      <div id="strategic-indicators-grid" className="grid grid-cols-2 lg:grid-cols-6 gap-3">
         {keyIndicators.map((card) => {
           const IconComponent = card.icon;
           return (
             <div 
               key={card.id} 
-              className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-200/60"
+              className="bg-white border border-slate-100 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-200/60"
             >
               {/* Top Row: Icon Container */}
               <div className="flex justify-between items-start">
-                <span className={`p-2.5 rounded-xl ${card.colorClass} flex items-center justify-center`}>
-                  <IconComponent className="h-5 w-5 shrink-0" />
+                <span className={`p-2 rounded-xl ${card.colorClass} flex items-center justify-center`}>
+                  <IconComponent className="h-4.5 w-4.5 shrink-0" />
                 </span>
               </div>
 
               {/* Bottom Block content (Sequential order: Value -> Title -> Trend) */}
-              <div className="mt-4">
-                <span className="text-[26px] font-black tracking-tight text-slate-800 leading-none block">
+              <div className="mt-2.5">
+                <span className="text-[22px] font-black tracking-tight text-slate-800 leading-none block">
                   {card.value}
                 </span>
-                <span className="text-[9.5px] font-black text-slate-400 mt-1.5 block tracking-wider uppercase">
+                <span className="text-[9.5px] font-black text-slate-400 mt-1 block tracking-wider uppercase">
                   {card.title}
                 </span>
-                <div className="flex items-center gap-1.5 mt-1.5 text-[10.5px] font-bold">
+                <div className="flex items-center gap-1.5 mt-1 text-[10.5px] font-bold">
                   {card.isPositive ? (
                     <span className="text-emerald-600 flex items-center font-extrabold">
                       ↑ {card.trend}
@@ -336,15 +336,15 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
       </div>
 
       {/* SECTION 2: Middle interactive grid (Trends + Radial + Time punch) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* Card A: Workforce Trends Line Chart (lg:col-span-6) */}
-        <div className="lg:col-span-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs flex flex-col justify-between relative overflow-hidden">
+        <div className="lg:col-span-6 bg-white border border-slate-100 rounded-2xl p-4 shadow-xs flex flex-col gap-3 relative overflow-hidden">
           
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center">
             <div>
               <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Workforce Trends</h3>
-              <p className="text-[10px] text-slate-400 font-medium mt-0.5">Dinamic company headcount progression metrics</p>
+              <p className="text-[10px] text-slate-400 font-medium mt-0.5">Dynamic company headcount progression metrics</p>
             </div>
 
             {/* Time period filter selection dropdown */}
@@ -378,7 +378,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
           </div>
 
           {/* Core SVG line chart area */}
-          <div className="relative flex-1 h-36.25 mt-2 select-none">
+          <div className="relative flex-1 min-h-[11.5rem] h-44 select-none">
             
             {/* Tooltip Overlay */}
             {hoveredPoint && (
@@ -507,23 +507,18 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
         </div>
 
         {/* Card B: Live Attendance Donut Gauge (lg:col-span-3) */}
-        <div className="lg:col-span-3 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
+        <div className="lg:col-span-3 bg-white border border-slate-100 rounded-2xl p-4 shadow-xs flex flex-col gap-3">
           <div className="flex justify-between items-center border-b border-slate-50 pb-2">
             <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Attendance</h3>
-            <span className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100/30">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100/30 whitespace-nowrap shrink-0">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse items-center shrink-0" />
               <span className="text-[9px] text-emerald-600 font-black uppercase tracking-wider">Live</span>
             </span>
           </div>
 
-          {/* SVG circle donut presentation */}
-          <div className="relative flex justify-center items-center py-4">
-            <div className="absolute text-center mt-0.5">
-              <span className="text-2xl font-black text-slate-800 block leading-tight tracking-tight">89.4%</span>
-              <span className="text-[9px] text-slate-400 font-extrabold block uppercase tracking-wide">Attendance rate</span>
-            </div>
-
-            <svg width="125" height="125" viewBox="0 0 100 100" className="transform -rotate-90">
+          {/* SVG circle donut — label sits above the ring so it is never clipped */}
+          <div className="relative flex justify-center items-center py-1">
+            <svg width="118" height="118" viewBox="0 0 100 100" className="transform -rotate-90" aria-hidden>
               {/* Backing Track */}
               <circle
                 cx="50"
@@ -539,7 +534,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
                 cy="50"
                 r="38"
                 fill="transparent"
-                stroke="#1d4ed8" /* matching mockup blue color */
+                stroke="#1d4ed8"
                 strokeWidth="7"
                 strokeDasharray="224.68 251.32"
                 strokeDashoffset="0"
@@ -552,7 +547,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
                 cy="50"
                 r="38"
                 fill="transparent"
-                stroke="#818cf8" /* soft periwinkle-blue */
+                stroke="#818cf8"
                 strokeWidth="7"
                 strokeDasharray="18.35 251.32"
                 strokeDashoffset="-224.68"
@@ -565,7 +560,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
                 cy="50"
                 r="38"
                 fill="transparent"
-                stroke="#cbd5e1" /* gray absence */
+                stroke="#cbd5e1"
                 strokeWidth="7"
                 strokeDasharray="5.78 251.32"
                 strokeDashoffset="-243.03"
@@ -578,7 +573,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
                 cy="50"
                 r="38"
                 fill="transparent"
-                stroke="#f59e0b" /* amber late */
+                stroke="#f59e0b"
                 strokeWidth="7"
                 strokeDasharray="2.51 251.32"
                 strokeDashoffset="-248.81"
@@ -586,37 +581,46 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
                 className="transition-all duration-300"
               />
             </svg>
+
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none px-7">
+              <span className="text-2xl font-black text-slate-800 leading-none tracking-tight tabular-nums">
+                89.4%
+              </span>
+              <span className="mt-1 text-[8px] text-slate-400 font-bold uppercase tracking-[0.08em] whitespace-nowrap">
+                Attendance rate
+              </span>
+            </div>
           </div>
 
           {/* High-accuracy aligned dataset ledger */}
-          <div className="space-y-1.5 text-[11px] font-bold text-slate-600 mt-2">
-            <div className="flex items-center justify-between py-1 px-1 border-b border-slate-50/50">
+          <div className="space-y-0.5 text-[11px] font-bold text-slate-600">
+            <div className="flex items-center justify-between py-0.5 px-1 border-b border-slate-50/50">
               <span className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#1d4ed8]" />
+                <span className="h-2 w-2 rounded-full bg-[#1d4ed8] items-center shrink-0" />
                 <span className="text-slate-500 font-bold">Present</span>
               </span>
               <span className="text-slate-800 font-black font-mono">89.4%</span>
             </div>
 
-            <div className="flex items-center justify-between py-1 px-1 border-b border-slate-50/50">
+            <div className="flex items-center justify-between py-0.5 px-1 border-b border-slate-50/50">
               <span className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#cbd5e1]" />
+                <span className="h-2 w-2 rounded-full bg-[#cbd5e1] items-center shrink-0" />
                 <span className="text-slate-500 font-bold">Absent</span>
               </span>
               <span className="text-slate-800 font-black font-mono">2.3%</span>
             </div>
 
-            <div className="flex items-center justify-between py-1 px-1 border-b border-slate-50/50">
+            <div className="flex items-center justify-between py-0.5 px-1 border-b border-slate-50/50">
               <span className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#f59e0b]" />
+                <span className="h-2 w-2 rounded-full bg-[#f59e0b] items-center shrink-0" />
                 <span className="text-slate-500 font-bold">Late</span>
               </span>
               <span className="text-slate-800 font-black font-mono">1.0%</span>
             </div>
 
-            <div className="flex items-center justify-between py-1 px-1">
+            <div className="flex items-center justify-between py-0.5 px-1">
               <span className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#818cf8]" />
+                <span className="h-2 w-2 rounded-full bg-[#818cf8] items-center shrink-0" />
                 <span className="text-slate-500 font-bold">On Leave</span>
               </span>
               <span className="text-slate-800 font-black font-mono">7.3%</span>
@@ -625,54 +629,54 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
         </div>
 
         {/* Card C: Strategic Live Time Tracking & Punching (lg:col-span-3) */}
-        <div className="lg:col-span-3 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
+        <div className="lg:col-span-3 bg-white border border-slate-100 rounded-2xl p-4 shadow-xs flex flex-col gap-3">
           <div className="flex justify-between items-center border-b border-slate-50 pb-2">
             <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Time Tracking</h3>
-            <span className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100/30">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100/30 whitespace-nowrap shrink-0">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse items-center shrink-0" />
               <span className="text-[9px] text-emerald-600 font-black uppercase tracking-wider">Live</span>
             </span>
           </div>
 
           {/* Time digits container using JetBrains Mono to avoid shifting layout */}
-          <div className="text-center py-2 relative">
-            <span className="text-[32px] font-black font-mono text-slate-800 tracking-tighter leading-none block">
+          <div className="text-center relative">
+            <span className="text-[28px] font-black font-mono text-slate-800 tracking-tighter leading-none block">
               {getDigitalTimeString(time)}
             </span>
-            <span className="text-[9px] text-[#64748b] font-black block mt-2 text-center uppercase tracking-wider">
+            <span className="text-[9px] text-[#64748b] font-black block mt-1.5 text-center uppercase tracking-wider">
               {getCalendarDateString(time)}
             </span>
           </div>
 
           {/* Standing status and inputs panel */}
-          <div className="bg-slate-50/85 border border-slate-100 rounded-2xl p-4 space-y-3 relative">
-            <span className={`absolute right-4 top-3 text-[8.5px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md ${
+          <div className="bg-slate-50/85 border border-slate-100 rounded-xl p-3 space-y-2.5 relative">
+            <span className={`absolute right-3 top-2.5 text-[8.5px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md ${
               isPunchedIn ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
             }`}>
               {isPunchedIn ? 'Working' : 'Standby'}
             </span>
 
             {/* Shift logs block */}
-            <div className="grid grid-cols-2 gap-3.5">
-              <div className="bg-white border border-slate-100/80 rounded-xl p-3">
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="bg-white border border-slate-100/80 rounded-lg p-2.5">
                 <span className="text-[8.5px] text-slate-400 font-extrabold block uppercase tracking-wider">Clock In</span>
-                <span className="text-xs font-black text-slate-750 block mt-1 font-mono">{punchInTime}</span>
+                <span className="text-xs font-black text-slate-750 block mt-0.5 font-mono">{punchInTime}</span>
               </div>
-              <div className="bg-white border border-slate-100/80 rounded-xl p-3">
+              <div className="bg-white border border-slate-100/80 rounded-lg p-2.5">
                 <span className="text-[8.5px] text-slate-400 font-extrabold block uppercase tracking-wider">Clock Out</span>
-                <span className="text-xs font-black text-slate-750 block mt-1 font-mono">{punchOutTime}</span>
+                <span className="text-xs font-black text-slate-750 block mt-0.5 font-mono">{punchOutTime}</span>
               </div>
             </div>
 
             {/* Session tracking time accumulator box */}
-            <div className="bg-slate-900 rounded-xl px-4 py-2 flex justify-between items-center text-white">
+            <div className="bg-slate-900 rounded-lg px-3 py-1.5 flex justify-between items-center text-white">
               <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Total session time</span>
               <span className="text-[11px] font-black font-mono text-emerald-400">{formatSessionTime(sessionSeconds)}</span>
             </div>
           </div>
 
           {/* Action trigger punch-card loops */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5 mt-auto">
             <button 
               disabled={isPunchedIn}
               onClick={handlePunchIn}
@@ -703,11 +707,11 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
       </div>
 
       {/* SECTION 3: Bottom strategic logs & directory columns (New Joiners, Absence Queue, Financial Audit) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* Card X: New Talent Ledger (lg:col-span-4) */}
-        <div className="lg:col-span-4 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
-          <div className="border-b border-slate-50 pb-3 flex justify-between items-center">
+        <div className="lg:col-span-4 bg-white border border-slate-100 rounded-2xl p-4 shadow-xs flex flex-col">
+          <div className="border-b border-slate-50 pb-2 flex justify-between items-center">
             <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">New Talent</h3>
             {canManageFullSystem(roles) && (
               <button 
@@ -723,7 +727,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
             )}
           </div>
 
-          <div className="divide-y divide-slate-100/60 mt-3 flex-1 flex flex-col justify-between">
+          <div className="divide-y divide-slate-100/60 mt-1.5">
             {[
               { name: 'Sarah Johnson', role: 'UI/UX Designer', date: 'May 28, 2025', initials: 'SJ', color: 'bg-indigo-100/80 text-indigo-750' },
               { name: 'Michael Chen', role: 'Backend Developer', date: 'May 27, 2025', initials: 'MC', color: 'bg-emerald-100/80 text-emerald-750' },
@@ -731,9 +735,9 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
               { name: 'David Wilson', role: 'Sales Manager', date: 'May 24, 2025', initials: 'DW', color: 'bg-orange-100/80 text-orange-750' },
               { name: 'Emma Brown', role: 'Marketing Specialist', date: 'May 23, 2025', initials: 'EB', color: 'bg-pink-100/80 text-pink-750' },
             ].map((talent, idx) => (
-              <div key={idx} className="py-2.5 flex items-center justify-between text-xs font-semibold">
-                <div className="flex items-center gap-3">
-                  <span className={`h-8.5 w-8.5 rounded-full ${talent.color} font-black text-[11px] flex items-center justify-center`}>
+              <div key={idx} className="py-2 flex items-center justify-between text-xs font-semibold">
+                <div className="flex items-center gap-2.5">
+                  <span className={`h-8 w-8 rounded-full ${talent.color} font-black text-[11px] flex items-center justify-center`}>
                     {talent.initials}
                   </span>
                   <div>
@@ -748,8 +752,8 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
         </div>
 
         {/* Card Y: Absence Leave queue lists (lg:col-span-4) */}
-        <div className="lg:col-span-4 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
-          <div className="border-b border-slate-50 pb-3 flex justify-between items-center">
+        <div className="lg:col-span-4 bg-white border border-slate-100 rounded-2xl p-4 shadow-xs flex flex-col">
+          <div className="border-b border-slate-50 pb-2 flex justify-between items-center">
             <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Absence Queue</h3>
             <button 
               onClick={() => {
@@ -763,7 +767,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
             </button>
           </div>
 
-          <div className="divide-y divide-slate-100/60 mt-3 flex-1 flex flex-col justify-between">
+          <div className="divide-y divide-slate-100/60 mt-1.5">
             {[
               { name: 'John Doe', type: 'Annual Leave', dates: 'May 30 – Jun 03', status: 'Pending', initials: 'JD', badge: 'bg-[#fef3c7] text-[#d97706] border border-[#fef3c7]' },
               { name: 'Emily Davis', type: 'Sick Leave', dates: 'May 29 – May 30', status: 'Approved', initials: 'ED', badge: 'bg-[#dcfce7] text-[#15803d] border border-[#dcfce7]' },
@@ -771,9 +775,9 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
               { name: 'Lisa Wilson', type: 'Annual Leave', dates: 'Jun 02 – Jun 06', status: 'Approved', initials: 'LW', badge: 'bg-[#dcfce7] text-[#15803d] border border-[#dcfce7]' },
               { name: 'James Taylor', type: 'Sick Leave', dates: 'May 30 – May 31', status: 'Rejected', initials: 'JT', badge: 'bg-[#fee2e2] text-[#b91c1c] border border-[#fee2e2]' },
             ].map((item, idx) => (
-              <div key={idx} className="py-2.5 flex items-center justify-between text-xs font-semibold">
-                <div className="flex items-center gap-3">
-                  <span className="h-8.5 w-8.5 rounded-full bg-slate-100 text-slate-600 font-extrabold text-[11px] flex items-center justify-center">
+              <div key={idx} className="py-2 flex items-center justify-between text-xs font-semibold">
+                <div className="flex items-center gap-2.5">
+                  <span className="h-8 w-8 rounded-full bg-slate-100 text-slate-600 font-extrabold text-[11px] flex items-center justify-center shrink-0">
                     {item.initials}
                   </span>
                   <div>
@@ -790,17 +794,17 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
         </div>
 
         {/* Card Z: Financial Overview & Certified Ledger Auditing (lg:col-span-4) */}
-        <div className="lg:col-span-4 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
-          <div className="border-b border-slate-50 pb-3 flex justify-between items-center">
+        <div className="lg:col-span-4 bg-white border border-slate-100 rounded-2xl p-4 shadow-xs flex flex-col gap-3">
+          <div className="border-b border-slate-50 pb-2 flex justify-between items-center">
             <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Financial Overview</h3>
-            <span className="p-1 rounded-full bg-slate-50/10">
+            <span className="p-1 rounded-full bg-slate-50/10 inline-flex items-center whitespace-nowrap shrink-0">
               <Coins className="h-4.5 w-4.5 text-emerald-600" />
             </span>
           </div>
 
-          <div className="mt-4 flex-1 flex flex-col justify-between space-y-4">
+          <div className="flex flex-col gap-3">
             <div>
-              <span className="text-[32px] font-black text-slate-805 tracking-tight block">
+              <span className="text-[28px] font-black text-slate-805 tracking-tight block leading-none">
                 $1,248,320
               </span>
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block mt-1">
@@ -809,17 +813,17 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
             </div>
 
             {/* Split multi-segmented high precision progress bar */}
-            <div className="w-full h-2 rounded-full overflow-hidden flex bg-slate-100">
+            <div className="w-full h-1.5 rounded-full overflow-hidden flex bg-slate-100">
               <div className="h-full bg-[#1d4ed8] transition-all" style={{ width: '71%' }} />
               <div className="h-full bg-[#0d9488] transition-all" style={{ width: '16%' }} />
               <div className="h-full bg-[#818cf8] transition-all" style={{ width: '13%' }} />
             </div>
 
             {/* Dynamic ledger detail breakdown alignments */}
-            <div className="space-y-2.5 text-[11.5px] font-bold text-[#475569]">
+            <div className="space-y-2 text-[11.5px] font-bold text-[#475569]">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-[#1d4ed8]" />
+                  <span className="h-2 w-2 rounded-full bg-[#1d4ed8] items-center shrink-0" />
                   <span className="font-bold text-slate-500">Net Pay</span>
                 </span>
                 <div className="flex items-center gap-1.5 font-mono">
@@ -830,7 +834,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
 
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-[#0d9488]" />
+                  <span className="h-2 w-2 rounded-full bg-[#0d9488] items-center shrink-0" />
                   <span className="font-bold text-slate-500">Deductions</span>
                 </span>
                 <div className="flex items-center gap-1.5 font-mono">
@@ -841,7 +845,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
 
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-[#818cf8]" />
+                  <span className="h-2 w-2 rounded-full bg-[#818cf8] items-center shrink-0" />
                   <span className="font-bold text-slate-500">Taxes</span>
                 </span>
                 <div className="flex items-center gap-1.5 font-mono">
@@ -854,7 +858,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
             {/* Solid dark finalize audit corporate button */}
             <button 
               onClick={startFinancialAudit}
-              className="w-full py-3 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl text-[10.5px] uppercase font-black tracking-widest transition-all cursor-pointer shadow-sm active:scale-[0.98] flex items-center justify-center gap-2"
+              className="w-full mt-auto py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl text-[10.5px] uppercase font-black tracking-widest transition-all cursor-pointer shadow-sm active:scale-[0.98] flex items-center justify-center gap-2"
             >
               <span>$ FINALIZE AUDIT</span>
             </button>
@@ -870,7 +874,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
             
             {/* Header branding */}
             <div>
-              <span className="text-[9px] font-black uppercase tracking-widest text-[#1d4ed8] bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">
+              <span className="text-[9px] font-black uppercase tracking-widest text-[#1d4ed8] bg-blue-50 border border-blue-100 px-3 py-1 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                 Ledger Audit Protocol v12.4
               </span>
               <h4 className="text-sm font-black text-slate-850 mt-3.5 uppercase tracking-wide">Financial Payroll Ledger Compiler</h4>
@@ -890,7 +894,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
                 </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                   <div 
-                    className="bg-emerald-500 h-full rounded-full transition-all duration-150" 
+                    className="bg-emerald-500 h-full rounded-full transition-all duration-150 inline-flex items-center whitespace-nowrap shrink-0" 
                     style={{ width: `${auditComplete ? 100 : auditProgress}%` }} 
                   />
                 </div>
@@ -900,9 +904,9 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
               <div className="space-y-2 text-[11px] font-bold text-slate-600">
                 <div className="flex items-center gap-2.5">
                   {auditStep >= 1 ? (
-                    <span className="h-4 w-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">✓</span>
+                    <span className="h-4 w-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
                   ) : (
-                    <span className="h-4 w-4 rounded-full border-2 border-slate-200 animate-spin border-t-[#1d4ed8]" />
+                    <span className="h-4 w-4 rounded-full border-2 border-slate-200 animate-spin border-t-[#1d4ed8] items-center shrink-0" />
                   )}
                   <span className={auditStep >= 1 ? 'line-through text-slate-400' : 'text-slate-700'}>
                     Verifying Tax Reserves: RM 156,000 alignment
@@ -911,11 +915,11 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
 
                 <div className="flex items-center gap-2.5">
                   {auditStep >= 2 ? (
-                    <span className="h-4 w-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">✓</span>
+                    <span className="h-4 w-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
                   ) : auditStep === 1 ? (
-                    <span className="h-4 w-4 rounded-full border-2 border-slate-200 animate-spin border-t-emerald-500" />
+                    <span className="h-4 w-4 rounded-full border-2 border-slate-200 animate-spin border-t-emerald-500 items-center shrink-0" />
                   ) : (
-                    <span className="h-4 w-4 rounded-full border border-slate-200" />
+                    <span className="h-4 w-4 rounded-full border border-slate-200 inline-flex items-center shrink-0" />
                   )}
                   <span className={auditStep >= 2 ? 'line-through text-slate-400' : 'text-slate-700'}>
                     Reconciling Corporate Benefit Deductions: RM 195,870
@@ -924,11 +928,11 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
 
                 <div className="flex items-center gap-2.5">
                   {auditComplete ? (
-                    <span className="h-4 w-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">✓</span>
+                    <span className="h-4 w-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
                   ) : auditStep === 2 ? (
-                    <span className="h-4 w-4 rounded-full border-2 border-slate-200 animate-spin border-t-indigo-500" />
+                    <span className="h-4 w-4 rounded-full border-2 border-slate-200 animate-spin border-t-indigo-500 items-center shrink-0" />
                   ) : (
-                    <span className="h-4 w-4 rounded-full border border-slate-200" />
+                    <span className="h-4 w-4 rounded-full border border-slate-200 inline-flex items-center shrink-0" />
                   )}
                   <span className={auditComplete ? 'line-through text-slate-400 font-bold' : 'text-slate-700'}>
                     Generating Electronic Bank Routing Instruction: RM 896,450

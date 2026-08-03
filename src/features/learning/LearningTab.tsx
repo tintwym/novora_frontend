@@ -599,7 +599,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
 
         {/* Global Action Banner */}
         <div className="flex items-center gap-2 font-medium">
-          <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+          <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse items-center shrink-0" />
           <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">SCORM 2004 v4 / xAPI standard synced</span>
         </div>
       </div>
@@ -929,7 +929,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                         <span className="font-mono text-[#2f66e0]">{course.progress}%</span>
                       </div>
                       <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${course.progress}%` }} />
+                        <div className="h-full bg-blue-500 rounded-full transition-all inline-flex items-center whitespace-nowrap shrink-0" style={{ width: `${course.progress}%` }} />
                       </div>
                     </div>
                   )}
@@ -1139,7 +1139,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                   {/* Category top row */}
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-extrabold bg-[#2f66e0]/10 text-[#2f66e0] px-3 py-1 rounded-full uppercase tracking-wider">
+                      <span className="text-[10px] font-extrabold bg-[#2f66e0]/10 text-[#2f66e0] px-3 py-1 rounded-full uppercase tracking-wider inline-flex items-center whitespace-nowrap shrink-0">
                         {path.targetDept} Cohort
                       </span>
                       <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${
@@ -1168,7 +1168,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                     {path.courses.map((courseTitle, idx) => (
                       <div key={idx} className="flex items-center justify-between text-[11px] font-bold text-slate-705 border-b border-white pb-1.5 last:border-0 last:pb-0">
                         <div className="flex items-center gap-1.5 truncate">
-                          <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
+                          <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0 items-center" />
                           <span className="truncate">{courseTitle}</span>
                         </div>
                         <span className="text-[9.5px] text-slate-400 shrink-0 select-none">Course {idx + 1}</span>
@@ -1212,8 +1212,8 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping" />
-              <span className="text-[10px] font-extrabold text-amber-600 bg-amber-50 border border-amber-205 px-3 py-1 rounded-full uppercase tracking-wider">
+              <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping items-center shrink-0" />
+              <span className="text-[10px] font-extrabold text-amber-600 bg-amber-50 border border-amber-205 px-3 py-1 rounded-full uppercase tracking-wider inline-flex items-center whitespace-nowrap shrink-0">
                 Audits Auto-Check Active
               </span>
             </div>
@@ -1444,7 +1444,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                   {/* Main scoring card overlay if submitted */}
                   {quizScoreCard ? (
                     <div className="p-6 rounded-2xl text-center space-y-4 border max-w-lg mx-auto bg-slate-50/50 border-slate-150">
-                      <div className="inline-flex h-12 w-12 rounded-full items-center justify-center text-lg shadow-3xs font-black bg-white">
+                      <div className="inline-flex h-12 w-12 rounded-full items-center justify-center text-lg shadow-3xs font-black bg-white shrink-0">
                         {quizScoreCard.passed ? '🎉' : '❌'}
                       </div>
 
@@ -1524,7 +1524,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                                   >
                                     <span>{option}</span>
                                     <div className="h-4 w-4 rounded-full border border-slate-300 flex items-center justify-center shrink-0">
-                                      {isChecked && <div className="h-2 w-2 rounded-full bg-[#2f66e0]" />}
+                                      {isChecked && <div className="h-2 w-2 rounded-full bg-[#2f66e0] items-center shrink-0" />}
                                     </div>
                                   </button>
                                 );
@@ -1553,7 +1553,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                 </div>
               ) : (
                 <div className="bg-white border border-slate-100 rounded-2xl p-10 text-center space-y-4 shadow-3xs">
-                  <Play className="h-10 w-10 text-[#2f66e0] mx-auto bg-blue-50 p-2.5 rounded-full" />
+                  <Play className="h-10 w-10 text-[#2f66e0] mx-auto bg-blue-50 p-2.5 rounded-full inline-flex items-center shrink-0" />
                   
                   <div className="space-y-1">
                     <h5 className="text-[13px] font-black text-slate-800 uppercase tracking-widest">Select Exam to Boot Engine</h5>
@@ -1587,7 +1587,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                     <p className="text-[10.5px] text-slate-400 font-semibold mt-0.5">Aggregated metrics detailing the ratio of staff completing active training milestones</p>
                   </div>
 
-                  <span className="text-[10px] font-black text-[#2f66e0] bg-[#2f66e0]/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  <span className="text-[10px] font-black text-[#2f66e0] bg-[#2f66e0]/10 px-2.5 py-1 rounded-full uppercase tracking-wider inline-flex items-center whitespace-nowrap shrink-0">
                     Target: 80% Min
                   </span>
                 </div>

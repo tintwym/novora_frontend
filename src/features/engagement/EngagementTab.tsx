@@ -524,7 +524,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
 
         {/* Global Action Banner */}
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping items-center shrink-0" />
           <span className="text-[10.5px] font-black text-slate-400 uppercase tracking-wider">Live sentiment index sync active</span>
         </div>
       </div>
@@ -580,7 +580,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
 
             {/* Interactive Ballot cast box */}
             <div className="lg:col-span-2 bg-white border border-slate-100 p-6 rounded-2xl shadow-xs flex flex-col justify-between relative overflow-hidden">
-              <div className="absolute right-0 top-0 w-32 h-32 bg-[#2f66e0]/5 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute right-0 top-0 w-32 h-32 bg-[#2f66e0]/5 rounded-full blur-2xl pointer-events-none inline-flex items-center shrink-0" />
               <div>
                 <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Cast Your Anonymous eNPS Vote</h5>
                 <p className="text-xs text-slate-500 leading-relaxed mt-1">
@@ -640,7 +640,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                 <p className="text-[11px] text-slate-400 font-semibold mt-0.5">Automated brief check-ins to monitor team friction points</p>
               </div>
 
-              <span className="text-[11px] font-black text-[#2f66e0] bg-[#2f66e0]/10 px-3 py-1 rounded-full">
+              <span className="text-[11px] font-black text-[#2f66e0] bg-[#2f66e0]/10 px-3 py-1 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                 {polls.length} Live surveys
               </span>
             </div>
@@ -1245,7 +1245,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                 })()}
               </div>
               <div className="flex items-center gap-1 mt-3">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 items-center shrink-0" />
                 <span className="text-[9.5px] text-emerald-600 font-extrabold uppercase">High Morale Tier</span>
               </div>
             </div>
@@ -1387,7 +1387,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                       <span className="font-bold text-slate-800">{enpsTallies.promoters} (64%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full rounded-full" style={{ width: '64%' }} />
+                      <div className="bg-emerald-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '64%' }} />
                     </div>
                   </div>
 
@@ -1397,7 +1397,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                       <span className="font-bold text-slate-800">{enpsTallies.passives} (25%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-amber-500 h-full rounded-full" style={{ width: '25%' }} />
+                      <div className="bg-amber-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '25%' }} />
                     </div>
                   </div>
 
@@ -1407,7 +1407,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                       <span className="font-bold text-rose-700">{enpsTallies.detractors} (11%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-rose-500 h-full rounded-full" style={{ width: '11%' }} />
+                      <div className="bg-rose-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '11%' }} />
                     </div>
                   </div>
                 </div>

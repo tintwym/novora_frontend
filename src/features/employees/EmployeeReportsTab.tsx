@@ -203,7 +203,7 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
             <span className="text-[10.5px] font-bold text-slate-400">of {totalCount} corporate staff</span>
           </div>
           <div className="flex items-center gap-1 mt-3">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 items-center shrink-0" />
             <p className="text-[10px] text-slate-500 font-semibold">{selectionActiveCount} Currently Active in operations</p>
           </div>
         </div>
@@ -221,7 +221,7 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
             <span className="text-[10.5px] font-bold text-emerald-500">↑ 2.1% YoY gain</span>
           </div>
           <div className="flex items-center gap-1 mt-3">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#2f66e0]" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[#2f66e0] items-center shrink-0" />
             <p className="text-[10px] text-slate-500 font-semibold">{permanentCount} permanent positions securely staffed</p>
           </div>
         </div>
@@ -237,7 +237,7 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
             <span className="text-xs font-semibold text-amber-600">On approved leaves</span>
           </div>
           <div className="flex items-center gap-1 mt-3">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 items-center shrink-0" />
             <p className="text-[10px] text-slate-500 font-semibold">
               {selectionLeaveCount > 0 ? `${Math.round((selectionLeaveCount / currentSelectionCount) * 100)}% active leave ratio today` : 'No staff currently out-of-office'}
             </p>
@@ -257,7 +257,7 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
             <span className="text-xs font-semibold text-slate-400">insured units</span>
           </div>
           <div className="flex items-center gap-1 mt-3">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 items-center shrink-0" />
             <p className="text-[10px] text-slate-500 font-semibold">100% full panel insurance coverage</p>
           </div>
         </div>
@@ -321,12 +321,12 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
               {tenureData.map((data) => (
                 <div key={data.group} className="flex items-center justify-between text-xs font-semibold">
                   <div className="flex items-center gap-2 text-slate-600">
-                    <span className="h-2 w-2 rounded-full bg-indigo-500" />
+                    <span className="h-2 w-2 rounded-full bg-indigo-500 items-center shrink-0" />
                     <span>{data.group}</span>
                   </div>
                   <div className="flex items-center gap-3 w-40">
-                    <div className="w-24 bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${data.percentage}%` }} />
+                    <div className="w-24 bg-slate-100 h-1.5 rounded-full overflow-hidden items-center shrink-0">
+                      <div className="bg-indigo-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: `${data.percentage}%` }} />
                     </div>
                     <span className="font-bold text-slate-800 text-right w-12">{data.count} ({data.percentage}%)</span>
                   </div>
@@ -374,19 +374,19 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
             {/* Micro Legended counts */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-[10.5px] font-bold">
               <div className="flex items-center gap-1.5 text-slate-600">
-                <span className="h-2 w-2 rounded-full bg-[#2f66e0]" />
+                <span className="h-2 w-2 rounded-full bg-[#2f66e0] items-center shrink-0" />
                 <span>Permanent ({permanentCount})</span>
               </div>
               <div className="flex items-center gap-1.5 text-slate-600">
-                <span className="h-2 w-2 rounded-full bg-indigo-500" />
+                <span className="h-2 w-2 rounded-full bg-indigo-500 items-center shrink-0" />
                 <span>Contract ({contractCount})</span>
               </div>
               <div className="flex items-center gap-1.5 text-slate-600">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="h-2 w-2 rounded-full bg-emerald-500 items-center shrink-0" />
                 <span>Intern ({internCount})</span>
               </div>
               <div className="flex items-center gap-1.5 text-slate-600">
-                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                <span className="h-2 w-2 rounded-full bg-amber-500 items-center shrink-0" />
                 <span>Part-Time ({partTimeCount})</span>
               </div>
             </div>

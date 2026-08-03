@@ -442,7 +442,7 @@ export default function OrgChartTab({ employees, onSelectEmployee, addToast }: O
             <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-slate-400 tracking-wider uppercase">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                <span className="relative rounded-full h-1.5 w-1.5 bg-emerald-500 items-center shrink-0"></span>
               </span>
               <span>Smooth Zoom Fit</span>
             </div>
@@ -520,7 +520,7 @@ export default function OrgChartTab({ employees, onSelectEmployee, addToast }: O
                               {/* More Capsule button */}
                               <div
                                 onClick={() => addToast('Displaying 8 additional engineering staff profiles', 'success')}
-                                className="bg-slate-50 border border-slate-200 hover:bg-slate-100 px-3 py-1 rounded-full text-[9px] font-bold text-slate-600 transition-colors cursor-pointer select-none"
+                                className="bg-slate-50 border border-slate-200 hover:bg-slate-100 px-3 py-1 rounded-full text-[9px] font-bold text-slate-600 transition-colors cursor-pointer select-none inline-flex items-center whitespace-nowrap shrink-0"
                               >
                                 +8 more members
                               </div>
@@ -544,7 +544,7 @@ export default function OrgChartTab({ employees, onSelectEmployee, addToast }: O
                                 dept: "Engineering" })}
                               <div
                                 onClick={() => addToast('Displaying 12 additional server development team records', 'success')}
-                                className="bg-slate-50 border border-slate-200 hover:bg-slate-100 px-3 py-1 rounded-full text-[9px] font-bold text-slate-600 transition-colors cursor-pointer select-none"
+                                className="bg-slate-50 border border-slate-200 hover:bg-slate-100 px-3 py-1 rounded-full text-[9px] font-bold text-slate-600 transition-colors cursor-pointer select-none inline-flex items-center whitespace-nowrap shrink-0"
                               >
                                 +12 more
                               </div>

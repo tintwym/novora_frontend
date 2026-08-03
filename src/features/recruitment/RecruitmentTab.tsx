@@ -492,7 +492,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
               >
                 <span>{tab}</span>
                 {isInterviewWithBadge && (
-                  <span className="bg-[#2f66e0] text-white text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full">
+                  <span className="bg-[#2f66e0] text-white text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                     5
                   </span>
                 )}
@@ -709,7 +709,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <th className="py-3 px-5">Open date</th>
                       <th className="py-3 px-5">Target fill</th>
                       <th className="py-3 px-5">Applicants</th>
-                      <th className="py-3 px-5">Status</th>
+                      <th className="py-3 px-5 whitespace-nowrap">Status</th>
                       <th className="py-3 px-5 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -719,7 +719,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                         <td className="py-3.5 px-5 font-mono text-[10.5px] text-slate-400">{req.id}</td>
                         <td className="py-3.5 px-5 font-bold text-slate-900">{req.positionTitle}</td>
                         <td className="py-3.5 px-5">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${
                             req.department === 'Engineering' ? 'bg-blue-50 text-blue-600' :
                             req.department === 'HR' ? 'bg-pink-50 text-pink-600' :
                             req.department === 'Finance' ? 'bg-emerald-50 text-emerald-600' :
@@ -738,8 +738,8 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                             {req.applicants}
                           </span>
                         </td>
-                        <td className="py-3.5 px-5">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                        <td className="py-3.5 px-5 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${
                             req.status === 'Open' ? 'bg-emerald-50 text-emerald-600' :
                             req.status === 'In review' ? 'bg-blue-50 text-blue-600' :
                             req.status === 'Filled' ? 'bg-slate-100 text-slate-400 line-through' :
@@ -788,8 +788,8 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       Published channels linked to applicant counts
                     </p>
                   </div>
-                  <span className="bg-emerald-50 border border-emerald-100 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                  <span className="bg-emerald-50 border border-emerald-100 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shrink-0">
+                    <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse items-center shrink-0" />
                     <span>8 Live</span>
                   </span>
                 </div>
@@ -816,7 +816,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                           <div className="text-xs font-bold text-[#2f66e0]">{post.applicants} applicants</div>
                           <span className="text-[9.5px] font-bold text-slate-400">YTD volume</span>
                         </div>
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${
                           post.status === 'Live' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
                         }`}>
                           {post.status}
@@ -842,7 +842,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span className="text-slate-900">62 applicants (45%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-blue-600 h-full rounded-full" style={{ width: '45%' }} />
+                      <div className="bg-blue-600 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '45%' }} />
                     </div>
                   </div>
                   <div>
@@ -851,7 +851,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span className="text-slate-900">33 applicants (28%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-[#2f66e0] h-full rounded-full" style={{ width: '28%' }} />
+                      <div className="bg-[#2f66e0] h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '28%' }} />
                     </div>
                   </div>
                   <div>
@@ -860,7 +860,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span className="text-slate-900">26 applicants (16%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full rounded-full" style={{ width: '16%' }} />
+                      <div className="bg-emerald-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '16%' }} />
                     </div>
                   </div>
                   <div>
@@ -869,7 +869,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span className="text-slate-900">14 applicants (9%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-amber-500 h-full rounded-full" style={{ width: '9%' }} />
+                      <div className="bg-amber-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '9%' }} />
                     </div>
                   </div>
                   <div>
@@ -878,7 +878,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span className="text-slate-900">12 applicants (2%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-rose-500 h-full rounded-full" style={{ width: '2%' }} />
+                      <div className="bg-rose-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '2%' }} />
                     </div>
                   </div>
                 </div>
@@ -928,7 +928,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   <div key={stage} className="min-w-52.5 bg-white hover:bg-slate-50/40 border border-slate-100 rounded-2xl p-3.5 space-y-3.5 transition-colors">
                     <div className="flex items-center justify-between border-b border-slate-50 pb-2">
                       <span className="text-xs font-bold text-slate-600">{stage}</span>
-                      <span className="bg-slate-100 text-slate-600 rounded-full h-5 w-5 flex items-center justify-center text-[10px] font-bold">
+                      <span className="bg-slate-100 text-slate-600 rounded-full h-5 w-5 flex items-center justify-center text-[10px] font-bold shrink-0">
                         {stageList.length}
                       </span>
                     </div>
@@ -953,7 +953,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                           </div>
 
                           <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100/70">
-                            <span className="bg-slate-100 text-slate-500 font-bold text-[9px] px-2 py-0.5 rounded-full">
+                            <span className="bg-slate-100 text-slate-500 font-bold text-[9px] px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                               {item.source}
                             </span>
                             <span className="text-[10.5px] font-extrabold text-emerald-600">
@@ -987,7 +987,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     <h3 className="text-sm font-bold text-slate-800 font-sans">Upcoming interviews list</h3>
                     <p className="text-[11px] text-slate-400 font-semibold mt-1">Confirmed slots pending logs</p>
                   </div>
-                  <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                     5 upcoming today
                   </span>
                 </div>
@@ -1030,7 +1030,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                             </span>
                           </td>
                           <td className="py-3 px-1">
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${
                               item.status === 'Confirmed' ? 'bg-emerald-50 text-emerald-600' :
                               item.status === 'No show' ? 'bg-red-50 text-red-650' : 'bg-amber-50 text-amber-600'
                             }`}>
@@ -1065,7 +1065,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span>90%</span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-blue-600 h-full rounded-full" style={{ width: '90%' }} />
+                      <div className="bg-blue-600 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '90%' }} />
                     </div>
                   </div>
                   <div>
@@ -1074,7 +1074,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span>95%</span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full rounded-full" style={{ width: '95%' }} />
+                      <div className="bg-emerald-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '95%' }} />
                     </div>
                   </div>
                   <div>
@@ -1083,7 +1083,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span>88%</span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-indigo-500 h-full rounded-full" style={{ width: '88%' }} />
+                      <div className="bg-indigo-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '88%' }} />
                     </div>
                   </div>
                   <div>
@@ -1092,7 +1092,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span>92%</span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-purple-500 h-full rounded-full" style={{ width: '92%' }} />
+                      <div className="bg-purple-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '92%' }} />
                     </div>
                   </div>
                   <div>
@@ -1101,7 +1101,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span>80%</span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-orange-500 h-full rounded-full" style={{ width: '80%' }} />
+                      <div className="bg-orange-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '80%' }} />
                     </div>
                   </div>
                 </div>
@@ -1111,7 +1111,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Panel recommendation</span>
                     <span className="text-xs font-bold text-slate-800 block mt-0.5">Proceed to contract offer</span>
                   </div>
-                  <span className="bg-emerald-500 text-white rounded-full p-1.5">
+                  <span className="bg-emerald-500 text-white rounded-full p-1.5 inline-flex items-center whitespace-nowrap shrink-0">
                     <Check className="h-4.5 w-4.5 font-bold" />
                   </span>
                 </div>
@@ -1161,7 +1161,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                           <td className="py-3 px-1 text-slate-500">{item.sentDate}</td>
                           <td className="py-3 px-1 text-rose-500">{item.expiryDate}</td>
                           <td className="py-3 px-1">
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${
                               item.status === 'Sent' ? 'bg-blue-50 text-blue-600' :
                               item.status === 'Accepted' ? 'bg-emerald-50 text-emerald-600' :
                               item.status === 'Declined' ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-500'
@@ -1182,7 +1182,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
               <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs">
                 <div className="flex items-center justify-between border-b border-slate-50 pb-4 mb-4">
                   <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Offer workflow status</h3>
-                  <span className="bg-amber-50 text-amber-700 text-[10.5px] font-bold px-2 py-0.5 rounded-full">
+                  <span className="bg-amber-50 text-amber-700 text-[10.5px] font-bold px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                     Awaiting accept
                   </span>
                 </div>
@@ -1272,7 +1272,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 bg-indigo-50 border border-indigo-100 rounded-full flex items-center justify-center text-xs font-bold text-indigo-600">
+                        <div className="h-9 w-9 bg-indigo-50 border border-indigo-100 rounded-full flex items-center justify-center text-xs font-bold text-indigo-600 shrink-0">
                           {item.avatar}
                         </div>
                         <div>
@@ -1289,7 +1289,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                           <span className="text-[10px] font-bold text-slate-400 block mt-0.5">docs received</span>
                         </div>
                         
-                        <span className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold ${
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10.5px] font-bold whitespace-nowrap shrink-0 ${
                           item.status === 'Ready to onboard' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
                         }`}>
                           {item.status}
@@ -1309,7 +1309,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 <div className="space-y-4">
                   <div className="flex gap-4 items-start">
                     <span className="text-xs font-semibold text-slate-400 w-16 pt-0.5">6 May</span>
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0 mt-2" />
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0 mt-2 items-center" />
                     <div>
                       <div className="text-xs font-bold text-slate-800">Employment contract accepted</div>
                       <p className="text-[11px] text-slate-400 font-semibold mt-1">Ahmad Bakri - Operations Lead &bull; Start Date: 2 Jun 2026</p>
@@ -1317,7 +1317,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   </div>
                   <div className="flex gap-4 items-start">
                     <span className="text-xs font-semibold text-slate-400 w-16 pt-0.5">5 May</span>
-                    <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-2" />
+                    <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-2 items-center" />
                     <div>
                       <div className="text-xs font-bold text-slate-800">Document upload request delivered</div>
                       <p className="text-[11px] text-slate-400 font-semibold mt-1">Lena Wong - HR Business Partner &bull; Verification link sent</p>
@@ -1325,7 +1325,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   </div>
                   <div className="flex gap-4 items-start">
                     <span className="text-xs font-semibold text-slate-400 w-16 pt-0.5">25 Apr</span>
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0 mt-2" />
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0 mt-2 items-center" />
                     <div>
                       <div className="text-xs font-bold text-slate-800">IT Equipment assignment booked</div>
                       <p className="text-[11px] text-slate-400 font-semibold mt-1">Laptop & credentials staged for Operations Lead</p>
@@ -1762,7 +1762,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                         <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Candidate conversion waterfall %</h3>
                         <span className="text-[10px] text-slate-405 font-bold italic mt-0.5 block">{stats.text}</span>
                       </div>
-                      <span className="text-[11px] font-bold text-[#2f66e0] bg-blue-50 px-2.5 py-1 rounded-full">{stats.totalApplicants}</span>
+                      <span className="text-[11px] font-bold text-[#2f66e0] bg-blue-50 px-2.5 py-1 rounded-full inline-flex items-center whitespace-nowrap shrink-0">{stats.totalApplicants}</span>
                     </div>
 
                     <div className="space-y-4">
@@ -2055,7 +2055,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                           <td className="py-3.5 px-4.5 text-right text-slate-800 font-bold">{row.spent}</td>
                           <td className="py-3.5 px-4.5 text-right font-extrabold text-slate-700">{row.timeToClose}</td>
                           <td className="py-3.5 px-4.5 text-center">
-                            <span className={`px-2.5 py-1 rounded-full text-[9.5px] font-bold ${
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[9.5px] font-bold whitespace-nowrap shrink-0 ${
                               row.status === 'Completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600 animate-pulse'
                             }`}>
                               {row.status}
@@ -2084,7 +2084,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     Displaying {filteredDetailedRows.length} validated recruitment channels breakdown rows.
                   </span>
                   <div className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 bg-emerald-500 rounded-full inline-block animate-pulse" />
+                    <span className="h-2 w-2 bg-emerald-500 rounded-full inline-block animate-pulse items-center shrink-0" />
                     <span>Real-time DB Ledger Checked and Synchronized</span>
                   </div>
                 </div>
@@ -2137,7 +2137,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 </span>
               </div>
 
-              <div className="h-0.5 flex-1 mx-4 bg-slate-800 rounded-full" />
+              <div className="h-0.5 flex-1 mx-4 bg-slate-800 rounded-full items-center whitespace-nowrap shrink-0" />
 
               <div className="flex items-center gap-2.5">
                 <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs ${
@@ -2154,7 +2154,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 </span>
               </div>
 
-              <div className="h-0.5 flex-1 mx-4 bg-slate-800 rounded-full" />
+              <div className="h-0.5 flex-1 mx-4 bg-slate-800 rounded-full items-center whitespace-nowrap shrink-0" />
 
               <div className="flex items-center gap-2.5">
                 <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs ${
@@ -3315,8 +3315,8 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                         />
                       </div>
                       <div className="flex items-center gap-2 text-[11px] text-slate-400 select-none">
-                        <span className="h-6 w-6 rounded-full bg-[#2f66e0]/10 text-[#4f83f2] flex items-center justify-center font-bold">NR</span>
-                        <span className="h-6 w-6 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold">AW</span>
+                        <span className="h-6 w-6 rounded-full bg-[#2f66e0]/10 text-[#4f83f2] flex items-center justify-center font-bold shrink-0">NR</span>
+                        <span className="h-6 w-6 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold shrink-0">AW</span>
                         <span>Evaluators auto-booked in Google Workspace Calendar</span>
                       </div>
                     </div>

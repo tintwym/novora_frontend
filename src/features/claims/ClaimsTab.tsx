@@ -589,7 +589,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 <div className="border border-dashed border-slate-200 rounded-xl p-8 text-center bg-slate-50/50 flex flex-col items-center justify-center min-h-48 relative overflow-hidden group">
                   {isOcrScanning ? (
                     <div className="space-y-3 w-full max-w-xs">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto items-center shrink-0"></div>
                       <p className="text-xs font-bold text-slate-700">Extracting transaction meta...</p>
                       <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
                         <div className="bg-indigo-500 h-1.5 transition-all duration-300" style={{ width: `${ocrProgress}%` }}></div>
@@ -597,7 +597,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     </div>
                   ) : (
                     <>
-                      <div className="h-10 w-10 bg-white border border-slate-150 rounded-full flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform shadow-xs mb-3">
+                      <div className="h-10 w-10 bg-white border border-slate-150 rounded-full flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform shadow-xs mb-3 shrink-0">
                         <Paperclip className="h-5 w-5" />
                       </div>
                       <p className="text-xs font-bold text-slate-800">Snap or upload receipt</p>
@@ -775,7 +775,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
 
               {/* Exchange rate info badge */}
               <div className="bg-blue-50 border border-blue-100/50 rounded-xl p-3 text-[11px] font-semibold text-[#2f66e0] flex items-center gap-2">
-                <span className="h-1.5 w-1.5 bg-[#2f66e0] rounded-full animate-ping"></span>
+                <span className="h-1.5 w-1.5 bg-[#2f66e0] rounded-full animate-ping items-center shrink-0"></span>
                 <span>Live exchange rate: 1 USD = 4.68 MYR &bull; 1 SGD = 3.47 MYR &bull; 1 EUR = 5.12 MYR (updated 1 min ago)</span>
               </div>
 
@@ -939,7 +939,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   className="bg-white border border-slate-205 rounded-xl px-3.5 py-1 text-xs text-slate-650 font-semibold outline-none"
                 />
 
-                <span className="bg-amber-50 text-amber-700 font-extrabold text-xs px-3 py-1 rounded-full border border-amber-150">
+                <span className="bg-amber-50 text-amber-700 font-extrabold text-xs px-3 py-1 rounded-full border border-amber-150 inline-flex items-center whitespace-nowrap shrink-0">
                   {claims.filter(c => c.status === 'Pending').length} pending approval
                 </span>
               </div>
@@ -1015,7 +1015,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       <tr key={claim.id} className="hover:bg-slate-50/30">
                         <td className="p-4 pl-6 whitespace-nowrap">
                           <div className="flex items-center gap-2.5">
-                            <div className="h-7 w-7 rounded-full bg-[#2f66e0]/10 text-[#2f66e0] font-black text-[10px] flex items-center justify-center">
+                            <div className="h-7 w-7 rounded-full bg-[#2f66e0]/10 text-[#2f66e0] font-black text-[10px] flex items-center justify-center shrink-0">
                               {claim.empName.split(' ').map(n=>n[0]).join('')}
                             </div>
                             <div>
@@ -1215,7 +1215,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
 
                 <div className="space-y-4 text-xs font-semibold">
                   <div className="flex items-start gap-3 p-3 bg-red-50/20 border border-red-100 rounded-xl">
-                    <div className="h-2 w-2 rounded-full bg-amber-500 mt-1 shrink-0" />
+                    <div className="h-2 w-2 rounded-full bg-amber-500 mt-1 shrink-0 items-center" />
                     <div className="flex-1">
                       <p className="text-slate-850 font-bold">Meal limit exceeded</p>
                       <p className="text-[11px] text-slate-500 mt-0.5">Ahmad L &bull; MYR 42.00 vs MYR 30 limit</p>
@@ -1224,7 +1224,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   </div>
 
                   <div className="flex items-start gap-3 p-3 bg-red-50/20 border border-red-100 rounded-xl">
-                    <div className="h-2 w-2 rounded-full bg-red-650 mt-1 shrink-0" />
+                    <div className="h-2 w-2 rounded-full bg-red-650 mt-1 shrink-0 items-center" />
                     <div className="flex-1">
                       <p className="text-slate-850 font-bold">Duplicate submission</p>
                       <p className="text-[11px] text-slate-500 mt-0.5">Zara N &bull; Same vendor + date as 28 Apr</p>
@@ -1233,7 +1233,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   </div>
 
                   <div className="flex items-start gap-3 p-3 bg-red-50/20 border border-red-100 rounded-xl">
-                    <div className="h-2 w-2 rounded-full bg-blue-500 mt-1 shrink-0" />
+                    <div className="h-2 w-2 rounded-full bg-blue-500 mt-1 shrink-0 items-center" />
                     <div className="flex-1">
                       <p className="text-slate-850 font-bold">Late submission</p>
                       <p className="text-[11px] text-slate-500 mt-0.5">Raj K &bull; Receipt dated 28 Feb, submitted 5 May</p>
@@ -1242,7 +1242,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   </div>
 
                   <div className="flex items-start gap-3 p-3 bg-indigo-50/10 border border-indigo-100 rounded-xl">
-                    <div className="h-2 w-2 rounded-full bg-purple-500 mt-1 shrink-0" />
+                    <div className="h-2 w-2 rounded-full bg-purple-500 mt-1 shrink-0 items-center" />
                     <div className="flex-1">
                       <p className="text-slate-850 font-bold">Over category cap</p>
                       <p className="text-[11px] text-slate-500 mt-0.5">Maya T &bull; Air ticket MYR 1,280 needs Finance review</p>
@@ -1261,7 +1261,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
 
                 <div className="space-y-4 text-xs">
                   <div className="flex gap-3">
-                    <div className="h-2.5 w-2.5 bg-emerald-500 rounded-full mt-1 shrink-0" />
+                    <div className="h-2.5 w-2.5 bg-emerald-500 rounded-full mt-1 shrink-0 items-center" />
                     <div>
                       <span className="block text-[10px] text-slate-400 font-bold">6 May 10:42</span>
                       <p className="font-semibold text-slate-700 mt-0.5">
@@ -1271,7 +1271,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   </div>
 
                   <div className="flex gap-3">
-                    <div className="h-2.5 w-2.5 bg-red-500 rounded-full mt-1 shrink-0" />
+                    <div className="h-2.5 w-2.5 bg-red-500 rounded-full mt-1 shrink-0 items-center" />
                     <div>
                       <span className="block text-[10px] text-slate-400 font-bold">6 May 09:15</span>
                       <p className="font-semibold text-slate-700 mt-0.5">
@@ -1281,7 +1281,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   </div>
 
                   <div className="flex gap-3">
-                    <div className="h-2.5 w-2.5 bg-amber-500 rounded-full mt-1 shrink-0" />
+                    <div className="h-2.5 w-2.5 bg-amber-500 rounded-full mt-1 shrink-0 items-center" />
                     <div>
                       <span className="block text-[10px] text-slate-400 font-bold">5 May 16:30</span>
                       <p className="font-semibold text-slate-700 mt-0.5">
@@ -1291,7 +1291,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   </div>
 
                   <div className="flex gap-3">
-                    <div className="h-2.5 w-2.5 bg-emerald-500 rounded-full mt-1 shrink-0" />
+                    <div className="h-2.5 w-2.5 bg-emerald-500 rounded-full mt-1 shrink-0 items-center" />
                     <div>
                       <span className="block text-[10px] text-slate-400 font-bold">4 May 11:00</span>
                       <p className="font-semibold text-slate-700 mt-0.5">
@@ -1404,7 +1404,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Claims ready for payroll batch</h3>
-                  <span className="bg-amber-100 text-amber-800 font-bold text-[10px] px-2.5 py-0.5 rounded-full">
+                  <span className="bg-amber-100 text-amber-800 font-bold text-[10px] px-2.5 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                     {claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Queued').length} claims
                   </span>
                 </div>
@@ -1443,7 +1443,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                         <tr key={claim.id} className="hover:bg-slate-50/20">
                           <td className="py-3.5">
                             <div className="flex items-center gap-2">
-                              <div className="h-6 w-6 rounded-full bg-slate-105 text-slate-700 font-black text-[9px] flex items-center justify-center">
+                              <div className="h-6 w-6 rounded-full bg-slate-105 text-slate-700 font-black text-[9px] flex items-center justify-center shrink-0">
                                 {claim.empName.split(' ').map(n=>n[0]).join('')}
                               </div>
                               <span className="font-bold text-slate-800">{claim.empName}</span>
@@ -1581,7 +1581,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       <span className="font-extrabold">MYR 6,480 / MYR 10,000</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-blue-600 h-2 rounded-full" style={{ width: '65%' }}></div>
+                      <div className="bg-blue-600 h-2 rounded-full items-center shrink-0" style={{ width: '65%' }}></div>
                     </div>
                     <span className="block text-[10px] text-slate-400 mt-1">65% used &bull; MYR 3,520 remaining</span>
                   </div>
@@ -1592,7 +1592,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       <span className="font-extrabold">MYR 4,950 / MYR 6,000</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-amber-500 h-2 rounded-full" style={{ width: '83%' }}></div>
+                      <div className="bg-amber-500 h-2 rounded-full items-center shrink-0" style={{ width: '83%' }}></div>
                     </div>
                     <span className="block text-[10px] text-slate-400 mt-1">83% used &bull; MYR 1,050 remaining</span>
                   </div>
@@ -1603,7 +1603,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       <span className="font-extrabold">MYR 2,700 / MYR 4,000</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-purple-600 h-2 rounded-full" style={{ width: '68%' }}></div>
+                      <div className="bg-purple-600 h-2 rounded-full items-center shrink-0" style={{ width: '68%' }}></div>
                     </div>
                     <span className="block text-[10px] text-slate-400 mt-1">68% used &bull; MYR 1,300 remaining</span>
                   </div>
@@ -1614,7 +1614,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       <span className="font-extrabold text-red-650">MYR 1,800 / MYR 2,000 &bull; alert!</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-red-55 h-2 rounded-full" style={{ width: '90%' }}></div>
+                      <div className="bg-red-55 h-2 rounded-full items-center shrink-0" style={{ width: '90%' }}></div>
                     </div>
                     <span className="block text-[10px] text-red-500 mt-1">90% used &bull; MYR 200 remaining &mdash; alert!</span>
                   </div>
@@ -1639,7 +1639,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       <tr>
                         <td className="py-2.5">
                           <div className="flex items-center gap-2">
-                            <span className="bg-amber-100 text-amber-700 h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center">MT</span>
+                            <span className="bg-amber-100 text-amber-700 h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center shrink-0">MT</span>
                             <span className="font-bold text-slate-800">Maya Tan</span>
                           </div>
                         </td>
@@ -1650,7 +1650,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       <tr>
                         <td className="py-2.5">
                           <div className="flex items-center gap-2">
-                            <span className="bg-[#2f66e0]/10 text-[#2f66e0] h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center">RK</span>
+                            <span className="bg-[#2f66e0]/10 text-[#2f66e0] h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center shrink-0">RK</span>
                             <span className="font-bold text-slate-800">Raj Kumar</span>
                           </div>
                         </td>
@@ -1661,7 +1661,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       <tr>
                         <td className="py-2.5">
                           <div className="flex items-center gap-2">
-                            <span className="bg-emerald-100 text-emerald-800 h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center">SL</span>
+                            <span className="bg-emerald-100 text-emerald-800 h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center shrink-0">SL</span>
                             <span className="font-bold text-slate-800">Sarah Lim</span>
                           </div>
                         </td>
@@ -1672,7 +1672,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       <tr>
                         <td className="py-2.5">
                           <div className="flex items-center gap-2">
-                            <span className="bg-purple-100 text-purple-705 h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center">NC</span>
+                            <span className="bg-purple-100 text-purple-705 h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center shrink-0">NC</span>
                             <span className="font-bold text-slate-800">Nadia Chen</span>
                           </div>
                         </td>
@@ -1986,7 +1986,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       <tr key={claim.id} className="hover:bg-slate-50/20">
                         <td className="p-4 pl-6">
                           <div className="flex items-center gap-2.5">
-                            <span className="bg-indigo-50 text-indigo-705 h-7 w-7 rounded-full font-black text-[10px] flex items-center justify-center border border-indigo-100">
+                            <span className="bg-indigo-50 text-indigo-705 h-7 w-7 rounded-full font-black text-[10px] flex items-center justify-center border border-indigo-100 shrink-0">
                               {claim.empName.split(' ').map(n=>n[0]).join('')}
                             </span>
                             <div>
@@ -2455,7 +2455,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 
                 <div className="space-y-3 pl-2.5">
                   <div className="flex items-start gap-3 relative border-l-2 border-emerald-500 pb-3 pl-3.5">
-                    <div className="absolute -left-1.25 top-1.5 h-2 w-2 rounded-full bg-emerald-500" />
+                    <div className="absolute -left-1.25 top-1.5 h-2 w-2 rounded-full bg-emerald-500 items-center shrink-0" />
                     <div>
                       <p className="font-bold text-slate-800 text-[11.5px]">Claim Entry Registered</p>
                       <p className="text-[10px] text-slate-405 font-medium">{selectedClaimDetail.date} 09:00 &bull; Initiated by claimant</p>
@@ -2595,7 +2595,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 /* Loading progress states */
                 <div className="space-y-6 py-4 flex flex-col items-center justify-center text-center">
                   <div className="relative flex items-center justify-center">
-                    <div className="h-16 w-16 rounded-full border-4 border-slate-100 border-t-indigo-600 animate-spin" />
+                    <div className="h-16 w-16 rounded-full border-4 border-slate-100 border-t-indigo-600 animate-spin items-center shrink-0" />
                     <span className="absolute text-xs font-black text-indigo-700">{pushProgressPct}%</span>
                   </div>
                   <div className="space-y-1.5 max-w-xs">

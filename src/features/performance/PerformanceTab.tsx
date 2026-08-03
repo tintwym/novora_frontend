@@ -581,7 +581,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                 <IconComponent className="h-3.5 w-3.5" />
                 <span>{tab.label}</span>
                 {tab.countBadge !== undefined && (
-                  <span className="font-extrabold text-[10px] h-4.5 min-w-4.5 px-1.5 rounded-full flex items-center justify-center bg-amber-150 text-amber-800 border border-amber-250 animate-pulse">
+                  <span className="font-extrabold text-[10px] h-4.5 min-w-4.5 px-1.5 rounded-full flex items-center justify-center bg-amber-150 text-amber-800 border border-amber-250 animate-pulse shrink-0">
                     {tab.countBadge}
                   </span>
                 )}
@@ -717,7 +717,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                           </button>
                         </td>
                         <td className="py-3">
-                          <span className="bg-green-55/70 text-emerald-700 border border-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          <span className="bg-green-55/70 text-emerald-700 border border-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                             {item.status}
                           </span>
                         </td>
@@ -802,7 +802,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                         <td className="py-2.5 font-mono font-medium text-slate-600">{item.from}</td>
                         <td className="py-2.5 font-mono font-medium text-slate-600">{item.to}</td>
                         <td className="py-2.5">
-                          <span className="bg-green-50 text-emerald-700 border border-green-150 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          <span className="bg-green-50 text-emerald-700 border border-green-150 text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                             {item.apply}
                           </span>
                         </td>
@@ -1028,7 +1028,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                       </td>
                       <td className="py-3 font-semibold text-slate-705">{item.appraiser}</td>
                       <td className="py-3">
-                        <span className="bg-green-50 text-emerald-700 border border-green-150 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        <span className="bg-green-50 text-emerald-700 border border-green-150 text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                           {item.status}
                         </span>
                       </td>
@@ -1114,7 +1114,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                       <td className="py-3 text-slate-500">{item.scoring}</td>
                       <td className="py-3 text-slate-500 font-semibold">{item.measurement}</td>
                       <td className="py-3">
-                        <span className="bg-slate-50 text-slate-600 border border-slate-200 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        <span className="bg-slate-50 text-slate-600 border border-slate-200 text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                           {item.levels}
                         </span>
                       </td>
@@ -1176,7 +1176,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
               <div className="bg-slate-50/20 border border-slate-150 p-6 rounded-2xl space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <h3 className="text-sm font-extrabold text-slate-800">Year-end appraisal — setup</h3>
-                  <span className="bg-green-50 text-emerald-700 border border-emerald-150 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  <span className="bg-green-50 text-emerald-700 border border-emerald-150 text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                     Active
                   </span>
                 </div>
@@ -1217,7 +1217,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
               <div className="bg-slate-50/20 border border-slate-150 p-6 rounded-2xl space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <h3 className="text-sm font-extrabold text-slate-800">Probation review — setup</h3>
-                  <span className="bg-green-50 text-emerald-700 border border-emerald-150 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  <span className="bg-green-50 text-emerald-700 border border-emerald-150 text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                     Active
                   </span>
                 </div>
@@ -1446,7 +1446,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   <h4 className="text-sm font-extrabold text-slate-800">
                     Evaluation entry — {activeEval.employeeName}
                   </h4>
-                  <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                  <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase inline-flex items-center whitespace-nowrap shrink-0">
                     Pending
                   </span>
                 </div>
@@ -1813,7 +1813,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                       </td>
                       <td className="py-3 font-semibold text-slate-705">David Ng</td>
                       <td className="py-3">
-                        <span className="bg-green-55 text-emerald-700 border border-green-150 text-[10px] font-black px-2.5 py-0.5 rounded-full">
+                        <span className="bg-green-55 text-emerald-700 border border-green-150 text-[10px] font-black px-2.5 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                           Completed
                         </span>
                       </td>
@@ -2002,7 +2002,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
               {/* Modal Header */}
               <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#2f66e0]"></span>
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#2f66e0] items-center shrink-0"></span>
                   {(() => {
                     const titles: Record<string, string> = {
                       level_new: 'New Level',

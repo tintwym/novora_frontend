@@ -741,7 +741,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                 {iconElement}
                 <span>{tab}</span>
                 {tab === 'Tickets Center & Live Chat' && metrics.open > 0 && (
-                  <span className="bg-amber-500 text-white text-[9.5px] font-black h-4 px-1.5 rounded-full flex items-center justify-center shrink-0">
+                  <span className="bg-amber-500 text-white text-[9.5px] font-black h-4 px-1.5 rounded-full flex items-center justify-center shrink-0 whitespace-nowrap">
                     {metrics.open} Open
                   </span>
                 )}
@@ -1091,7 +1091,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                 {/* Main description file description and attachments */}
                 <div className="space-y-3.5 flex-1">
                   <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 text-xs text-slate-700 leading-relaxed relative">
-                    <span className="absolute -top-2 left-3 bg-white border border-slate-100 text-[9px] font-mono text-slate-400 px-2 py-0.5 rounded-full font-bold uppercase">
+                    <span className="absolute -top-2 left-3 bg-white border border-slate-100 text-[9px] font-mono text-slate-400 px-2 py-0.5 rounded-full font-bold uppercase inline-flex items-center shrink-0">
                       Reporter Transcript
                     </span>
                     <p className="mt-1 font-medium text-slate-650">{activeTicketObj.description}</p>
@@ -1426,7 +1426,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                 <div className="border-t pt-5 flex justify-between items-end relative z-10">
                   <div className="space-y-2">
                     <span className="text-[9.5px] font-black text-slate-450 uppercase block">HR Corporate Endorsement Stamp</span>
-                    <div className="h-16 w-16 border-2 border-emerald-600/30 rounded-full flex items-center justify-center font-black text-[9px] text-emerald-600/60 uppercase tracking-widest font-mono text-center select-none rotate-12 bg-emerald-50/20">
+                    <div className="h-16 w-16 border-2 border-emerald-600/30 rounded-full flex items-center justify-center font-black text-[9px] text-emerald-600/60 uppercase tracking-widest font-mono text-center select-none rotate-12 bg-emerald-50/20 shrink-0">
                       <span>Certified<br/>Digital<br/>Stamp</span>
                     </div>
                   </div>

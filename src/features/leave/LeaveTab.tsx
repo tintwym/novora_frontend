@@ -868,7 +868,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     <td className="p-4 font-semibold text-slate-500">{a.dept}</td>
                     <td className="p-4 font-medium">
                       <span className="flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full bg-indigo-500" />
+                        <span className="h-2 w-2 rounded-full bg-indigo-500 items-center shrink-0" />
                         <span>{a.type}</span>
                       </span>
                     </td>
@@ -1064,7 +1064,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     <span>12 / 16 days</span>
                   </div>
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-blue-500 h-full rounded-full" style={{ width: '75%' }} />
+                    <div className="bg-blue-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '75%' }} />
                   </div>
                 </div>
                 <div>
@@ -1073,7 +1073,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     <span>10 / 14 days</span>
                   </div>
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: '71%' }} />
+                    <div className="bg-emerald-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '71%' }} />
                   </div>
                 </div>
                 <div>
@@ -1082,7 +1082,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     <span>2 / 3 days</span>
                   </div>
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-amber-500 h-full rounded-full" style={{ width: '66%' }} />
+                    <div className="bg-amber-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '66%' }} />
                   </div>
                 </div>
                 <div>
@@ -1091,7 +1091,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     <span>1 / 1 day</span>
                   </div>
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-violet-500 h-full rounded-full" style={{ width: '100%' }} />
+                    <div className="bg-violet-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '100%' }} />
                   </div>
                 </div>
               </div>
@@ -1537,12 +1537,12 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
       {activeSubTab === 'Employee leave profile' && (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-slate-500">Selected employee profile:</span>
+            <div className="flex items-center gap-3 flex-nowrap min-w-0">
+              <span className="text-xs font-bold text-slate-500 whitespace-nowrap shrink-0">Selected employee profile:</span>
               <select
                 value={profileSelectedEmpId}
                 onChange={(e) => setProfileSelectedEmpId(e.target.value)}
-                className="bg-white border border-slate-200 text-slate-700 text-xs font-bold p-2 rounded-xl focus:outline-none"
+                className="bg-white border border-slate-200 text-slate-700 text-xs font-bold p-2 rounded-xl focus:outline-none whitespace-nowrap shrink-0"
               >
                 {employees.map(e => (
                   <option key={e.id} value={e.id}>{e.name} ({e.id})</option>
@@ -1607,7 +1607,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     <tbody className="divide-y divide-slate-100">
                       <tr>
                         <td className="p-3 pl-4 font-bold text-slate-800 flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full bg-blue-500" />
+                          <span className="h-2 w-2 rounded-full bg-blue-500 items-center shrink-0" />
                           <span>Annual</span>
                         </td>
                         <td className="p-3 text-center font-bold text-slate-600">18</td>
@@ -1617,7 +1617,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                       </tr>
                       <tr>
                         <td className="p-3 pl-4 font-bold text-slate-800 flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                          <span className="h-2 w-2 rounded-full bg-emerald-500 items-center shrink-0" />
                           <span>Medical</span>
                         </td>
                         <td className="p-3 text-center font-bold text-slate-600">14</td>
@@ -1627,7 +1627,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                       </tr>
                       <tr>
                         <td className="p-3 pl-4 font-bold text-slate-850 flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full bg-amber-500" />
+                          <span className="h-2 w-2 rounded-full bg-amber-500 items-center shrink-0" />
                           <span>Emergency</span>
                         </td>
                         <td className="p-3 text-center font-bold text-slate-600">3</td>
@@ -1637,7 +1637,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                       </tr>
                       <tr>
                         <td className="p-3 pl-4 font-bold text-slate-800 flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full bg-violet-500" />
+                          <span className="h-2 w-2 rounded-full bg-violet-500 items-center shrink-0" />
                           <span>Replacement</span>
                         </td>
                         <td className="p-3 text-center font-bold text-slate-600">1</td>
@@ -1647,7 +1647,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                       </tr>
                       <tr>
                         <td className="p-3 pl-4 font-bold text-slate-800 flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full bg-teal-500" />
+                          <span className="h-2 w-2 rounded-full bg-teal-500 items-center shrink-0" />
                           <span>Hour leave</span>
                         </td>
                         <td className="p-3 text-center text-slate-500 font-mono font-bold">16h</td>
