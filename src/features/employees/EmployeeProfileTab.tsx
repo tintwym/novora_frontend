@@ -1246,7 +1246,7 @@ export default function EmployeeProfileTab({
                           <span className="text-slate-800 font-mono font-black">{profileData.annualLeaveUsed} / {profileData.annualLeaveMax} days</span>
                         </div>
                         <div className="w-full bg-slate-105 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50">
-                          <div className="bg-[#2f66e0] h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: `${(profileData.annualLeaveUsed / profileData.annualLeaveMax) * 100}%` }} />
+                          <div className="bg-[#2f66e0] h-full rounded-full" style={{ width: `${(profileData.annualLeaveUsed / profileData.annualLeaveMax) * 100}%` }} />
                         </div>
                       </div>
 
@@ -1257,7 +1257,7 @@ export default function EmployeeProfileTab({
                           <span className="text-slate-800 font-mono font-black">{profileData.medicalLeaveUsed} / {profileData.medicalLeaveMax} days</span>
                         </div>
                         <div className="w-full bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50">
-                          <div className="bg-emerald-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: `${(profileData.medicalLeaveUsed / profileData.medicalLeaveMax) * 100}%` }} />
+                          <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${(profileData.medicalLeaveUsed / profileData.medicalLeaveMax) * 100}%` }} />
                         </div>
                       </div>
 
@@ -1268,7 +1268,7 @@ export default function EmployeeProfileTab({
                           <span className="text-slate-800 font-mono font-black">{profileData.emergencyLeaveUsed} / {profileData.emergencyLeaveMax} days</span>
                         </div>
                         <div className="w-full bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50">
-                          <div className="bg-amber-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: `${(profileData.emergencyLeaveUsed / profileData.emergencyLeaveMax) * 100}%` }} />
+                          <div className="bg-amber-500 h-full rounded-full" style={{ width: `${(profileData.emergencyLeaveUsed / profileData.emergencyLeaveMax) * 100}%` }} />
                         </div>
                       </div>
                     </div>
@@ -1288,7 +1288,7 @@ export default function EmployeeProfileTab({
                       <div className="flex items-center justify-between text-xs font-bold gap-4">
                         <span className="text-slate-500 w-28 text-[11px]">Technical skills</span>
                         <div className="flex-1 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50 items-center shrink-0">
-                          <div className="bg-[#2f66e0] h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: `${profileData.prefTechnical}%` }} />
+                          <div className="bg-[#2f66e0] h-full rounded-full" style={{ width: `${profileData.prefTechnical}%` }} />
                         </div>
                         <span className="text-slate-800 font-black font-mono w-10 text-right">{profileData.prefTechnical}%</span>
                       </div>
@@ -1297,7 +1297,7 @@ export default function EmployeeProfileTab({
                       <div className="flex items-center justify-between text-xs font-bold gap-4">
                         <span className="text-slate-500 w-28 text-[11px]">Communication</span>
                         <div className="flex-1 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50 items-center shrink-0">
-                          <div className="bg-[#2f66e0] h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: `${profileData.prefCommunication}%` }} />
+                          <div className="bg-[#2f66e0] h-full rounded-full" style={{ width: `${profileData.prefCommunication}%` }} />
                         </div>
                         <span className="text-slate-800 font-black font-mono w-10 text-right">{profileData.prefCommunication}%</span>
                       </div>
@@ -1306,7 +1306,7 @@ export default function EmployeeProfileTab({
                       <div className="flex items-center justify-between text-xs font-bold gap-4">
                         <span className="text-slate-500 w-28 text-[11px]">Teamwork</span>
                         <div className="flex-1 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50 items-center shrink-0">
-                          <div className="bg-[#2f66e0] h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: `${profileData.prefTeamwork}%` }} />
+                          <div className="bg-[#2f66e0] h-full rounded-full" style={{ width: `${profileData.prefTeamwork}%` }} />
                         </div>
                         <span className="text-slate-800 font-black font-mono w-10 text-right">{profileData.prefTeamwork}%</span>
                       </div>
@@ -1315,7 +1315,7 @@ export default function EmployeeProfileTab({
                       <div className="flex items-center justify-between text-xs font-bold gap-4">
                         <span className="text-slate-500 w-28 text-[11px]">Punctuality</span>
                         <div className="flex-1 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50 items-center shrink-0">
-                          <div className="bg-emerald-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: `${profileData.prefPunctuality}%` }} />
+                          <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${profileData.prefPunctuality}%` }} />
                         </div>
                         <span className="text-slate-800 font-black font-mono w-10 text-right">{profileData.prefPunctuality}%</span>
                       </div>
@@ -1324,7 +1324,7 @@ export default function EmployeeProfileTab({
                       <div className="flex items-center justify-between text-xs font-bold gap-4">
                         <span className="text-slate-500 w-28 text-[11px]">Leadership</span>
                         <div className="flex-1 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50 items-center shrink-0">
-                          <div className="bg-indigo-400 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: `${profileData.prefLeadership}%` }} />
+                          <div className="bg-indigo-400 h-full rounded-full" style={{ width: `${profileData.prefLeadership}%` }} />
                         </div>
                         <span className="text-slate-800 font-black font-mono w-10 text-right">{profileData.prefLeadership}%</span>
                       </div>

@@ -326,7 +326,7 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
                   </div>
                   <div className="flex items-center gap-3 w-40">
                     <div className="w-24 bg-slate-100 h-1.5 rounded-full overflow-hidden items-center shrink-0">
-                      <div className="bg-indigo-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: `${data.percentage}%` }} />
+                      <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${data.percentage}%` }} />
                     </div>
                     <span className="font-bold text-slate-800 text-right w-12">{data.count} ({data.percentage}%)</span>
                   </div>

@@ -929,7 +929,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                         <span className="font-mono text-[#2f66e0]">{course.progress}%</span>
                       </div>
                       <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-500 rounded-full transition-all inline-flex items-center whitespace-nowrap shrink-0" style={{ width: `${course.progress}%` }} />
+                        <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${course.progress}%` }} />
                       </div>
                     </div>
                   )}

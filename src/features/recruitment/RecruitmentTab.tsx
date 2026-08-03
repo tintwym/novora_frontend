@@ -842,7 +842,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span className="text-slate-900">62 applicants (45%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-blue-600 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '45%' }} />
+                      <div className="bg-blue-600 h-full rounded-full" style={{ width: '45%' }} />
                     </div>
                   </div>
                   <div>
@@ -851,7 +851,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span className="text-slate-900">33 applicants (28%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-[#2f66e0] h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '28%' }} />
+                      <div className="bg-[#2f66e0] h-full rounded-full" style={{ width: '28%' }} />
                     </div>
                   </div>
                   <div>
@@ -860,7 +860,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span className="text-slate-900">26 applicants (16%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '16%' }} />
+                      <div className="bg-emerald-500 h-full rounded-full" style={{ width: '16%' }} />
                     </div>
                   </div>
                   <div>
@@ -869,7 +869,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span className="text-slate-900">14 applicants (9%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-amber-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '9%' }} />
+                      <div className="bg-amber-500 h-full rounded-full" style={{ width: '9%' }} />
                     </div>
                   </div>
                   <div>
@@ -878,7 +878,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span className="text-slate-900">12 applicants (2%)</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-rose-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '2%' }} />
+                      <div className="bg-rose-500 h-full rounded-full" style={{ width: '2%' }} />
                     </div>
                   </div>
                 </div>
@@ -1065,7 +1065,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span>90%</span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-blue-600 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '90%' }} />
+                      <div className="bg-blue-600 h-full rounded-full" style={{ width: '90%' }} />
                     </div>
                   </div>
                   <div>
@@ -1074,7 +1074,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span>95%</span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '95%' }} />
+                      <div className="bg-emerald-500 h-full rounded-full" style={{ width: '95%' }} />
                     </div>
                   </div>
                   <div>
@@ -1083,7 +1083,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span>88%</span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-indigo-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '88%' }} />
+                      <div className="bg-indigo-500 h-full rounded-full" style={{ width: '88%' }} />
                     </div>
                   </div>
                   <div>
@@ -1092,7 +1092,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span>92%</span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-purple-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '92%' }} />
+                      <div className="bg-purple-500 h-full rounded-full" style={{ width: '92%' }} />
                     </div>
                   </div>
                   <div>
@@ -1101,7 +1101,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span>80%</span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-orange-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '80%' }} />
+                      <div className="bg-orange-500 h-full rounded-full" style={{ width: '80%' }} />
                     </div>
                   </div>
                 </div>
@@ -2137,7 +2137,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 </span>
               </div>
 
-              <div className="h-0.5 flex-1 mx-4 bg-slate-800 rounded-full items-center whitespace-nowrap shrink-0" />
+              <div className="h-0.5 flex-1 mx-4 bg-slate-800 rounded-full" />
 
               <div className="flex items-center gap-2.5">
                 <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs ${
@@ -2154,7 +2154,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 </span>
               </div>
 
-              <div className="h-0.5 flex-1 mx-4 bg-slate-800 rounded-full items-center whitespace-nowrap shrink-0" />
+              <div className="h-0.5 flex-1 mx-4 bg-slate-800 rounded-full" />
 
               <div className="flex items-center gap-2.5">
                 <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs ${

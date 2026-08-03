@@ -1064,7 +1064,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     <span>12 / 16 days</span>
                   </div>
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-blue-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '75%' }} />
+                    <div className="bg-blue-500 h-full rounded-full" style={{ width: '75%' }} />
                   </div>
                 </div>
                 <div>
@@ -1073,7 +1073,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     <span>10 / 14 days</span>
                   </div>
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-emerald-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '71%' }} />
+                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: '71%' }} />
                   </div>
                 </div>
                 <div>
@@ -1082,7 +1082,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     <span>2 / 3 days</span>
                   </div>
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-amber-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '66%' }} />
+                    <div className="bg-amber-500 h-full rounded-full" style={{ width: '66%' }} />
                   </div>
                 </div>
                 <div>
@@ -1091,7 +1091,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     <span>1 / 1 day</span>
                   </div>
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-violet-500 h-full rounded-full inline-flex items-center whitespace-nowrap shrink-0" style={{ width: '100%' }} />
+                    <div className="bg-violet-500 h-full rounded-full" style={{ width: '100%' }} />
                   </div>
                 </div>
               </div>
