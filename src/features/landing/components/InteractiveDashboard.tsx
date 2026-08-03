@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createLocalNumericId } from '@/lib/createLocalId'
 import { 
   Users, CheckCircle, Clock, CreditCard, Calendar, TrendingUp, 
   Plus, Fingerprint, Search, Check, X, ShieldAlert, Sparkles, Scan, ArrowUpRight
@@ -61,7 +62,7 @@ export default function InteractiveDashboard() {
       department: newEmpDept,
       status: 'Active',
       attendanceRate: 100,
-      avatarUrl: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 1000000)}?w=120&auto=format&fit=crop&q=80`
+      avatarUrl: `https://images.unsplash.com/photo-${1500000000000 + (createLocalNumericId() % 1000000)}?w=120&auto=format&fit=crop&q=80`
     };
 
     setEmployees([newEmp, ...employees]);
@@ -111,9 +112,9 @@ export default function InteractiveDashboard() {
     
     // Pick a random employee
     const candidatePool = ['Sarah Jenkins', 'Elena Rostova', 'Marcus Chen', 'Sophia Martinez', 'David Kim', 'Jane Cooper', 'Robert Fox'];
-    const randomName = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+    const randomName = candidatePool[createLocalNumericId() % candidatePool.length];
     const methods: AttendanceLog['method'][] = ['Fingerprint', 'Facial Recognition', 'Mobile GPS', 'Web Clock-in'];
-    const randomMethod = methods[Math.floor(Math.random() * methods.length)];
+    const randomMethod = methods[createLocalNumericId() % methods.length];
     
     setTimeout(() => {
       const now = new Date();
@@ -123,7 +124,7 @@ export default function InteractiveDashboard() {
         time: timeStr,
         employeeName: randomName,
         method: randomMethod,
-        status: Math.random() > 0.15 ? 'Success' : 'Late'
+        status: createLocalNumericId() % 100 > 15 ? 'Success' : 'Late'
       };
       
       setAttendanceLogs([newLog, ...attendanceLogs]);

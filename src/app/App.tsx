@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Topbar from '@/components/layout/Topbar'
 import Toast, { type ToastMessage } from '@/components/ui/Toast'
-import ModulePlaceholder from '@/components/ui/ModulePlaceholder'
 import {
   AddEmployeeModal,
   EmployeeDirectoryTab,
@@ -11,6 +10,22 @@ import {
   OrgChartTab,
 } from '@/features/employees'
 import { DashboardTab } from '@/features/dashboard'
+import { AttendanceTab } from '@/features/attendance'
+import { LeaveTab } from '@/features/leave'
+import { PayrollTab } from '@/features/payroll'
+import { ClaimsTab } from '@/features/claims'
+import { BenefitsTab } from '@/features/benefits'
+import { HelpdeskTab } from '@/features/helpdesk'
+import { PerformanceTab } from '@/features/performance'
+import { EngagementTab } from '@/features/engagement'
+import { TrainingTab } from '@/features/training'
+import { LearningTab } from '@/features/learning'
+import { AssetsTab } from '@/features/assets'
+import { DisciplinaryTab } from '@/features/disciplinary'
+import { OnOffBoardingTab } from '@/features/onboarding'
+import { RecruitmentTab } from '@/features/recruitment'
+import { ReportsTab } from '@/features/reports'
+import { SettingsTab } from '@/features/settings'
 import { LoginPage, RegisterPage } from '@/features/auth'
 import LandingPage from '@/features/landing/LandingPage'
 import { toAuthSession } from '@/features/auth/mapSession'
@@ -364,15 +379,49 @@ export default function App() {
               setActiveSidebarTab={setActiveSidebarTab}
               addToast={addToast}
             />
-          ) : (
-            <ModulePlaceholder
-              moduleName={activeSidebarTab}
-              onNavigateEmployees={() => {
-                setActiveSidebarTab('Employees Management')
-                addToast('Navigated back to Employees Management', 'success')
-              }}
+          ) : activeSidebarTab === 'On/Off-boarding Management' ? (
+            <OnOffBoardingTab employees={employees} addToast={addToast} />
+          ) : activeSidebarTab === 'Benefits Management' ? (
+            <BenefitsTab employees={employees} addToast={addToast} />
+          ) : activeSidebarTab === 'Helpdesk & Inquiries Management' ? (
+            <HelpdeskTab employees={employees} addToast={addToast} />
+          ) : activeSidebarTab === 'Engagement Management' ? (
+            <EngagementTab employees={employees} addToast={addToast} />
+          ) : activeSidebarTab === 'Learning Management' ? (
+            <LearningTab employees={employees} addToast={addToast} />
+          ) : activeSidebarTab === 'Training Management' ? (
+            <TrainingTab employees={employees} addToast={addToast} />
+          ) : activeSidebarTab === 'Assets Management' ? (
+            <AssetsTab employees={employees} addToast={addToast} />
+          ) : activeSidebarTab === 'Recruitment Management' ? (
+            <RecruitmentTab addToast={addToast} onAddEmployeeAsRecord={handleAddEmployee} />
+          ) : activeSidebarTab === 'Attendance Management' ? (
+            <AttendanceTab addToast={addToast} />
+          ) : activeSidebarTab === 'Leave Management' ? (
+            <LeaveTab employees={employees} addToast={addToast} />
+          ) : activeSidebarTab === 'Disciplinary Management' ? (
+            <DisciplinaryTab employees={employees} addToast={addToast} />
+          ) : activeSidebarTab === 'Payroll Management' ? (
+            <PayrollTab employees={employees} addToast={addToast} />
+          ) : activeSidebarTab === 'Claims Management' ? (
+            <ClaimsTab employees={employees} addToast={addToast} />
+          ) : activeSidebarTab === 'Performance Management' ? (
+            <PerformanceTab employees={employees} addToast={addToast} />
+          ) : activeSidebarTab === 'Reports' ? (
+            <ReportsTab
+              employees={employees}
+              addToast={addToast}
+              activeSubTab={reportsSubTab}
+              setActiveSubTab={setReportsSubTab}
             />
-          )}
+          ) : activeSidebarTab === 'Settings' ? (
+            <SettingsTab
+              employees={employees}
+              addToast={addToast}
+              activeSubTab={settingsSubTab}
+              setActiveSubTab={setSettingsSubTab}
+            />
+          ) : null}
         </div>
       </main>
 
