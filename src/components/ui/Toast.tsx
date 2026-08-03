@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle, AlertCircle, Loader2, X } from 'lucide-react';
+import { CheckCircle, AlertCircle, Loader2, X, Info } from 'lucide-react';
 
 export interface ToastMessage {
   id: string;
@@ -33,28 +33,35 @@ export default function Toast({ toast, onClose }: ToastProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg ${
+            className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-lg backdrop-blur-sm ${
               toast.type === 'success'
-                ? 'bg-slate-900 text-slate-100 border-slate-800'
+                ? 'bg-slate-900/95 text-slate-100 border-slate-800'
                 : toast.type === 'error'
                 ? 'bg-red-50 text-red-800 border-red-200'
                 : toast.type === 'loading'
-                ? 'bg-slate-900 text-slate-100 border-slate-800'
-                : 'bg-indigo-50 text-indigo-900 border-indigo-200'
+                ? 'bg-slate-900/95 text-slate-100 border-slate-800'
+                : 'bg-[#eff4ff] text-slate-800 border-[#d6e2ff]'
             }`}
           >
             {toast.type === 'success' && <CheckCircle className="h-5 w-5 text-emerald-400 shrink-0" />}
             {toast.type === 'error' && <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />}
-            {toast.type === 'loading' && <Loader2 className="h-5 w-5 text-indigo-400 animate-spin shrink-0" />}
-            {toast.type === 'info' && <CheckCircle className="h-5 w-5 text-indigo-500 shrink-0" />}
+            {toast.type === 'loading' && <Loader2 className="h-5 w-5 text-[#7aa2ff] animate-spin shrink-0" />}
+            {toast.type === 'info' && <Info className="h-5 w-5 text-[#2f66e0] shrink-0" />}
 
-            <span className="text-sm font-medium tracking-tight pr-2">{toast.text}</span>
+            <span className="text-sm font-medium tracking-tight pr-2 max-w-xs">{toast.text}</span>
 
             {toast.type !== 'loading' && (
               <button
                 id="toast-close-btn"
+                type="button"
                 onClick={onClose}
-                className="p-1 rounded-lg hover:bg-slate-800 hover:text-white transition-colors duration-200 text-slate-400"
+                className={`p-1 rounded-lg transition-colors duration-200 cursor-pointer ${
+                  toast.type === 'success'
+                    ? 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                    : toast.type === 'error'
+                    ? 'text-red-400 hover:bg-red-100 hover:text-red-700'
+                    : 'text-slate-400 hover:bg-white hover:text-slate-700'
+                }`}
               >
                 <X className="h-4 w-4" />
               </button>

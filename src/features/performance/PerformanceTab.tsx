@@ -539,8 +539,8 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
     setActiveModal(null);
   };
 
-  const activeTabClass = 'text-[#2f66e0] bg-[#2f66e0]/10 border border-[#2f66e0]/15 font-extrabold shadow-xxs';
-  const inactiveTabClass = 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60';
+  const activeTabClass = 'bg-blue-50 text-[#2f66e0]';
+  const inactiveTabClass = 'text-slate-600 hover:text-slate-950 hover:bg-slate-50';
 
   const subTabsList: { id: SubTab; label: string; icon: any; countBadge?: number }[] = [
     { id: 'Perf. Level', label: 'Perf. Level', icon: Layers },
@@ -560,9 +560,9 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
   return (
     <div id="performance-module-wrapper" className="space-y-6 animate-in fade-in duration-200">
       {/* 1. Header/Navigation ribbon styled exactly like Claims/Benefits */}
-      <div id="performance-module-navigator" className="flex flex-col xl:flex-row xl:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
+      <div id="performance-module-navigator" className="flex flex-col xl:flex-row xl:items-center justify-between border border-slate-100 bg-white px-4 py-1.5 rounded-2xl gap-3">
         {/* Navigation Tabs Pillbox Grid */}
-        <div id="performance-navigation-pills" className="flex items-center gap-2 select-none overflow-x-auto w-full xl:w-auto scrollbar-none pb-1.5 xl:pb-0">
+        <div id="performance-navigation-pills" className="flex items-center gap-2 select-none overflow-x-auto w-full xl:w-auto scrollbar-none py-1">
           {subTabsList.map((tab) => {
             const IconComponent = tab.icon;
             const isActive = activeSubTab === tab.id;
@@ -584,9 +584,6 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   <span className="font-extrabold text-[10px] h-4.5 min-w-4.5 px-1.5 rounded-full flex items-center justify-center bg-amber-150 text-amber-800 border border-amber-250 animate-pulse">
                     {tab.countBadge}
                   </span>
-                )}
-                {isActive && (
-                  <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#2f66e0] rounded-sm" />
                 )}
               </button>
             );
@@ -726,6 +723,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                         </td>
                         <td className="py-3 text-right pr-2">
                           <button
+                            title="Edit"
                             onClick={() => {
                               setSelectedLevelIndex(idx);
                               setLvlName(item.name);
@@ -733,9 +731,9 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                               setLvlStatus(item.status);
                               setActiveModal('level_edit');
                             }}
-                            className="font-bold text-[#2f66e0] hover:underline cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                           >
-                            Edit
+                            <Edit2 className="h-3.5 w-3.5" />
                           </button>
                         </td>
                       </tr>
@@ -818,6 +816,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                         </td>
                         <td className="py-2.5 text-right pr-2">
                           <button
+                            title="Edit"
                             onClick={() => {
                               setSelectedGradeIndex(idx);
                               setGrdLetter(item.grade);
@@ -827,9 +826,9 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                               setGrdApply(item.apply);
                               setActiveModal('grade_edit');
                             }}
-                            className="font-bold text-[#2f66e0] hover:underline cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                           >
-                            Edit
+                            <Edit2 className="h-3.5 w-3.5" />
                           </button>
                         </td>
                       </tr>
@@ -898,6 +897,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                         </td>
                         <td className="py-3 text-right">
                           <button
+                            title="Edit"
                             onClick={() => {
                               setSelectedKPIType('Attendance');
                               setSelectedKPIIndex(idx);
@@ -907,9 +907,9 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                               setKpiScore(kpi.score);
                               setActiveModal('kpi_edit');
                             }}
-                            className="font-bold text-[#2f66e0] hover:underline cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                           >
-                            Edit
+                            <Edit2 className="h-3.5 w-3.5" />
                           </button>
                         </td>
                       </tr>
@@ -949,6 +949,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                         </td>
                         <td className="py-3 text-right">
                           <button
+                            title="Edit"
                             onClick={() => {
                               setSelectedKPIType('Achievement');
                               setSelectedKPIIndex(idx);
@@ -958,9 +959,9 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                               setKpiScore(kpi.score);
                               setActiveModal('kpi_edit');
                             }}
-                            className="font-bold text-[#2f66e0] hover:underline cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                           >
-                            Edit
+                            <Edit2 className="h-3.5 w-3.5" />
                           </button>
                         </td>
                       </tr>
@@ -1033,6 +1034,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                       </td>
                       <td className="py-3 text-right pr-2">
                         <button
+                          title="Edit"
                           onClick={() => {
                             setSelectedTypeIndex(idx);
                             setTpName(item.name);
@@ -1044,9 +1046,9 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                             setTpStatus(item.status);
                             setActiveModal('type_edit');
                           }}
-                          className="font-bold text-[#2f66e0] hover:underline cursor-pointer"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                         >
-                          Edit
+                          <Edit2 className="h-3.5 w-3.5" />
                         </button>
                       </td>
                     </tr>
@@ -1118,6 +1120,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                       </td>
                       <td className="py-3 text-right pr-2">
                         <button
+                          title="Edit"
                           onClick={() => {
                             setSelectedCategoryIndex(idx);
                             setCatName(item.name);
@@ -1128,9 +1131,9 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                             setCatLevels(item.levels);
                             setActiveModal('category_edit');
                           }}
-                          className="font-bold text-[#2f66e0] hover:underline cursor-pointer"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                         >
-                          Edit
+                          <Edit2 className="h-3.5 w-3.5" />
                         </button>
                       </td>
                     </tr>
@@ -1747,6 +1750,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                         <td className="py-3 text-slate-550 mr-4 font-medium max-w-xs truncate leading-normal">{item.definition}</td>
                         <td className="py-3 text-right pr-2">
                           <button
+                            title="Edit"
                             onClick={() => {
                               setSelectedCompetencyIndex(idx);
                               setCompName(item.name.replace('↳ ', ''));
@@ -1755,9 +1759,9 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                               setCompDef(item.definition);
                               setActiveModal('competency_edit');
                             }}
-                            className="font-bold text-[#2f66e0] hover:underline cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                           >
-                            Edit
+                            <Edit2 className="h-3.5 w-3.5" />
                           </button>
                         </td>
                       </tr>

@@ -1078,7 +1078,7 @@ export default function EmployeeProfileTab({
       </div>
 
       {/* 3. PROFILE SUB-TAB NAVIGATION STRIP */}
-      <div id="profile-subtabs-strip" className="overflow-x-auto bg-white border border-slate-100 rounded-2xl px-2.5 py-1 flex items-center gap-1 shadow-sm scrollbar-none select-none">
+      <div id="profile-subtabs-strip" className="overflow-x-auto bg-white border border-slate-100 rounded-2xl px-2.5 py-1.5 flex items-center gap-1 shadow-sm scrollbar-none select-none">
         {([
           'Summary', 'Personal', 'Family', 'Biometric', 'Pay Rate', 'Career', 'Education', 'Documents'
         ] as ProfileSubTab[]).map(tab => {
@@ -1088,19 +1088,13 @@ export default function EmployeeProfileTab({
               id={`profile-subtab-${tab.toLowerCase().replace(/\s+/g, '-')}`}
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`text-xs font-semibold px-4.5 py-3.5 rounded-xl transition-all relative whitespace-nowrap cursor-pointer ${
-                isActive 
-                  ? 'text-[#2f66e0] font-bold' 
-                  : 'text-slate-500 hover:text-slate-850 hover:bg-slate-55'
+              className={`text-xs font-bold px-4 py-2.5 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                isActive
+                  ? 'bg-blue-50 text-[#2f66e0]'
+                  : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
               }`}
             >
               {tab}
-              {isActive && (
-                <motion.span 
-                  layoutId="activeProfileTabUnderline"
-                  className="absolute bottom-0 left-4.5 right-4.5 h-0.5 bg-[#2f66e0] rounded-sm" 
-                />
-              )}
             </button>
           );
         })}
@@ -1134,7 +1128,6 @@ export default function EmployeeProfileTab({
                           className="text-[10px] font-black text-[#2f66e0] hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
                         >
                           <Edit2 className="h-3 w-3" />
-                          <span>Edit</span>
                         </button>
                       ) : (
                         <button 
@@ -1359,7 +1352,6 @@ export default function EmployeeProfileTab({
                           className="text-[10px] font-black text-[#2f66e0] hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
                         >
                           <Edit2 className="h-3 w-3" />
-                          <span>Edit</span>
                         </button>
                       ) : (
                         <button 
@@ -1443,7 +1435,6 @@ export default function EmployeeProfileTab({
                         className="text-[10px] font-black text-[#2f66e0] hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
                       >
                         <Edit2 className="h-3 w-3" />
-                        <span>Edit</span>
                       </button>
                     ) : (
                       <button 
@@ -1658,9 +1649,10 @@ export default function EmployeeProfileTab({
                                 <div className="flex items-center justify-end gap-2 text-right">
                                   <button 
                                     onClick={() => handleEditFamilyMember(fam)}
-                                    className="px-3 py-1.5 border border-slate-200 hover:border-slate-350 hover:bg-slate-55 rounded-lg text-slate-705 font-bold tracking-wide text-[10.5px] cursor-pointer"
+                                    title="Edit"
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-colors cursor-pointer"
                                   >
-                                    Edit
+                                    <Edit2 className="h-3.5 w-3.5" />
                                   </button>
                                   <button 
                                     onClick={() => handleDeleteFamilyMember(fam.id, fam.name)}
@@ -1734,9 +1726,10 @@ export default function EmployeeProfileTab({
                                 <div className="flex items-center justify-end gap-2 text-right">
                                   <button 
                                     onClick={() => handleEditNok(nok)}
-                                    className="px-3 py-1.5 border border-slate-200 hover:border-slate-350 hover:bg-slate-55 rounded-lg text-slate-705 font-bold tracking-wide text-[10.5px] cursor-pointer"
+                                    title="Edit"
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-colors cursor-pointer"
                                   >
-                                    Edit
+                                    <Edit2 className="h-3.5 w-3.5" />
                                   </button>
                                   <button 
                                     onClick={() => handleDeleteNok(nok.id, nok.name)}
@@ -1841,8 +1834,8 @@ export default function EmployeeProfileTab({
                                       onClick={() => handleEditBiometricDevice(dev)}
                                       className="px-3 py-1.5 border border-slate-200 hover:border-slate-350 hover:bg-slate-55 rounded-lg text-slate-705 font-bold tracking-wide text-[10.5px] cursor-pointer"
                                     >
-                                      Edit
-                                    </button>
+                                    <Edit2 className="h-3.5 w-3.5" />
+                                  </button>
                                     <button 
                                       onClick={() => handleDeleteBiometricDevice(dev.taNumber, dev.terminalName)}
                                       className="p-1.5 text-slate-400 hover:text-rose-600 border border-slate-200 hover:border-rose-200 rounded-lg cursor-pointer transition-colors hover:bg-rose-50/40"
@@ -1940,7 +1933,6 @@ export default function EmployeeProfileTab({
                         className="text-[10px] font-black text-[#2f66e0] hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
                       >
                         <Edit2 className="h-3 w-3" />
-                        <span>Edit</span>
                       </button>
                     ) : (
                       <button 
@@ -2076,9 +2068,10 @@ export default function EmployeeProfileTab({
                                 <div className="flex items-center justify-end gap-2">
                                   <button 
                                     onClick={() => handleEditAllowance(allow)}
-                                    className="px-3 py-1.5 border border-slate-200 hover:border-slate-350 hover:bg-slate-55 rounded-lg text-slate-705 font-bold tracking-wide text-[10.5px] cursor-pointer"
+                                    title="Edit"
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-colors cursor-pointer"
                                   >
-                                    Edit
+                                    <Edit2 className="h-3.5 w-3.5" />
                                   </button>
                                   <button 
                                     onClick={() => handleDeleteAllowance(allow.id, allow.type)}
@@ -2154,9 +2147,10 @@ export default function EmployeeProfileTab({
                                 <div className="flex items-center justify-end gap-2">
                                   <button 
                                     onClick={() => handleEditDeduction(ded)}
-                                    className="px-3 py-1.5 border border-slate-200 hover:border-slate-350 hover:bg-slate-55 rounded-lg text-slate-705 font-bold tracking-wide text-[10.5px] cursor-pointer"
+                                    title="Edit"
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-colors cursor-pointer"
                                   >
-                                    Edit
+                                    <Edit2 className="h-3.5 w-3.5" />
                                   </button>
                                   <button 
                                     onClick={() => handleDeleteDeduction(ded.id, ded.type)}
@@ -2249,9 +2243,10 @@ export default function EmployeeProfileTab({
                                 <div className="flex items-center justify-end gap-2">
                                   <button 
                                     onClick={() => handleEditCareer(hist)}
-                                    className="px-3 py-1.5 border border-slate-200 hover:border-slate-350 hover:bg-slate-55 rounded-lg text-slate-705 font-bold tracking-wide text-[10.5px] cursor-pointer"
+                                    title="Edit"
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-colors cursor-pointer"
                                   >
-                                    Edit
+                                    <Edit2 className="h-3.5 w-3.5" />
                                   </button>
                                   <button 
                                     onClick={() => handleDeleteCareer(hist.id, hist.company)}
@@ -2325,9 +2320,10 @@ export default function EmployeeProfileTab({
                                 <div className="flex items-center justify-end gap-2">
                                   <button 
                                     onClick={() => handleEditEducation(edu)}
-                                    className="px-3 py-1.5 border border-slate-200 hover:border-slate-350 hover:bg-slate-55 rounded-lg text-slate-705 font-bold tracking-wide text-[10.5px] cursor-pointer"
+                                    title="Edit"
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-colors cursor-pointer"
                                   >
-                                    Edit
+                                    <Edit2 className="h-3.5 w-3.5" />
                                   </button>
                                   <button 
                                     onClick={() => handleDeleteEducation(edu.id, edu.institution)}
@@ -2971,8 +2967,8 @@ export default function EmployeeProfileTab({
                     onChange={(e) => setBiometricForm({...biometricForm, taNumber: e.target.value})}
                     className={`w-full border rounded-xl px-3 py-2 text-xs font-bold transition-all ${
                       editingBiometricDevice 
-                        ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed font-bold' 
-                        : 'bg-slate-50 border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 text-slate-855 text-slate-850'
+                        ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed' 
+                        : 'bg-slate-50 border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 text-slate-850'
                     }`}
                   />
                 </div>

@@ -585,7 +585,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
       
       {/* Upper Navigation sub-menus completely aligned and capitalized */}
       <div id="attendance-module-navigator" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
-        <div id="attendance-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none pb-1 lg:pb-0">
+        <div id="attendance-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
           {subTabs.map((tab) => {
             const isActive = activeSubTab === tab;
             return (
@@ -595,8 +595,8 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                 onClick={() => handleSubTabChange(tab)}
                 className={`text-xs font-bold px-3.5 py-2 rounded-xl transition-all shrink-0 relative cursor-pointer ${
                   isActive
-                    ? 'text-[#2f66e0] bg-[#2f66e0]/10 border border-[#2f66e0]/15 font-extrabold'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
+                    ? 'bg-blue-50 text-[#2f66e0]'
+                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
                 }`}
               >
                 <span>{tab}</span>
@@ -604,9 +604,6 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                   <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-extrabold bg-red-500 text-white rounded-full">
                     {unresolvedSwipes.length}
                   </span>
-                )}
-                {isActive && (
-                  <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#2f66e0] rounded-sm" />
                 )}
               </button>
             );
@@ -976,13 +973,14 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                           </td>
                           <td className="py-3.5 text-right pr-3">
                             <button
+                              title="Edit"
                               onClick={() => {
                                 setSelectedTimesheet(t);
                                 setEditTimesheetModalOpen(true);
                               }}
-                              className="text-slate-400 hover:text-[#2f66e0] transition-colors inline-block font-extrabold cursor-pointer hover:underline"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-[#2f66e0] hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                             >
-                              Edit
+                              <Edit2 className="h-3.5 w-3.5" />
                             </button>
                           </td>
                         </tr>
@@ -1589,7 +1587,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
 
               <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-slate-400">Total Absences</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Absences</span>
                   <h3 className="text-xl font-extrabold text-rose-600 tracking-tight">12 days</h3>
                   <span className="text-[9px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-205">8 with sick leave cert</span>
                 </div>

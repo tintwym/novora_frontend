@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import NovoraLogo from '@/components/brand/NovoraLogo'
+import BrandLockup from '@/components/brand/BrandLockup'
 
 interface AuthShellProps {
   title: string
@@ -8,62 +8,38 @@ interface AuthShellProps {
   footer: ReactNode
 }
 
-function BrandLockup({
-  wordmarkClassName,
-  subClassName,
-  logoClassName,
-}: {
-  wordmarkClassName: string
-  subClassName: string
-  logoClassName: string
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <NovoraLogo className={logoClassName} />
-      <div>
-        <p className={wordmarkClassName}>Novora</p>
-        <p className={subClassName}>HRMS</p>
-      </div>
-    </div>
-  )
-}
-
 export default function AuthShell({ title, subtitle, children, footer }: AuthShellProps) {
   return (
     <div className="min-h-screen flex bg-slate-50 font-sans select-none">
-      {/* Brand panel */}
-      <aside className="hidden lg:flex w-[44%] relative overflow-hidden bg-[#1a2b4a] text-white flex-col justify-between p-12">
+      <aside className="hidden lg:flex w-[44%] relative overflow-hidden bg-[#15233d] text-white flex-col justify-between p-12">
         <div
-          className="absolute inset-0 opacity-40"
+          className="absolute inset-0 opacity-50"
           style={{
             background:
-              'radial-gradient(ellipse 80% 60% at 20% 20%, #2f66e0 0%, transparent 55%), radial-gradient(ellipse 70% 50% at 90% 80%, #1e4db7 0%, transparent 50%)',
+              'radial-gradient(ellipse 80% 60% at 18% 18%, #2f66e0 0%, transparent 55%), radial-gradient(ellipse 70% 50% at 92% 82%, #0a9cf5 0%, transparent 48%)',
           }}
         />
         <div
-          className="absolute inset-0 opacity-[0.07]"
+          className="absolute inset-0 opacity-[0.06]"
           style={{
             backgroundImage:
               'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)',
             backgroundSize: '48px 48px',
           }}
         />
+        <div className="absolute -right-16 top-24 h-64 w-64 rounded-full bg-[#f59e0b]/10 blur-3xl" />
 
         <div className="relative z-10">
-          <BrandLockup
-            logoClassName="h-12 w-12 shrink-0"
-            wordmarkClassName="text-xl font-extrabold tracking-tight"
-            subClassName="text-[11px] font-semibold text-white/55 uppercase tracking-[0.14em]"
-          />
+          <BrandLockup variant="dark" size="lg" />
         </div>
 
-        <div className="relative z-10 max-w-md space-y-4">
+        <div className="relative z-10 max-w-md space-y-4 animate-soft-fade-up">
           <h2 className="text-3xl font-extrabold tracking-tight leading-tight">
             People operations, built for growing teams.
           </h2>
           <p className="text-sm font-medium text-white/65 leading-relaxed">
             Manage employees, attendance, leave, payroll, and performance from one workspace —
-            with trial provisioning ready for your company.
+            with Admin assigning roles after performance review.
           </p>
         </div>
 
@@ -72,16 +48,10 @@ export default function AuthShell({ title, subtitle, children, footer }: AuthShe
         </p>
       </aside>
 
-      {/* Form panel */}
       <main className="flex-1 flex items-center justify-center px-6 py-10">
-        <div className="w-full max-w-105">
-          {/* Mobile only — desktop branding lives on the left panel */}
+        <div className="w-full max-w-105 animate-soft-fade-up">
           <div className="mb-8 lg:hidden">
-            <BrandLockup
-              logoClassName="h-11 w-11 shrink-0"
-              wordmarkClassName="text-lg font-extrabold text-slate-900 tracking-tight leading-none"
-              subClassName="text-[10px] font-bold text-[#0a58a4] uppercase tracking-[0.14em] mt-1"
-            />
+            <BrandLockup size="md" />
           </div>
 
           <div className="mb-8">
@@ -89,7 +59,9 @@ export default function AuthShell({ title, subtitle, children, footer }: AuthShe
             <p className="mt-2 text-sm font-medium text-slate-500 leading-relaxed">{subtitle}</p>
           </div>
 
-          {children}
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm shadow-slate-200/60">
+            {children}
+          </div>
 
           <div className="mt-8 text-center text-sm font-medium text-slate-500">{footer}</div>
         </div>

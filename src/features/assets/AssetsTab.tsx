@@ -1006,7 +1006,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
       </div>
 
       {/* Primary Sub-Navigation Bar */}
-      <div id="assets-management-subtabs" className="border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
+      <div id="assets-management-subtabs" className="border border-slate-100 bg-white rounded-2xl px-4 py-1.5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-2.5 overflow-x-auto pb-px">
           {(['Registry', 'Categories', 'Allocations', 'Requests', 'Damages & Repair'] as const).map(tab => {
             const isActive = activeSubTab === tab;
@@ -1018,10 +1018,10 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                   setActiveSubTab(tab);
                   setSearchQuery('');
                 }}
-                className={`text-xs font-bold px-3 py-2.5 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`text-xs font-bold px-4 py-2.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                   isActive
-                    ? 'border-blue-600 text-blue-600 font-extrabold'
-                    : 'border-transparent text-slate-400 hover:text-slate-700'
+                    ? 'bg-blue-50 text-[#2f66e0]'
+                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
                 }`}
               >
                 {tab === 'Registry' && 'Asset Registry'}

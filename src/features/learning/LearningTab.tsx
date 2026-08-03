@@ -563,8 +563,8 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
     <div id="learning-management-module-root" className="space-y-6">
       
       {/* Top Navigation Row - styled exactly matching other modular HRM tabs */}
-      <div id="learning-navigator-row" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200 pb-4 gap-4">
-        <div id="learning-nav-tabs" className="flex items-center gap-1.5 select-none overflow-x-auto w-full lg:w-auto scrollbar-none pb-1 lg:pb-0">
+      <div id="learning-navigator-row" className="flex flex-col lg:flex-row lg:items-center justify-between border border-slate-100 bg-white px-4 py-1.5 rounded-2xl gap-3">
+        <div id="learning-nav-tabs" className="flex items-center gap-1.5 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
           {(
             [
               'Course Catalog & LMS',
@@ -587,14 +587,11 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                 }}
                 className={`text-xs font-bold px-3.5 py-2.5 rounded-xl transition-all shrink-0 relative cursor-pointer flex items-center gap-2 ${
                   isActive
-                    ? 'text-[#2f66e0] bg-[#2f66e0]/10 border border-[#2f66e0]/15 font-extrabold shadow-3xs'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
+                    ? 'bg-blue-50 text-[#2f66e0]'
+                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
                 }`}
               >
                 <span>{tab}</span>
-                {isActive && (
-                  <span className="absolute bottom-0 left-3.5 right-3.5 h-0.5 bg-[#2f66e0] rounded-sm" />
-                )}
               </button>
             );
           })}
