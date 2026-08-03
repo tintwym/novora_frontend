@@ -769,9 +769,9 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
 
           <button
             onClick={() => setIsNewTicketModalOpen(true)}
-            className="bg-[#2f66e0] hover:bg-opacity-95 text-white text-xs font-extrabold px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer shadow-sm transition-all"
+            className="h-9 inline-flex items-center gap-2 px-4 text-xs font-extrabold text-white bg-[#2f66e0] hover:bg-opacity-95 rounded-xl cursor-pointer shadow-sm transition-all whitespace-nowrap shrink-0"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 shrink-0" />
             <span>File Inquiry Ticket</span>
           </button>
         </div>

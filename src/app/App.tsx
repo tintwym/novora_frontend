@@ -266,14 +266,14 @@ export default function App() {
                   })}
                 </div>
 
-                <div id="employees-top-controls" className="flex items-center gap-3 self-end md:self-auto relative">
-                  <div id="dept-filter-dropdown" className="relative">
+                <div id="employees-top-controls" className="flex items-center gap-3 self-end md:self-auto relative shrink-0 flex-nowrap">
+                  <div id="dept-filter-dropdown" className="relative shrink-0">
                     <button
                       id="dept-filter-btn"
                       onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 transition-colors rounded-xl cursor-pointer"
+                      className="h-9 inline-flex items-center gap-2 px-4 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 transition-colors rounded-xl cursor-pointer whitespace-nowrap shrink-0"
                     >
-                      <span>{deptFilterState}</span>
+                      <span className="whitespace-nowrap">{deptFilterState}</span>
                       <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                     </button>
 
@@ -297,11 +297,11 @@ export default function App() {
                     )}
                   </div>
 
-                  <div id="export-actions-dropdown" className="relative">
+                  <div id="export-actions-dropdown" className="relative shrink-0">
                     <button
                       id="export-options-btn"
                       onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
-                      className="bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/20 font-bold text-xs text-slate-700 px-4 py-2.5 rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer"
+                      className="h-9 inline-flex items-center gap-2 px-4 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/20 rounded-xl transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
                     >
                       <Download className="h-4 w-4 text-slate-500 shrink-0" />
                       <span>Export</span>

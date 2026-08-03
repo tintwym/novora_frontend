@@ -520,13 +520,13 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
         </div>
 
         {/* Action controllers on the right, integrated into the navigation grid */}
-        <div id="disciplinary-upper-actions" className="flex items-center gap-2.5 ml-auto sm:ml-0 font-sans text-slate-700">
+        <div id="disciplinary-upper-actions" className="flex items-center gap-2.5 ml-auto sm:ml-0 font-sans text-slate-700 shrink-0 flex-nowrap">
           
           {/* Department global filter dropdown */}
           <select
             value={selectedDeptFilter}
             onChange={(e) => setSelectedDeptFilter(e.target.value)}
-            className="bg-white border border-slate-200 hover:border-slate-300 text-xs font-bold px-3.5 py-2 rounded-xl focus:outline-none transition-colors cursor-pointer"
+            className="h-9 bg-white border border-slate-200 hover:border-slate-300 text-xs font-bold px-3.5 rounded-xl focus:outline-none transition-colors cursor-pointer whitespace-nowrap shrink-0"
           >
             <option value="All departments">All departments</option>
             <option value="Engineering">Engineering</option>
@@ -539,9 +539,9 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
           {/* Export button */}
           <button
             onClick={() => addToast('Exporting summary disciplinary metrics...', 'loading')}
-            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-705 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-tiny"
+            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-705 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-tiny whitespace-nowrap shrink-0"
           >
-            <Download className="h-4 w-4 text-slate-400" />
+            <Download className="h-4 w-4 text-slate-400 shrink-0" />
             <span>Export</span>
           </button>
 
@@ -549,20 +549,20 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
           {activeSubTab === 'Disciplinary Reason' && (
             <button
               onClick={() => setNewReasonModalOpen(true)}
-              className="bg-[#2f66e0] hover:bg-opacity-95 text-white text-xs font-extrabold px-3.5 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-extrabold text-white bg-[#2f66e0] hover:bg-opacity-95 rounded-xl transition-all shadow-sm cursor-pointer whitespace-nowrap shrink-0"
             >
-              <Plus className="h-4 w-4" />
-              <span>+ New Reason</span>
+              <Plus className="h-4 w-4 shrink-0" />
+              <span>New Reason</span>
             </button>
           )}
 
           {activeSubTab === 'Disciplinary Action' && (
             <button
               onClick={() => setNewActionModalOpen(true)}
-              className="bg-[#2f66e0] hover:bg-opacity-95 text-white text-xs font-extrabold px-3.5 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-extrabold text-white bg-[#2f66e0] hover:bg-opacity-95 rounded-xl transition-all shadow-sm cursor-pointer whitespace-nowrap shrink-0"
             >
-              <Plus className="h-4 w-4" />
-              <span>+ New Action</span>
+              <Plus className="h-4 w-4 shrink-0" />
+              <span>New Action</span>
             </button>
           )}
 
@@ -572,10 +572,10 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                 setActiveSubTab('Disciplinary Setup');
                 addToast('Input incident logs below.', 'info');
               }}
-              className="bg-[#2f66e0] hover:bg-opacity-95 text-white text-xs font-extrabold px-3.5 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-extrabold text-white bg-[#2f66e0] hover:bg-opacity-95 rounded-xl transition-all shadow-sm cursor-pointer whitespace-nowrap shrink-0"
             >
-              <Plus className="h-4 w-4" />
-              <span>+ New Case</span>
+              <Plus className="h-4 w-4 shrink-0" />
+              <span>New Case</span>
             </button>
           )}
         </div>
@@ -1580,7 +1580,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                 <button
                   type="button"
                   onClick={() => addToast(`Exported Disciplinary ${disciplinaryReportType === 'detail' ? 'Detailed Logs' : 'Summary Balance'} Report successfully.`, 'success')}
-                  className="bg-[#2f66e0] hover:bg-opacity-95 text-white text-xs font-extrabold px-3.5 py-2 rounded-xl transition-all shadow-tiny flex items-center gap-1.5 cursor-pointer"
+                  className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-extrabold text-white bg-[#2f66e0] hover:bg-opacity-95 rounded-xl transition-all shadow-tiny cursor-pointer whitespace-nowrap shrink-0"
                 >
                   <FileSpreadsheet className="h-3.5 w-3.5" />
                   <span>Export</span>

@@ -506,7 +506,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
         </div>
 
         {/* Outer Header Actions aligned elegantly with selectors & primary action triggers */}
-        <div id="leave-upper-actions" className="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
+        <div id="leave-upper-actions" className="flex items-center gap-2.5 shrink-0 flex-nowrap">
           {/* Year Dropdown */}
           <div className="relative shrink-0">
             <button
@@ -597,10 +597,10 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 <button
                   type="button"
                   onClick={() => setTypeFilterDropdown(!typeFilterDropdown)}
-                  className="bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 select-none cursor-pointer"
+                  className="h-9 bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 rounded-xl inline-flex items-center gap-1.5 select-none cursor-pointer whitespace-nowrap shrink-0"
                 >
-                  <span>{typeFilter}</span>
-                  <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+                  <span className="whitespace-nowrap">{typeFilter}</span>
+                  <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                 </button>
                 {typeFilterDropdown && (
                   <div className="absolute left-0 mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl w-36 py-1 z-20">
@@ -717,10 +717,10 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
             </div>
             <button
               onClick={() => setNewPolicyModal(true)}
-              className="bg-[#2f66e0] hover:bg-opacity-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs cursor-pointer flex items-center gap-1.5"
+              className="h-9 inline-flex items-center gap-1.5 px-4 text-xs font-bold text-white bg-[#2f66e0] hover:bg-opacity-95 rounded-xl shadow-xs cursor-pointer whitespace-nowrap shrink-0"
             >
-              <Plus className="h-4 w-4" />
-              <span>+ New Policy</span>
+              <Plus className="h-4 w-4 shrink-0" />
+              <span>New Policy</span>
             </button>
           </div>
 

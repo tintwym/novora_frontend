@@ -1381,7 +1381,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
 
       {/* 4. IMMERSIVE COMPACT BOTTOM CTA ACTION HEADER BAR */}
       <footer id="creation-bottom-stripe" className="bg-white border-t border-slate-200 py-4.5 px-8 flex items-center justify-between sticky bottom-0 z-10 shrink-0">
-        <span id="label-for-bottom-step" className="text-xs font-bold text-slate-500 font-medium">
+        <span id="label-for-bottom-step" className="text-xs font-medium text-slate-500">
           Step {step}: {stepLabel(step)}
         </span>
 

@@ -524,9 +524,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => addToast('Exporting spreadsheet document...', 'loading')}
-            className="border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+            className="h-9 inline-flex items-center gap-1.5 px-4 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
           >
-            <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
+            <FileSpreadsheet className="h-4 w-4 text-emerald-500 shrink-0" />
             <span>Export</span>
           </button>
         </div>
