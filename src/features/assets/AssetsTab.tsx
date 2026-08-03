@@ -1210,7 +1210,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                         <td className="py-3.5 px-4">
                           {asset.custodianId !== 'Unassigned' ? (
                             <div className="flex items-center gap-1.5">
-                              <div className="h-5.5 w-5.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-[10px]">
+                              <div className="h-5.5 w-5.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-[10px] shrink-0">
                                 <User className="h-3 w-3" />
                               </div>
                               <span className="text-slate-700 font-semibold">{asset.custodianName}</span>
@@ -1564,7 +1564,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
               {/* Header */}
               <div className="flex items-center justify-between border-b pb-4">
                 <div>
-                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full tracking-wider uppercase font-mono">{detailDrawerItem.id}</span>
+                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full tracking-wider uppercase font-mono inline-flex items-center whitespace-nowrap shrink-0">{detailDrawerItem.id}</span>
                   <h3 className="text-base font-extrabold text-slate-800 tracking-tight mt-2.5 leading-tight">{detailDrawerItem.name}</h3>
                 </div>
                 <button
@@ -1637,7 +1637,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                       <p className="text-[10px] text-slate-400 font-semibold">{detailDrawerItem.purchaseDate}</p>
                     </div>
                   </div>
-                  <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full font-bold">Active</span>
+                  <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full font-bold inline-flex items-center whitespace-nowrap shrink-0">Active</span>
                 </div>
               </div>
             </div>

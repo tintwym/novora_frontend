@@ -514,7 +514,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
             >
               <span>{tab.label}</span>
               {tab.badge !== undefined && tab.badge > 0 && (
-                <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black leading-none">
+                <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black leading-none inline-flex items-center whitespace-nowrap shrink-0">
                   {tab.badge}
                 </span>
               )}
@@ -763,7 +763,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                       </td>
                       <td className="py-3.5 px-4 text-slate-500 font-mono">{c.dueWithin}</td>
                       <td className="py-3.5 px-4">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-green-50 text-green-700">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-green-50 text-green-700 inline-flex items-center whitespace-nowrap shrink-0">
                           Active
                         </span>
                       </td>
@@ -840,7 +840,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                       <td className="py-3.5 px-4">{s.internalTrainer}</td>
                       <td className="py-3.5 px-4">{s.externalTrainer}</td>
                       <td className="py-3.5 px-4">
-                        <span className="bg-blue-50 text-[#2f66e0] px-2.5 py-0.5 rounded-full text-[10px] font-extrabold">
+                        <span className="bg-blue-50 text-[#2f66e0] px-2.5 py-0.5 rounded-full text-[10px] font-extrabold inline-flex items-center whitespace-nowrap shrink-0">
                           {s.skill}
                         </span>
                       </td>
@@ -1181,7 +1181,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   {submittedBehalf.map((sb) => (
                     <tr key={sb.id} className="hover:bg-slate-50/40">
                       <td className="py-3.5 px-4 font-black text-slate-900 flex items-center gap-2">
-                        <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-600">
+                        <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-600 shrink-0">
                           {sb.employee.split(' ').map(n=>n[0]).join('')}
                         </div>
                         <span>{sb.employee}</span>
@@ -1232,7 +1232,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 {approvals.map((app) => (
                   <tr key={app.id} className="hover:bg-slate-50/40">
                     <td className="py-3.5 px-4 font-black text-slate-900 flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-full bg-[#2f66e0]/10 text-[#2f66e0] flex items-center justify-center text-[10px] font-black">
+                      <div className="h-6 w-6 rounded-full bg-[#2f66e0]/10 text-[#2f66e0] flex items-center justify-center text-[10px] font-black shrink-0">
                         {app.employee.split(' ').map(n=>n[0]).join('')}
                       </div>
                       <span>{app.employee}</span>
@@ -1331,7 +1331,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 {attendance.map((att) => (
                   <tr key={att.id} className="hover:bg-slate-50/40">
                     <td className="py-3.5 px-4 font-black text-slate-900 flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-mono font-black text-slate-600">
+                      <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-mono font-black text-slate-600 shrink-0">
                         {att.employee.split(' ').map(n=>n[0]).join('')}
                       </div>
                       <span>{att.employee}</span>
@@ -1414,7 +1414,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   <td className="py-3.5 px-4 font-mono">500</td>
                   <td className="py-3.5 px-4">David Ng &bull; pending</td>
                   <td className="py-3.5 px-4">
-                    <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px]">Pending</span>
+                    <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] inline-flex items-center whitespace-nowrap shrink-0">Pending</span>
                   </td>
                   <td className="py-3.5 px-4 text-right">
                     <button className="border border-slate-200 hover:bg-slate-50 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all">View</button>
@@ -1427,7 +1427,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   <td className="py-3.5 px-4 font-mono">200</td>
                   <td className="py-3.5 px-4">David Ng ✓</td>
                   <td className="py-3.5 px-4">
-                    <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[10px]">Completed</span>
+                    <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[10px] inline-flex items-center whitespace-nowrap shrink-0">Completed</span>
                   </td>
                   <td className="py-3.5 px-4 text-right">
                     <button className="border border-slate-200 hover:bg-slate-50 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all">View</button>
@@ -1440,7 +1440,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   <td className="py-3.5 px-4 font-mono">200</td>
                   <td className="py-3.5 px-4">Nina Reza ✓</td>
                   <td className="py-3.5 px-4">
-                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-[10px]">Allocated</span>
+                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-[10px] inline-flex items-center whitespace-nowrap shrink-0">Allocated</span>
                   </td>
                   <td className="py-3.5 px-4 text-right">
                     <button className="border border-slate-200 hover:bg-slate-50 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all">View</button>
@@ -1817,7 +1817,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#2f66e0]"></span>
+                <span className="h-2.5 w-2.5 rounded-full bg-[#2f66e0] items-center shrink-0"></span>
                 {editingItem ? 'Edit' : 'New'}{' '}
                 {showModal === 'training_type' ? 'Training Type' :
                  showModal === 'category' ? 'Category' :

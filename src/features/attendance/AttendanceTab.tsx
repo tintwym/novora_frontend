@@ -601,7 +601,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
               >
                 <span>{tab}</span>
                 {tab === 'Unknown Swipes' && unresolvedSwipes.length > 0 && (
-                  <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-extrabold bg-red-500 text-white rounded-full">
+                  <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-extrabold bg-red-500 text-white rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                     {unresolvedSwipes.length}
                   </span>
                 )}
@@ -704,7 +704,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                 <div className="pt-2">
                   <p className="text-[11px] font-bold text-slate-500">
                     Status: {checkedIn ? (
-                      <span className="text-emerald-500 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 italic inline-block">● ACTIVE WORK SESSION</span>
+                      <span className="text-emerald-500 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 italic inline-block inline-flex items-center whitespace-nowrap shrink-0">● ACTIVE WORK SESSION</span>
                     ) : (
                       <span className="text-slate-400">Not Clocked-In</span>
                     )}
@@ -997,7 +997,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
           <div className="space-y-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full border border-slate-150 inline-block">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full border border-slate-150 inline-block inline-flex items-center whitespace-nowrap shrink-0">
                   Shift patterns defined: {shiftPatterns.length} patterns
                 </p>
               </div>
@@ -1319,7 +1319,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                   <h4 className="text-sm font-bold text-slate-800 tracking-tight">Today's Manual Punches</h4>
                   <p className="text-[11px] font-semibold text-slate-400 mt-0.5"> Biometric verification records logged manually today</p>
                 </div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-100 px-3 py-1 rounded-full border border-slate-150 text-right">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-100 px-3 py-1 rounded-full border border-slate-150 text-right inline-flex items-center whitespace-nowrap shrink-0">
                   {todayManualPunches.length} records
                 </span>
               </div>
@@ -1359,7 +1359,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
             <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-extrabold text-slate-500">Unresolved Tickets: </span>
-                <span className="bg-rose-50 text-rose-600 px-3 py-1 text-xs font-extrabold rounded-full border border-rose-100">
+                <span className="bg-rose-50 text-rose-600 px-3 py-1 text-xs font-extrabold rounded-full border border-rose-100 inline-flex items-center whitespace-nowrap shrink-0">
                   {unresolvedSwipes.length} unresolved
                 </span>
               </div>

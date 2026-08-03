@@ -783,7 +783,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             >
               <span>{sub}</span>
               {isApproval && (
-                <span className="h-4.5 w-4.5 bg-amber-100 text-amber-700 text-[10px] font-black rounded-full flex items-center justify-center border border-amber-200">
+                <span className="h-4.5 w-4.5 bg-amber-100 text-amber-700 text-[10px] font-black rounded-full flex items-center justify-center border border-amber-200 shrink-0">
                   4
                 </span>
               )}
@@ -1112,7 +1112,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                          addToast(`Document "${filename}" staged for verification successfully`, 'success');
                        }
                      }}>
-                  <div className="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2 text-slate-400">
+                  <div className="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2 text-slate-400 shrink-0">
                     <FileText className="h-5 w-5" />
                   </div>
                   <p className="text-xs font-bold text-slate-805">Drag &amp; drop travel logs, petrol receipts, or meal invoices here</p>
@@ -1321,7 +1321,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                          addToast(`Logged ${fn} as bonus policy verification support, size 3.1 MB.`, 'success');
                        }
                      }}>
-                  <div className="h-10 w-10 bg-blue-50 text-[#2f66e0] rounded-full flex items-center justify-center mx-auto mb-2">
+                  <div className="h-10 w-10 bg-blue-50 text-[#2f66e0] rounded-full flex items-center justify-center mx-auto mb-2 shrink-0">
                     <Paperclip className="h-5 w-5" />
                   </div>
                   <p className="text-xs font-bold text-slate-800">Attach board approvals or targets fulfillment KPI files here</p>
@@ -1571,7 +1571,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           <tr key={staff.id} className="hover:bg-slate-50/50">
                             <td className="p-3 pl-5">
                               <div className="flex items-center gap-2.5">
-                                <div className="h-7 w-7 rounded-full bg-blue-100 text-[#2f66e0] text-[10px] font-bold flex items-center justify-center">
+                                <div className="h-7 w-7 rounded-full bg-blue-100 text-[#2f66e0] text-[10px] font-bold flex items-center justify-center shrink-0">
                                   {staff.name.split(' ').map(n=>n[0]).join('')}
                                 </div>
                                 <div>
@@ -2051,7 +2051,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                          addToast(`Logged ${docName} asset collateral file.`, 'success');
                        }
                      }}>
-                  <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2 shrink-0">
                     <Paperclip className="h-5 w-5" />
                   </div>
                   <p className="text-xs font-bold text-slate-800">Attach asset return records or equipment bonds proof</p>
@@ -2188,7 +2188,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                          addToast(`Logged ${docName} withholding file successfully.`, 'success');
                        }
                      }}>
-                  <div className="h-10 w-10 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <div className="h-10 w-10 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-2 shrink-0">
                     <Paperclip className="h-5 w-5" />
                   </div>
                   <p className="text-xs font-bold text-slate-800">Attach personal asset clearance logs or salary sacrifice declaration agreements</p>
@@ -2290,7 +2290,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
                 <div className="lg:col-span-2 space-y-3">
                   <h4 className="text-xs font-bold text-slate-850 uppercase tracking-widest pl-1">Authorized Custom deductions list</h4>
-                  <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden whitespace-nowrap">
+                  <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden">
                     <table className="w-full text-left font-semibold">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -2426,7 +2426,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                          addToast(`Archived ${docName} standard successfully.`, 'success');
                        }
                      }}>
-                  <div className="h-10 w-10 bg-red-50 text-red-650 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <div className="h-10 w-10 bg-red-50 text-red-650 rounded-full flex items-center justify-center mx-auto mb-2 shrink-0">
                     <Paperclip className="h-5 w-5" />
                   </div>
                   <p className="text-xs font-bold text-slate-800">Attach government withholding filings or advisory reference briefs</p>
