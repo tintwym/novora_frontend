@@ -240,7 +240,7 @@ export default function App() {
   }
 
   return (
-    <div id="novora-hrms-root" className="flex min-h-screen bg-[#f7f9fc] select-none font-sans overflow-hidden">
+    <div id="novora-hrms-root" className="flex h-dvh min-h-0 bg-[#f7f9fc] select-none font-sans overflow-hidden">
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveSidebarTabSafe}
@@ -251,7 +251,7 @@ export default function App() {
         roles={session.roles}
       />
 
-      <main id="main-portal-contents" className="flex-1 flex flex-col overflow-hidden">
+      <main id="main-portal-contents" className="flex-1 flex flex-col min-h-0 overflow-hidden">
         <Topbar
           activeTabName={activeTab}
           searchValue={searchValue}
@@ -261,7 +261,7 @@ export default function App() {
           onLogout={handleLogout}
         />
 
-        <div id="portal-inner-board" className="flex-1 overflow-y-auto px-8 py-6">
+        <div id="portal-inner-board" className="flex-1 min-h-0 overflow-y-auto px-8 py-6">
           {!canAccessTab(session.roles, activeTab) ? null : activeTab === 'Employees Management' ? (
             <div id="employees-module-root" className="space-y-6">
               <div

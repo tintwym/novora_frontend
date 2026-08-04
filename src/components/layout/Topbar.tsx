@@ -98,7 +98,7 @@ export default function Topbar({
   return (
     <header
       id="app-topbar"
-      className="h-16 border-b border-slate-100 bg-white/90 backdrop-blur-md px-6 md:px-8 flex items-center justify-between shrink-0 relative z-40"
+      className="sticky top-0 z-40 h-16 border-b border-slate-100 bg-white/90 backdrop-blur-md px-6 md:px-8 flex items-center justify-between shrink-0"
     >
       <div className="flex items-center gap-2 min-w-0">
         <h1

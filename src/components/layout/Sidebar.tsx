@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -18,6 +18,8 @@ import {
   FileBarChart,
   Settings,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   HelpCircle,
   LifeBuoy,
   LayoutGrid,
@@ -43,6 +45,9 @@ import type { SidebarTab } from '@/types';
 import { canAccessTab, canManageFullSystem } from '@/lib/roles';
 import { sidebarLabel } from '@/lib/navLabels';
 import BrandLockup from '@/components/brand/BrandLockup';
+import NovoraLogo from '@/components/brand/NovoraLogo';
+
+const SIDEBAR_COLLAPSED_KEY = 'novora.sidebar.collapsed';
 
 interface SidebarProps {
   activeTab: SidebarTab;
@@ -65,7 +70,25 @@ export default function Sidebar({
 }: SidebarProps) {
   const [mainMenuOpen, setMainMenuOpen] = useState(false);
   const [settingsSearch, setSettingsSearch] = useState('');
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
   const isFullSystem = canManageFullSystem(roles);
+  const settingsMode = activeTab === 'Settings' && isFullSystem;
+  // Settings nested nav needs labels — keep expanded while in Settings.
+  const rail = collapsed && !settingsMode;
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? '1' : '0');
+    } catch {
+      // ignore quota / private mode
+    }
+  }, [collapsed]);
 
   const mainNavItems = (
     [
@@ -96,7 +119,8 @@ export default function Sidebar({
     setMainMenuOpen(false);
   };
 
-  // Settings groupings matching Screenshot 15
+  const toggleCollapsed = () => setCollapsed((v) => !v);
+
   const settingsNavSections = [
     {
       group: 'ORGANISATION',
@@ -135,7 +159,6 @@ export default function Sidebar({
     },
   ];
 
-  // Filter settings list based on search term
   const filteredSettingsSections = settingsNavSections
     .map((section) => ({
       ...section,
@@ -145,22 +168,34 @@ export default function Sidebar({
     }))
     .filter((section) => section.items.length > 0);
 
-  // Switch Settings category sub-selection
   const handleSettingsSubTabClick = (subTabName: string) => {
     setSettingsSubTab?.(subTabName);
   };
 
+  const navBtnClass = (isActive: boolean) =>
+    `w-full flex items-center rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+      rail ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'
+    } ${
+      isActive
+        ? 'bg-[#2f66e0] text-white shadow-sm shadow-[#2f66e0]/25'
+        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+    }`;
+
   return (
-    <aside id="app-sidebar" className="w-68 min-h-screen bg-white border-r border-slate-100 flex flex-col shrink-0">
-      
-      {/* ----------------- RENDER IF ACTIVE PORTAL TAB IS 'Settings' (Admin/HR only) ----------------- */}
-      {activeTab === 'Settings' && isFullSystem ? (
+    <aside
+      id="app-sidebar"
+      data-collapsed={rail ? 'true' : 'false'}
+      className={`${
+        rail ? 'w-[4.5rem]' : 'w-68'
+      } h-dvh sticky top-0 bg-white border-r border-slate-100 flex flex-col shrink-0 overflow-hidden transition-[width] duration-200 ease-out`}
+    >
+      {settingsMode ? (
         <React.Fragment>
-          {/* Blue Settings mode header with dropdown selector */}
           <div id="settings-sidebar-header" className="p-4 border-b border-[#f8fafc]">
             <div className="relative">
               <button
                 id="btn-settings-mode-selector"
+                type="button"
                 onClick={() => setMainMenuOpen(!mainMenuOpen)}
                 className="w-full bg-[#2f66e0] text-white px-4 py-3 rounded-xl font-bold text-xs flex items-center justify-between shadow-xs hover:bg-[#2557cb] transition-all cursor-pointer"
               >
@@ -183,6 +218,7 @@ export default function Sidebar({
                       return (
                         <button
                           key={item.name}
+                          type="button"
                           onClick={() => handleTabClick(item.name)}
                           className="w-full flex items-center gap-3 px-3.5 py-2 hover:bg-slate-50 text-slate-650 hover:text-slate-900 transition-colors text-left cursor-pointer"
                         >
@@ -195,7 +231,6 @@ export default function Sidebar({
               )}
             </div>
 
-            {/* Quick search settings */}
             <div className="relative mt-3">
               <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
               <input
@@ -209,7 +244,6 @@ export default function Sidebar({
             </div>
           </div>
 
-          {/* Settings Lists Scroll Container */}
           <div id="settings-sidebar-scroll-container" className="flex-1 overflow-y-auto px-4 py-4 space-y-5 select-none">
             {filteredSettingsSections.map((section) => (
               <div key={section.group} className="space-y-1.5">
@@ -224,6 +258,7 @@ export default function Sidebar({
                     return (
                       <button
                         key={item.name}
+                        type="button"
                         onClick={() => handleSettingsSubTabClick(item.name)}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
                           isSubActive
@@ -247,39 +282,60 @@ export default function Sidebar({
           </div>
         </React.Fragment>
       ) : (
-        /* ----------------- RENDER NORMAL MULTI-MODULE MENU ----------------- */
         <React.Fragment>
-          {/* Brand Logo Header */}
-          <div id="sidebar-logo-header" className="h-16 px-5 border-b border-slate-100 flex items-center">
-            <BrandLockup size="md" />
+          <div
+            id="sidebar-logo-header"
+            className={`h-16 border-b border-slate-100 flex items-center ${
+              rail ? 'justify-center px-2' : 'justify-between gap-2 px-3'
+            }`}
+          >
+            {rail ? (
+              <NovoraLogo className="h-8 w-8 shrink-0" />
+            ) : (
+              <BrandLockup size="md" className="min-w-0" />
+            )}
+            {!rail && (
+              <button
+                type="button"
+                id="sidebar-collapse-btn"
+                onClick={toggleCollapsed}
+                title="Collapse sidebar"
+                aria-label="Collapse sidebar"
+                className="h-8 w-8 shrink-0 inline-flex items-center justify-center rounded-lg border border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors cursor-pointer"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            )}
           </div>
 
-          {/* Navigation Links */}
-          <div id="sidebar-nav-container" className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
+          <div
+            id="sidebar-nav-container"
+            className={`flex-1 overflow-y-auto py-3 space-y-0.5 ${rail ? 'px-2' : 'px-3'}`}
+          >
             {mainNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.name;
+              const label = sidebarLabel(item.name);
 
               if (item.name === 'Reports') {
                 return (
                   <div key={item.name} className="flex flex-col">
                     <button
-                      id={`nav-reports`}
+                      id="nav-reports"
+                      type="button"
+                      title={label}
                       onClick={() => handleTabClick('Reports')}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                        isActive
-                          ? 'bg-[#2f66e0] text-white shadow-sm shadow-[#2f66e0]/25'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                      }`}
+                      className={navBtnClass(isActive)}
                     >
                       <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                      <span className="truncate">{sidebarLabel(item.name)}</span>
+                      {!rail && <span className="truncate">{label}</span>}
                     </button>
 
-                    {isActive && (
+                    {isActive && !rail && (
                       <div className="pl-5 pr-1 mt-1 mb-1 space-y-0.5 select-none animate-soft-fade-up">
                         <button
                           id="subnav-report-centre"
+                          type="button"
                           onClick={() => setReportsSubTab?.('centre')}
                           className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all text-left cursor-pointer ${
                             reportsSubTab === 'centre'
@@ -295,6 +351,7 @@ export default function Sidebar({
 
                         <button
                           id="subnav-scheduled-reports"
+                          type="button"
                           onClick={() => setReportsSubTab?.('scheduled')}
                           className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all text-left cursor-pointer ${
                             reportsSubTab === 'scheduled'
@@ -306,17 +363,20 @@ export default function Sidebar({
                             <Clock className="h-3.5 w-3.5 shrink-0" />
                             <span>Scheduled reports</span>
                           </div>
-                          <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${
-                            reportsSubTab === 'scheduled'
-                              ? 'bg-[#2f66e0]/15 text-[#2f66e0]'
-                              : 'bg-slate-100 text-slate-500'
-                          }`}>
+                          <span
+                            className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${
+                              reportsSubTab === 'scheduled'
+                                ? 'bg-[#2f66e0]/15 text-[#2f66e0]'
+                                : 'bg-slate-100 text-slate-500'
+                            }`}
+                          >
                             3
                           </span>
                         </button>
 
                         <button
                           id="subnav-custom-builder"
+                          type="button"
                           onClick={() => setReportsSubTab?.('builder')}
                           className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all text-left cursor-pointer ${
                             reportsSubTab === 'builder'
@@ -339,15 +399,13 @@ export default function Sidebar({
                 <button
                   id={`nav-${item.name.replace(/\s+/g, '-').replace(/\//g, '').toLowerCase()}`}
                   key={item.name}
+                  type="button"
+                  title={label}
                   onClick={() => handleTabClick(item.name as SidebarTab)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-[#2f66e0] text-white shadow-sm shadow-[#2f66e0]/25'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
+                  className={navBtnClass(isActive)}
                 >
                   <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                  <span className="truncate">{sidebarLabel(item.name)}</span>
+                  {!rail && <span className="truncate">{label}</span>}
                 </button>
               );
             })}
@@ -355,21 +413,43 @@ export default function Sidebar({
         </React.Fragment>
       )}
 
-      {/* Footer Support Card */}
-      <div id="sidebar-footer-help" className="p-3 border-t border-slate-100">
-        <button
-          type="button"
-          className="w-full text-left bg-[#f0f5ff] hover:bg-[#e4eeff] transition-all p-3.5 rounded-xl flex gap-3 relative overflow-hidden group border border-[#dce7ff] cursor-pointer"
-        >
-          <div className="absolute -right-4 -bottom-4 w-12 h-12 bg-blue-400/10 rounded-full group-hover:scale-110 transition-transform" />
-          <HelpCircle className="h-5 w-5 text-[#2f66e0] shrink-0 mt-0.5" />
-          <div>
-            <div className="text-xs font-bold text-slate-900 leading-tight">Need help?</div>
-            <div className="text-[10.5px] font-medium text-slate-500 mt-1 leading-snug">
-              Visit our support center
-            </div>
-          </div>
-        </button>
+      <div id="sidebar-footer-help" className={`border-t border-slate-100 ${rail ? 'p-2' : 'p-3'} space-y-2`}>
+        {rail ? (
+          <>
+            <button
+              type="button"
+              id="sidebar-expand-btn"
+              onClick={toggleCollapsed}
+              title="Expand sidebar"
+              aria-label="Expand sidebar"
+              className="w-full h-9 inline-flex items-center justify-center rounded-xl border border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors cursor-pointer"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              title="Need help?"
+              aria-label="Need help?"
+              className="w-full h-9 inline-flex items-center justify-center rounded-xl bg-[#f0f5ff] hover:bg-[#e4eeff] border border-[#dce7ff] text-[#2f66e0] transition-all cursor-pointer"
+            >
+              <HelpCircle className="h-4.5 w-4.5" />
+            </button>
+          </>
+        ) : (
+          <button
+              type="button"
+              className="w-full text-left bg-[#f0f5ff] hover:bg-[#e4eeff] transition-all p-3.5 rounded-xl flex gap-3 relative overflow-hidden group border border-[#dce7ff] cursor-pointer"
+            >
+              <div className="absolute -right-4 -bottom-4 w-12 h-12 bg-blue-400/10 rounded-full group-hover:scale-110 transition-transform" />
+              <HelpCircle className="h-5 w-5 text-[#2f66e0] shrink-0 mt-0.5" />
+              <div>
+                <div className="text-xs font-bold text-slate-900 leading-tight">Need help?</div>
+                <div className="text-[10.5px] font-medium text-slate-500 mt-1 leading-snug">
+                  Visit our support center
+                </div>
+              </div>
+            </button>
+        )}
       </div>
     </aside>
   );

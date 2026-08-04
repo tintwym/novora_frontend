@@ -24,7 +24,7 @@ export default function LandingPage({ onSignIn, onStartTrial }: LandingPageProps
   const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased overflow-x-hidden selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased overflow-x-clip selection:bg-blue-600 selection:text-white">
       
       <Navbar 
         onOpenDemo={() => setIsBookingOpen(true)} 

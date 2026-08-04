@@ -516,80 +516,82 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
             </span>
           </div>
 
-          {/* SVG circle donut — label sits above the ring so it is never clipped */}
-          <div className="relative flex justify-center items-center py-1">
-            <svg width="118" height="118" viewBox="0 0 100 100" className="transform -rotate-90" aria-hidden>
-              {/* Backing Track */}
-              <circle
-                cx="50"
-                cy="50"
-                r="38"
-                fill="transparent"
-                stroke="#f1f5f9"
-                strokeWidth="7"
-              />
-              {/* Sector 1: Present (89.4% -> 224.68 long, 251.32 total circ) */}
-              <circle
-                cx="50"
-                cy="50"
-                r="38"
-                fill="transparent"
-                stroke="#1d4ed8"
-                strokeWidth="7"
-                strokeDasharray="224.68 251.32"
-                strokeDashoffset="0"
-                strokeLinecap="round"
-                className="transition-all duration-300"
-              />
-              {/* Sector 2: On Leave (7.3% -> 18.35 long, offset cumulative) */}
-              <circle
-                cx="50"
-                cy="50"
-                r="38"
-                fill="transparent"
-                stroke="#818cf8"
-                strokeWidth="7"
-                strokeDasharray="18.35 251.32"
-                strokeDashoffset="-224.68"
-                strokeLinecap="round"
-                className="transition-all duration-300"
-              />
-              {/* Sector 3: Absent (2.3% -> 5.78 long) */}
-              <circle
-                cx="50"
-                cy="50"
-                r="38"
-                fill="transparent"
-                stroke="#cbd5e1"
-                strokeWidth="7"
-                strokeDasharray="5.78 251.32"
-                strokeDashoffset="-243.03"
-                strokeLinecap="round"
-                className="transition-all duration-300"
-              />
-              {/* Sector 4: Late (1.0% -> 2.51 long) */}
-              <circle
-                cx="50"
-                cy="50"
-                r="38"
-                fill="transparent"
-                stroke="#f59e0b"
-                strokeWidth="7"
-                strokeDasharray="2.51 251.32"
-                strokeDashoffset="-248.81"
-                strokeLinecap="round"
-                className="transition-all duration-300"
-              />
-            </svg>
+          {/* SVG circle donut — % inside the ring; caption sits below so it never crowds the arc */}
+          <div className="flex flex-col items-center gap-2 py-1">
+            <div className="relative flex justify-center items-center size-[118px]">
+              <svg width="118" height="118" viewBox="0 0 100 100" className="transform -rotate-90" aria-hidden>
+                {/* Backing Track */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="38"
+                  fill="transparent"
+                  stroke="#f1f5f9"
+                  strokeWidth="7"
+                />
+                {/* Sector 1: Present (89.4% -> 224.68 long, 251.32 total circ) */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="38"
+                  fill="transparent"
+                  stroke="#1d4ed8"
+                  strokeWidth="7"
+                  strokeDasharray="224.68 251.32"
+                  strokeDashoffset="0"
+                  strokeLinecap="round"
+                  className="transition-all duration-300"
+                />
+                {/* Sector 2: On Leave (7.3% -> 18.35 long, offset cumulative) */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="38"
+                  fill="transparent"
+                  stroke="#818cf8"
+                  strokeWidth="7"
+                  strokeDasharray="18.35 251.32"
+                  strokeDashoffset="-224.68"
+                  strokeLinecap="round"
+                  className="transition-all duration-300"
+                />
+                {/* Sector 3: Absent (2.3% -> 5.78 long) */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="38"
+                  fill="transparent"
+                  stroke="#cbd5e1"
+                  strokeWidth="7"
+                  strokeDasharray="5.78 251.32"
+                  strokeDashoffset="-243.03"
+                  strokeLinecap="round"
+                  className="transition-all duration-300"
+                />
+                {/* Sector 4: Late (1.0% -> 2.51 long) */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="38"
+                  fill="transparent"
+                  stroke="#f59e0b"
+                  strokeWidth="7"
+                  strokeDasharray="2.51 251.32"
+                  strokeDashoffset="-248.81"
+                  strokeLinecap="round"
+                  className="transition-all duration-300"
+                />
+              </svg>
 
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none px-7">
-              <span className="text-2xl font-black text-slate-800 leading-none tracking-tight tabular-nums">
-                89.4%
-              </span>
-              <span className="mt-1 text-[8px] text-slate-400 font-bold uppercase tracking-[0.08em] whitespace-nowrap">
-                Attendance rate
-              </span>
+              <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+                <span className="text-2xl font-black text-slate-800 leading-none tracking-tight tabular-nums">
+                  89.4%
+                </span>
+              </div>
             </div>
+            <span className="text-[8px] text-slate-400 font-bold uppercase tracking-[0.08em] whitespace-nowrap">
+              Attendance rate
+            </span>
           </div>
 
           {/* High-accuracy aligned dataset ledger */}
