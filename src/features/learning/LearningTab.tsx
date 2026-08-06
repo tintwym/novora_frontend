@@ -666,7 +666,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                   placeholder="Query title or instructor..."
                   value={courseSearch}
                   onChange={(e) => setCourseSearch(e.target.value)}
-                  className="w-full text-xs bg-slate-50 border border-slate-100 rounded-xl pl-9 pr-3 py-2 outline-none focus:bg-white focus:border-slate-200 transition-all font-medium text-slate-705"
+                  className="w-full text-xs bg-slate-50 border border-slate-100 rounded-xl pl-9 pr-3 py-2 outline-none focus:bg-white focus:border-slate-200 transition-all font-medium text-slate-700"
                 />
               </div>
 
@@ -729,21 +729,21 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleRegisterLmsDemoPreset('LinkedIn Learning')}
-                className="bg-white border-slate-150 text-slate-600 hover:border-blue-300 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 shadow-3xs"
+                className="bg-white border-slate-100 text-slate-600 hover:border-blue-300 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 shadow-3xs"
               >
                 <span>Connect LinkedIn Learning</span>
                 <ExternalLink className="h-2.5 w-2.5 text-slate-400" />
               </button>
               <button
                 onClick={() => handleRegisterLmsDemoPreset('Coursera Enterprise')}
-                className="bg-white border-slate-150 text-slate-600 hover:border-indigo-300 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 shadow-3xs"
+                className="bg-white border-slate-100 text-slate-600 hover:border-indigo-300 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 shadow-3xs"
               >
                 <span>Connect Coursera</span>
                 <ExternalLink className="h-2.5 w-2.5 text-slate-400" />
               </button>
               <button
                 onClick={() => handleRegisterLmsDemoPreset('Udemy Business')}
-                className="bg-white border-slate-150 text-slate-600 hover:border-red-350 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 shadow-3xs"
+                className="bg-white border-slate-100 text-slate-600 hover:border-red-350 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 shadow-3xs"
               >
                 <span>Connect Udemy Business</span>
                 <ExternalLink className="h-2.5 w-2.5 text-slate-400" />
@@ -762,7 +762,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                   </div>
                   <button
                     onClick={() => setIsLmsModalOpen(false)}
-                    className="text-slate-400 hover:text-slate-750 text-sm font-extrabold px-1 cursor-pointer"
+                    className="text-slate-400 hover:text-slate-700 text-sm font-extrabold px-1 cursor-pointer"
                   >
                     ✕
                   </button>
@@ -781,7 +781,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                         <span className="text-[8.5px] text-slate-400 font-bold block mt-0.5">Unpacked zip</span>
                       </div>
                       <div className="p-2 border border-slate-105 hover:border-slate-355 rounded-xl text-center cursor-pointer">
-                        <span className="text-[10.5px] font-black text-slate-750 block">Experience API</span>
+                        <span className="text-[10.5px] font-black text-slate-700 block">Experience API</span>
                         <span className="text-[8.5px] text-slate-400 font-bold block mt-0.5">xAPI Wrapper</span>
                       </div>
                     </div>
@@ -795,7 +795,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                       placeholder="e.g., Threat Mitigation and Phishing Countermeasures"
                       value={scormTitle}
                       onChange={(e) => setScormTitle(e.target.value)}
-                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-150 rounded-xl p-2.5 outline-none focus:bg-white focus:border-slate-200"
+                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 outline-none focus:bg-white focus:border-slate-200"
                     />
                   </div>
 
@@ -805,7 +805,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                       <select
                         value={scormProvider}
                         onChange={(e) => setScormProvider(e.target.value as any)}
-                        className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-150 rounded-xl p-2.5 cursor-pointer outline-none"
+                        className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none"
                       >
                         <option value="LinkedIn Learning">LinkedIn Learning</option>
                         <option value="Coursera">Coursera</option>
@@ -817,7 +817,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                       <select
                         value={scormCategory}
                         onChange={(e) => setScormCategory(e.target.value as any)}
-                        className="w-full text-xs text-slate-705 bg-slate-50 border border-slate-150 rounded-xl p-2.5 cursor-pointer outline-none"
+                        className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none"
                       >
                         <option value="General">General / Core</option>
                         <option value="Engineering">Engineering</option>
@@ -835,7 +835,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                       <select
                         value={scormFormat}
                         onChange={(e) => setScormFormat(e.target.value as any)}
-                        className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-150 rounded-xl p-2.5 cursor-pointer outline-none"
+                        className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none"
                       >
                         <option value="Interactive (SCORM)">Interactive SCORM Module</option>
                         <option value="Video Sequence">Video Lecture Track</option>
@@ -864,7 +864,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                     <button
                       type="button"
                       onClick={() => setIsLmsModalOpen(false)}
-                      className="px-4 py-2 border border-slate-150 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                      className="px-4 py-2 border border-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -993,7 +993,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h5 className="text-[13px] font-black text-slate-805 uppercase tracking-wide">Structured Curriculums & Cohorts</h5>
+              <h5 className="text-[13px] font-black text-slate-800 uppercase tracking-wide">Structured Curriculums & Cohorts</h5>
               <p className="text-xs text-slate-400 mt-0.5 font-semibold">Allows managers to bundle multiple courses & check milestones together to track organizational core benchmarks.</p>
             </div>
 
@@ -1032,7 +1032,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                       placeholder="e.g., Senior Systems Engineering Track"
                       value={newPathName}
                       onChange={(e) => setNewPathName(e.target.value)}
-                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-150 rounded-xl p-2.5 outline-none focus:bg-white focus:border-[#2f66e0]/30"
+                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 outline-none focus:bg-white focus:border-[#2f66e0]/30"
                     />
                   </div>
 
@@ -1044,7 +1044,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                       placeholder="e.g., Specialized track focusing on DB isolation, high availability, and multi-region proxies."
                       value={newPathDesc}
                       onChange={(e) => setNewPathDesc(e.target.value)}
-                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-150 rounded-xl p-2.5 outline-none focus:bg-white focus:border-[#2f66e0]/30"
+                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 outline-none focus:bg-white focus:border-[#2f66e0]/30"
                     />
                   </div>
                 </div>
@@ -1055,7 +1055,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                     <select
                       value={newPathDept}
                       onChange={(e) => setNewPathDept(e.target.value)}
-                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-150 rounded-xl p-2.5 outline-none cursor-pointer"
+                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 outline-none cursor-pointer"
                     >
                       <option value="Engineering">Engineering</option>
                       <option value="Finance">Finance</option>
@@ -1071,7 +1071,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                     <select
                       value={newPathDiff}
                       onChange={(e) => setNewPathDiff(e.target.value as any)}
-                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-150 rounded-xl p-2.5 cursor-pointer"
+                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer"
                     >
                       <option value="Beginner">Beginner (101)</option>
                       <option value="Intermediate">Intermediate (201)</option>
@@ -1085,7 +1085,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                       type="number"
                       value={newPathHours}
                       onChange={(e) => setNewPathHours(Number(e.target.value))}
-                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-150 rounded-xl p-2.5 outline-none"
+                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 outline-none"
                     />
                   </div>
 
@@ -1166,7 +1166,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                   <div className="mt-5 space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-100/50">
                     <span className="text-[9.5px] font-black text-slate-400 uppercase tracking-widest block mb-1">Bundled Syllabus ({path.courses.length} Milestones)</span>
                     {path.courses.map((courseTitle, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-[11px] font-bold text-slate-705 border-b border-white pb-1.5 last:border-0 last:pb-0">
+                      <div key={idx} className="flex items-center justify-between text-[11px] font-bold text-slate-700 border-b border-white pb-1.5 last:border-0 last:pb-0">
                         <div className="flex items-center gap-1.5 truncate">
                           <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0 items-center" />
                           <span className="truncate">{courseTitle}</span>
@@ -1207,7 +1207,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h5 className="text-[13px] font-black text-slate-805 uppercase tracking-wide">Compliance Watch & Certification Audit System</h5>
+              <h5 className="text-[13px] font-black text-slate-800 uppercase tracking-wide">Compliance Watch & Certification Audit System</h5>
               <p className="text-xs text-slate-400 mt-0.5 font-semibold">Track security standard expiration parameters and execute direct renewal overrides for employee compliance files.</p>
             </div>
 
@@ -1249,7 +1249,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                     Assigned operator: <strong className="text-slate-700">{rec.employeeName}</strong> ({rec.department})
                   </p>
 
-                  <div className="mt-4 p-3 rounded-xl bg-white border border-slate-100 text-[10.5px] font-bold text-slate-650 space-y-1">
+                  <div className="mt-4 p-3 rounded-xl bg-white border border-slate-100 text-[10.5px] font-bold text-slate-600 space-y-1">
                     <div className="flex justify-between">
                       <span>Certification Expiry:</span>
                       <span className="font-mono text-slate-700">{rec.expiryDate}</span>
@@ -1443,7 +1443,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
 
                   {/* Main scoring card overlay if submitted */}
                   {quizScoreCard ? (
-                    <div className="p-6 rounded-2xl text-center space-y-4 border max-w-lg mx-auto bg-slate-50/50 border-slate-150">
+                    <div className="p-6 rounded-2xl text-center space-y-4 border max-w-lg mx-auto bg-slate-50/50 border-slate-100">
                       <div className="inline-flex h-12 w-12 rounded-full items-center justify-center text-lg shadow-3xs font-black bg-white shrink-0">
                         {quizScoreCard.passed ? '🎉' : '❌'}
                       </div>
@@ -1476,7 +1476,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                             setUserQuizAnswers({});
                             setQuizScoreCard(null);
                           }}
-                          className="px-4.5 py-2 border border-slate-150 rounded-xl text-xs font-extrabold text-slate-705 bg-white hover:bg-slate-50 cursor-pointer inline-flex items-center gap-1.5"
+                          className="px-4.5 py-2 border border-slate-100 rounded-xl text-xs font-extrabold text-slate-700 bg-white hover:bg-slate-50 cursor-pointer inline-flex items-center gap-1.5"
                         >
                           <RotateCcw className="h-4.5 w-4.5" />
                           <span>Retry Exam</span>
@@ -1519,7 +1519,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                                     className={`p-3 text-left border rounded-xl text-[10.5px] font-bold flex items-center justify-between transition-all cursor-pointer ${
                                       isChecked 
                                         ? 'bg-blue-50/50 border-[#2f66e0]/40 text-[#2f66e0]' 
-                                        : 'bg-white border-slate-100 hover:bg-slate-50/60 text-slate-650'
+                                        : 'bg-white border-slate-100 hover:bg-slate-50/60 text-slate-600'
                                     }`}
                                   >
                                     <span>{option}</span>

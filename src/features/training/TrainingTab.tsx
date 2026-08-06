@@ -142,7 +142,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
   const [behalfSelectedEmps, setBehalfSelectedEmps] = useState<string[]>(['Sarah Lim']);
   const [behalfCourse, setBehalfCourse] = useState('Leadership essentials');
   const [behalfLocation, setBehalfLocation] = useState('Training Room A');
-  const [behalfContribution, setBehalfContribution] = useState('100% / Fixed MYR');
+  const [behalfContribution, setBehalfContribution] = useState('100% / Fixed SGD');
 
   // ADD NEW ITEM FORM INPUTS
   const [newTypeName, setNewTypeName] = useState('');
@@ -874,7 +874,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
               <input type="text" placeholder="dd/mm/yyyy" className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium py-1.5 px-3 focus:outline-none w-32" />
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <button onClick={() => addToast('Schedule copied to clipboard', 'success')} className="bg-slate-150 border border-slate-200 text-slate-700 hover:bg-slate-200 font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer">
+              <button onClick={() => addToast('Schedule copied to clipboard', 'success')} className="bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer">
                 Copy schedule
               </button>
               <button
@@ -895,7 +895,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   <th className="py-3 px-4">Type</th>
                   <th className="py-3 px-4">Period</th>
                   <th className="py-3 px-4 text-center">Days</th>
-                  <th className="py-3 px-4">Fee (MYR)</th>
+                  <th className="py-3 px-4">Fee (SGD)</th>
                   <th className="py-3 px-4">Company cont.</th>
                   <th className="py-3 px-4">Request before</th>
                   <th className="py-3 px-4">Status</th>
@@ -973,7 +973,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   <input type="number" value={formDays} onChange={e => setFormDays(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Course fee (MYR)</label>
+                  <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Course fee (SGD)</label>
                   <input type="text" value={formFee} onChange={e => setFormFee(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none font-mono" />
                 </div>
               </div>
@@ -1025,7 +1025,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
               </div>
             </div>
 
-            <div className="overflow-x-auto border border-slate-150 rounded-2xl">
+            <div className="overflow-x-auto border border-slate-100 rounded-2xl">
               <table className="w-full text-left border-collapse text-xs font-semibold text-slate-700">
                 <thead>
                   <tr className="bg-slate-50 text-[10.5px] font-bold text-slate-500 uppercase">
@@ -1167,7 +1167,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
 
           <div className="lg:col-span-7 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide border-b pb-2">My submitted requests on behalf</h3>
-            <div className="overflow-x-auto border border-slate-150 rounded-2xl">
+            <div className="overflow-x-auto border border-slate-100 rounded-2xl">
               <table className="w-full text-left border-collapse text-xs font-semibold text-slate-700">
                 <thead>
                   <tr className="bg-slate-50 text-[10.5px] font-bold text-slate-500 uppercase">
@@ -1215,7 +1215,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
             </div>
           </div>
 
-          <div className="overflow-x-auto border border-slate-150 rounded-2xl">
+          <div className="overflow-x-auto border border-slate-100 rounded-2xl">
             <table className="w-full text-left border-collapse text-xs font-semibold text-slate-700">
               <thead>
                 <tr className="bg-slate-50 text-[10.5px] font-bold text-slate-500 uppercase">
@@ -1300,7 +1300,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
               <input type="text" placeholder="06/05/2026" className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium py-1.5 px-3 focus:outline-none w-32" />
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <button onClick={() => addToast('Punctuality stats compiled successfully', 'success')} className="bg-slate-150 border border-slate-200 text-slate-700 hover:bg-slate-200 font-bold text-xs px-4 py-2 rounded-xl cursor-pointer">
+              <button onClick={() => addToast('Punctuality stats compiled successfully', 'success')} className="bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 font-bold text-xs px-4 py-2 rounded-xl cursor-pointer">
                 Reset
               </button>
               <button
@@ -1400,7 +1400,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   <th className="py-3 px-4">Employee</th>
                   <th className="py-3 px-4">Course title</th>
                   <th className="py-3 px-4 text-center">Days</th>
-                  <th className="py-3 px-4">Fee (MYR)</th>
+                  <th className="py-3 px-4">Fee (SGD)</th>
                   <th className="py-3 px-4">Approved by</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-right">Action</th>
@@ -1556,7 +1556,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 </span>
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-900">MYR 8,400</h3>
+                <h3 className="text-2xl font-black text-slate-900">SGD 8,400</h3>
                 <p className="text-[10.5px] text-slate-500 mt-1 font-semibold">Commited corporate training funds</p>
               </div>
               <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
@@ -1773,11 +1773,11 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {[
-                      { vendor: 'Executive Coaching Ltd', course: 'Leadership essentials', freq: 'One time', cost: 1500, contribution: '100% (MYR 1,500)', status: 'Approved' },
-                      { vendor: 'Excel Pro Sdn Bhd', course: 'Excel advanced', freq: 'Repeat', cost: 1200, contribution: '50% (MYR 600)', status: 'Paid' },
-                      { vendor: 'Apex Safe Corp', course: 'ISO 9001 awareness', freq: 'Annual', cost: 800, contribution: '100% (MYR 800)', status: 'Paid' },
-                      { vendor: 'Agile Academy', course: 'Agile & Scrum', freq: 'One time', cost: 3200, contribution: '80% (MYR 2,560)', status: 'Pending Approval' },
-                      { vendor: 'Global Speakers Bureau', course: 'Public speaking', freq: 'Repeat', cost: 900, contribution: '100% (MYR 900)', status: 'Approved' },
+                      { vendor: 'Executive Coaching Ltd', course: 'Leadership essentials', freq: 'One time', cost: 1500, contribution: '100% (SGD 1,500)', status: 'Approved' },
+                      { vendor: 'Excel Pro Pte. Ltd.', course: 'Excel advanced', freq: 'Repeat', cost: 1200, contribution: '50% (SGD 600)', status: 'Paid' },
+                      { vendor: 'Apex Safe Corp', course: 'ISO 9001 awareness', freq: 'Annual', cost: 800, contribution: '100% (SGD 800)', status: 'Paid' },
+                      { vendor: 'Agile Academy', course: 'Agile & Scrum', freq: 'One time', cost: 3200, contribution: '80% (SGD 2,560)', status: 'Pending Approval' },
+                      { vendor: 'Global Speakers Bureau', course: 'Public speaking', freq: 'Repeat', cost: 900, contribution: '100% (SGD 900)', status: 'Approved' },
                     ]
                       .filter(item => {
                         return (
@@ -1790,7 +1790,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                           <td className="py-3.5 px-4 font-black text-slate-900">{item.vendor}</td>
                           <td className="py-3.5 px-4">{item.course}</td>
                           <td className="py-3.5 px-4 font-medium text-slate-500">{item.freq}</td>
-                          <td className="py-3.5 px-4 text-center font-mono">MYR {item.cost.toLocaleString()}</td>
+                          <td className="py-3.5 px-4 text-center font-mono">SGD {item.cost.toLocaleString()}</td>
                           <td className="py-3.5 px-4 font-mono text-[#2f66e0]">{item.contribution}</td>
                           <td className="py-3.5 px-4 text-right">
                             <span className={`px-2.5 py-1 rounded-xl text-[10px] font-bold ${
@@ -2043,7 +2043,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                       <input type="number" value={newSchedDays} onChange={e => setNewSchedDays(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Fee (MYR)</label>
+                      <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Fee (SGD)</label>
                       <input type="text" value={newSchedFee} onChange={e => setNewSchedFee(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2" />
                     </div>
                   </div>

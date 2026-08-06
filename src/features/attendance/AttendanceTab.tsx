@@ -905,11 +905,11 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
           <div className="space-y-5">
             <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <select className="bg-slate-50 border border-slate-250 p-2 rounded-xl text-xs font-bold text-slate-700">
+                <select className="bg-slate-50 border border-slate-200 p-2 rounded-xl text-xs font-bold text-slate-700">
                   <option>Single shift</option>
                   <option>Flexible rosters</option>
                 </select>
-                <select className="bg-slate-50 border border-slate-250 p-2 rounded-xl text-xs font-bold text-slate-700">
+                <select className="bg-slate-50 border border-slate-200 p-2 rounded-xl text-xs font-bold text-slate-700">
                   <option>Standard 9-6</option>
                   <option>Night Shift 10-7</option>
                   <option>Alternative OT patterns</option>
@@ -932,7 +932,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
               </div>
             </div>
 
-            <div className="bg-white border border-slate-150 rounded-2xl p-4 shadow-xs overflow-hidden">
+            <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
@@ -997,7 +997,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
           <div className="space-y-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full border border-slate-150 inline-block inline-flex items-center whitespace-nowrap shrink-0">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full border border-slate-100 inline-block inline-flex items-center whitespace-nowrap shrink-0">
                   Shift patterns defined: {shiftPatterns.length} patterns
                 </p>
               </div>
@@ -1137,7 +1137,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
               </button>
             </div>
 
-            <div className="bg-white border border-slate-150 rounded-2xl p-4 shadow-xs overflow-hidden">
+            <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
@@ -1297,7 +1297,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                   <button
                     type="submit"
                     onClick={() => setPunchType('Clock In')}
-                    className="bg-white border border-slate-250 hover:bg-slate-50 text-slate-700 font-bold text-xs py-3 rounded-xl transition-all cursor-pointer shadow-xs text-center"
+                    className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs py-3 rounded-xl transition-all cursor-pointer shadow-xs text-center"
                   >
                     Clock In
                   </button>
@@ -1319,7 +1319,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                   <h4 className="text-sm font-bold text-slate-800 tracking-tight">Today's Manual Punches</h4>
                   <p className="text-[11px] font-semibold text-slate-400 mt-0.5"> Biometric verification records logged manually today</p>
                 </div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-100 px-3 py-1 rounded-full border border-slate-150 text-right inline-flex items-center whitespace-nowrap shrink-0">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-100 px-3 py-1 rounded-full border border-slate-100 text-right inline-flex items-center whitespace-nowrap shrink-0">
                   {todayManualPunches.length} records
                 </span>
               </div>
@@ -1386,7 +1386,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
               </div>
             </div>
 
-            <div className="bg-white border border-slate-150 rounded-2xl p-4 shadow-xs overflow-hidden">
+            <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
@@ -1436,7 +1436,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                         <td className="py-3.5 text-right pr-3">
                           <button
                             onClick={() => handleResolveSwipe(s.id, s.name === '—' ? 'Biometric ID' : s.name)}
-                            className="bg-white border border-slate-250 hover:border-emerald-300 hover:text-emerald-600 font-bold text-[10px] px-2.5 py-1 rounded transition-colors cursor-pointer shadow-2xs"
+                            className="bg-white border border-slate-200 hover:border-emerald-300 hover:text-emerald-600 font-bold text-[10px] px-2.5 py-1 rounded transition-colors cursor-pointer shadow-2xs"
                           >
                             Save
                           </button>
@@ -1751,7 +1751,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
             </div>
 
             {/* 4. Filtered Reports Table */}
-            <div className="bg-white border border-slate-150 rounded-2xl p-4 shadow-sm overflow-hidden0">
+            <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm overflow-hidden0">
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
@@ -1908,7 +1908,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                 <button
                   type="button"
                   onClick={() => setShiftModalOpen(false)}
-                  className="bg-white border border-slate-250 text-slate-600 font-bold text-xs px-4 py-2 rounded-xl"
+                  className="bg-white border border-slate-200 text-slate-600 font-bold text-xs px-4 py-2 rounded-xl"
                 >
                   Cancel
                 </button>
@@ -2021,7 +2021,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                 <button
                   type="button"
                   onClick={() => setTimesheetModalOpen(false)}
-                  className="bg-white border border-slate-250 text-slate-650 font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer"
+                  className="bg-white border border-slate-200 text-slate-600 font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -2054,7 +2054,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
             <form onSubmit={handleEditTimesheetSubmit} className="space-y-4">
               <div className="space-y-1">
                 <span className="text-[10px] font-semibold text-slate-400 block uppercase">Employee Record (Read-Only)</span>
-                <p className="font-extrabold text-slate-700 text-xs bg-slate-50 border border-slate-150 p-3 rounded-xl">
+                <p className="font-extrabold text-slate-700 text-xs bg-slate-50 border border-slate-100 p-3 rounded-xl">
                   {selectedTimesheet.name} &bull; <span className="text-slate-400 font-bold">{selectedTimesheet.dept}</span>
                 </p>
               </div>
@@ -2139,7 +2139,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                 <button
                   type="button"
                   onClick={() => { setEditTimesheetModalOpen(false); setSelectedTimesheet(null); }}
-                  className="bg-white border border-slate-250 text-slate-650 font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer"
+                  className="bg-white border border-slate-200 text-slate-600 font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -2240,7 +2240,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                 <button
                   type="button"
                   onClick={() => setOtSetupModalOpen(false)}
-                  className="bg-white border border-slate-250 text-slate-650 font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer"
+                  className="bg-white border border-slate-200 text-slate-600 font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -2294,7 +2294,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                 <button
                   type="button"
                   onClick={() => setOtPolicyModalOpen(false)}
-                  className="bg-white border border-slate-250 text-slate-650 font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer"
+                  className="bg-white border border-slate-200 text-slate-600 font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer"
                 >
                   Cancel
                 </button>

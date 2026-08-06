@@ -51,7 +51,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
   const [employeeNo, setEmployeeNo] = useState('EMP-0285');
   const [employmentStatus, setEmploymentStatus] = useState<EmploymentStatus>('Permanent');
   const [company, setCompany] = useState('Novora');
-  const [location, setLocation] = useState('Kuala Lumpur HQ');
+  const [location, setLocation] = useState('Singapore HQ');
   const [branch, setBranch] = useState('Main Branch');
   const [department, setDepartment] = useState<Department>('Engineering');
   const [section, setSection] = useState('Tech Division');
@@ -73,7 +73,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
   const [dob, setDob] = useState('1991-03-14');
   const [gender, setGender] = useState('Female');
   const [maritalStatus, setMaritalStatus] = useState('Married');
-  const [nationality, setNationality] = useState('Malaysian');
+  const [nationality, setNationality] = useState('Singaporean');
   const [race, setRace] = useState('Chinese');
   const [religion, setReligion] = useState('Buddhism');
   const [personalEmail, setPersonalEmail] = useState('');
@@ -83,17 +83,17 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
   // Passport info
   const [passportEnabled, setPassportEnabled] = useState(false);
   const [passportNo, setPassportNo] = useState('');
-  const [passportCountry, setPassportCountry] = useState('Malaysia');
+  const [passportCountry, setPassportCountry] = useState('Singapore');
   const [passportIssueDate, setPassportIssueDate] = useState('');
   const [passportExpiryDate, setPassportExpiryDate] = useState('');
 
   // Address info
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
-  const [city, setCity] = useState('Shah Alam');
-  const [state, setState] = useState('Selangor');
-  const [postcode, setPostcode] = useState('40170');
-  const [country, setCountry] = useState('Malaysia');
+  const [city, setCity] = useState('Singapore');
+  const [state, setState] = useState('Singapore');
+  const [postcode, setPostcode] = useState('018982');
+  const [country, setCountry] = useState('Singapore');
   const [permanentSameAsCurrent, setPermanentSameAsCurrent] = useState(true);
 
   // Step 3: Off duty day configuration (Full and Half days)
@@ -113,11 +113,48 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
       setStep(1)
       const randNum = createLocalNumericId(100) % 900
       setEmployeeNo(`EMP-0${randNum}`)
+      setProfilePhoto(null)
     }, 0)
     return () => window.clearTimeout(timer)
   }, [isOpen])
 
   if (!isOpen) return null;
+
+  const MAX_PHOTO_BYTES = 5 * 1024 * 1024
+
+  const handleProfilePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      addToast('Please choose an image file (JPG, PNG, or WEBP).', 'error')
+      return
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      addToast('Profile photo must be 5MB or smaller.', 'error')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : null
+      if (!result) {
+        addToast('Could not read that image. Try another file.', 'error')
+        return
+      }
+      setProfilePhoto(result)
+      addToast('Profile photo ready.', 'success')
+    }
+    reader.onerror = () => addToast('Could not read that image. Try another file.', 'error')
+    reader.readAsDataURL(file)
+  }
+
+  const clearProfilePhoto = (e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    e?.preventDefault()
+    setProfilePhoto(null)
+  }
 
   // Header Auto Generate handler
   const handleAutoGenerateId = () => {
@@ -163,7 +200,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
 
   // Step 5 Submit handler
   const handleFinalSubmit = () => {
-    const computedName = `${firstName || 'New'} ${lastName || 'Employee'}`.trim();
+    const computedName = [firstName, lastName].filter(Boolean).join(' ').trim() || firstName || 'New hire';
     
     if (!firstName && !lastName) {
       addToast('Please enter employee name in the Personal step.', 'error');
@@ -204,13 +241,14 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
       employmentStatus,
       status: activeEmployee ? 'Active' : 'Inactive',
       joinDate: formatDateString(joinDate),
-      nric: nric || '910314-10-5678',
-      mobile: mobileNo || '+60 12-345 6789',
+      nric: nric || 'S9103145A',
+      mobile: mobileNo || '+65 9123 4567',
       email: workEmail || `${computedName.toLowerCase().replace(/\s+/g, '.')}@novora.com`,
-      address: addressLine1 ? `${addressLine1}, ${addressLine2 ? addressLine2 + ', ' : ''}${city}, ${state}` : 'Kuala Lumpur, Malaysia',
+      address: addressLine1 ? `${addressLine1}, ${addressLine2 ? addressLine2 + ', ' : ''}${city}, ${state}` : 'Singapore',
       avatarColor: pickedColor,
+      avatarUrl: profilePhoto || undefined,
       dependents: 'Spouse, 1 Dependent',
-      emergencyContact: '+60 16-789 1234 (Lim Kah Fatt)',
+      emergencyContact: '+65 8765 4321 (Lim Kah Fatt)',
       reportsTo,
     };
 
@@ -379,9 +417,48 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                 
                 <div className="flex flex-col sm:flex-row items-center gap-8">
                   {/* Avatar Upload Frame */}
-                  <div className="h-28 w-28 border-2 border-dashed border-slate-200 rounded-full flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50 transition-colors group cursor-pointer relative shrink-0">
-                    <Upload className="h-5 w-5 text-slate-400 mb-1 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-slate-400 group-hover:text-slate-600">Upload</span>
+                  <div className="relative shrink-0">
+                    <input
+                      id="add-employee-photo-input"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/webp"
+                      className="hidden"
+                      onChange={handleProfilePhotoSelect}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById('add-employee-photo-input')?.click()}
+                      className="h-28 w-28 border-2 border-dashed border-slate-200 rounded-full flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 transition-colors group cursor-pointer overflow-hidden relative"
+                      title="Upload profile photo"
+                    >
+                      {profilePhoto ? (
+                        <img
+                          src={profilePhoto}
+                          alt="Profile preview"
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                      ) : (
+                        <>
+                          <Upload className="h-5 w-5 text-slate-400 mb-1 group-hover:scale-110 transition-transform" />
+                          <span className="text-[10px] font-bold text-slate-400 group-hover:text-slate-600">
+                            Upload
+                          </span>
+                        </>
+                      )}
+                    </button>
+                    {profilePhoto && (
+                      <button
+                        type="button"
+                        onClick={clearProfilePhoto}
+                        className="absolute -top-1 -right-1 h-7 w-7 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 shadow-sm flex items-center justify-center cursor-pointer"
+                        title="Remove photo"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    <p className="mt-2 text-center text-[9px] font-medium text-slate-400 max-w-28">
+                      JPG / PNG · max 5MB
+                    </p>
                   </div>
 
                   {/* Right options checkboxes */}
@@ -737,7 +814,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                         type="text" 
                         value={nric} 
                         onChange={(e) => setNric(e.target.value)}
-                        placeholder="e.g. 910314-10-5678"
+                        placeholder="e.g. S9103145A"
                         className="w-full bg-white border border-slate-200 focus:outline-none focus:border-blue-500 p-2.5 rounded-xl font-bold text-slate-800 font-mono tracking-tight"
                       />
                     </div>
@@ -790,7 +867,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                         onChange={(e) => setNationality(e.target.value)}
                         className="w-full bg-white border border-slate-200 focus:outline-none focus:border-blue-500 p-2.5 rounded-xl font-bold text-slate-800"
                       >
-                        <option value="Malaysian">Malaysian</option>
+                        <option value="Singaporean">Singaporean</option>
                         <option value="Singaporean">Singaporean</option>
                         <option value="Indonesian">Indonesian</option>
                         <option value="Other">Other</option>
@@ -847,7 +924,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                         type="tel" 
                         value={mobileNo} 
                         onChange={(e) => setMobileNo(e.target.value)}
-                        placeholder="+60 12-345 6789"
+                        placeholder="+65 9123 4567"
                         className="w-full bg-white border border-slate-200 focus:outline-none focus:border-blue-500 p-2.5 rounded-xl font-bold text-slate-800"
                       />
                     </div>
@@ -938,7 +1015,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
 
               {/* Card 3: Address Frame */}
               <div className="bg-white border border-slate-200/60 rounded-3xl p-6.5 shadow-xs space-y-4">
-                <h3 className="text-xs font-black text-slate-805 uppercase tracking-wider border-b border-slate-100 pb-3">Current address</h3>
+                <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-3">Current address</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
                   {/* Line 1 */}
@@ -961,7 +1038,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       value={addressLine2} 
                       onChange={(e) => setAddressLine2(e.target.value)}
                       placeholder="Area, neighbourhood (optional)"
-                      className="w-full bg-white border border-slate-200 focus:outline-none focus:border-blue-500 p-2.5 rounded-xl font-bold text-slate-805"
+                      className="w-full bg-white border border-slate-200 focus:outline-none focus:border-blue-500 p-2.5 rounded-xl font-bold text-slate-800"
                     />
                   </div>
 
@@ -994,7 +1071,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       type="text" 
                       value={postcode} 
                       onChange={(e) => setPostcode(e.target.value)}
-                      placeholder="40170"
+                      placeholder="018982"
                       className="w-full bg-white border border-slate-200 focus:outline-none focus:border-blue-500 p-2.5 rounded-xl font-bold text-slate-800"
                     />
                   </div>
@@ -1007,7 +1084,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       onChange={(e) => setCountry(e.target.value)}
                       className="w-full bg-white border border-slate-200 focus:outline-none focus:border-blue-500 p-2.5 rounded-xl font-bold text-slate-800"
                     >
-                      <option value="Malaysia">Malaysia</option>
+                      <option value="Singapore">Singapore</option>
                       <option value="Singapore">Singapore</option>
                       <option value="Brunei">Brunei</option>
                     </select>
@@ -1169,7 +1246,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                               updated[index].terminal = e.target.value;
                               setTerminalsList(updated);
                             }}
-                            className="w-full bg-white border border-slate-200 focus:outline-none focus:border-blue-500 p-2.5 rounded-xl font-bold text-slate-805"
+                            className="w-full bg-white border border-slate-200 focus:outline-none focus:border-blue-500 p-2.5 rounded-xl font-bold text-slate-800"
                           >
                             <option value="Main Lobby — Terminal 1">Main Lobby — Terminal 1</option>
                             <option value="Level 3 — Terminal 2">Level 3 — Terminal 2</option>
@@ -1217,12 +1294,16 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
 
                 {/* Hero profile review header card */}
                 <div className="flex items-center gap-5 bg-slate-50/50 p-5 rounded-2xl border border-slate-100">
-                  <div className="h-16 w-16 rounded-full bg-slate-150 bg-blue-600 text-white flex items-center justify-center font-bold text-xl tracking-tight shrink-0 shadow-sm">
-                    {getReviewInitials()}
+                  <div className="h-16 w-16 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl tracking-tight shrink-0 shadow-sm overflow-hidden relative">
+                    {profilePhoto ? (
+                      <img src={profilePhoto} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                    ) : (
+                      getReviewInitials()
+                    )}
                   </div>
                   <div>
                     <h4 className="text-base font-extrabold text-slate-800 leading-none">
-                      {firstName || lastName ? `${firstName} ${lastName}`.trim() : 'New Employee'}
+                      {firstName || lastName ? `${firstName} ${lastName}`.trim() : 'New hire'}
                     </h4>
                     <p className="text-[11px] font-mono text-slate-500 font-bold mt-1.5">
                       {employeeNo || 'EMP-0285'} &bull; {department} &bull; {position || '-- Select --'}
@@ -1324,7 +1405,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                 </div>
 
                 {/* Light blue informational alert block */}
-                <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4.5 text-xs font-semibold text-slate-650 flex gap-2.5 leading-relaxed">
+                <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4.5 text-xs font-semibold text-slate-600 flex gap-2.5 leading-relaxed">
                   <span className="h-2 w-2 rounded-full bg-[#2f66e0] shrink-0 mt-1.5 animate-pulse" />
                   <p className="text-slate-500 font-semibold text-[11px]">
                     Please review all information above. Once saved, the employee record will be active and accessible in the directory.

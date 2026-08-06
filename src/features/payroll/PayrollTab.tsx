@@ -160,12 +160,12 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
   const [bonusPolicies, setBonusPolicies] = useState([
     { id: 'POL-10', ruleName: 'Performance Multiplier G7', weight: 'Basic × 1.25', active: true },
     { id: 'POL-11', ruleName: 'Tenure loyalty (3+ Years)', weight: 'One-time bonus of 1,000', active: true },
-    { id: 'POL-12', ruleName: 'Referral bounty program', weight: 'Fixed MYR 500 per head', active: false }
+    { id: 'POL-12', ruleName: 'Referral bounty program', weight: 'Fixed SGD 500 per head', active: false }
   ]);
 
   // Under Overtime - setup & requests
   const [manualOtEntries, setManualOtEntries] = useState([
-    { id: 'MN-01', empName: 'Sarah Lim', hrs: 4.5, rate: 'MYR 25.00/hr', total: 112.50, date: '2026-05-15' }
+    { id: 'MN-01', empName: 'Sarah Lim', hrs: 4.5, rate: 'SGD 25.00/hr', total: 112.50, date: '2026-05-15' }
   ]);
   const [newManualOtStaff, setNewManualOtStaff] = useState('');
   const [newManualOtHrs, setNewManualOtHrs] = useState('');
@@ -199,13 +199,13 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
   // Under Tax Attachments & Taxable Emoluments list
   const [taxAttachments, setTaxAttachments] = useState([
-    { id: 'TAX-ATT-01', label: 'Monthly_PCB_Return_CP39.pdf', date: '2026-05-10', size: '1.4 MB', uploader: 'Corporate HR' }
+    { id: 'TAX-ATT-01', label: 'Monthly_IRAS_Return_CP39.pdf', date: '2026-05-10', size: '1.4 MB', uploader: 'Corporate HR' }
   ]);
   const [taxableEmoluments, setTaxableEmoluments] = useState([
     { id: 'EMOL-01', componentName: 'Basic Salary', taxable: true, exemptAllowanceLimit: 'Fully Taxable' },
-    { id: 'EMOL-02', componentName: 'Transport Allowance', taxable: false, exemptAllowanceLimit: 'Exempt up to MYR 6,000 / year' },
-    { id: 'EMOL-03', componentName: 'Meal Allowance', taxable: false, exemptAllowanceLimit: 'Exempt if under MYR 30 / day' },
-    { id: 'EMOL-04', componentName: 'Phone Allowance', taxable: true, exemptAllowanceLimit: 'Exempt up to MYR 300 / year' },
+    { id: 'EMOL-02', componentName: 'Transport Allowance', taxable: false, exemptAllowanceLimit: 'Exempt up to SGD 6,000 / year' },
+    { id: 'EMOL-03', componentName: 'Meal Allowance', taxable: false, exemptAllowanceLimit: 'Exempt if under SGD 30 / day' },
+    { id: 'EMOL-04', componentName: 'Phone Allowance', taxable: true, exemptAllowanceLimit: 'Exempt up to SGD 300 / year' },
     { id: 'EMOL-05', componentName: 'Performance Bonus', taxable: true, exemptAllowanceLimit: 'Fully Taxable' },
     { id: 'EMOL-06', componentName: 'Overtime Payment', taxable: true, exemptAllowanceLimit: 'Fully Taxable' }
   ]);
@@ -216,7 +216,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
     { id: 'STEP2', label: 'Verify Approved Attendances & Timecards', desc: 'Sync biometric punch timestamps', done: true },
     { id: 'STEP3', label: 'Approve Pending Overtime claims', desc: 'Ensure active sign-offs for OT rosters', done: false },
     { id: 'STEP4', label: 'Apply Custom Mid-month Salary Deductions', desc: 'Calculate advances or card replaces', done: false },
-    { id: 'STEP5', label: 'Validate Government Statutory Schedules', desc: 'Check EPF, SOCSO and PCB scales', done: false }
+    { id: 'STEP5', label: 'Validate Government Statutory Schedules', desc: 'Check CPF and IRAS tax scales', done: false }
   ]);
 
   // Universal Filter States
@@ -290,25 +290,25 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
   // Deposit Master State
   const [depositTypes, setDepositTypes] = useState<DepositType[]>([
-    { id: '1', name: 'Uniform deposit', code: 'UNI', employmentStatus: 'All staff', frequency: 'One-time', amountBasis: 'Fixed MYR 100', reimburseMonth: 'On resign', status: 'Active' },
+    { id: '1', name: 'Uniform deposit', code: 'UNI', employmentStatus: 'All staff', frequency: 'One-time', amountBasis: 'Fixed SGD 100', reimburseMonth: 'On resign', status: 'Active' },
     { id: '2', name: 'Saving deposit', code: 'SAV', employmentStatus: 'Permanent', frequency: 'Monthly', amountBasis: '2% of basic', reimburseMonth: 'On resign', status: 'Active' },
-    { id: '3', name: 'Laptop deposit', code: 'LAP', employmentStatus: 'Engineering', frequency: 'One-time', amountBasis: 'Fixed MYR 500', reimburseMonth: 'On resign', status: 'Active' }
+    { id: '3', name: 'Laptop deposit', code: 'LAP', employmentStatus: 'Engineering', frequency: 'One-time', amountBasis: 'Fixed SGD 500', reimburseMonth: 'On resign', status: 'Active' }
   ]);
 
   // Deduction Master State
   const [deductions, setDeductions] = useState<DeductionType[]>([
-    { id: '1', name: 'EPF (employee)', type: 'Statutory', deductionRule: 'Based on salary', amountRate: '11%', onPayslip: 'Yes', status: 'Active' },
-    { id: '2', name: 'SOCSO', type: 'Statutory', deductionRule: 'Statutory table', amountRate: '0.5%', onPayslip: 'Yes', status: 'Active' },
-    { id: '3', name: 'Income tax (PCB)', type: 'Tax', deductionRule: 'PCB schedule', amountRate: 'Varied', onPayslip: 'Yes', status: 'Active' },
-    { id: '4', name: 'Late deduction', type: 'Rota rule', deductionRule: 'Per minute late', amountRate: 'MYR 0.50/min', onPayslip: 'Yes', status: 'Active' },
-    { id: '5', name: 'Missing swipe', type: 'Attendance', deductionRule: 'Per occurrence', amountRate: 'MYR 20.00', onPayslip: 'Yes', status: 'Active' },
+    { id: '1', name: 'CPF (Employee)', type: 'Statutory', deductionRule: 'Based on salary', amountRate: '11%', onPayslip: 'Yes', status: 'Active' },
+    { id: '2', name: 'CPF MediSave', type: 'Statutory', deductionRule: 'Statutory table', amountRate: '0.5%', onPayslip: 'Yes', status: 'Active' },
+    { id: '3', name: 'Income tax (IRAS)', type: 'Tax', deductionRule: 'IRAS schedule', amountRate: 'Varied', onPayslip: 'Yes', status: 'Active' },
+    { id: '4', name: 'Late deduction', type: 'Rota rule', deductionRule: 'Per minute late', amountRate: 'SGD 0.50/min', onPayslip: 'Yes', status: 'Active' },
+    { id: '5', name: 'Missing swipe', type: 'Attendance', deductionRule: 'Per occurrence', amountRate: 'SGD 20.00', onPayslip: 'Yes', status: 'Active' },
     { id: '6', name: 'Unpaid leave', type: 'Leave', deductionRule: 'Normal rate/day', amountRate: 'Salary ÷ work days', onPayslip: 'Yes', status: 'Active' }
   ]);
 
   // Tax Master State
   const [taxes, setTaxes] = useState<TaxCategory[]>([
-    { id: '1', name: 'Personal income tax', code: 'PCB', calculateOn: 'Monthly salary', calcOverallIncome: 'Yes', status: 'Active' },
-    { id: '2', name: 'Social security (SOCSO)', code: 'SSB', calculateOn: 'Basic salary', calcOverallIncome: 'No', status: 'Active' }
+    { id: '1', name: 'Personal income tax', code: 'IRAS', calculateOn: 'Monthly salary', calcOverallIncome: 'Yes', status: 'Active' },
+    { id: '2', name: 'CPF MediSave', code: 'SSB', calculateOn: 'Basic salary', calcOverallIncome: 'No', status: 'Active' }
   ]);
 
   // OT policy attached employees mock
@@ -353,7 +353,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
   const [newDepositName, setNewDepositName] = useState('');
   const [newDepositCode, setNewDepositCode] = useState('');
-  const [newDepositBasis, setNewDepositBasis] = useState('Fixed MYR 100');
+  const [newDepositBasis, setNewDepositBasis] = useState('Fixed SGD 100');
 
   const [newDeductionName, setNewDeductionName] = useState('');
   const [newDeductionType, setNewDeductionType] = useState('Statutory');
@@ -560,7 +560,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
     setTimeout(() => {
       setSimStep(3);
       setSimProgress(75);
-      addToast('Applying statutory EPF, SOCSO, and income tax (PCB) schedules...', 'loading');
+      addToast('Applying statutory CPF and IRAS income tax schedules...', 'loading');
     }, 3000);
 
     setTimeout(() => {
@@ -718,7 +718,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 addToast('Comprehensive ledger exported as NovoraPayroll_Ledger_May2026.xlsx', 'success');
               }, 1500);
             }}
-            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-705 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-tiny whitespace-nowrap shrink-0"
+            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-tiny whitespace-nowrap shrink-0"
           >
             <Download className="h-4 w-4 text-slate-400 shrink-0" />
             <span>Export</span>
@@ -748,7 +748,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
               allowanceSubTab === sub
                 ? 'bg-[#2f66e0] text-white font-extrabold shadow-xxs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-150'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-100'
             }`}
           >
             {sub}
@@ -762,7 +762,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
               bonusSubTab === sub
                 ? 'bg-[#2f66e0] text-white font-extrabold shadow-xxs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-150'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-100'
             }`}
           >
             {sub}
@@ -778,7 +778,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
                 overtimeSubTab === sub
                   ? 'bg-[#2f66e0] text-white font-extrabold shadow-xxs'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-150'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-100'
               }`}
             >
               <span>{sub}</span>
@@ -798,7 +798,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
               depositSubTab === sub
                 ? 'bg-[#2f66e0] text-white font-extrabold shadow-xxs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-150'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-100'
             }`}
           >
             {sub}
@@ -812,7 +812,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
               deductionSubTab === sub
                 ? 'bg-[#2f66e0] text-white font-extrabold shadow-xxs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-150'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-100'
             }`}
           >
             {sub}
@@ -826,7 +826,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
               taxSubTab === sub
                 ? 'bg-[#2f66e0] text-white font-extrabold shadow-xxs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-150'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-100'
             }`}
           >
             {sub}
@@ -840,7 +840,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
               payMgmtSubTab === sub
                 ? 'bg-[#2f66e0] text-white font-extrabold shadow-xxs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-150'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-100'
             }`}
           >
             {sub}
@@ -905,13 +905,13 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 </div>
 
                 {/* Table containing rows with active edit dialog launch */}
-                <div className="border border-slate-150 rounded-2xl overflow-x-auto">
+                <div className="border border-slate-100 rounded-2xl overflow-x-auto">
                   <table className="w-full text-left text-xs min-w-[800px]">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-4 pl-6">Allowance name</th>
                         <th className="p-4">Policy type</th>
-                        <th className="p-4">Amount (MYR)</th>
+                        <th className="p-4">Amount (SGD)</th>
                         <th className="p-4">Deduction amt</th>
                         <th className="p-4 text-center">Taxable</th>
                         <th className="p-4 text-center">On payslip</th>
@@ -920,7 +920,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         <th className="p-4 pr-6 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-medium text-slate-705">
+                    <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                       {allowanceTypes
                         .filter(item => {
                           const matchesPolicy = selectedPolicyFilter === 'All policy types' || item.policyType === selectedPolicyFilter;
@@ -1014,7 +1014,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         <select
                           value={newTravelStaffName}
                           onChange={(e) => setNewTravelStaffName(e.target.value)}
-                          className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-semibold text-slate-705"
+                          className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-semibold text-slate-700"
                         >
                           <option value="">Select Employee...</option>
                           {employees.map(emp => (
@@ -1023,7 +1023,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Claim Amount (MYR)</label>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Claim Amount (SGD)</label>
                         <input
                           type="number" step="0.01" placeholder="e.g. 150.00"
                           value={newTravelAmt}
@@ -1055,14 +1055,14 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       </span>
                     </div>
 
-                    <div className="border border-slate-150 rounded-2xl overflow-hidden bg-white">
+                    <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white">
                       <table className="w-full text-left text-xs">
                         <thead>
-                          <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                             <th className="p-3 pl-5">Claimant</th>
                             <th className="p-3">Purpose</th>
                             <th className="p-3 font-mono">Date</th>
-                            <th className="p-3 text-center">Amount (MYR)</th>
+                            <th className="p-3 text-center">Amount (SGD)</th>
                             <th className="p-3 pr-5 text-right">Status</th>
                           </tr>
                         </thead>
@@ -1115,16 +1115,16 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   <div className="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2 text-slate-400 shrink-0">
                     <FileText className="h-5 w-5" />
                   </div>
-                  <p className="text-xs font-bold text-slate-805">Drag &amp; drop travel logs, petrol receipts, or meal invoices here</p>
+                  <p className="text-xs font-bold text-slate-800">Drag &amp; drop travel logs, petrol receipts, or meal invoices here</p>
                   <p className="text-[10px] text-slate-400 mt-1">Supports PDF, JPG, PNG up to 10MB (Click to simulate browse/upload)</p>
                 </div>
 
                 <div className="space-y-2">
                   <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pl-1">Uploaded Allowance Supporting Vault</h4>
-                  <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden">
+                  <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden">
                     <table className="w-full text-left text-xs">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                           <th className="p-3 pl-5">File Reference</th>
                           <th className="p-3">Claimant</th>
                           <th className="p-3 font-mono">Logged Date</th>
@@ -1183,16 +1183,16 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </button>
                 </div>
 
-                <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden">
+                <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-3 pl-5">Staff member</th>
                         <th className="p-3">Unit Department</th>
                         <th className="p-3 text-center">Approved Transport</th>
                         <th className="p-3 text-center">Approved Meals</th>
                         <th className="p-3 text-center">Special Bonus Allowance</th>
-                        <th className="p-3 text-center font-bold">Total (MYR)</th>
+                        <th className="p-3 text-center font-bold">Total (SGD)</th>
                         <th className="p-3 pr-5 text-right">Status</th>
                       </tr>
                     </thead>
@@ -1255,10 +1255,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </button>
                 </div>
 
-                <div className="border border-slate-150 rounded-2xl overflow-x-auto">
+                <div className="border border-slate-100 rounded-2xl overflow-x-auto">
                   <table className="w-full text-left text-xs min-w-[700px]">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-4 pl-6">Bonus name</th>
                         <th className="p-4">Policy type</th>
                         <th className="p-4">Pay month</th>
@@ -1268,7 +1268,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         <th className="p-4 pr-6 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-medium text-slate-705">
+                    <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                       {bonusTypes
                         .filter(b => selectedPolicyFilter === 'All policy types' || b.policyType === selectedPolicyFilter)
                         .map((bonus) => (
@@ -1330,10 +1330,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
                 <div className="space-y-2">
                   <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pl-1">Bonus Supporting Documents Archive</h4>
-                  <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden">
+                  <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden">
                     <table className="w-full text-left text-xs">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                           <th className="p-3 pl-5">Document Name</th>
                           <th className="p-3">Uploaded Date</th>
                           <th className="p-3">File size</th>
@@ -1342,7 +1342,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       </thead>
                       <tbody className="divide-y divide-slate-100 font-semibold">
                         {bonusAttachments.map(file => (
-                          <tr key={file.id} className="hover:bg-slate-50/50 text-slate-705">
+                          <tr key={file.id} className="hover:bg-slate-50/50 text-slate-700">
                             <td className="p-3 pl-5 font-bold text-slate-800 flex items-center gap-2">
                               <FileSpreadsheet className="h-4 w-4 text-emerald-550" />
                               <span>{file.label}</span>
@@ -1379,10 +1379,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </button>
                 </div>
 
-                <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden">
+                <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-3 pl-5">Staff Member</th>
                         <th className="p-3">Department</th>
                         <th className="p-3">KPI Factor Scale</th>
@@ -1396,7 +1396,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           <td className="p-3 pl-5 font-bold text-slate-850">{p.empName}</td>
                           <td className="p-3 text-slate-500">{p.dept}</td>
                           <td className="p-3 font-bold text-[#2f66e0]">{p.scale}</td>
-                          <td className="p-3 font-mono font-extrabold text-slate-900">MYR {p.amount}</td>
+                          <td className="p-3 font-mono font-extrabold text-slate-900">SGD {p.amount}</td>
                           <td className="p-3 pr-5 text-right">
                             <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold border ${
                               p.status === 'Paid'
@@ -1440,10 +1440,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </button>
                 </div>
 
-                <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden">
+                <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-3 pl-5">Policy Rule Name</th>
                         <th className="p-3">Multiplier Weight Formula</th>
                         <th className="p-3">Reference index</th>
@@ -1451,7 +1451,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         <th className="p-3 pr-5 text-right">Rule Toggle Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-semibold text-slate-705">
+                    <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
                       {bonusPolicies.map((pol) => (
                         <tr key={pol.id} className="hover:bg-slate-50/50">
                           <td className="p-3 pl-5 font-bold text-slate-850">{pol.ruleName}</td>
@@ -1495,7 +1495,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 
                 {/* Left Side: OT policy settings */}
-                <div className="lg:col-span-2 bg-slate-50/50 border border-slate-150 p-5 rounded-2xl space-y-4">
+                <div className="lg:col-span-2 bg-slate-50/50 border border-slate-100 p-5 rounded-2xl space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">OT policy settings</h4>
                     <button
@@ -1509,11 +1509,11 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   <div className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">Weekday OT rate</span>
-                      <span className="font-bold text-slate-805">{otPolicySettings.weekdayOtRate}</span>
+                      <span className="font-bold text-slate-800">{otPolicySettings.weekdayOtRate}</span>
                     </div>
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">Weekend OT rate</span>
-                      <span className="font-bold text-slate-805">{otPolicySettings.weekendOtRate}</span>
+                      <span className="font-bold text-slate-800">{otPolicySettings.weekendOtRate}</span>
                     </div>
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">Public holiday OT</span>
@@ -1525,15 +1525,15 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     </div>
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">Rounding block</span>
-                      <span className="font-bold text-slate-805">{otPolicySettings.roundingBlock}</span>
+                      <span className="font-bold text-slate-800">{otPolicySettings.roundingBlock}</span>
                     </div>
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">Min OT threshold</span>
-                      <span className="font-bold text-slate-805">{otPolicySettings.minOtThreshold}</span>
+                      <span className="font-bold text-slate-800">{otPolicySettings.minOtThreshold}</span>
                     </div>
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">Max OT per day</span>
-                      <span className="font-bold text-slate-805">{otPolicySettings.maxOtPerDay}</span>
+                      <span className="font-bold text-slate-800">{otPolicySettings.maxOtPerDay}</span>
                     </div>
                   </div>
                 </div>
@@ -1556,17 +1556,17 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     </button>
                   </div>
 
-                  <div className="border border-slate-150 rounded-2xl overflow-x-auto">
+                  <div className="border border-slate-100 rounded-2xl overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                           <th className="p-3 pl-5">Employee</th>
                           <th className="p-3">Department</th>
                           <th className="p-3">Policy type</th>
                           <th className="p-3 pr-5 text-right">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 font-medium text-slate-705">
+                      <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                         {otAttachedStaff.map((staff) => (
                           <tr key={staff.id} className="hover:bg-slate-50/50">
                             <td className="p-3 pl-5">
@@ -1621,7 +1621,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           id: createLocalId('MN'),
                           empName: newManualOtStaff,
                           hrs: hrsCalculated,
-                          rate: `MYR ${rateNum.toFixed(2)}/hr`,
+                          rate: `SGD ${rateNum.toFixed(2)}/hr`,
                           total: hrsCalculated * rateNum,
                           date: new Date().toISOString().split('T')[0]
                         };
@@ -1635,7 +1635,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           <select
                             value={newManualOtStaff}
                             onChange={(e) => setNewManualOtStaff(e.target.value)}
-                            className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-semibold text-slate-705"
+                            className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-semibold text-slate-700"
                           >
                             <option value="">Choose Employee...</option>
                             {employees.map(emp => (
@@ -1653,7 +1653,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Per Hour Rate (MYR)</label>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Per Hour Rate (SGD)</label>
                           <input
                             type="number" step="0.5" placeholder="25.00"
                             value={newManualOtRate}
@@ -1669,10 +1669,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
                     <div className="lg:col-span-2 space-y-3">
                       <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pl-1">Staged manual overtime runs</h4>
-                      <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden text-xs">
+                      <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden text-xs">
                         <table className="w-full text-left">
                           <thead>
-                            <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                               <th className="p-3 pl-5">Employee</th>
                               <th className="p-3">Logged Date</th>
                               <th className="p-3">Hours</th>
@@ -1680,14 +1680,14 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                               <th className="p-3 pr-5 text-right font-bold">Computed Total</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100 font-semibold text-slate-705">
+                          <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
                             {manualOtEntries.map(entry => (
                               <tr key={entry.id} className="hover:bg-slate-50/50">
                                 <td className="p-3 pl-5 font-bold text-slate-800">{entry.empName}</td>
                                 <td className="p-3 font-mono text-slate-400">{entry.date}</td>
                                 <td className="p-3 text-slate-850">{entry.hrs} hours</td>
                                 <td className="p-3 text-slate-500">{entry.rate}</td>
-                                <td className="p-3 pr-5 text-right font-mono font-bold text-emerald-600">MYR {entry.total.toFixed(2)}</td>
+                                <td className="p-3 pr-5 text-right font-mono font-bold text-emerald-600">SGD {entry.total.toFixed(2)}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -1703,10 +1703,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     <div className="bg-amber-50/70 border border-amber-100 p-4 rounded-xl text-[11px] font-semibold text-amber-805">
                       Configure individual override coefficients that take precedence over the company default multiplier parameters.
                     </div>
-                    <div className="border border-slate-150 bg-white rounded-2xl overflow-hidden text-xs">
+                    <div className="border border-slate-100 bg-white rounded-2xl overflow-hidden text-xs">
                       <table className="w-full text-left font-medium">
                         <thead>
-                          <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                             <th className="p-3 pl-5">Department Scope</th>
                             <th className="p-3">Standard Multiplier</th>
                             <th className="p-3">Special Weekend Coefficient</th>
@@ -1714,7 +1714,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                             <th className="p-3 pr-5 text-right font-bold">Action</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 text-slate-705">
+                        <tbody className="divide-y divide-slate-100 text-slate-700">
                           {otOverrides.map((override) => (
                             <tr key={override.id} className="hover:bg-slate-50/20">
                               <td className="p-3 pl-5 font-bold text-slate-800">{override.deptScope}</td>
@@ -1779,7 +1779,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           type="number" step="0.5" placeholder="e.g. 2.5"
                           value={newOtReqHrs}
                           onChange={(e) => setNewOtReqHrs(e.target.value)}
-                          className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-semibold text-slate-705"
+                          className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-semibold text-slate-700"
                         />
                       </div>
                       <div>
@@ -1788,7 +1788,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           placeholder="e.g. Preparing end-of-year accounts audit paperwork"
                           value={newOtReqReason}
                           onChange={(e) => setNewOtReqReason(e.target.value)}
-                          className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-medium text-slate-705 h-20"
+                          className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-medium text-slate-700 h-20"
                         />
                       </div>
                       <button type="submit" className="w-full bg-[#2f66e0] hover:bg-opacity-95 text-white text-xs font-bold py-2.5 rounded-xl transition-all cursor-pointer">
@@ -1827,7 +1827,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         <select
                           value={newOtReqStaff}
                           onChange={(e) => setNewOtReqStaff(e.target.value)}
-                          className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-semibold text-slate-705"
+                          className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-semibold text-slate-700"
                         >
                           <option value="">Choose Employee...</option>
                           {employees.map(emp => (
@@ -1850,7 +1850,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           placeholder="e.g. Emergency support during evening network outage"
                           value={newOtReqReason}
                           onChange={(e) => setNewOtReqReason(e.target.value)}
-                          className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-medium h-20 text-slate-705"
+                          className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-medium h-20 text-slate-700"
                         />
                       </div>
                       <button type="submit" className="w-full bg-[#2f66e0] hover:bg-opacity-95 text-white text-xs font-bold py-2.5 rounded-xl transition-all cursor-pointer">
@@ -1870,10 +1870,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       </span>
                     </div>
 
-                    <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden">
+                    <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden">
                       <table className="w-full text-left">
                         <thead>
-                          <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                             <th className="p-3 pl-5">Staff Member</th>
                             <th className="p-3">Claimed Date</th>
                             <th className="p-3">Justification Reason</th>
@@ -1881,13 +1881,13 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                             <th className="p-3 pr-5 text-right font-bold">Actions</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 font-semibold text-slate-705">
+                        <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
                           {otRequests.filter(r => r.status === 'Pending').map(req => (
                             <tr key={req.id} className="hover:bg-slate-50/55">
                               <td className="p-3 pl-5 font-bold text-slate-800">{req.empName}</td>
                               <td className="p-3 font-mono text-slate-400">{req.date}</td>
                               <td className="p-3 text-slate-600">{req.reason}</td>
-                              <td className="p-3 text-center font-mono text-slate-805">{req.hrs} hrs</td>
+                              <td className="p-3 text-center font-mono text-slate-800">{req.hrs} hrs</td>
                               <td className="p-3 pr-5 text-right space-x-2">
                                 <button
                                   type="button"
@@ -1929,10 +1929,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 {overtimeSubTab === 'OT history' && (
                   <div className="space-y-3 text-xs">
                     <h4 className="text-xs font-bold text-slate-850 uppercase tracking-widest pl-1">Overtime Requests Log History</h4>
-                    <div className="border border-slate-150 bg-white rounded-2xl overflow-hidden">
+                    <div className="border border-slate-100 bg-white rounded-2xl overflow-hidden">
                       <table className="w-full text-left font-semibold">
                         <thead>
-                          <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                             <th className="p-3 pl-5">Staff Member</th>
                             <th className="p-3">Claimed Date</th>
                             <th className="p-3 text-center font-bold">Hours</th>
@@ -1940,7 +1940,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                             <th className="p-3 pr-5 text-right animate-none font-bold">Fulfillment Status</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 text-slate-705">
+                        <tbody className="divide-y divide-slate-100 text-slate-700">
                           {otRequests.map(req => (
                             <tr key={req.id} className="hover:bg-slate-50/50">
                               <td className="p-3 pl-5 font-bold text-slate-800">{req.empName}</td>
@@ -1989,10 +1989,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </button>
                 </div>
 
-                <div className="border border-slate-150 rounded-2xl overflow-x-auto">
+                <div className="border border-slate-100 rounded-2xl overflow-x-auto">
                   <table className="w-full text-left text-xs min-w-[700px]">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-4 pl-6">Deposit type</th>
                         <th className="p-4">Code</th>
                         <th className="p-4">Employment status</th>
@@ -2003,7 +2003,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         <th className="p-4 pr-6 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-medium text-slate-705">
+                    <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                       {depositTypes.map((dep) => (
                         <tr key={dep.id} className="hover:bg-slate-50/50">
                           <td className="p-4 pl-6 font-bold text-slate-800">{dep.name}</td>
@@ -2014,7 +2014,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                             </span>
                           </td>
                           <td className="p-4 text-slate-550">{dep.frequency}</td>
-                          <td className="p-4 font-extrabold text-slate-705">{dep.amountBasis}</td>
+                          <td className="p-4 font-extrabold text-slate-700">{dep.amountBasis}</td>
                           <td className="p-4 italic text-slate-500 font-semibold">{dep.reimburseMonth}</td>
                           <td className="p-4">
                             <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold px-2 py-0.5 rounded-md text-[10.5px]">
@@ -2060,17 +2060,17 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
                 <div className="space-y-2">
                   <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pl-1">Deposit Receipts Archive</h4>
-                  <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden text-xs">
+                  <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden text-xs">
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                           <th className="p-3 pl-5">Document Name</th>
                           <th className="p-3">Logged Date</th>
                           <th className="p-3">File size</th>
                           <th className="p-3 pr-5 text-right font-bold">Uploader</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-705">
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
                         {depositAttachments.map(file => (
                           <tr key={file.id} className="hover:bg-slate-50/50">
                             <td className="p-3 pl-5 font-bold text-slate-800 flex items-center gap-2">
@@ -2122,10 +2122,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </button>
                 </div>
 
-                <div className="border border-slate-150 rounded-2xl overflow-x-auto">
+                <div className="border border-slate-100 rounded-2xl overflow-x-auto">
                   <table className="w-full text-left text-xs min-w-[700px]">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-4 pl-6">Deduction name</th>
                         <th className="p-4">Type</th>
                         <th className="p-4">Deduction rule</th>
@@ -2135,7 +2135,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         <th className="p-4 pr-6 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-medium text-slate-705">
+                    <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                       {deductions
                         .filter(d => selectedPolicyFilter === 'All policy types' || d.type === selectedPolicyFilter)
                         .map((ded) => (
@@ -2197,17 +2197,17 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
                 <div className="space-y-2">
                   <h4 className="text-xs font-bold text-slate-855 uppercase tracking-widest pl-1">Deduction Agreements Archive</h4>
-                  <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden text-xs">
+                  <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden text-xs">
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                           <th className="p-3 pl-5">Withholding Document Name</th>
                           <th className="p-3">Uploaded Date</th>
                           <th className="p-3">File size</th>
                           <th className="p-3 pr-5 text-right font-bold">Authorized By</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-705">
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
                         {deductionAttachments.map(file => (
                           <tr key={file.id} className="hover:bg-slate-50/50">
                             <td className="p-3 pl-5 font-bold text-rose-700 flex items-center gap-2">
@@ -2249,14 +2249,14 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     setNewDedStaff('');
                     setNewDedAmt('');
                     setNewDedReason('');
-                    addToast(`Deduction of MYR ${amtParsed.toFixed(2)} applied for ${newDedStaff}.`, 'success');
+                    addToast(`Deduction of SGD ${amtParsed.toFixed(2)} applied for ${newDedStaff}.`, 'success');
                   }} className="space-y-3">
                     <div>
                       <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Employee</label>
                       <select
                         value={newDedStaff}
                         onChange={(e) => setNewDedStaff(e.target.value)}
-                        className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-semibold text-slate-705"
+                        className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-semibold text-slate-700"
                       >
                         <option value="">Choose Employee...</option>
                         {employees.map(emp => (
@@ -2265,7 +2265,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Deducted Amount (MYR)</label>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Deducted Amount (SGD)</label>
                       <input
                         type="number" step="1" placeholder="e.g. 150"
                         value={newDedAmt}
@@ -2290,10 +2290,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
                 <div className="lg:col-span-2 space-y-3">
                   <h4 className="text-xs font-bold text-slate-850 uppercase tracking-widest pl-1">Authorized Custom deductions list</h4>
-                  <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden">
+                  <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden">
                     <table className="w-full text-left font-semibold">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                           <th className="p-3 pl-5">Employee</th>
                           <th className="p-3">Declared Date</th>
                           <th className="p-3">Justification Reason</th>
@@ -2301,7 +2301,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           <th className="p-3 text-right font-bold pr-5">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-705">
+                      <tbody className="divide-y divide-slate-100 text-slate-700">
                         {manualDeductions.map(item => {
                           const numVal = parseFloat(typeof item.amount === 'string' ? item.amount : String(item.amount) || '0');
                           return (
@@ -2309,7 +2309,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                               <td className="p-3 pl-5 font-bold text-slate-800">{item.empName}</td>
                               <td className="p-3 font-mono text-slate-400">{item.date}</td>
                               <td className="p-3 text-slate-500 max-w-xs truncate font-medium">{item.reason}</td>
-                              <td className="p-3 pr-5 text-right font-mono font-bold text-rose-600">- MYR {numVal.toFixed(2)}</td>
+                              <td className="p-3 pr-5 text-right font-mono font-bold text-rose-600">- SGD {numVal.toFixed(2)}</td>
                               <td className="p-3 pr-5 text-right font-bold">
                                 <div className="inline-flex gap-2">
                                   <button
@@ -2364,10 +2364,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </button>
                 </div>
 
-                <div className="border border-slate-150 rounded-2xl overflow-x-auto">
+                <div className="border border-slate-100 rounded-2xl overflow-x-auto">
                   <table className="w-full text-left text-xs min-w-[600px]">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-4 pl-6">Tax name</th>
                         <th className="p-4">Code</th>
                         <th className="p-4">Calculate on</th>
@@ -2376,7 +2376,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         <th className="p-4 pr-6 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-medium text-slate-705">
+                    <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                       {taxes.map((t) => (
                         <tr key={t.id} className="hover:bg-slate-50/50">
                           <td className="p-4 pl-6 font-bold text-slate-800">{t.name}</td>
@@ -2435,17 +2435,17 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
                 <div className="space-y-2">
                   <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pl-1">Tax Circular Archives</h4>
-                  <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden text-xs">
+                  <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden text-xs">
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                           <th className="p-3 pl-5">Document Name</th>
                           <th className="p-3">Uploaded Date</th>
                           <th className="p-3">File size</th>
                           <th className="p-3 pr-5 text-right font-bold">Uploader</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-705">
+                      <tbody className="divide-y divide-slate-100 text-slate-700">
                         {taxAttachments.map(file => (
                           <tr key={file.id} className="hover:bg-slate-50/50">
                             <td className="p-3 pl-5 font-bold text-slate-800 flex items-center gap-2">
@@ -2467,15 +2467,15 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             {/* Income tax policy */}
             {taxSubTab === 'Income tax policy' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-                <div className="border border-slate-150 rounded-2xl p-5 bg-slate-50/50 space-y-4">
+                <div className="border border-slate-100 rounded-2xl p-5 bg-slate-50/50 space-y-4">
                   <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Federal Income Tax Policy Framework</h4>
                   <p className="text-slate-500 leading-relaxed font-medium">
                     Our platform automatically processes progressive tax schedules mapped to state legislation guides, resolving exempt allowances and maximum statutory limits dynamically.
                   </p>
-                  <div className="bg-white border border-slate-200 p-4 rounded-xl space-y-2 font-semibold text-slate-705">
+                  <div className="bg-white border border-slate-200 p-4 rounded-xl space-y-2 font-semibold text-slate-700">
                     <div className="flex justify-between border-b border-slate-100 pb-1.5">
                       <span>Standard Employer Contribution Rate</span>
-                      <strong className="text-slate-850">13.00% (EPF Base)</strong>
+                      <strong className="text-slate-850">13.00% (CPF Base)</strong>
                     </div>
                     <div className="flex justify-between border-b border-slate-100 py-1.5">
                       <span>Maximum Employee Deduction Cap</span>
@@ -2483,12 +2483,12 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     </div>
                     <div className="flex justify-between pt-1.5">
                       <span>Exempt Threshold Level</span>
-                      <strong className="text-slate-850 text-indigo-650">MYR 3,000 / month</strong>
+                      <strong className="text-slate-850 text-indigo-650">SGD 3,000 / month</strong>
                     </div>
                   </div>
                 </div>
 
-                <div className="border border-slate-150 rounded-2xl p-5 bg-white space-y-3">
+                <div className="border border-slate-100 rounded-2xl p-5 bg-white space-y-3">
                   <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pl-1">Verify Active Policies</h4>
                   <p className="text-slate-400 font-medium">Click to request full local government guideline re-validations.</p>
                   <div className="pt-2">
@@ -2519,17 +2519,17 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </button>
                 </div>
 
-                <div className="border border-slate-150 bg-white rounded-2xl overflow-hidden">
+                <div className="border border-slate-100 bg-white rounded-2xl overflow-hidden">
                   <table className="w-full text-left font-semibold">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-3 pl-5">Compensation Component Name</th>
                         <th className="p-3">Reference Code</th>
                         <th className="p-3">Exempt Allowance Limit</th>
                         <th className="p-3 pr-5 text-right font-bold">Dynamic Taxable Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 text-slate-705">
+                    <tbody className="divide-y divide-slate-100 text-slate-700">
                       {taxableEmoluments.map(emol => (
                         <tr key={emol.id} className="hover:bg-slate-50/50">
                           <td className="p-3 pl-5 font-bold text-slate-800">{emol.componentName}</td>
@@ -2571,7 +2571,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 
                 {/* Left Side: Active Setup */}
-                <div className="lg:col-span-2 bg-slate-50/50 border border-slate-150 p-5 rounded-2xl space-y-4">
+                <div className="lg:col-span-2 bg-slate-50/50 border border-slate-100 p-5 rounded-2xl space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Payment duration setup</h4>
                     <button
@@ -2586,15 +2586,15 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   <div className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">Duration name</span>
-                      <span className="font-bold text-slate-805">{paymentDuration.name}</span>
+                      <span className="font-bold text-slate-800">{paymentDuration.name}</span>
                     </div>
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">Period start</span>
-                      <span className="font-bold text-slate-805">{paymentDuration.start}</span>
+                      <span className="font-bold text-slate-800">{paymentDuration.start}</span>
                     </div>
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">Period end</span>
-                      <span className="font-bold text-slate-805">{paymentDuration.end}</span>
+                      <span className="font-bold text-slate-800">{paymentDuration.end}</span>
                     </div>
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">Pay date</span>
@@ -2602,7 +2602,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     </div>
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">1-day basic salary based on</span>
-                      <span className="font-bold text-slate-805">{paymentDuration.basis}</span>
+                      <span className="font-bold text-slate-800">{paymentDuration.basis}</span>
                     </div>
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">Status</span>
@@ -2625,17 +2625,17 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     </button>
                   </div>
 
-                  <div className="border border-slate-150 rounded-2xl overflow-x-auto">
+                  <div className="border border-slate-100 rounded-2xl overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                           <th className="p-3 pl-5">Duration name</th>
                           <th className="p-3">Start</th>
                           <th className="p-3">End</th>
                           <th className="p-3 pr-5 text-right">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 font-medium text-slate-705">
+                      <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                         {pastDurations.map((p, idx) => {
                           const isCurrent = p.status === 'Current' || p.status === 'Current period';
                           return (
@@ -2676,10 +2676,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </button>
                 </div>
 
-                <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden text-xs">
+                <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden text-xs">
                   <table className="w-full text-left font-semibold">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-3 pl-5">Staff Member</th>
                         <th className="p-3">Compliance Taxes</th>
                         <th className="p-3">Banking Routing</th>
@@ -2687,19 +2687,19 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         <th className="p-3 pr-5 text-right font-bold">Preparation Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 text-slate-705">
+                    <tbody className="divide-y divide-slate-100 text-slate-700">
                       <tr className="hover:bg-slate-50/50">
                         <td className="p-3 pl-5 font-bold text-slate-800">Ahmad L</td>
-                        <td className="p-3">Standard PCB / EPF 11%</td>
+                        <td className="p-3">Standard IRAS / CPF 11%</td>
                         <td className="p-3 font-mono">Maybank ******431</td>
-                        <td className="p-3 text-center text-emerald-600 font-extrabold">MYR 120.00</td>
+                        <td className="p-3 text-center text-emerald-600 font-extrabold">SGD 120.00</td>
                         <td className="p-3 pr-5 text-right">
                           <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-100">Ready</span>
                         </td>
                       </tr>
                       <tr className="hover:bg-slate-50/50">
                         <td className="p-3 pl-5 font-bold text-slate-800">Fatimah H</td>
-                        <td className="p-3">Standard PCB / EPF 11%</td>
+                        <td className="p-3">Standard IRAS / CPF 11%</td>
                         <td className="p-3 font-mono">CIMB Bank ******980</td>
                         <td className="p-3 text-center text-slate-400 italic">None</td>
                         <td className="p-3 pr-5 text-right">
@@ -2708,9 +2708,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       </tr>
                       <tr className="hover:bg-slate-50/50">
                         <td className="p-3 pl-5 font-bold text-slate-800">Johnathan D</td>
-                        <td className="p-3">Standard PCB / EPF 11%</td>
+                        <td className="p-3">Standard IRAS / CPF 11%</td>
                         <td className="p-3 font-mono">Public Bank ******103</td>
-                        <td className="p-3 text-center text-emerald-600 font-extrabold">MYR 340.00</td>
+                        <td className="p-3 text-center text-emerald-600 font-extrabold">SGD 340.00</td>
                         <td className="p-3 pr-5 text-right">
                           <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded text-[10px] font-bold border border-amber-100">Needs Audit</span>
                         </td>
@@ -2732,18 +2732,18 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </p>
                 </div>
 
-                <div className="bg-slate-50 p-4 border border-slate-200 rounded-2xl space-y-3 font-semibold text-slate-705">
+                <div className="bg-slate-50 p-4 border border-slate-200 rounded-2xl space-y-3 font-semibold text-slate-700">
                   <div className="flex justify-between border-b border-gutter pb-2">
                     <span>Target Headcount</span>
                     <strong className="text-slate-850">430 Active Staff</strong>
                   </div>
                   <div className="flex justify-between border-b border-gutter py-2">
                     <span>Estimated Gross Payroll Release</span>
-                    <strong className="text-slate-900 font-mono">MYR {grandTotalGross.toLocaleString()}</strong>
+                    <strong className="text-slate-900 font-mono">SGD {grandTotalGross.toLocaleString()}</strong>
                   </div>
                   <div className="flex justify-between pt-1">
-                    <span>Tax & EPF Withholdings</span>
-                    <strong className="text-red-650 font-mono">- MYR 42,912.44</strong>
+                    <span>Tax & CPF Withholdings</span>
+                    <strong className="text-red-650 font-mono">- SGD 42,912.44</strong>
                   </div>
                 </div>
 
@@ -2764,10 +2764,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             {payMgmtSubTab === 'Payroll history' && (
               <div className="space-y-4 text-xs font-semibold">
                 <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pl-1">Historic Completed Disbursements</h4>
-                <div className="border border-slate-150 rounded-2xl bg-white overflow-hidden text-xs">
+                <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden text-xs">
                   <table className="w-full text-left font-semibold">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-3 pl-5">Billing Period</th>
                         <th className="p-3">Disbursed Headcount</th>
                         <th className="p-3 font-mono">Total Paid Amount</th>
@@ -2775,11 +2775,11 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         <th className="p-3 pr-5 text-right font-bold">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 text-slate-705">
+                    <tbody className="divide-y divide-slate-100 text-slate-700">
                       <tr className="hover:bg-slate-50/50">
                         <td className="p-3 pl-5 font-bold text-slate-800">April 2026 Period</td>
                         <td className="p-3">428 Staff</td>
-                        <td className="p-3 font-mono font-bold text-slate-900">MYR 1,184,330.12</td>
+                        <td className="p-3 font-mono font-bold text-slate-900">SGD 1,184,330.12</td>
                         <td className="p-3 font-mono text-slate-400">2026-04-28</td>
                         <td className="p-3 pr-5 text-right">
                           <button type="button" onClick={() => addToast('Downloading April payslip bundle...', 'success')} className="text-[#2f66e0] hover:underline cursor-pointer">Download Ledger XLS</button>
@@ -2788,7 +2788,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       <tr className="hover:bg-slate-50/50">
                         <td className="p-3 pl-5 font-bold text-slate-800">March 2026 Period</td>
                         <td className="p-3">425 Staff</td>
-                        <td className="p-3 font-mono font-bold text-slate-900">MYR 1,162,109.90</td>
+                        <td className="p-3 font-mono font-bold text-slate-900">SGD 1,162,109.90</td>
                         <td className="p-3 font-mono text-slate-400">2026-03-27</td>
                         <td className="p-3 pr-5 text-right">
                           <button type="button" onClick={() => addToast('Downloading March payslip bundle...', 'success')} className="text-[#2f66e0] hover:underline cursor-pointer">Download Ledger XLS</button>
@@ -2797,7 +2797,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       <tr className="hover:bg-slate-50/50">
                         <td className="p-3 pl-5 font-bold text-slate-800">February 2026 Period</td>
                         <td className="p-3">422 Staff</td>
-                        <td className="p-3 font-mono font-bold text-slate-900">MYR 1,151,902.12</td>
+                        <td className="p-3 font-mono font-bold text-slate-900">SGD 1,151,902.12</td>
                         <td className="p-3 font-mono text-slate-400">2026-02-27</td>
                         <td className="p-3 pr-5 text-right">
                           <button type="button" onClick={() => addToast('Downloading February payslip bundle...', 'success')} className="text-[#2f66e0] hover:underline cursor-pointer">Download Ledger XLS</button>
@@ -2825,7 +2825,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gross Payout</span>
-                    <h3 className="text-xl font-extrabold text-slate-804 tracking-tight">MYR {grandTotalGross.toLocaleString()}</h3>
+                    <h3 className="text-xl font-extrabold text-slate-804 tracking-tight">SGD {grandTotalGross.toLocaleString()}</h3>
                     <span className="text-[9px] font-bold text-indigo-500 bg-indigo-55/60 px-2 py-0.5 rounded-md border border-indigo-110">Basic + Allowance + OT</span>
                   </div>
                   <div className="h-10 w-10 rounded-xl bg-blue-50 border border-blue-105 flex items-center justify-center">
@@ -2836,7 +2836,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Net Disbursements</span>
-                    <h3 className="text-xl font-extrabold text-emerald-600 tracking-tight">MYR {grandTotalNet.toLocaleString()}</h3>
+                    <h3 className="text-xl font-extrabold text-emerald-600 tracking-tight">SGD {grandTotalNet.toLocaleString()}</h3>
                     <span className="text-[9px] font-bold text-emerald-500 bg-emerald-55/60 px-2 py-0.5 rounded-md border border-emerald-100">Transferred basic sum</span>
                   </div>
                   <div className="h-10 w-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
@@ -2847,8 +2847,8 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Withholding &amp; Taxes</span>
-                    <h3 className="text-xl font-extrabold text-rose-600 tracking-tight">MYR {grandTotalDeductions.toLocaleString()}</h3>
-                    <span className="text-[9px] font-bold text-rose-500 bg-rose-55/60 px-2 py-0.5 rounded-md border border-rose-110">EPF + SOCSO + PCB</span>
+                    <h3 className="text-xl font-extrabold text-rose-600 tracking-tight">SGD {grandTotalDeductions.toLocaleString()}</h3>
+                    <span className="text-[9px] font-bold text-rose-500 bg-rose-55/60 px-2 py-0.5 rounded-md border border-rose-110">CPF + CDAC + IRAS</span>
                   </div>
                   <div className="h-10 w-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center">
                     <Percent className="h-5 w-5 text-rose-500" />
@@ -2858,7 +2858,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Avg Paycheck</span>
-                    <h3 className="text-xl font-extrabold text-indigo-600 tracking-tight">MYR {avgNetPay.toLocaleString()}</h3>
+                    <h3 className="text-xl font-extrabold text-indigo-600 tracking-tight">SGD {avgNetPay.toLocaleString()}</h3>
                     <span className="text-[9px] font-bold text-indigo-500 bg-indigo-55/60 px-2 py-0.5 rounded-md border border-indigo-110">Average salary net</span>
                   </div>
                   <div className="h-10 w-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
@@ -2869,7 +2869,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               </div>
 
               {/* 2. Department Compliance Table / Scorecard */}
-              <div className="bg-white border border-slate-150 rounded-2xl p-5 space-y-4">
+              <div className="bg-white border border-slate-100 rounded-2xl p-5 space-y-4">
                 <div>
                   <h4 className="text-xs font-bold text-slate-850 tracking-tight flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-[#2f66e0]" />
@@ -2898,10 +2898,10 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           <tr key={dept.name} className="hover:bg-slate-50/40">
                             <td className="p-3 pl-4 font-bold text-slate-800">{dept.name}</td>
                             <td className="p-3 text-slate-500">{dept.headcount} staff</td>
-                            <td className="p-3 text-center font-mono font-bold">MYR {dept.avgBasic.toLocaleString()}</td>
-                            <td className="p-3 text-center font-mono text-rose-500">MYR {dept.totalDeducts.toLocaleString()}</td>
-                            <td className="p-3 text-center font-mono text-slate-800 font-extrabold">MYR {dept.totalGross.toLocaleString()}</td>
-                            <td className="p-3 text-center font-mono text-emerald-600 font-extrabold">MYR {dept.totalNet.toLocaleString()}</td>
+                            <td className="p-3 text-center font-mono font-bold">SGD {dept.avgBasic.toLocaleString()}</td>
+                            <td className="p-3 text-center font-mono text-rose-500">SGD {dept.totalDeducts.toLocaleString()}</td>
+                            <td className="p-3 text-center font-mono text-slate-800 font-extrabold">SGD {dept.totalGross.toLocaleString()}</td>
+                            <td className="p-3 text-center font-mono text-emerald-600 font-extrabold">SGD {dept.totalNet.toLocaleString()}</td>
                             <td className="p-3 pr-4 text-right">
                               <span className={`border px-2.5 py-0.5 rounded-md font-extrabold text-[10px] ${
                                 isAlert
@@ -2920,7 +2920,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               </div>
 
               {/* 3. Filter controls & Employee Ledger Search */}
-              <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                   <div className="relative">
                     <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
@@ -2967,36 +2967,36 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               </div>
 
               {/* 4. Employee Detailed ledger table */}
-              <div className="border border-slate-150 rounded-2xl overflow-x-auto bg-white">
+              <div className="border border-slate-100 rounded-2xl overflow-x-auto bg-white">
                 <table className="w-full text-left text-xs min-w-[850px]">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                       <th className="p-3 pl-5">Employee Name</th>
                       <th className="p-3 text-center">Basic Salary</th>
                       <th className="p-3 text-center">Allowance sum</th>
                       <th className="p-3 text-center">OT Payout</th>
                       <th className="p-3 text-center font-bold text-slate-800">Gross Salary</th>
-                      <th className="p-3 text-center text-red-500">EPF (11%)</th>
-                      <th className="p-3 text-center text-red-500">SOCSO &amp; tax</th>
+                      <th className="p-3 text-center text-red-500">CPF (Employee)</th>
+                      <th className="p-3 text-center text-red-500">MediSave &amp; IRAS</th>
                       <th className="p-3 text-center font-bold text-slate-800">Total Deductions</th>
                       <th className="p-3 pr-5 text-right font-extrabold text-emerald-700">Net Paid Salary</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium text-slate-705">
+                  <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                     {filteredLedger.map((row) => (
                       <tr key={row.employee.id} className="hover:bg-slate-50/40">
                         <td className="p-3 pl-5">
                           <span className="font-bold text-slate-800 block">{row.employee.name}</span>
                           <span className="text-[9.5px] font-mono text-slate-400 block mt-0.5">{row.employee.id} &bull; {row.employee.department}</span>
                         </td>
-                        <td className="p-3 text-center font-mono font-semibold">MYR {row.baseSalary.toLocaleString()}</td>
-                        <td className="p-3 text-center font-mono text-indigo-500">+MYR {row.allowanceVal}</td>
-                        <td className="p-3 text-center font-mono text-indigo-500">+MYR {row.otVal}</td>
-                        <td className="p-3 text-center font-mono font-bold text-slate-800 bg-slate-50/30">MYR {row.grossVal.toLocaleString()}</td>
-                        <td className="p-3 text-center font-mono text-rose-500">-MYR {row.epf}</td>
-                        <td className="p-3 text-center font-mono text-rose-500">-MYR {row.socso + row.pcb}</td>
-                        <td className="p-3 text-center font-mono font-semibold text-rose-600 bg-rose-50/10">MYR {row.totalDeductions}</td>
-                        <td className="p-3 pr-5 text-right font-mono font-extrabold text-emerald-600 bg-emerald-50/10">MYR {row.netSalary.toLocaleString()}</td>
+                        <td className="p-3 text-center font-mono font-semibold">SGD {row.baseSalary.toLocaleString()}</td>
+                        <td className="p-3 text-center font-mono text-indigo-500">+SGD {row.allowanceVal}</td>
+                        <td className="p-3 text-center font-mono text-indigo-500">+SGD {row.otVal}</td>
+                        <td className="p-3 text-center font-mono font-bold text-slate-800 bg-slate-50/30">SGD {row.grossVal.toLocaleString()}</td>
+                        <td className="p-3 text-center font-mono text-rose-500">-SGD {row.epf}</td>
+                        <td className="p-3 text-center font-mono text-rose-500">-SGD {row.socso + row.pcb}</td>
+                        <td className="p-3 text-center font-mono font-semibold text-rose-600 bg-rose-50/10">SGD {row.totalDeductions}</td>
+                        <td className="p-3 pr-5 text-right font-mono font-extrabold text-emerald-600 bg-emerald-50/10">SGD {row.netSalary.toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -3013,7 +3013,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
       {/* ===== 5. SIMULATION DIALOG OVERLAY MODE ===== */}
       {isSimulatingRun && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-2xl max-w-md w-full space-y-5 animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-2xl max-w-md w-full space-y-5 animate-in zoom-in-95 duration-200">
             
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 bg-blue-100 rounded-xl flex items-center justify-center text-[#2f66e0] shrink-0 animate-spin">
@@ -3055,7 +3055,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               {simStep >= 3 && (
                 <div className="text-indigo-600 font-semibold flex items-center gap-1.5">
                   <CheckCircle className="h-3 w-3 shrink-0" />
-                  <span>Government brackets &amp; EPF schedules locked: OK</span>
+                  <span>Government brackets &amp; CPF schedules locked: OK</span>
                 </div>
               )}
               {simStep >= 4 && (
@@ -3118,7 +3118,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Proposed Value (MYR)</label>
+                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Proposed Value (SGD)</label>
                 <input
                   type="text"
                   placeholder="e.g. 150.00"
@@ -3145,7 +3145,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 type="button"
                 onClick={() => setAllowanceModalOpen(false)}
-                className="flex-1 bg-slate-100 hover:bg-slate-250 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -3219,7 +3219,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 type="button"
                 onClick={() => setBonusModalOpen(false)}
-                className="flex-1 bg-slate-100 hover:bg-slate-250 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -3269,7 +3269,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Amount basis</label>
                 <input
                   type="text"
-                  placeholder="e.g. Fixed MYR 150"
+                  placeholder="e.g. Fixed SGD 150"
                   value={newDepositBasis}
                   onChange={(e) => setNewDepositBasis(e.target.value)}
                   className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-semibold"
@@ -3281,7 +3281,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 type="button"
                 onClick={() => setDepositModalOpen(false)}
-                className="flex-1 bg-slate-100 hover:bg-slate-250 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -3335,7 +3335,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. MYR 50.00/month"
+                  placeholder="e.g. SGD 50.00/month"
                   value={newDeductionRate}
                   onChange={(e) => setNewDeductionRate(e.target.value)}
                   className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-semibold"
@@ -3460,7 +3460,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Proposed Value (MYR)</label>
+                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Proposed Value (SGD)</label>
                 <input
                   type="text"
                   required
@@ -3500,7 +3500,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 type="button"
                 onClick={() => setEditingAllowance(null)}
-                className="flex-1 bg-slate-100 hover:bg-slate-250 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -3600,7 +3600,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 type="button"
                 onClick={() => setEditingBonus(null)}
-                className="flex-1 bg-slate-100 hover:bg-slate-250 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -3651,7 +3651,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Fixed MYR 150"
+                  placeholder="e.g. Fixed SGD 150"
                   value={editingDeposit.amountBasis}
                   onChange={(e) => setEditingDeposit({ ...editingDeposit, amountBasis: e.target.value })}
                   className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-semibold text-slate-800"
@@ -3699,7 +3699,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 type="button"
                 onClick={() => setEditingDeposit(null)}
-                className="flex-1 bg-slate-100 hover:bg-slate-250 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -3753,7 +3753,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. MYR 50.00/month"
+                  placeholder="e.g. SGD 50.00/month"
                   value={editingDeduction.amountRate}
                   onChange={(e) => setEditingDeduction({ ...editingDeduction, amountRate: e.target.value })}
                   className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-semibold text-slate-800"
@@ -3905,19 +3905,19 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-2 text-xs">
               <div className="flex justify-between text-slate-500 font-semibold">
                 <span>Active Target Roster</span>
-                <span className="font-bold text-slate-805">435 Employees</span>
+                <span className="font-bold text-slate-800">435 Employees</span>
               </div>
               <div className="flex justify-between text-slate-500 font-semibold">
                 <span>Approved Transport Allowance</span>
-                <span className="font-bold text-slate-805">MYR 18,250.00</span>
+                <span className="font-bold text-slate-800">SGD 18,250.00</span>
               </div>
               <div className="flex justify-between text-slate-500 font-semibold">
                 <span>Approved Meal Allowance</span>
-                <span className="font-bold text-slate-805">MYR 12,400.00</span>
+                <span className="font-bold text-slate-800">SGD 12,400.00</span>
               </div>
               <div className="flex justify-between text-slate-500 border-t border-slate-200 pt-2 font-bold text-slate-800">
                 <span>Grand Committed Total</span>
-                <span className="text-[#2f66e0]">MYR 30,650.00</span>
+                <span className="text-[#2f66e0]">SGD 30,650.00</span>
               </div>
             </div>
 
@@ -3936,7 +3936,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 type="button"
                 onClick={() => setIsCommitAllowancesModalOpen(false)}
-                className="flex-1 bg-slate-100 hover:bg-slate-250 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer"
               >
                 Go Back
               </button>
@@ -4019,7 +4019,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     required
                     value={otPolicySettings.roundingBlock}
                     onChange={(e) => setOtPolicySettings({ ...otPolicySettings, roundingBlock: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white text-slate-805"
+                    className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white text-slate-800"
                   />
                 </div>
               </div>
@@ -4032,7 +4032,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     required
                     value={otPolicySettings.minOtThreshold}
                     onChange={(e) => setOtPolicySettings({ ...otPolicySettings, minOtThreshold: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white text-slate-805"
+                    className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white text-slate-800"
                   />
                 </div>
                 <div>
@@ -4042,7 +4042,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     required
                     value={otPolicySettings.maxOtPerDay}
                     onChange={(e) => setOtPolicySettings({ ...otPolicySettings, maxOtPerDay: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white text-slate-805"
+                    className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white text-slate-800"
                   />
                 </div>
               </div>
@@ -4052,7 +4052,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 type="button"
                 onClick={() => setIsEditOtPolicyModalOpen(false)}
-                className="flex-1 bg-slate-100 hover:bg-slate-250 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -4136,7 +4136,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 type="button"
                 onClick={() => setIsAttachOtModalOpen(false)}
-                className="flex-1 bg-slate-100 hover:bg-slate-250 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -4212,7 +4212,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 type="button"
                 onClick={() => setEditingOtOverride(null)}
-                className="flex-1 bg-slate-100 hover:bg-slate-250 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -4251,7 +4251,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Deducted Amount (MYR)</label>
+                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Deducted Amount (SGD)</label>
                 <input
                   type="number"
                   required
@@ -4277,7 +4277,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 type="button"
                 onClick={() => setEditingManualDeduction(null)}
-                className="flex-1 bg-slate-100 hover:bg-slate-250 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -4336,9 +4336,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
                 >
                   <option value="No Limit">No Limit (Fully Taxable)</option>
-                  <option value="MYR 1,200 annually">MYR 1,200 annually</option>
-                  <option value="MYR 3,000 annually">MYR 3,000 annually</option>
-                  <option value="MYR 5,000 annually">MYR 5,000 annually</option>
+                  <option value="SGD 1,200 annually">SGD 1,200 annually</option>
+                  <option value="SGD 3,000 annually">SGD 3,000 annually</option>
+                  <option value="SGD 5,000 annually">SGD 5,000 annually</option>
                   <option value="Exempt from tax">Exempt from tax</option>
                 </select>
               </div>
@@ -4360,7 +4360,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 type="button"
                 onClick={() => setIsRegisterEmolumentModalOpen(false)}
-                className="flex-1 bg-slate-100 hover:bg-slate-250 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -4453,7 +4453,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 type="button"
                 onClick={() => setIsCreateDurationModalOpen(false)}
-                className="flex-1 bg-slate-100 hover:bg-slate-250 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -4540,7 +4540,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 type="button"
                 onClick={() => setIsEditActiveDurationModalOpen(false)}
-                className="flex-1 bg-slate-100 hover:bg-slate-250 text-slate-705 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>

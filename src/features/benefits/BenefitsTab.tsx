@@ -688,7 +688,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                       type="date"
                       value={newDepDob}
                       onChange={(e) => setNewDepDob(e.target.value)}
-                      className="w-full text-xs text-slate-750 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 outline-none focus:bg-white focus:border-slate-200"
+                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 outline-none focus:bg-white focus:border-slate-200"
                     />
                   </div>
                 </div>
@@ -833,7 +833,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
 
           {/* Sync tables */}
           <div className="bg-white border border-slate-100 rounded-2xl p-6.5 shadow-xs">
-            <h5 className="text-[12.5px] font-black text-slate-805 uppercase tracking-wide mb-4">Benefit Line Items Transferred to Payroll Module</h5>
+            <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide mb-4">Benefit Line Items Transferred to Payroll Module</h5>
             
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
@@ -1122,7 +1122,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                           <span className="text-[9.5px] font-mono text-slate-400 uppercase tracking-widest">{claim.employeeId}</span>
                         </td>
                         <td className="py-3 px-3">
-                          <span className="text-slate-705 font-bold">{claim.category}</span>
+                          <span className="text-slate-700 font-bold">{claim.category}</span>
                         </td>
                         <td className="py-3 px-3 text-right font-mono text-[11.5px] text-slate-800">
                           RM {claim.amount.toFixed(2)}
@@ -1149,7 +1149,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
             <div className="lg:col-span-5 space-y-6">
               
               <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-3xs space-y-4">
-                <h5 className="text-[12.5px] font-black text-slate-805 uppercase tracking-wide">Claims Category Ratios</h5>
+                <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Claims Category Ratios</h5>
                 
                 <div className="space-y-3">
                   {[
@@ -1176,7 +1176,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
 
               {/* Vendor Premium Analysis */}
               <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-3xs space-y-4">
-                <h5 className="text-[12.5px] font-black text-slate-805 uppercase tracking-wide">Vendor Allocation Split</h5>
+                <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Vendor Allocation Split</h5>
                 
                 <div className="space-y-3.5">
                   {[

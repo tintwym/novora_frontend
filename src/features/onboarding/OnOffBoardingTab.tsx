@@ -582,7 +582,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                     </select>
                   </div>
 
-                  <div className="border border-dashed border-slate-250 hover:border-[#2f66e0] p-6.5 rounded-xl text-center bg-slate-50 transition-all cursor-pointer" onClick={() => addToast('Simulating mock file select...', 'info')}>
+                  <div className="border border-dashed border-slate-200 hover:border-[#2f66e0] p-6.5 rounded-xl text-center bg-slate-50 transition-all cursor-pointer" onClick={() => addToast('Simulating mock file select...', 'info')}>
                     <Upload className="h-7 w-7 text-slate-400 mx-auto mb-2" />
                     <span className="text-xs font-bold text-slate-700 block">Click or Drag & Drop</span>
                     <span className="text-[9.5px] text-slate-400 font-medium block mt-1">Accepts PDF, JPG, PNG up to 10MB</span>
@@ -727,7 +727,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       onClick={() => handleChecklistToggle(item.id)}
                       className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer select-none ${
                         item.completed
-                          ? 'bg-slate-50/50 border-slate-150 opacity-80'
+                          ? 'bg-slate-50/50 border-slate-100 opacity-80'
                           : 'bg-white border-slate-100 hover:border-slate-200 hover:shadow-3xs'
                       }`}
                     >
@@ -893,7 +893,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                 </div>
                 <button
                   onClick={() => addToast('Downloading handbook details PDF...', 'success')}
-                  className="bg-white border border-slate-150 p-2.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer text-slate-650"
+                  className="bg-white border border-slate-100 p-2.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer text-slate-600"
                 >
                   <Download className="h-4.5 w-4.5" />
                 </button>
@@ -993,7 +993,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                 <div className="bg-white border border-slate-100 rounded-2xl p-6.5 shadow-xs">
                   <div className="flex justify-between items-start flex-wrap gap-4 mb-4">
                     <div>
-                      <h5 className="text-[12px] font-black text-slate-805 uppercase tracking-wide">
+                      <h5 className="text-[12px] font-black text-slate-800 uppercase tracking-wide">
                         CLEARANCE HANDBACK TRACKING ({selectedResigObj.employeeName})
                       </h5>
                       <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
@@ -1014,7 +1014,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       className={`p-4 rounded-xl border text-center cursor-pointer transition-all select-none ${
                         selectedResigObj.clearanceStatus.IT === 'Cleared'
                           ? 'bg-emerald-50/30 border-emerald-200'
-                          : 'bg-white border-slate-150 hover:border-slate-205'
+                          : 'bg-white border-slate-100 hover:border-slate-205'
                       }`}
                     >
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">IT Clearance</span>
@@ -1034,7 +1034,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       className={`p-4 rounded-xl border text-center cursor-pointer transition-all select-none ${
                         selectedResigObj.clearanceStatus.Finance === 'Cleared'
                           ? 'bg-emerald-50/30 border-emerald-200'
-                          : 'bg-white border-slate-150 hover:border-slate-205'
+                          : 'bg-white border-slate-100 hover:border-slate-205'
                       }`}
                     >
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Payroll Clear</span>
@@ -1054,7 +1054,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       className={`p-4 rounded-xl border text-center cursor-pointer transition-all select-none ${
                         selectedResigObj.clearanceStatus.HR === 'Cleared'
                           ? 'bg-emerald-50/30 border-emerald-200'
-                          : 'bg-white border-slate-150 hover:border-slate-205'
+                          : 'bg-white border-slate-100 hover:border-slate-205'
                       }`}
                     >
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">HR Compliance</span>
@@ -1074,7 +1074,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       className={`p-4 rounded-xl border text-center cursor-pointer transition-all select-none ${
                         selectedResigObj.clearanceStatus.Security === 'Cleared'
                           ? 'bg-emerald-50/30 border-emerald-200'
-                          : 'bg-white border-slate-150 hover:border-slate-205'
+                          : 'bg-white border-slate-100 hover:border-slate-205'
                       }`}
                     >
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Access badge</span>
@@ -1224,7 +1224,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                   </div>
                 </div>
 
-                <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100/50 text-[11px] leading-relaxed text-slate-650 mt-5">
+                <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100/50 text-[11px] leading-relaxed text-slate-600 mt-5">
                   <span className="font-extrabold text-[#2f66e0]">Top Departure Trigger:</span>
                   <p className="mt-0.5 font-medium">Better scope, seniority offer level & compensation package adjustments (72% of files).</p>
                 </div>
@@ -1442,7 +1442,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                   onClick={() => {
                     addToast('On/Offboarding clearance audit reports prepared for payroll reconciliation.', 'success');
                   }}
-                  className="bg-slate-50 border border-slate-150 rounded-xl px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 hover:text-[#2f66e0] transition-colors cursor-pointer"
+                  className="bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 hover:text-[#2f66e0] transition-colors cursor-pointer"
                 >
                   Export Clearance Logs
                 </button>

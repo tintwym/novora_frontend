@@ -56,10 +56,10 @@ export default function OrgChartTab({ employees, onSelectEmployee, addToast }: O
       employmentStatus: 'Permanent',
       status: 'Active',
       joinDate: '12 May 2020',
-      nric: '880612-14-5311',
-      mobile: '+60 12-322 8899',
+      nric: 'S8806121B',
+      mobile: '+65 12-322 8899',
       email: mockEmail,
-      address: 'Bangsar South, Kuala Lumpur, Malaysia',
+      address: 'Tanjong Pagar, Singapore',
       avatarColor: 
         dept === 'Engineering' ? 'bg-blue-600 text-white' : 
         dept === 'Finance' ? 'bg-emerald-600 text-white' : 
@@ -67,7 +67,7 @@ export default function OrgChartTab({ employees, onSelectEmployee, addToast }: O
         dept === 'Marketing' ? 'bg-rose-600 text-white' : 
         'bg-amber-600 text-white',
       dependents: 'Spouse, 2 Children',
-      emergencyContact: 'Lim Kah Kok (Father) - +60 16 776 5432',
+      emergencyContact: 'Lim Kah Kok (Father) - +65 16 776 5432',
       reportsTo: 'EMP-0010',
     };
     addToast(`Opening record for ${name} (Active directory match)`, 'success');

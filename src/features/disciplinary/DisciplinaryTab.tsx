@@ -539,7 +539,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
           {/* Export button */}
           <button
             onClick={() => addToast('Exporting summary disciplinary metrics...', 'loading')}
-            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-705 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-tiny whitespace-nowrap shrink-0"
+            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-tiny whitespace-nowrap shrink-0"
           >
             <Download className="h-4 w-4 text-slate-400 shrink-0" />
             <span>Export</span>
@@ -618,7 +618,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
           {/* Reasons Table */}
           <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-705 min-w-162.5">
+              <table className="w-full text-left text-xs text-slate-700 min-w-162.5">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <th className="p-3.5 pl-5 w-48">Reason / Offence</th>
@@ -722,7 +722,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
           {/* Action grid table */}
           <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-705 min-w-175">
+              <table className="w-full text-left text-xs text-slate-700 min-w-175">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <th className="p-4 pl-5 w-20">Level</th>
@@ -1204,7 +1204,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
           {/* Case History Table */}
           <div className="bg-white border border-slate-100 rounded-2.5xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-750 min-w-225">
+              <table className="w-full text-left text-xs text-slate-700 min-w-225">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <th className="p-4 pl-5">Employee</th>
@@ -1281,7 +1281,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                             <div className="flex items-center justify-end gap-1.5">
                               <button
                                 onClick={() => setViewCaseDetailsModal(item)}
-                                className="text-slate-500 hover:text-[#2f66e0] font-bold text-xs bg-slate-50 hover:bg-[#2f66e0]/10 border border-slate-150 p-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                                className="text-slate-500 hover:text-[#2f66e0] font-bold text-xs bg-slate-50 hover:bg-[#2f66e0]/10 border border-slate-100 p-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer"
                               >
                                 <Eye className="h-3.5 w-3.5" />
                                 <span>View</span>
@@ -1450,8 +1450,8 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                 <p className="text-[10px] font-semibold text-slate-400 mt-0.5">Aggregate warning frequencies, unresolved pending investigations, and structural risk metrics by business unit</p>
               </div>
 
-              <div className="bg-white border border-slate-150 rounded-xl overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-705 min-w-175">
+              <div className="bg-white border border-slate-100 rounded-xl overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-700 min-w-175">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                       <th className="p-3 pl-4">Department Unit</th>
@@ -1503,7 +1503,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                   className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                     disciplinaryReportType === 'detail'
                       ? 'bg-slate-100 text-[#2f66e0] ring-1 ring-slate-200 shadow-sm font-extrabold'
-                      : 'text-slate-400 hover:text-slate-705'
+                      : 'text-slate-400 hover:text-slate-700'
                   }`}
                 >
                   Detailed infraction logs
@@ -1514,14 +1514,14 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                   className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                     disciplinaryReportType === 'summary'
                       ? 'bg-slate-100 text-[#2f66e0] ring-1 ring-slate-200 shadow-sm font-extrabold'
-                      : 'text-slate-400 hover:text-slate-705'
+                      : 'text-slate-400 hover:text-slate-700'
                   }`}
                 >
                   Summary warning balance
                 </button>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto text-slate-705 font-sans">
+              <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto text-slate-700 font-sans">
                 {/* Search */}
                 <div className="relative">
                   <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
@@ -1616,10 +1616,10 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                   </span>
                 </div>
 
-                <div className="bg-white border border-slate-150 rounded-xl overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-705 min-w-200">
+                <div className="bg-white border border-slate-100 rounded-xl overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-700 min-w-200">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-3 pl-4">Case ID</th>
                         <th className="p-3">Employee</th>
                         <th className="p-3">Violation Details</th>
@@ -1656,11 +1656,11 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                             <tr key={item.id} className="hover:bg-slate-50/40">
                               <td className="p-3 pl-4 font-mono text-[10.5px] font-bold text-[#2f66e0]">{item.id}</td>
                               <td className="p-3">
-                                <span className="font-bold text-slate-805 block">{item.employeeName}</span>
+                                <span className="font-bold text-slate-800 block">{item.employeeName}</span>
                                 <span className="text-[10px] text-slate-400 font-mono block">{item.employeeId} &bull; {item.department}</span>
                               </td>
                               <td className="p-3">
-                                <span className="font-bold text-slate-805 block">{item.reason}</span>
+                                <span className="font-bold text-slate-800 block">{item.reason}</span>
                                 <span className="text-[10px] text-slate-400 line-clamp-1 block max-w-sm mt-0.5">{item.description}</span>
                               </td>
                               <td className="p-3 text-center font-mono text-slate-550 font-semibold">{item.incidentDate}</td>
@@ -1694,10 +1694,10 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                   </span>
                 </div>
 
-                <div className="bg-white border border-slate-150 rounded-xl overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-705 min-w-200">
+                <div className="bg-white border border-slate-100 rounded-xl overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-700 min-w-200">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-3 pl-4">Staff Member</th>
                         <th className="p-3">Department Position</th>
                         <th className="p-3 text-center">Tally of Cases</th>
@@ -1716,7 +1716,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                               ? 'bg-rose-50 text-rose-700 border-rose-250 font-extrabold'
                               : row.totalCases >= 2
                                 ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                : 'bg-slate-50 text-slate-650 border-slate-200';
+                                : 'bg-slate-50 text-slate-600 border-slate-200';
                         const evaluationText =
                           row.totalCases === 0
                             ? 'Clear Record'
@@ -1748,7 +1748,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                               )}
                             </td>
                             <td className="p-3">
-                              <span className="font-semibold text-slate-705 block">{row.latestInfraction}</span>
+                              <span className="font-semibold text-slate-700 block">{row.latestInfraction}</span>
                               {row.latestDate !== '-' && <span className="text-[9.5px] text-slate-400 font-mono block mt-0.5">Recorded: {row.latestDate}</span>}
                             </td>
                             <td className="p-3 pr-4 text-right">
@@ -2138,7 +2138,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
       {viewCaseDetailsModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white border border-slate-100 rounded-3xl w-full max-w-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[90vh]">
-            <div className="flex items-center justify-between border-b border-slate-150 pb-3 mb-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-5">
               <div>
                 <span className="text-[10px] font-mono font-bold text-[#2f66e0] bg-blue-50/70 border border-blue-100 px-2.5 py-0.5 rounded-md">
                   Dossier Archive: {viewCaseDetailsModal.id}

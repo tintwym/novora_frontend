@@ -620,7 +620,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
 
             <button
               onClick={() => setNewTypeModal(true)}
-              className="bg-white hover:bg-slate-50 border border-slate-250 text-slate-800 text-xs font-bold px-4 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs"
+              className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold px-4 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs"
             >
               + New leave type
             </button>
@@ -918,7 +918,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
       {activeSubTab === 'Leave request' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left panel - Request Form */}
-          <div className="lg:col-span-6 bg-white border border-slate-150 rounded-3xl p-6 shadow-xs space-y-5">
+          <div className="lg:col-span-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Leave request form</h3>
               <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-50 p-1 rounded-xl">
@@ -945,7 +945,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 <select
                   value={reqType}
                   onChange={(e) => setReqType(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-150 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white focus:outline-none"
                 >
                   <option value="Annual leave (12 days remaining)">Annual leave (12 days remaining)</option>
                   <option value="Medical leave (10 days remaining)">Medical leave (10 days remaining)</option>
@@ -962,7 +962,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     required
                     value={reqFromDate}
                     onChange={(e) => setReqFromDate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-150 p-2.5 text-xs font-extrabold text-slate-700 rounded-xl focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-extrabold text-slate-700 rounded-xl focus:bg-white"
                   />
                 </div>
                 <div className="space-y-1">
@@ -972,7 +972,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     required
                     value={reqToDate}
                     onChange={(e) => setReqToDate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-150 p-2.5 text-xs font-extrabold text-slate-700 rounded-xl focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-extrabold text-slate-700 rounded-xl focus:bg-white"
                   />
                 </div>
               </div>
@@ -984,7 +984,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     type="text"
                     readOnly
                     value={`${calculateDays(reqFromDate, reqToDate)} days`}
-                    className="w-full bg-slate-100 border border-slate-150 p-2.5 text-xs font-extrabold text-slate-500 rounded-xl cursor-not-allowed"
+                    className="w-full bg-slate-100 border border-slate-100 p-2.5 text-xs font-extrabold text-slate-500 rounded-xl cursor-not-allowed"
                   />
                 </div>
                 <div className="space-y-1">
@@ -992,7 +992,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   <select
                     value={firstDayHalf}
                     onChange={(e) => setFirstDayHalf(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-150 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
                   >
                     <option value="Full day">Full day</option>
                     <option value="AM half day">AM half day</option>
@@ -1004,7 +1004,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   <select
                     value={lastDayHalf}
                     onChange={(e) => setLastDayHalf(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-150 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
                   >
                     <option value="Full day">Full day</option>
                     <option value="AM half day">AM half day</option>
@@ -1018,7 +1018,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 <textarea
                   value={reqReason}
                   onChange={(e) => setReqReason(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-150 p-3 text-xs font-bold text-slate-700 rounded-xl focus:bg-white focus:outline-none min-h-22.5"
+                  className="w-full bg-slate-50 border border-slate-100 p-3 text-xs font-bold text-slate-700 rounded-xl focus:bg-white focus:outline-none min-h-22.5"
                 />
               </div>
 
@@ -1039,7 +1039,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 <button
                   type="button"
                   onClick={() => { setReqReason(''); }}
-                  className="bg-white border border-slate-250 text-slate-700 font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer hover:bg-slate-50 transition-all flex-1"
+                  className="bg-white border border-slate-200 text-slate-700 font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer hover:bg-slate-50 transition-all flex-1"
                 >
                   Cancel
                 </button>
@@ -1055,7 +1055,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
 
           {/* Right panel - Balance and History List */}
           <div className="lg:col-span-6 space-y-6">
-            <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
               <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Leave balance overview</h3>
               <div className="space-y-3.5">
                 <div>
@@ -1097,7 +1097,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
               </div>
             </div>
 
-            <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
               <h3 className="text-sm font-extrabold text-slate-855 tracking-tight">My time offs</h3>
               <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
                 <table className="w-full text-left text-xs text-slate-600">
@@ -1142,7 +1142,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
       {activeSubTab === 'Request for others' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left panel - Request Form on behalf */}
-          <div className="lg:col-span-6 bg-white border border-slate-150 rounded-3xl p-6 shadow-xs space-y-5">
+          <div className="lg:col-span-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-5">
             <div>
               <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Leave request for others</h3>
               <p className="text-[10px] font-semibold text-slate-400 mt-1">Submit leave on behalf of another employee</p>
@@ -1154,7 +1154,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 <select
                   value={rfoEmployee}
                   onChange={(e) => setRfoEmployee(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-150 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
+                  className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
                 >
                   <option value="">-- Select employee --</option>
                   {employees.map(emp => (
@@ -1170,7 +1170,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 <select
                   value={rfoType}
                   onChange={(e) => setRfoType(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-150 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
+                  className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
                 >
                   <option value="Annual leave">Annual leave</option>
                   <option value="Medical leave">Medical leave</option>
@@ -1188,7 +1188,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     required
                     value={rfoFromDate}
                     onChange={(e) => setRfoFromDate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-150 p-2.5 text-xs font-extrabold text-slate-700 rounded-xl focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-extrabold text-slate-700 rounded-xl focus:bg-white"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1198,7 +1198,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     required
                     value={rfoToDate}
                     onChange={(e) => setRfoToDate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-150 p-2.5 text-xs font-extrabold text-slate-700 rounded-xl focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-extrabold text-slate-700 rounded-xl focus:bg-white"
                   />
                 </div>
               </div>
@@ -1210,7 +1210,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     type="text"
                     readOnly
                     value={`${calculateDays(rfoFromDate, rfoToDate)} days (Auto-calculated)`}
-                    className="w-full bg-slate-100 border border-slate-150 p-2.5 text-xs font-extrabold text-slate-500 rounded-xl cursor-not-allowed"
+                    className="w-full bg-slate-100 border border-slate-100 p-2.5 text-xs font-extrabold text-slate-500 rounded-xl cursor-not-allowed"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1218,7 +1218,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   <select
                     value={rfoSession}
                     onChange={(e) => setRfoSession(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-150 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
                   >
                     <option value="Full day">Full day</option>
                     <option value="AM half day">AM half day</option>
@@ -1232,7 +1232,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 <textarea
                   value={rfoReason}
                   onChange={(e) => setRfoReason(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-150 p-3 text-xs font-bold text-slate-700 rounded-xl focus:bg-white focus:outline-none min-h-22.5"
+                  className="w-full bg-slate-50 border border-slate-100 p-3 text-xs font-bold text-slate-700 rounded-xl focus:bg-white focus:outline-none min-h-22.5"
                 />
               </div>
 
@@ -1253,7 +1253,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 <button
                   type="button"
                   onClick={() => { setRfoReason(''); }}
-                  className="bg-white border border-slate-250 text-slate-700 font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer hover:bg-slate-50 transition-all flex-1"
+                  className="bg-white border border-slate-200 text-slate-700 font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer hover:bg-slate-50 transition-all flex-1"
                 >
                   Cancel
                 </button>
@@ -1268,7 +1268,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
           </div>
 
           {/* Right panel - Behalf History */}
-          <div className="lg:col-span-6 bg-white border border-slate-150 rounded-3xl p-6 shadow-xs space-y-4">
+          <div className="lg:col-span-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
             <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Requested time offs (on behalf)</h3>
             <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
               <table className="w-full text-left text-xs text-slate-600">
@@ -1555,7 +1555,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left panel - User card + Entitlement table */}
             <div className="lg:col-span-6 space-y-6">
-              <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-xs space-y-4">
+              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
                 <div className="flex items-center gap-4.5">
                   <div className="h-14 w-14 bg-[#2f66e0] text-white rounded-2xl flex items-center justify-center text-xl font-bold font-mono">
                     {selectedProfileEmp.name ? selectedProfileEmp.name.charAt(0) : 'S'}
@@ -1591,7 +1591,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
               </div>
 
               {/* Entitilement table */}
-              <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-xs space-y-4">
+              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
                 <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Leave entitlement &amp; balance</h3>
                 <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
                   <table className="w-full text-left text-xs text-slate-600">
@@ -1663,7 +1663,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
 
             {/* Right panel - Applied policies + Recent timeline */}
             <div className="lg:col-span-6 space-y-6">
-              <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-xs space-y-4">
+              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
                 <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Applied policies</h3>
                 <div className="space-y-3.5 text-xs">
                   <div className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
@@ -1698,7 +1698,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
               </div>
 
               {/* Recent activity list */}
-              <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-xs space-y-4">
+              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
                 <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Recent leave activity</h3>
                 <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
                   <table className="w-full text-left text-xs text-slate-600">
@@ -1813,8 +1813,8 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
               <p className="text-[10px] font-semibold text-slate-400 mt-0.5">Aggregate leave behaviors, average sick leaves, and standard compliance ratings by department</p>
             </div>
 
-            <div className="bg-white border border-slate-150 rounded-xl overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-705 min-w-175">
+            <div className="bg-white border border-slate-100 rounded-xl overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-700 min-w-175">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <th className="p-3 pl-4">Department Unit</th>
@@ -1830,7 +1830,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   <tr className="hover:bg-slate-50/40">
                     <td className="p-3 pl-4 font-bold text-slate-800">Engineering &amp; Dev</td>
                     <td className="p-3 text-slate-500">14 FTEs</td>
-                    <td className="p-3 text-center font-mono text-slate-650">32 days</td>
+                    <td className="p-3 text-center font-mono text-slate-600">32 days</td>
                     <td className="p-3 text-center font-mono text-emerald-600">8 days</td>
                     <td className="p-3 text-center font-mono text-rose-500">2 days</td>
                     <td className="p-3 text-center font-mono text-indigo-500">14 days</td>
@@ -1841,7 +1841,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   <tr className="hover:bg-slate-50/40">
                     <td className="p-3 pl-4 font-bold text-slate-800">Human Resources (HR)</td>
                     <td className="p-3 text-slate-500">4 FTEs</td>
-                    <td className="p-3 text-center font-mono text-slate-650">6 days</td>
+                    <td className="p-3 text-center font-mono text-slate-600">6 days</td>
                     <td className="p-3 text-center font-mono text-emerald-600">2 days</td>
                     <td className="p-3 text-center font-mono text-slate-400">0 days</td>
                     <td className="p-3 text-center font-mono text-indigo-500">16 days</td>
@@ -1852,7 +1852,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   <tr className="hover:bg-slate-50/40">
                     <td className="p-3 pl-4 font-bold text-slate-800">Marketing &amp; Sales</td>
                     <td className="p-3 text-slate-500">8 FTEs</td>
-                    <td className="p-3 text-center font-mono text-slate-650">18 days</td>
+                    <td className="p-3 text-center font-mono text-slate-600">18 days</td>
                     <td className="p-3 text-center font-mono text-emerald-600">1 day</td>
                     <td className="p-3 text-center font-mono text-rose-500">4 days</td>
                     <td className="p-3 text-center font-mono text-indigo-500">12 days</td>
@@ -1863,7 +1863,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   <tr className="hover:bg-slate-50/40">
                     <td className="p-3 pl-4 font-bold text-slate-800">Finance &amp; Audit</td>
                     <td className="p-3 text-slate-500">3 FTEs</td>
-                    <td className="p-3 text-center font-mono text-slate-650">4 days</td>
+                    <td className="p-3 text-center font-mono text-slate-600">4 days</td>
                     <td className="p-3 text-center font-mono text-emerald-600">3 days</td>
                     <td className="p-3 text-center font-mono text-slate-400">0 days</td>
                     <td className="p-3 text-center font-mono text-indigo-500">15 days</td>
@@ -1874,7 +1874,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   <tr className="hover:bg-slate-50/40">
                     <td className="p-3 pl-4 font-bold text-slate-800">Operations &amp; Admin</td>
                     <td className="p-3 text-slate-500">12 FTEs</td>
-                    <td className="p-3 text-center font-mono text-slate-650">28 days</td>
+                    <td className="p-3 text-center font-mono text-slate-600">28 days</td>
                     <td className="p-3 text-center font-mono text-emerald-600">6 days</td>
                     <td className="p-3 text-center font-mono text-rose-500">5 days</td>
                     <td className="p-3 text-center font-mono text-indigo-500">11 days</td>
@@ -1968,7 +1968,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
           <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs">
             {leaveReportType === 'detail' ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-150 pb-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Detailed Time-Off Logs - {leaveReportMonth}</h4>
                   <span className="text-[10px] font-bold text-slate-400">Showing {
                     leaveReportsRows.filter(row => {
@@ -1980,7 +1980,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-705">
+                  <table className="w-full text-left text-xs text-slate-700">
                     <thead>
                       <tr className="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
                         <th className="p-3 pl-4">ID</th>
@@ -2010,7 +2010,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                             <td className="p-3">
                               <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md text-[10px] font-bold">{row.type}</span>
                             </td>
-                            <td className="p-3 text-center font-bold font-mono text-slate-705">{row.days}</td>
+                            <td className="p-3 text-center font-bold font-mono text-slate-700">{row.days}</td>
                             <td className="p-3 text-slate-500 text-[11px] font-semibold">{row.fromDate} to {row.toDate}</td>
                             <td className="p-3 text-slate-600 font-semibold">{row.paid}</td>
                             <td className="p-3 text-slate-500 italic text-[11px]">{row.rate}</td>
@@ -2028,13 +2028,13 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-150 pb-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Employee Time-Off Balances Summary</h4>
                   <span className="text-[10px] font-bold text-slate-400">Total FTE Balance roster</span>
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-705">
+                  <table className="w-full text-left text-xs text-slate-700">
                     <thead>
                       <tr className="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
                         <th className="p-3 pl-4">Staff ID</th>
@@ -2059,7 +2059,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                             <td className="p-3 pl-4 text-slate-400 font-bold font-mono">{row.employeeId}</td>
                             <td className="p-3 font-extrabold text-slate-850">{row.name}</td>
                             <td className="p-3 text-slate-500 font-semibold">{row.dept}</td>
-                            <td className="p-3 text-center font-bold font-mono text-slate-750">{row.annual} days</td>
+                            <td className="p-3 text-center font-bold font-mono text-slate-700">{row.annual} days</td>
                             <td className="p-3 text-center font-bold font-mono text-emerald-600">{row.sick} days</td>
                             <td className="p-3 text-center font-bold font-mono text-rose-500">{row.unpaid} days</td>
                             <td className="p-3 text-center font-bold font-mono text-[#2f66e0]">{row.total} days</td>
@@ -2102,7 +2102,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   placeholder="e.g. Compassionate leave"
                   value={newTypeData.name}
                   onChange={(e) => setNewTypeData({ ...newTypeData, name: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 p-2.5 text-xs font-bold text-slate-705 rounded-xl focus:bg-white"
+                  className="w-full bg-slate-50 border border-slate-200 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
                 />
               </div>
 
@@ -2185,7 +2185,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 <button
                   type="button"
                   onClick={() => setNewTypeModal(false)}
-                  className="bg-white border border-slate-250 text-slate-600 font-bold text-xs px-4 py-2 rounded-xl"
+                  className="bg-white border border-slate-200 text-slate-600 font-bold text-xs px-4 py-2 rounded-xl"
                 >
                   Cancel
                 </button>
@@ -2281,7 +2281,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 <button
                   type="button"
                   onClick={() => { setEditingType(null); setEditTypeModal(false); }}
-                  className="bg-white border border-slate-250 text-slate-600 font-bold text-xs px-4 py-2 rounded-xl"
+                  className="bg-white border border-slate-200 text-slate-600 font-bold text-xs px-4 py-2 rounded-xl"
                 >
                   Cancel
                 </button>
@@ -2301,7 +2301,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
       {newPolicyModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white border border-slate-100 rounded-3xl w-full max-w-lg p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-150 pb-3.5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
               <h4 className="text-sm font-black text-slate-850 tracking-wider flex items-center gap-2">
                 <FileText className="h-4.5 w-4.5 text-[#2f66e0]" />
                 <span>CREATE NEW LEAVE POLICY</span>
@@ -2318,7 +2318,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   <select
                     value={newPolicyData.type}
                     onChange={(e) => setNewPolicyData({ ...newPolicyData, type: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-705 rounded-xl"
+                    className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-700 rounded-xl"
                   >
                     {leaveTypes.map((type) => (
                       <option key={type.id} value={type.name}>{type.name}</option>
@@ -2334,7 +2334,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     required
                     value={newPolicyData.allowDays}
                     onChange={(e) => setNewPolicyData({ ...newPolicyData, allowDays: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-705 rounded-xl focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-700 rounded-xl focus:bg-white"
                     placeholder="e.g. 14 days / year"
                   />
                 </div>
@@ -2346,7 +2346,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   <select
                     value={newPolicyData.accrual}
                     onChange={(e) => setNewPolicyData({ ...newPolicyData, accrual: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-705 rounded-xl"
+                    className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-700 rounded-xl"
                   >
                     <option value="Monthly prorate">Monthly prorate</option>
                     <option value="Full upfront">Full upfront</option>
@@ -2362,7 +2362,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     required
                     value={newPolicyData.carryForward}
                     onChange={(e) => setNewPolicyData({ ...newPolicyData, carryForward: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-705 rounded-xl focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-700 rounded-xl focus:bg-white"
                     placeholder="e.g. 5 days max"
                   />
                 </div>
@@ -2376,7 +2376,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     required
                     value={newPolicyData.applicable}
                     onChange={(e) => setNewPolicyData({ ...newPolicyData, applicable: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-705 rounded-xl focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-700 rounded-xl focus:bg-white"
                     placeholder="e.g. All permanent employees"
                   />
                 </div>
@@ -2388,7 +2388,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     required
                     value={newPolicyData.autoAttach}
                     onChange={(e) => setNewPolicyData({ ...newPolicyData, autoAttach: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-705 rounded-xl focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-700 rounded-xl focus:bg-white"
                     placeholder="e.g. On join date"
                   />
                 </div>
@@ -2401,13 +2401,13 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   required
                   value={newPolicyData.minWorkingDays}
                   onChange={(e) => setNewPolicyData({ ...newPolicyData, minWorkingDays: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-705 rounded-xl focus:bg-white"
+                  className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-700 rounded-xl focus:bg-white"
                   placeholder="e.g. 15 days, or N/A"
                 />
               </div>
 
               {/* Service Bonus Accordion section */}
-              <div className="bg-slate-50/50 border border-slate-150 rounded-2xl p-4 space-y-3">
+              <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider block">Include Service Leave Bonus</span>
                   <input
@@ -2445,7 +2445,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
               </div>
 
               {/* Holiday and General Rules */}
-              <div className="bg-slate-55/50 border border-slate-150 rounded-2xl p-4 space-y-3">
+              <div className="bg-slate-55/50 border border-slate-100 rounded-2xl p-4 space-y-3">
                 <span className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-wider block">Rule &amp; Holiday Conditions</span>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -2475,7 +2475,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                 <button
                   type="button"
                   onClick={() => setNewPolicyModal(false)}
-                  className="bg-white border border-slate-300 text-slate-650 font-bold text-xs px-4.5 py-2.5 rounded-xl transition-all hover:bg-slate-50 cursor-pointer"
+                  className="bg-white border border-slate-300 text-slate-600 font-bold text-xs px-4.5 py-2.5 rounded-xl transition-all hover:bg-slate-50 cursor-pointer"
                 >
                   Cancel
                 </button>

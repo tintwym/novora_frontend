@@ -74,7 +74,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
       category: 'Meal allowance',
       date: '2026-05-05',
       amount: 38.50,
-      currency: 'MYR',
+      currency: 'SGD',
       myrEquivalent: 38.50,
       vendor: 'Nando\'s',
       approvalChain: 'David Ng',
@@ -93,7 +93,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
       category: 'Hotel / stay',
       date: '2026-04-28',
       amount: 450.00,
-      currency: 'MYR',
+      currency: 'SGD',
       myrEquivalent: 450.00,
       vendor: 'Marriott KL',
       approvalChain: 'David \u2192 Ahmad W',
@@ -131,9 +131,9 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
       category: 'Meal allowance',
       date: '2026-05-06',
       amount: 42.00,
-      currency: 'MYR',
+      currency: 'SGD',
       myrEquivalent: 42.00,
-      vendor: 'Subway Sdn Bhd',
+      vendor: 'Subway Pte. Ltd.',
       approvalChain: 'Malik Said',
       policyFlag: 'Over limit',
       status: 'Pending',
@@ -150,7 +150,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
       category: 'Transport',
       date: '2026-05-03',
       amount: 120.00,
-      currency: 'MYR',
+      currency: 'SGD',
       myrEquivalent: 120.00,
       vendor: 'Grab',
       approvalChain: 'Kevin Lim',
@@ -169,7 +169,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
       category: 'Wellness',
       date: '2026-05-01',
       amount: 180.00,
-      currency: 'MYR',
+      currency: 'SGD',
       myrEquivalent: 180.00,
       vendor: 'Fitness First',
       approvalChain: 'David Ng',
@@ -188,7 +188,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
       category: 'Mileage',
       date: '2026-04-15',
       amount: 78.40,
-      currency: 'MYR',
+      currency: 'SGD',
       myrEquivalent: 78.40,
       vendor: '—',
       approvalChain: 'Kevin Lim',
@@ -207,7 +207,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
       category: 'Meal allowance',
       date: '2026-04-20',
       amount: 55.00,
-      currency: 'MYR',
+      currency: 'SGD',
       myrEquivalent: 55.00,
       vendor: 'Nando\'s',
       approvalChain: 'Kevin Lim',
@@ -224,7 +224,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
   const [claimCategory, setClaimCategory] = useState<string>('-- Select category --');
   const [claimDate, setClaimDate] = useState<string>('2026-05-06');
   const [claimVendor, setClaimVendor] = useState<string>('');
-  const [claimCurrency, setClaimCurrency] = useState<string>('MYR');
+  const [claimCurrency, setClaimCurrency] = useState<string>('SGD');
   const [claimAmount, setClaimAmount] = useState<string>('0.00');
   const [claimProject, setClaimProject] = useState<string>('-- Select (optional) --');
   const [claimDesc, setClaimDesc] = useState<string>('');
@@ -285,13 +285,13 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
             setIsOcrScanning(false);
             setClaimCategory('Meal allowance');
             setClaimDate('2026-05-06');
-            setClaimVendor('Nando\'s Cafe Sdn Bhd');
-            setClaimCurrency('MYR');
+            setClaimVendor('Nando\'s Cafe Pte. Ltd.');
+            setClaimCurrency('SGD');
             setClaimAmount('42.00');
             setClaimDesc('Project wrap-up lunch assessment with product partners.');
             setHasReceiptFile(true);
             setSelectedStaffName('Ahmad L');
-            addToast('Receipt scanned! Extracted MYR 42.00 from Nando\'s on 06/05/2026.', 'success');
+            addToast('Receipt scanned! Extracted SGD 42.00 from Nando\'s on 06/05/2026.', 'success');
           }, 300);
           return 100;
         }
@@ -305,21 +305,21 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
 
   // Approval rules state
   const [approvalRules, setApprovalRules] = useState([
-    { id: 1, range: 'Claims ≤ MYR 200', desc: 'Direct manager only — single approval', type: 'Sequential' },
-    { id: 2, range: 'Claims MYR 201 – MYR 1,000', desc: 'Manager → Department Head', type: 'Sequential' },
-    { id: 3, range: 'Claims > MYR 1,000', desc: 'Manager → Dept Head → Finance Director', type: 'Parallel with Dept Head' }
+    { id: 1, range: 'Claims ≤ SGD 200', desc: 'Direct manager only — single approval', type: 'Sequential' },
+    { id: 2, range: 'Claims SGD 201 – SGD 1,000', desc: 'Manager → Department Head', type: 'Sequential' },
+    { id: 3, range: 'Claims > SGD 1,000', desc: 'Manager → Dept Head → Finance Director', type: 'Parallel with Dept Head' }
   ]);
   const [isEditApprovalRulesModalOpen, setIsEditApprovalRulesModalOpen] = useState(false);
 
   // Spend limits state
   const [spendLimits, setSpendLimits] = useState([
-    { category: 'Meal allowance', daily: 'MYR 30', monthly: 'MYR 600', receiptReq: '> MYR 15' },
-    { category: 'Transport', daily: 'MYR 200', monthly: 'MYR 2,000', receiptReq: '> MYR 50' },
-    { category: 'Hotel / stay', daily: 'MYR 350/night', monthly: '—', receiptReq: 'Always' },
-    { category: 'Air ticket', daily: '—', monthly: 'MYR 5,000', receiptReq: 'Always' },
-    { category: 'Mileage', daily: '—', monthly: 'MYR 500', receiptReq: 'MYR 0.55/km' },
-    { category: 'Entertainment', daily: 'MYR 150', monthly: 'MYR 1,000', receiptReq: 'Always' },
-    { category: 'Wellness', daily: '—', monthly: 'MYR 300/yr', receiptReq: '> MYR 50' }
+    { category: 'Meal allowance', daily: 'SGD 30', monthly: 'SGD 600', receiptReq: '> SGD 15' },
+    { category: 'Transport', daily: 'SGD 200', monthly: 'SGD 2,000', receiptReq: '> SGD 50' },
+    { category: 'Hotel / stay', daily: 'SGD 350/night', monthly: '—', receiptReq: 'Always' },
+    { category: 'Air ticket', daily: '—', monthly: 'SGD 5,000', receiptReq: 'Always' },
+    { category: 'Mileage', daily: '—', monthly: 'SGD 500', receiptReq: 'SGD 0.55/km' },
+    { category: 'Entertainment', daily: 'SGD 150', monthly: 'SGD 1,000', receiptReq: 'Always' },
+    { category: 'Wellness', daily: '—', monthly: 'SGD 300/yr', receiptReq: '> SGD 50' }
   ]);
   const [isEditSpendLimitsModalOpen, setIsEditSpendLimitsModalOpen] = useState(false);
   const [selectedSpendLimitIdx, setSelectedSpendLimitIdx] = useState<number | null>(null);
@@ -332,7 +332,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
     { id: 4, label: 'Require receipt attachment for claims above threshold', enabled: true },
     { id: 5, label: 'Auto-convert foreign currency at live exchange rate', enabled: true },
     { id: 6, label: 'Hold claims from employees on notice period', enabled: true },
-    { id: 7, label: 'Notify HR on claims exceeding MYR 1,000', enabled: true }
+    { id: 7, label: 'Notify HR on claims exceeding SGD 1,000', enabled: true }
   ]);
   const [isEditValidationRulesModalOpen, setIsEditValidationRulesModalOpen] = useState(false);
   const [newRuleInput, setNewRuleInput] = useState('');
@@ -388,7 +388,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
     };
 
     setClaims([newClaimObj, ...claims]);
-    addToast(`Claim for MYR ${myrEquiv} submitted to approval workflow.`, 'success');
+    addToast(`Claim for SGD ${myrEquiv} submitted to approval workflow.`, 'success');
 
     // Reset Form
     setClaimCategory('-- Select category --');
@@ -509,7 +509,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
           <div className="relative">
             <button
               onClick={() => setMonthDropdownOpen(!monthDropdownOpen)}
-              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-705 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0"
+              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0"
             >
               <span className="whitespace-nowrap">{headerMonth}</span>
               <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
@@ -533,7 +533,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
           <div className="relative">
             <button
               onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
-              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-705 bg-white border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0"
+              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0"
             >
               <span className="whitespace-nowrap">{headerDept}</span>
               <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
@@ -556,7 +556,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
           {/* Export utility */}
           <button
             onClick={() => addToast('Exporting active claims ledger...', 'loading')}
-            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-705 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-tiny whitespace-nowrap shrink-0"
+            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-tiny whitespace-nowrap shrink-0"
           >
             <Download className="h-4 w-4 text-slate-400 shrink-0" />
             <span>Export</span>
@@ -577,7 +577,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
             <div className="lg:col-span-5 space-y-6">
               
               {/* Receipt Capture Box */}
-              <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs">
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-bold text-slate-850 uppercase tracking-wider">Receipt capture & OCR</h3>
                   <div className="flex gap-1">
@@ -597,7 +597,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     </div>
                   ) : (
                     <>
-                      <div className="h-10 w-10 bg-white border border-slate-150 rounded-full flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform shadow-xs mb-3 shrink-0">
+                      <div className="h-10 w-10 bg-white border border-slate-100 rounded-full flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform shadow-xs mb-3 shrink-0">
                         <Paperclip className="h-5 w-5" />
                       </div>
                       <p className="text-xs font-bold text-slate-800">Snap or upload receipt</p>
@@ -614,7 +614,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               </div>
 
               {/* My Recent Claims Widget */}
-              <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs">
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs">
                 <h3 className="text-sm font-bold text-slate-850 uppercase tracking-wider mb-4">My recent claims</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs font-medium text-slate-600">
@@ -634,7 +634,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                             {new Date(claim.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                           </td>
                           <td className="py-3 text-slate-600">{claim.category}</td>
-                          <td className="py-3 font-bold text-slate-705">
+                          <td className="py-3 font-bold text-slate-700">
                             {claim.currency} {claim.amount.toFixed(2)}
                           </td>
                           <td className="py-3 text-center">
@@ -669,10 +669,10 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
             </div>
 
             {/* Right Box: Form inputs (cols-7) */}
-            <form onSubmit={handleSubmitClaim} className="lg:col-span-7 bg-white border border-slate-150 rounded-2xl p-6 shadow-xs space-y-5">
+            <form onSubmit={handleSubmitClaim} className="lg:col-span-7 bg-white border border-slate-100 rounded-2xl p-6 shadow-xs space-y-5">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Claim entry form</h3>
-                <span className="bg-slate-50 text-slate-650 text-[10px] font-bold px-2.5 py-1 rounded-lg">Claim details</span>
+                <span className="bg-slate-50 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-lg">Claim details</span>
               </div>
 
               {/* Employee Selection Mapping (Real links support) */}
@@ -731,10 +731,10 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Vendor / merchant</label>
                   <input
                     type="text"
-                    placeholder="e.g. Subway Sdn Bhd"
+                    placeholder="e.g. Subway Pte. Ltd."
                     value={claimVendor}
                     onChange={(e) => setClaimVendor(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-750 bg-white border border-slate-200 hover:border-slate-350 focus:border-[#2f66e0] rounded-xl px-3 py-2 outline-none"
+                    className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-350 focus:border-[#2f66e0] rounded-xl px-3 py-2 outline-none"
                   />
                 </div>
               </div>
@@ -748,7 +748,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     onChange={(e) => setClaimCurrency(e.target.value)}
                     className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-350 focus:border-[#2f66e0] rounded-xl px-3 py-2 outline-none cursor-pointer"
                   >
-                    <option value="MYR">MYR</option>
+                    <option value="SGD">SGD</option>
                     <option value="USD">USD</option>
                     <option value="SGD">SGD</option>
                     <option value="EUR">EUR</option>
@@ -766,9 +766,9 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">MYR equiv.</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">SGD equiv.</label>
                   <div className="w-full text-xs font-black text-slate-500 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5">
-                    {claimCurrency === 'MYR' ? 'Auto-converted' : `MYR ${myrEquiv.toFixed(2)}`}
+                    {claimCurrency === 'SGD' ? 'Auto-converted' : `SGD ${myrEquiv.toFixed(2)}`}
                   </div>
                 </div>
               </div>
@@ -776,7 +776,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               {/* Exchange rate info badge */}
               <div className="bg-blue-50 border border-blue-100/50 rounded-xl p-3 text-[11px] font-semibold text-[#2f66e0] flex items-center gap-2">
                 <span className="h-1.5 w-1.5 bg-[#2f66e0] rounded-full animate-ping items-center shrink-0"></span>
-                <span>Live exchange rate: 1 USD = 4.68 MYR &bull; 1 SGD = 3.47 MYR &bull; 1 EUR = 5.12 MYR (updated 1 min ago)</span>
+                <span>Live exchange rate: 1 USD = 4.68 SGD &bull; 1 SGD = 3.47 SGD &bull; 1 EUR = 5.12 SGD (updated 1 min ago)</span>
               </div>
 
               {/* Project / cost centre */}
@@ -802,7 +802,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   placeholder="Brief description of the business purpose of the expense..."
                   value={claimDesc}
                   onChange={(e) => setClaimDesc(e.target.value)}
-                  className="w-full text-xs font-medium text-slate-750 bg-white border border-slate-200 hover:border-slate-350 focus:border-[#2f66e0] rounded-xl px-3.5 py-2.5 outline-none resize-none"
+                  className="w-full text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:border-slate-350 focus:border-[#2f66e0] rounded-xl px-3.5 py-2.5 outline-none resize-none"
                 />
               </div>
 
@@ -811,7 +811,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 <div className="flex items-center gap-2">
                   <span className="bg-indigo-100 text-indigo-700 text-[10px] font-black px-2 py-0.5 rounded uppercase">Receipt attachment</span>
                   <span className="text-[10px] font-bold text-slate-500">
-                    {hasReceiptFile ? '✓ Receipt attached' : 'Upload receipt (required for claims > MYR 50)'}
+                    {hasReceiptFile ? '✓ Receipt attached' : 'Upload receipt (required for claims > SGD 50)'}
                   </span>
                 </div>
                 {hasReceiptFile && (
@@ -833,7 +833,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     <span>Policy alert: Meal allowance daily limit exceeded</span>
                   </div>
                   <p className="leading-relaxed text-amber-700">
-                    Meal allowance daily limit is MYR 30.00. Your claim of MYR {myrEquiv.toFixed(2)} exceeds the limit by MYR {(myrEquiv - 30).toFixed(2)}. Additional approval required.
+                    Meal allowance daily limit is SGD 30.00. Your claim of SGD {myrEquiv.toFixed(2)} exceeds the limit by SGD {(myrEquiv - 30).toFixed(2)}. Additional approval required.
                   </p>
                 </div>
               )}
@@ -845,7 +845,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     <span>Policy alert: Transport daily limit exceeded</span>
                   </div>
                   <p className="leading-relaxed text-amber-700">
-                    Transport daily limit is MYR 200.00. Your claim of MYR {myrEquiv.toFixed(2)} exceeds the limit by MYR {(myrEquiv - 200).toFixed(2)}. Additional approval required.
+                    Transport daily limit is SGD 200.00. Your claim of SGD {myrEquiv.toFixed(2)} exceeds the limit by SGD {(myrEquiv - 200).toFixed(2)}. Additional approval required.
                   </p>
                 </div>
               )}
@@ -897,7 +897,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 <select
                   value={approvalStatusFilter}
                   onChange={(e) => setApprovalStatusFilter(e.target.value)}
-                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-650 font-bold outline-none cursor-pointer"
+                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
                 >
                   <option value="All status">All status</option>
                   <option value="Pending">Pending</option>
@@ -908,7 +908,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 <select
                   value={approvalCategoryFilter}
                   onChange={(e) => setApprovalCategoryFilter(e.target.value)}
-                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-650 font-bold outline-none cursor-pointer"
+                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
                 >
                   <option value="All categories">All categories</option>
                   <option value="Meal allowance">Meal allowance</option>
@@ -922,7 +922,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 <select
                   value={approvalDeptFilter}
                   onChange={(e) => setApprovalDeptFilter(e.target.value)}
-                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-650 font-bold outline-none cursor-pointer"
+                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
                 >
                   <option value="All departments">All departments</option>
                   <option value="Engineering">Engineering</option>
@@ -936,7 +936,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   type="date"
                   value={approvalDateFilter}
                   onChange={(e) => setApprovalDateFilter(e.target.value)}
-                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1 text-xs text-slate-650 font-semibold outline-none"
+                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1 text-xs text-slate-600 font-semibold outline-none"
                 />
 
                 <span className="bg-amber-50 text-amber-700 font-extrabold text-xs px-3 py-1 rounded-full border border-amber-150 inline-flex items-center whitespace-nowrap shrink-0">
@@ -952,16 +952,16 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   setApprovalDateFilter('');
                   addToast('Reset filters', 'info');
                 }}
-                className="text-slate-500 hover:text-slate-805 text-xs font-bold px-3 py-1 bg-white border border-slate-150 rounded-xl"
+                className="text-slate-500 hover:text-slate-800 text-xs font-bold px-3 py-1 bg-white border border-slate-100 rounded-xl"
               >
                 Reset
               </button>
             </div>
 
             {/* Approval Routing Rules Checklist Widget */}
-            <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs">
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-[13px] font-black text-slate-750 uppercase tracking-wider">Approval routing rules</h3>
+                <h3 className="text-[13px] font-black text-slate-700 uppercase tracking-wider">Approval routing rules</h3>
                 <button
                   onClick={() => setIsEditApprovalRulesModalOpen(true)}
                   className="text-[#2f66e0] hover:underline text-xs font-bold flex items-center gap-1 cursor-pointer"
@@ -971,7 +971,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs text-slate-650">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs text-slate-600">
                 {approvalRules.map((rule, idx) => (
                   <div key={rule.id} className="border border-slate-100 rounded-xl p-4 space-y-2 flex items-start gap-3 bg-slate-50/20 hover:border-blue-200 transition-all">
                     <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-700 shrink-0">{idx + 1}</div>
@@ -988,10 +988,10 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
             </div>
 
             {/* Approval Datatable */}
-            <div className="bg-white border border-slate-150 rounded-2xl overflow-hidden shadow-xs">
+            <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-xs">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-150 text-slate-500 font-bold text-[10px] tracking-wider uppercase">
+                  <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[10px] tracking-wider uppercase">
                     <th className="p-4 pl-6">Employee</th>
                     <th className="p-4">Category</th>
                     <th className="p-4">Date</th>
@@ -1038,8 +1038,8 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                           {new Date(claim.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                         </td>
                         <td className="p-4 whitespace-nowrap font-bold text-slate-850">
-                          MYR {claim.myrEquivalent.toFixed(2)}
-                          {claim.currency !== 'MYR' && (
+                          SGD {claim.myrEquivalent.toFixed(2)}
+                          {claim.currency !== 'SGD' && (
                             <span className="block text-[9px] text-slate-400 font-semibold">{claim.currency} {claim.amount.toFixed(2)}</span>
                           )}
                         </td>
@@ -1107,7 +1107,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
             <div className="lg:col-span-7 space-y-6">
               
               {/* Spend limits table */}
-              <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs">
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Category spend limits</h3>
                   <button
@@ -1124,7 +1124,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs font-medium text-slate-650">
+                  <table className="w-full text-left text-xs font-medium text-slate-600">
                     <thead>
                       <tr className="border-b border-slate-100 text-slate-400 font-bold text-[10px] tracking-wider uppercase">
                         <th className="pb-2.5">Category</th>
@@ -1171,7 +1171,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               </div>
 
               {/* Auto validation rules */}
-              <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs">
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Auto-validation rules</h3>
                   <button 
@@ -1207,7 +1207,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
             <div className="lg:col-span-5 space-y-6">
               
               {/* Policy flags sidebar */}
-              <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs">
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Policy flags &mdash; this month</h3>
                   <span className="bg-red-100 text-red-700 text-[10px] font-black px-2 py-0.5 rounded-md">8 flags</span>
@@ -1218,7 +1218,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     <div className="h-2 w-2 rounded-full bg-amber-500 mt-1 shrink-0 items-center" />
                     <div className="flex-1">
                       <p className="text-slate-850 font-bold">Meal limit exceeded</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Ahmad L &bull; MYR 42.00 vs MYR 30 limit</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Ahmad L &bull; SGD 42.00 vs SGD 30 limit</p>
                     </div>
                     <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-2 py-0.5 rounded uppercase">Pending</span>
                   </div>
@@ -1245,7 +1245,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     <div className="h-2 w-2 rounded-full bg-purple-500 mt-1 shrink-0 items-center" />
                     <div className="flex-1">
                       <p className="text-slate-850 font-bold">Over category cap</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Maya T &bull; Air ticket MYR 1,280 needs Finance review</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Maya T &bull; Air ticket SGD 1,280 needs Finance review</p>
                     </div>
                     <span className="bg-purple-100 text-purple-800 text-[9px] font-black px-2 py-0.5 rounded uppercase">Escalated</span>
                   </div>
@@ -1253,10 +1253,10 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               </div>
 
               {/* Audit trail */}
-              <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs">
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Audit trail &mdash; recent actions</h3>
-                  <button onClick={() => addToast('Opening full systems audit ledger...', 'info')} className="text-slate-500 hover:text-slate-705 text-xs font-bold">Full log</button>
+                  <button onClick={() => addToast('Opening full systems audit ledger...', 'info')} className="text-slate-500 hover:text-slate-700 text-xs font-bold">Full log</button>
                 </div>
 
                 <div className="space-y-4 text-xs">
@@ -1265,7 +1265,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     <div>
                       <span className="block text-[10px] text-slate-400 font-bold">6 May 10:42</span>
                       <p className="font-semibold text-slate-700 mt-0.5">
-                        <strong className="text-slate-900 font-bold">David Ng</strong> approved MYR 120.00 transport &mdash; Nadia Chen
+                        <strong className="text-slate-900 font-bold">David Ng</strong> approved SGD 120.00 transport &mdash; Nadia Chen
                       </p>
                     </div>
                   </div>
@@ -1275,7 +1275,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     <div>
                       <span className="block text-[10px] text-slate-400 font-bold">6 May 09:15</span>
                       <p className="font-semibold text-slate-700 mt-0.5">
-                        <strong className="text-slate-900 font-bold">Kevin Lim</strong> rejected MYR 55.00 meal &mdash; Sarah Lim (over limit)
+                        <strong className="text-slate-900 font-bold">Kevin Lim</strong> rejected SGD 55.00 meal &mdash; Sarah Lim (over limit)
                       </p>
                     </div>
                   </div>
@@ -1295,7 +1295,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     <div>
                       <span className="block text-[10px] text-slate-400 font-bold">4 May 11:00</span>
                       <p className="font-semibold text-slate-700 mt-0.5">
-                        <strong className="text-slate-900 font-bold">Nina Reza</strong> approved MYR 450.00 hotel &mdash; Raj Kumar (step 1/2)
+                        <strong className="text-slate-900 font-bold">Nina Reza</strong> approved SGD 450.00 hotel &mdash; Raj Kumar (step 1/2)
                       </p>
                     </div>
                   </div>
@@ -1314,28 +1314,28 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
             {/* Left side panel: Push status numbers (cols-4) */}
             <div className="lg:col-span-4 space-y-6">
               
-              <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs space-y-5">
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs space-y-5">
                 <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest border-b border-slate-50 pb-3.5">Payroll push status &mdash; May 2026</h3>
                 
                 <div className="space-y-4 text-xs font-semibold">
                   <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
                     <span className="text-slate-500">Total approved claims</span>
                     <span className="font-extrabold text-[#2f66e0]">
-                      MYR {claims.filter(c => c.status === 'Approved').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
+                      SGD {claims.filter(c => c.status === 'Approved').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
                     <span className="text-slate-500">Pushed to payroll</span>
                     <span className="font-extrabold text-emerald-600">
-                      MYR {claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Pushed').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
+                      SGD {claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Pushed').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
                     <span className="text-slate-500">Awaiting push</span>
                     <span className="font-extrabold text-amber-600">
-                      MYR {claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Queued').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
+                      SGD {claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Queued').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
                     </span>
                   </div>
 
@@ -1357,17 +1357,17 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               </div>
 
               {/* Currency conversion log bottom left */}
-              <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs">
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs">
                 <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-4">Currency conversion log</h3>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs font-semibold text-slate-650">
+                  <table className="w-full text-left text-xs font-semibold text-slate-600">
                     <thead>
                       <tr className="border-b border-slate-100 text-slate-400 font-bold text-[10px] tracking-wider uppercase">
                         <th className="pb-2">Employee</th>
                         <th className="pb-2">Orig.</th>
                         <th className="pb-2">Orig. amt</th>
                         <th className="pb-2">Rate</th>
-                        <th className="pb-2 text-right">MYR equiv.</th>
+                        <th className="pb-2 text-right">SGD equiv.</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-[11px] text-slate-700">
@@ -1376,21 +1376,21 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                         <td className="py-2.5">USD</td>
                         <td className="py-2.5">$280.00</td>
                         <td className="py-2.5">4.68</td>
-                        <td className="py-2.5 text-right font-black text-slate-900">MYR 1,310.40</td>
+                        <td className="py-2.5 text-right font-black text-slate-900">SGD 1,310.40</td>
                       </tr>
                       <tr>
                         <td className="py-2.5 font-bold text-slate-800">Raj K</td>
                         <td className="py-2.5">SGD</td>
                         <td className="py-2.5">$130.00</td>
                         <td className="py-2.5">3.47</td>
-                        <td className="py-2.5 text-right font-black text-slate-900">MYR 451.10</td>
+                        <td className="py-2.5 text-right font-black text-slate-900">SGD 451.10</td>
                       </tr>
                       <tr>
                         <td className="py-2.5 font-bold text-slate-800">Sarah L</td>
                         <td className="py-2.5">EUR</td>
                         <td className="py-2.5">&euro;45.00</td>
                         <td className="py-2.5">5.12</td>
-                        <td className="py-2.5 text-right font-black text-slate-900">MYR 230.40</td>
+                        <td className="py-2.5 text-right font-black text-slate-900">SGD 230.40</td>
                       </tr>
                     </tbody>
                   </table>
@@ -1400,7 +1400,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
             </div>
 
             {/* Right side: Claims batching process (cols-8) */}
-            <div className="lg:col-span-8 bg-white border border-slate-150 rounded-2xl p-6 shadow-xs space-y-4">
+            <div className="lg:col-span-8 bg-white border border-slate-100 rounded-2xl p-6 shadow-xs space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Claims ready for payroll batch</h3>
@@ -1412,7 +1412,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => addToast('Fetching pending ledger sheets...', 'info')}
-                    className="px-3.5 py-1.5 border border-slate-150 text-xs font-bold rounded-lg text-slate-650 bg-white"
+                    className="px-3.5 py-1.5 border border-slate-100 text-xs font-bold rounded-lg text-slate-600 bg-white"
                   >
                     Preview batch
                   </button>
@@ -1431,7 +1431,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     <tr className="text-slate-400 font-bold text-[10px] tracking-wider uppercase border-b border-slate-100 pb-2">
                       <th className="pb-3">Employee</th>
                       <th className="pb-3">Category</th>
-                      <th className="pb-3">Amount (MYR)</th>
+                      <th className="pb-3">Amount (SGD)</th>
                       <th className="pb-3">Approved by</th>
                       <th className="pb-3 text-right">Push status</th>
                     </tr>
@@ -1471,7 +1471,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               <div className="bg-blue-50/50 border border-blue-55 rounded-xl p-4 flex justify-between items-center text-sm font-black text-slate-700 mt-5">
                 <span className="text-slate-500 text-xs">Total queued for May 2026 payroll</span>
                 <span className="text-xl text-[#2f66e0] font-black">
-                  MYR {claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Queued').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
+                  SGD {claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Queued').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
                 </span>
               </div>
             </div>
@@ -1485,25 +1485,25 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
           <div className="space-y-6 animate-in fade-in duration-100">
             {/* Top Three Cards metrics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="bg-white border border-slate-150 p-5 rounded-2xl shadow-xs">
+              <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total claimed &mdash; YTD</span>
                   <span className="text-emerald-500 text-xs font-bold inline-flex items-center gap-0.5">
                     <TrendingUp className="h-3 w-3" /> +12% vs last year
                   </span>
                 </div>
-                <p className="text-2xl font-black text-slate-800 mt-2">MYR 48,230</p>
+                <p className="text-2xl font-black text-slate-800 mt-2">SGD 48,230</p>
               </div>
 
-              <div className="bg-white border border-slate-150 p-5 rounded-2xl shadow-xs">
+              <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Claimed &mdash; May 2026</span>
                   <span className="text-amber-600 text-xs font-semibold">94% of monthly budget</span>
                 </div>
-                <p className="text-2xl font-black text-slate-800 mt-2">MYR 14,820</p>
+                <p className="text-2xl font-black text-slate-800 mt-2">SGD 14,820</p>
               </div>
 
-              <div className="bg-white border border-slate-150 p-5 rounded-2xl shadow-xs">
+              <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Policy flags &mdash; May</span>
                   <span className="text-red-500 text-[10px] font-bold">4 blocked &bull; 4 escalated</span>
@@ -1516,17 +1516,17 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               
               {/* Spend by category */}
-              <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs space-y-4">
                 <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b border-slate-50 pb-2">Spend by category &mdash; May 2026</h3>
                 
                 <div className="space-y-3.5">
                   {[
-                    { label: 'Air ticket', amount: 'MYR 5,840', pct: 85, color: 'bg-blue-600' },
-                    { label: 'Hotel / stay', amount: 'MYR 4,320', pct: 65, color: 'bg-purple-500' },
-                    { label: 'Transport', amount: 'MYR 2,240', pct: 40, color: 'bg-emerald-500' },
-                    { label: 'Meal', amount: 'MYR 1,820', pct: 30, color: 'bg-amber-500' },
-                    { label: 'Mileage', amount: 'MYR 720', pct: 15, color: 'bg-pink-500' },
-                    { label: 'Others', amount: 'MYR 480', pct: 10, color: 'bg-slate-400' }
+                    { label: 'Air ticket', amount: 'SGD 5,840', pct: 85, color: 'bg-blue-600' },
+                    { label: 'Hotel / stay', amount: 'SGD 4,320', pct: 65, color: 'bg-purple-500' },
+                    { label: 'Transport', amount: 'SGD 2,240', pct: 40, color: 'bg-emerald-500' },
+                    { label: 'Meal', amount: 'SGD 1,820', pct: 30, color: 'bg-amber-500' },
+                    { label: 'Mileage', amount: 'SGD 720', pct: 15, color: 'bg-pink-500' },
+                    { label: 'Others', amount: 'SGD 480', pct: 10, color: 'bg-slate-400' }
                   ].map((cat, i) => (
                     <div key={i} className="text-xs font-bold text-slate-700">
                       <div className="flex justify-between mb-1">
@@ -1542,16 +1542,16 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               </div>
 
               {/* Spend by department */}
-              <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs space-y-4">
                 <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b border-slate-50 pb-2">Spend by department</h3>
                 
-                <div className="space-y-3.5 text-xs font-bold text-slate-750">
+                <div className="space-y-3.5 text-xs font-bold text-slate-700">
                   {[
-                    { label: 'Engineering', amount: 'MYR 6,480', pct: 90, color: 'bg-blue-600' },
-                    { label: 'Operations', amount: 'MYR 4,950', pct: 75, color: 'bg-emerald-500' },
-                    { label: 'Finance', amount: 'MYR 2,700', pct: 45, color: 'bg-purple-500' },
-                    { label: 'Marketing', amount: 'MYR 1,800', pct: 30, color: 'bg-amber-500' },
-                    { label: 'HR', amount: 'MYR 890', pct: 15, color: 'bg-pink-500' }
+                    { label: 'Engineering', amount: 'SGD 6,480', pct: 90, color: 'bg-blue-600' },
+                    { label: 'Operations', amount: 'SGD 4,950', pct: 75, color: 'bg-emerald-500' },
+                    { label: 'Finance', amount: 'SGD 2,700', pct: 45, color: 'bg-purple-500' },
+                    { label: 'Marketing', amount: 'SGD 1,800', pct: 30, color: 'bg-amber-500' },
+                    { label: 'HR', amount: 'SGD 890', pct: 15, color: 'bg-pink-500' }
                   ].map((dept, i) => (
                     <div key={i}>
                       <div className="flex justify-between mb-1">
@@ -1571,58 +1571,58 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
             {/* Budget tracking progress bars */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               
-              <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs space-y-4">
                 <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b border-slate-50 pb-2">Budget tracking &mdash; travel &amp; entertainment</h3>
                 
                 <div className="space-y-4 text-xs font-semibold text-slate-700">
                   <div>
                     <div className="flex justify-between mb-1">
                       <span className="font-bold text-slate-800">Engineering travel budget</span>
-                      <span className="font-extrabold">MYR 6,480 / MYR 10,000</span>
+                      <span className="font-extrabold">SGD 6,480 / SGD 10,000</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                       <div className="bg-blue-600 h-2 rounded-full items-center shrink-0" style={{ width: '65%' }}></div>
                     </div>
-                    <span className="block text-[10px] text-slate-400 mt-1">65% used &bull; MYR 3,520 remaining</span>
+                    <span className="block text-[10px] text-slate-400 mt-1">65% used &bull; SGD 3,520 remaining</span>
                   </div>
 
                   <div>
                     <div className="flex justify-between mb-1">
                       <span className="font-bold text-slate-800">Operations travel budget</span>
-                      <span className="font-extrabold">MYR 4,950 / MYR 6,000</span>
+                      <span className="font-extrabold">SGD 4,950 / SGD 6,000</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                       <div className="bg-amber-500 h-2 rounded-full items-center shrink-0" style={{ width: '83%' }}></div>
                     </div>
-                    <span className="block text-[10px] text-slate-400 mt-1">83% used &bull; MYR 1,050 remaining</span>
+                    <span className="block text-[10px] text-slate-400 mt-1">83% used &bull; SGD 1,050 remaining</span>
                   </div>
 
                   <div>
                     <div className="flex justify-between mb-1">
                       <span className="font-bold text-slate-800">Finance travel budget</span>
-                      <span className="font-extrabold">MYR 2,700 / MYR 4,000</span>
+                      <span className="font-extrabold">SGD 2,700 / SGD 4,000</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                       <div className="bg-purple-600 h-2 rounded-full items-center shrink-0" style={{ width: '68%' }}></div>
                     </div>
-                    <span className="block text-[10px] text-slate-400 mt-1">68% used &bull; MYR 1,300 remaining</span>
+                    <span className="block text-[10px] text-slate-400 mt-1">68% used &bull; SGD 1,300 remaining</span>
                   </div>
 
                   <div>
                     <div className="flex justify-between mb-1 flex-wrap gap-1">
                       <span className="font-bold text-slate-800">Marketing entertainment budget</span>
-                      <span className="font-extrabold text-red-650">MYR 1,800 / MYR 2,000 &bull; alert!</span>
+                      <span className="font-extrabold text-red-650">SGD 1,800 / SGD 2,000 &bull; alert!</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                       <div className="bg-red-55 h-2 rounded-full items-center shrink-0" style={{ width: '90%' }}></div>
                     </div>
-                    <span className="block text-[10px] text-red-500 mt-1">90% used &bull; MYR 200 remaining &mdash; alert!</span>
+                    <span className="block text-[10px] text-red-500 mt-1">90% used &bull; SGD 200 remaining &mdash; alert!</span>
                   </div>
                 </div>
               </div>
 
               {/* Top claimants */}
-              <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs space-y-4">
                 <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b border-slate-50 pb-2">Top claimants &mdash; May 2026</h3>
                 
                 <div className="overflow-x-auto">
@@ -1631,7 +1631,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       <tr className="text-slate-400 font-bold text-[10px] tracking-wider uppercase border-b border-slate-100 pb-2">
                         <th className="pb-2.5">Employee</th>
                         <th className="pb-2.5">No. claims</th>
-                        <th className="pb-2.5">Total (MYR)</th>
+                        <th className="pb-2.5">Total (SGD)</th>
                         <th className="pb-2.5 text-right">Flags</th>
                       </tr>
                     </thead>
@@ -1688,7 +1688,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
             </div>
 
             {/* THE USER REQUESTED EXTRA PANEL: Claims Tab Reports (Same level structure as Employee Reports tab!) */}
-            <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-xs space-y-5">
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs space-y-5">
               <div className="border-b border-indigo-50 pb-3 flex flex-wrap justify-between items-center gap-3">
                 <div>
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">CLAIMS REPORT GENERATOR</h3>
@@ -1700,7 +1700,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       addToast('Compiling print-ready document catalog...', 'loading');
                       setTimeout(() => addToast('PDF Claims Register generated. Download started.', 'success'), 1200);
                     }}
-                    className="px-3 py-1.5 border border-slate-150 rounded-lg text-slate-650 bg-white hover:bg-slate-50 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                    className="px-3 py-1.5 border border-slate-100 rounded-lg text-slate-600 bg-white hover:bg-slate-50 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
                   >
                     <Printer className="h-3.5 w-3.5" />
                     <span>Print PDF Ledger</span>
@@ -1710,7 +1710,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       addToast('Generating XLS spreadsheets database...', 'loading');
                       setTimeout(() => addToast('Completed! Claims Workbook.xlsx downloaded.', 'success'), 1200);
                     }}
-                    className="px-3 py-1.5 border border-slate-150 rounded-lg text-slate-650 bg-white hover:bg-slate-50 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                    className="px-3 py-1.5 border border-slate-100 rounded-lg text-slate-600 bg-white hover:bg-slate-50 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
                   >
                     <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-500" />
                     <span>Download Excel</span>
@@ -1805,11 +1805,11 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       </div>
                       <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                         <span className="block text-[9px] font-bold text-slate-400 uppercase">Sum Ledger</span>
-                        <span className="text-base font-black text-[#2f66e0] mt-1 block">MYR {totalSum.toFixed(2)}</span>
+                        <span className="text-base font-black text-[#2f66e0] mt-1 block">SGD {totalSum.toFixed(2)}</span>
                       </div>
                       <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                         <span className="block text-[9px] font-bold text-slate-400 uppercase">Average Ticket</span>
-                        <span className="text-base font-black text-slate-800 mt-1 block">MYR {averageClaim.toFixed(2)}</span>
+                        <span className="text-base font-black text-slate-800 mt-1 block">SGD {averageClaim.toFixed(2)}</span>
                       </div>
                       <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                         <span className="block text-[9px] font-bold text-slate-400 uppercase">Policy Violations</span>
@@ -1818,16 +1818,16 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     </div>
 
                     {/* Results table */}
-                    <div className="border border-slate-150 rounded-xl overflow-hidden">
-                      <table className="w-full text-left text-xs font-medium text-slate-650">
+                    <div className="border border-slate-100 rounded-xl overflow-hidden">
+                      <table className="w-full text-left text-xs font-medium text-slate-600">
                         <thead>
-                          <tr className="bg-slate-50 border-b border-slate-150 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                             <th className="p-3 pl-4">ID</th>
                             <th className="p-3">Employee</th>
                             <th className="p-3">Category</th>
                             <th className="p-3">Date</th>
                             <th className="p-3">Vendor / Merchant</th>
-                            <th className="p-3">Amount (MYR)</th>
+                            <th className="p-3">Amount (SGD)</th>
                             <th className="p-3 text-center">Flag</th>
                             <th className="p-3 text-right pr-4">Status</th>
                           </tr>
@@ -1850,7 +1850,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                                 <td className="p-3 text-[11px]">{c.category}</td>
                                 <td className="p-3 text-slate-500">{c.date}</td>
                                 <td className="p-3 text-slate-500 font-sans">{c.vendor}</td>
-                                <td className="p-3 font-bold text-slate-900">MYR {c.myrEquivalent.toFixed(2)}</td>
+                                <td className="p-3 font-bold text-slate-900">SGD {c.myrEquivalent.toFixed(2)}</td>
                                 <td className="p-3 text-center">
                                   <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
                                     c.policyFlag === 'Clear' ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'
@@ -1891,7 +1891,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 <select
                   value={historyStatusFilter}
                   onChange={(e) => setHistoryStatusFilter(e.target.value)}
-                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-650 font-bold outline-none cursor-pointer"
+                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
                 >
                   <option value="All status">All status</option>
                   <option value="Pending">Pending</option>
@@ -1902,7 +1902,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 <select
                   value={historyCategoryFilter}
                   onChange={(e) => setHistoryCategoryFilter(e.target.value)}
-                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-650 font-bold outline-none cursor-pointer"
+                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
                 >
                   <option value="All categories">All categories</option>
                   <option value="Meal allowance">Meal allowance</option>
@@ -1916,7 +1916,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 <select
                   value={historyDeptFilter}
                   onChange={(e) => setHistoryDeptFilter(e.target.value)}
-                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-650 font-bold outline-none cursor-pointer font-sans"
+                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer font-sans"
                 >
                   <option value="All departments">All departments</option>
                   <option value="Engineering">Engineering</option>
@@ -1944,7 +1944,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     addToast('Generating complete ledger document...', 'loading');
                     setTimeout(() => addToast('PDF exported successfully.', 'success'), 1200);
                   }}
-                  className="text-slate-655 hover:text-slate-800 text-xs font-bold px-3 py-1.5 bg-white border border-slate-150 rounded-xl"
+                  className="text-slate-655 hover:text-slate-800 text-xs font-bold px-3 py-1.5 bg-white border border-slate-100 rounded-xl"
                 >
                   Generate PDF
                 </button>
@@ -1958,15 +1958,15 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
             </div>
 
             {/* Complete Claims Table */}
-            <div className="bg-white border border-slate-150 rounded-2xl overflow-hidden shadow-xs">
+            <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-xs">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-150 text-slate-500 font-bold text-[10px] tracking-wider uppercase">
+                  <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[10px] tracking-wider uppercase">
                     <th className="p-4 pl-6">Employee</th>
                     <th className="p-4">Category</th>
                     <th className="p-4">Claim date</th>
                     <th className="p-4">Vendor</th>
-                    <th className="p-4">Amount (MYR)</th>
+                    <th className="p-4">Amount (SGD)</th>
                     <th className="p-4">Approved by</th>
                     <th className="p-4">Payroll month</th>
                     <th className="p-4">Status</th>
@@ -2029,7 +2029,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                           <span className={`inline-block text-[10px] font-black px-2 py-0.5 rounded-full ${
                             claim.pushStatus === 'Pushed' ? 'bg-emerald-50 text-emerald-800 border border-emerald-150' :
                             claim.pushStatus === 'Queued' ? 'bg-amber-50 text-amber-700 border border-[#fef3c7]' :
-                            claim.status === 'Rejected' ? 'bg-red-50 text-red-800 border border-red-150' : 'bg-slate-50 text-slate-450 border border-slate-150'
+                            claim.status === 'Rejected' ? 'bg-red-50 text-red-800 border border-red-150' : 'bg-slate-50 text-slate-450 border border-slate-100'
                           }`}>
                             {claim.pushStatus === 'Pushed' ? 'Pushed' : claim.pushStatus === 'Queued' ? 'Queued' : claim.status}
                           </span>
@@ -2063,10 +2063,10 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
       {isEditApprovalRulesModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl max-w-2xl w-full border border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
-            <div className="bg-slate-50 px-6 py-4.5 border-b border-slate-150 flex justify-between items-center">
+            <div className="bg-slate-50 px-6 py-4.5 border-b border-slate-100 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Settings className="h-5 w-5 text-[#2f66e0]" />
-                <h3 className="font-extrabold text-slate-805 text-sm uppercase tracking-wider">Tiered Approval routing matrix</h3>
+                <h3 className="font-extrabold text-slate-800 text-sm uppercase tracking-wider">Tiered Approval routing matrix</h3>
               </div>
               <button 
                 onClick={() => setIsEditApprovalRulesModalOpen(false)}
@@ -2078,12 +2078,12 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
 
             <div className="p-6 space-y-5 text-xs text-slate-700">
               <p className="text-slate-500 font-semibold leading-relaxed">
-                Configure tier boundaries and approval workflows based on the total claim value (MYR equivalent). Changes will affect any claim submitted from this point onward.
+                Configure tier boundaries and approval workflows based on the total claim value (SGD equivalent). Changes will affect any claim submitted from this point onward.
               </p>
 
               <div className="space-y-4">
                 {approvalRules.map((rule, idx) => (
-                  <div key={rule.id} className="p-4 bg-slate-50/50 rounded-xl border border-slate-150 space-y-3">
+                  <div key={rule.id} className="p-4 bg-slate-50/50 rounded-xl border border-slate-100 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="font-black text-[#2f66e0] bg-[#2f66e0]/10 px-2 py-0.5 rounded text-[10.5px]">Rule Range {idx+1}</span>
                       <div className="flex items-center gap-2">
@@ -2095,7 +2095,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                             updated[idx].type = e.target.value;
                             setApprovalRules(updated);
                           }}
-                          className="bg-white border border-slate-200 rounded px-2 py-0.5 font-bold text-slate-750"
+                          className="bg-white border border-slate-200 rounded px-2 py-0.5 font-bold text-slate-700"
                         >
                           <option value="Sequential">Sequential</option>
                           <option value="Parallel with Dept Head">Parallel with Dept Head</option>
@@ -2137,13 +2137,13 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-150 flex justify-between items-center">
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
               <button
                 onClick={() => {
                   setApprovalRules([
-                    { id: 1, range: 'Claims ≤ MYR 200', desc: 'Direct manager only — single approval', type: 'Sequential' },
-                    { id: 2, range: 'Claims MYR 201 – MYR 1,000', desc: 'Manager → Department Head', type: 'Sequential' },
-                    { id: 3, range: 'Claims > MYR 1,000', desc: 'Manager → Dept Head → Finance Director', type: 'Parallel with Dept Head' }
+                    { id: 1, range: 'Claims ≤ SGD 200', desc: 'Direct manager only — single approval', type: 'Sequential' },
+                    { id: 2, range: 'Claims SGD 201 – SGD 1,000', desc: 'Manager → Department Head', type: 'Sequential' },
+                    { id: 3, range: 'Claims > SGD 1,000', desc: 'Manager → Dept Head → Finance Director', type: 'Parallel with Dept Head' }
                   ]);
                   addToast('Reset rules matrix to factory defaults.', 'info');
                 }}
@@ -2154,7 +2154,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               <div className="flex gap-2">
                 <button
                   onClick={() => setIsEditApprovalRulesModalOpen(false)}
-                  className="px-4 py-2 border border-slate-200 hover:bg-slate-100/60 rounded-xl text-slate-650 font-bold transition-all text-xs"
+                  className="px-4 py-2 border border-slate-200 hover:bg-slate-100/60 rounded-xl text-slate-600 font-bold transition-all text-xs"
                 >
                   Cancel
                 </button>
@@ -2177,10 +2177,10 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
       {isEditSpendLimitsModalOpen && selectedSpendLimitIdx !== null && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
-            <div className="bg-slate-50 px-6 py-4.5 border-b border-slate-150 flex justify-between items-center">
+            <div className="bg-slate-50 px-6 py-4.5 border-b border-slate-100 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <ShieldAlert className="h-5 w-5 text-[#2f66e0]" />
-                <h3 className="font-extrabold text-slate-805 text-sm uppercase tracking-wider">Edit Limit: {spendLimits[selectedSpendLimitIdx].category}</h3>
+                <h3 className="font-extrabold text-slate-800 text-sm uppercase tracking-wider">Edit Limit: {spendLimits[selectedSpendLimitIdx].category}</h3>
               </div>
               <button 
                 onClick={() => setIsEditSpendLimitsModalOpen(false)}
@@ -2202,7 +2202,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     type="text"
                     disabled
                     value={spendLimits[selectedSpendLimitIdx].category}
-                    className="w-full text-xs font-bold text-slate-400 bg-slate-50 border border-slate-150 rounded-lg px-3 py-2 font-mono"
+                    className="w-full text-xs font-bold text-slate-400 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 font-mono"
                   />
                 </div>
 
@@ -2217,7 +2217,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                         updated[selectedSpendLimitIdx].daily = e.target.value;
                         setSpendLimits(updated);
                       }}
-                      placeholder="e.g. MYR 200"
+                      placeholder="e.g. SGD 200"
                       className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-205 rounded-lg px-3 py-2 focus:border-[#2f66e0] outline-none"
                     />
                   </div>
@@ -2231,7 +2231,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                         updated[selectedSpendLimitIdx].monthly = e.target.value;
                         setSpendLimits(updated);
                       }}
-                      placeholder="e.g. MYR 2,000"
+                      placeholder="e.g. SGD 2,000"
                       className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-205 rounded-lg px-3 py-2 focus:border-[#2f66e0] outline-none"
                     />
                   </div>
@@ -2247,14 +2247,14 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       updated[selectedSpendLimitIdx].receiptReq = e.target.value;
                       setSpendLimits(updated);
                     }}
-                    placeholder="e.g. Always, or > MYR 50"
+                    placeholder="e.g. Always, or > SGD 50"
                     className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-205 rounded-lg px-3 py-2 focus:border-[#2f66e0] outline-none"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-150 flex justify-end gap-2">
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
               <button
                 onClick={() => setIsEditSpendLimitsModalOpen(false)}
                 className="px-4 py-2 border border-slate-205 hover:bg-slate-100 rounded-xl text-slate-600 font-bold transition-all text-xs cursor-pointer"
@@ -2279,10 +2279,10 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
       {isEditValidationRulesModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
-            <div className="bg-slate-50 px-6 py-4.5 border-b border-slate-150 flex justify-between items-center">
+            <div className="bg-slate-50 px-6 py-4.5 border-b border-slate-100 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-[#2f66e0]" />
-                <h3 className="font-extrabold text-slate-805 text-sm uppercase tracking-wider">Auto-validation checks</h3>
+                <h3 className="font-extrabold text-slate-800 text-sm uppercase tracking-wider">Auto-validation checks</h3>
               </div>
               <button 
                 onClick={() => setIsEditValidationRulesModalOpen(false)}
@@ -2300,7 +2300,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
                 {validationRules.map((rule) => (
                   <div key={rule.id} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100 hover:border-slate-200">
-                    <span className="font-semibold text-slate-750 flex-1 leading-normal pr-3">{rule.label}</span>
+                    <span className="font-semibold text-slate-700 flex-1 leading-normal pr-3">{rule.label}</span>
                     <button
                       onClick={() => {
                         setValidationRules(validationRules.map(r => r.id === rule.id ? { ...r, enabled: !r.enabled } : r));
@@ -2345,7 +2345,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-150 flex justify-between items-center">
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
               <button
                 onClick={() => {
                   setValidationRules([
@@ -2355,7 +2355,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     { id: 4, label: 'Require receipt attachment for claims above threshold', enabled: true },
                     { id: 5, label: 'Auto-convert foreign currency at live exchange rate', enabled: true },
                     { id: 6, label: 'Hold claims from employees on notice period', enabled: true },
-                    { id: 7, label: 'Notify HR on claims exceeding MYR 1,000', enabled: true }
+                    { id: 7, label: 'Notify HR on claims exceeding SGD 1,000', enabled: true }
                   ]);
                   addToast('Reset to default system validator settings.', 'info');
                 }}
@@ -2420,7 +2420,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 </div>
                 <div>
                   <span className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider mb-0.5">Supplier / Merchant</span>
-                  <p className="font-semibold text-slate-805 text-[12px]">{selectedClaimDetail.vendor || 'Direct Submission'}</p>
+                  <p className="font-semibold text-slate-800 text-[12px]">{selectedClaimDetail.vendor || 'Direct Submission'}</p>
                 </div>
 
                 <div>
@@ -2428,8 +2428,8 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   <p className="font-mono font-bold text-slate-700 text-[12px]">{selectedClaimDetail.currency} {selectedClaimDetail.amount.toFixed(2)}</p>
                 </div>
                 <div>
-                  <span className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider mb-0.5">MYR rate equivalent</span>
-                  <p className="font-extrabold text-slate-900 text-[13px]">MYR {selectedClaimDetail.myrEquivalent.toFixed(2)}</p>
+                  <span className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider mb-0.5">SGD rate equivalent</span>
+                  <p className="font-extrabold text-slate-900 text-[13px]">SGD {selectedClaimDetail.myrEquivalent.toFixed(2)}</p>
                 </div>
                 <div>
                   <span className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider mb-0.5">Compliance rating</span>
@@ -2497,11 +2497,11 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
             <div className="w-full md:w-87.5 bg-slate-100 border-t md:border-t-0 md:border-l border-slate-200 p-6 flex flex-col justify-between">
               
               {/* Receipt Visual Body */}
-              <div className="bg-white border text-center border-slate-250 p-5 rounded-2xl shadow-md rotate-1 hover:rotate-0 transition-all font-mono text-slate-700 text-xs space-y-4">
+              <div className="bg-white border text-center border-slate-200 p-5 rounded-2xl shadow-md rotate-1 hover:rotate-0 transition-all font-mono text-slate-700 text-xs space-y-4">
                 <div className="border-b border-dashed border-slate-300 pb-3">
                   <h4 className="font-black tracking-widest text-[#2f66e0]/90 text-[12px] uppercase">★★★ RECEIPT PROOF ★★★</h4>
                   <p className="text-[10px] text-slate-405 uppercase tracking-wide mt-1">{selectedClaimDetail.vendor || 'RETAIL SUPP'}</p>
-                  <p className="text-[9px] text-slate-400 mt-0.5">KUALA LUMPUR, MALAYSIA</p>
+                  <p className="text-[9px] text-slate-400 mt-0.5">SINGAPORE</p>
                 </div>
 
                 <div className="space-y-1.5 text-left text-[11px]">
@@ -2575,10 +2575,10 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
             
-            <div className="bg-slate-50 px-6 py-5 border-b border-slate-150 flex justify-between items-center">
+            <div className="bg-slate-50 px-6 py-5 border-b border-slate-100 flex justify-between items-center">
               <div className="flex items-center gap-2.5">
                 <FileSpreadsheet className="h-5 w-5 text-indigo-600" />
-                <h3 className="font-extrabold text-slate-805 text-sm uppercase tracking-wider text-[13px]">Authorize Payroll sync batch</h3>
+                <h3 className="font-extrabold text-slate-800 text-sm uppercase tracking-wider text-[13px]">Authorize Payroll sync batch</h3>
               </div>
               <button 
                 onClick={() => !isPushingInProgress && setIsPayrollPushModalOpen(false)}
@@ -2633,7 +2633,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     </select>
                   </div>
 
-                  <div className="bg-slate-50 rounded-xl p-4.5 border border-slate-150 space-y-2.5">
+                  <div className="bg-slate-50 rounded-xl p-4.5 border border-slate-100 space-y-2.5">
                     <div className="flex justify-between items-center text-slate-500 mb-2 border-b border-slate-200 pb-2">
                       <span className="font-bold">Total approved reimbursements:</span>
                       <span className="font-black text-slate-900 bg-slate-200 px-2 py-0.5 rounded text-[11px]">
@@ -2641,13 +2641,13 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       </span>
                     </div>
 
-                    <div className="max-h-28 overflow-y-auto space-y-1.5 font-semibold text-slate-650 pr-1 select-none">
+                    <div className="max-h-28 overflow-y-auto space-y-1.5 font-semibold text-slate-600 pr-1 select-none">
                       {claims
                         .filter(c => c.status === 'Approved' && c.pushStatus === 'Queued')
                         .map(c => (
                           <div key={c.id} className="flex justify-between items-center text-[11.5px]">
                             <span>{c.empName} &bull; <span className="text-slate-400 font-normal">{c.category}</span></span>
-                            <span className="font-bold text-slate-800 font-mono">MYR {c.myrEquivalent.toFixed(2)}</span>
+                            <span className="font-bold text-slate-800 font-mono">SGD {c.myrEquivalent.toFixed(2)}</span>
                           </div>
                         ))}
                     </div>
@@ -2655,7 +2655,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                     <div className="border-t border-slate-200 pt-2 flex justify-between items-center font-black text-slate-900 text-[13px]">
                       <span>AGGREGATED WAGES VALUE</span>
                       <span className="text-[#2f66e0]">
-                        MYR {claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Queued').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
+                        SGD {claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Queued').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -2664,10 +2664,10 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
 
             </div>
 
-            <div className="px-6 py-4.5 bg-slate-50 border-t border-slate-150 flex justify-end gap-2">
+            <div className="px-6 py-4.5 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
               <button
                 onClick={() => setIsPayrollPushModalOpen(false)}
-                className="px-4 py-2 border border-slate-205 hover:bg-slate-100 rounded-xl text-slate-650 font-bold text-xs"
+                className="px-4 py-2 border border-slate-205 hover:bg-slate-100 rounded-xl text-slate-600 font-bold text-xs"
                 disabled={isPushingInProgress}
               >
                 Cancel

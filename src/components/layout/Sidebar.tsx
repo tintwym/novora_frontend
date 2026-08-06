@@ -220,7 +220,7 @@ export default function Sidebar({
                           key={item.name}
                           type="button"
                           onClick={() => handleTabClick(item.name)}
-                          className="w-full flex items-center gap-3 px-3.5 py-2 hover:bg-slate-50 text-slate-650 hover:text-slate-900 transition-colors text-left cursor-pointer"
+                          className="w-full flex items-center gap-3 px-3.5 py-2 hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors text-left cursor-pointer"
                         >
                           <ItemIcon className="h-4 w-4 text-slate-400 shrink-0" />
                           <span className="text-[11.5px] font-bold">{sidebarLabel(item.name)}</span>
@@ -239,7 +239,7 @@ export default function Sidebar({
                 placeholder="Search settings..."
                 value={settingsSearch}
                 onChange={(e) => setSettingsSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-[11px] font-bold text-slate-700 bg-slate-50/75 border border-slate-150 focus:border-[#2f66e0] focus:bg-white rounded-xl outline-none"
+                className="w-full pl-9 pr-3 py-2 text-[11px] font-bold text-slate-700 bg-slate-50/75 border border-slate-100 focus:border-[#2f66e0] focus:bg-white rounded-xl outline-none"
               />
             </div>
           </div>

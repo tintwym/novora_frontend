@@ -1288,7 +1288,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                   placeholder="Filter modules..."
                   value={moduleSearch}
                   onChange={(e) => setModuleSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-[11px] font-semibold text-slate-700 bg-slate-50 border border-slate-150 focus:border-[#2f66e0] focus:bg-white rounded-xl outline-none transition-all"
+                  className="w-full pl-9 pr-3 py-2 text-[11px] font-semibold text-slate-700 bg-slate-50 border border-slate-100 focus:border-[#2f66e0] focus:bg-white rounded-xl outline-none transition-all"
                 />
               </div>
             </div>
@@ -1316,7 +1316,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                     className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-[11.5px] font-bold border transition-all cursor-pointer select-none group duration-150 ${
                       isActive
                         ? 'bg-[#2f66e0] text-white border-[#2f66e0] shadow-xs transform scale-[1.02]'
-                        : 'bg-white text-slate-700 border-slate-150 hover:border-slate-300 hover:bg-slate-50'
+                        : 'bg-white text-slate-700 border-slate-100 hover:border-slate-300 hover:bg-slate-50'
                     }`}
                     title={mod.desc}
                   >
@@ -1778,7 +1778,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                     <select
                       value={scheduleForm.type}
                       onChange={(e) => setScheduleForm(prev => ({ ...prev, type: e.target.value }))}
-                      className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl px-4 py-3 text-xs text-slate-705 font-bold outline-none cursor-pointer"
+                      className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl px-4 py-3 text-xs text-slate-700 font-bold outline-none cursor-pointer"
                     >
                       <option value="Monthly payroll summary">Monthly payroll summary (Consolidated)</option>
                       <option value="Attendance summary — Apr">Attendance summary (Total list)</option>
@@ -1794,7 +1794,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                     <select
                       value={scheduleForm.frequency}
                       onChange={(e) => setScheduleForm(prev => ({ ...prev, frequency: e.target.value }))}
-                      className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl px-4 py-3 text-xs text-slate-705 font-bold outline-none cursor-pointer"
+                      className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl px-4 py-3 text-xs text-slate-700 font-bold outline-none cursor-pointer"
                     >
                       <option value="Daily">Daily automatic run</option>
                       <option value="Weekly">Weekly consolidated runs</option>
@@ -1809,7 +1809,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                     <select
                       value={scheduleForm.time}
                       onChange={(e) => setScheduleForm(prev => ({ ...prev, time: e.target.value }))}
-                      className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl px-4 py-3 text-xs text-slate-705 font-bold outline-none cursor-pointer"
+                      className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl px-4 py-3 text-xs text-slate-700 font-bold outline-none cursor-pointer"
                     >
                       <option value="06:00 AM">06:00 AM (Early operational review)</option>
                       <option value="09:00 AM">09:00 AM (Standard morning dispatch)</option>
@@ -1824,7 +1824,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                     <select
                       value={scheduleForm.format}
                       onChange={(e) => setScheduleForm(prev => ({ ...prev, format: e.target.value }))}
-                      className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl px-4 py-3 text-xs text-slate-705 font-bold outline-none cursor-pointer"
+                      className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl px-4 py-3 text-xs text-slate-700 font-bold outline-none cursor-pointer"
                     >
                       <option value="Excel (.xlsx)">Excel Spreadsheet (.xlsx)</option>
                       <option value="CSV (.csv)">Raw Comma Separated Table (.csv)</option>
@@ -1968,7 +1968,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                   <select
                     value={builderModule}
                     onChange={(e) => handleBuilderModuleChange(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-2xl px-4 py-3 text-xs text-slate-705 font-bold outline-none cursor-pointer"
+                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-2xl px-4 py-3 text-xs text-slate-700 font-bold outline-none cursor-pointer"
                   >
                     <option value="Employee management">Employee management</option>
                     <option value="Attendance log module">Attendance data records</option>
@@ -2102,7 +2102,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                   <select
                     value={filterDept}
                     onChange={(e) => setFilterDept(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl px-3 py-2 text-xs text-slate-705 font-bold outline-none cursor-pointer"
+                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl px-3 py-2 text-xs text-slate-700 font-bold outline-none cursor-pointer"
                   >
                     <option value="All departments">All departments &bull; Global Roster</option>
                     <option value="Engineering">Engineering Sector</option>
@@ -2118,7 +2118,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl px-3 py-2 text-xs text-slate-705 font-bold outline-none cursor-pointer"
+                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl px-3 py-2 text-xs text-slate-700 font-bold outline-none cursor-pointer"
                   >
                     <option value="All statuses">All personnel records</option>
                     <option value="Active only">Active rosters only</option>
@@ -2143,7 +2143,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl px-3 py-2 text-xs text-slate-705 font-bold outline-none cursor-pointer"
+                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl px-3 py-2 text-xs text-slate-700 font-bold outline-none cursor-pointer"
                   >
                     <option value="Employee No.">Employee No. Sequence</option>
                     <option value="Full Name">Full Name alphabetically</option>
@@ -2158,7 +2158,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                   <select
                     value={builderFormat}
                     onChange={(e) => setBuilderFormat(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl px-3 py-2 text-xs text-slate-705 font-bold outline-none cursor-pointer"
+                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl px-3 py-2 text-xs text-slate-700 font-bold outline-none cursor-pointer"
                   >
                     <option value="Excel (.xlsx)">Excel Spreadsheet (.xlsx)</option>
                     <option value="CSV (.csv)">Raw Comma Separated (.csv)</option>

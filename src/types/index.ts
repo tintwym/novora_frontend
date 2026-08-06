@@ -5,7 +5,9 @@ export type EmploymentStatus = 'Permanent' | 'Contract' | 'Intern' | 'Part-time'
 export type EmployeeStatus = 'Active' | 'On Leave' | 'Inactive';
 
 export interface Employee {
-  id: string; // e.g. "EMP-0285"
+  id: string; // display code e.g. "EMP-0285"
+  /** Backend UUID when loaded from the API — required for admin mutations. */
+  apiId?: string;
   name: string;
   department: Department;
   position: string;
@@ -17,9 +19,13 @@ export interface Employee {
   email: string;
   address: string;
   avatarColor: string; // Tailwind bg color class
+  /** Optional local/data-URL profile photo (client preview). */
+  avatarUrl?: string;
   dependents: string;
   emergencyContact: string;
   reportsTo?: string; // ID of the manager
+  departmentId?: string;
+  positionId?: string;
 }
 
 export type SidebarTab =
