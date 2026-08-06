@@ -672,7 +672,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                               onClick={() => handlePollVoteSubmit(poll.id, opt.key)}
                               className={`w-full text-left p-2.5 border rounded-xl flex flex-col transition-all cursor-pointer ${
                                 isVoted
-                                  ? 'bg-slate-50/50 border-slate-150'
+                                  ? 'bg-slate-50/50 border-slate-100'
                                   : 'bg-white border-slate-100 hover:bg-slate-50/50 hover:border-slate-205'
                               }`}
                             >
@@ -791,7 +791,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                           entry.vibe === 'Burnout Alert' ? 'bg-rose-50 text-rose-700 border border-rose-100' :
                           entry.vibe === 'Positive' ? 'bg-emerald-50 text-emerald-705 border border-emerald-100' :
                           entry.vibe === 'Constructive' ? 'bg-indigo-50 text-indigo-705 border border-indigo-150' :
-                          'bg-slate-50 text-slate-705 border border-slate-150'
+                          'bg-slate-50 text-slate-700 border border-slate-100'
                         }`}>
                           🎭 {entry.vibe}
                         </span>
@@ -830,7 +830,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                     <div className="shrink-0 flex md:flex-col justify-center items-center p-3.5 md:p-0 bg-slate-50 md:bg-transparent rounded-xl md:rounded-none gap-3">
                       <button
                         onClick={() => handleHeartSuggestion(entry.id, entry.engagementHearts)}
-                        className="p-3 bg-white border border-slate-150 hover:border-rose-200 text-slate-500 hover:text-rose-600 rounded-xl transition-all cursor-pointer shadow-3xs flex items-center gap-2"
+                        className="p-3 bg-white border border-slate-100 hover:border-rose-200 text-slate-500 hover:text-rose-600 rounded-xl transition-all cursor-pointer shadow-3xs flex items-center gap-2"
                         title="Vouch / Agree with this issue"
                       >
                         <Heart className="h-4.5 w-4.5 text-rose-500 fill-rose-500" />
@@ -860,7 +860,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
               <div className="bg-white border border-slate-100 p-6 rounded-2xl shadow-xs space-y-4">
                 <div className="flex items-center gap-2">
                   <Award className="h-5 w-5 text-amber-500" />
-                  <h5 className="text-[12.5px] font-black text-slate-805 uppercase tracking-wide">Send a Virtual High-Five</h5>
+                  <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Send a Virtual High-Five</h5>
                 </div>
 
                 <form onSubmit={handleShoutOutSubmit} className="space-y-4">
@@ -979,7 +979,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
 
                       <button
                         onClick={() => handleClapShoutOut(card.id)}
-                        className="p-1.5 px-3 bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-[#2f66e0] rounded-lg border border-slate-150 transition-colors cursor-pointer text-[10.5px] font-black flex items-center gap-1.5 shadow-3xs"
+                        className="p-1.5 px-3 bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-[#2f66e0] rounded-lg border border-slate-100 transition-colors cursor-pointer text-[10.5px] font-black flex items-center gap-1.5 shadow-3xs"
                         title="Cheer for this peer!"
                       >
                         <span>👏 Applause</span>
@@ -1094,7 +1094,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                       <select
                         value={newActPriority}
                         onChange={(e) => setNewActPriority(e.target.value as any)}
-                        className="w-full text-xs font-bold text-slate-750 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-2 outline-none cursor-pointer focus:bg-white focus:border-slate-200"
+                        className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-2 outline-none cursor-pointer focus:bg-white focus:border-slate-200"
                       >
                         <option value="Critical">🚨 Critical</option>
                         <option value="High">🔴 High</option>
@@ -1110,7 +1110,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                       type="date"
                       value={newActDueDate}
                       onChange={(e) => setNewActDueDate(e.target.value)}
-                      className="w-full text-xs text-slate-705 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2 outline-none cursor-pointer focus:bg-white focus:border-slate-200"
+                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2 outline-none cursor-pointer focus:bg-white focus:border-slate-200"
                     />
                   </div>
 
@@ -1415,7 +1415,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
 
               {/* Badges Distribution Stats */}
               <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-3xs space-y-4">
-                <h5 className="text-[12.5px] font-black text-slate-805 uppercase tracking-wide">Shared Badges Distribution</h5>
+                <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Shared Badges Distribution</h5>
                 
                 <div className="space-y-3">
                   {[

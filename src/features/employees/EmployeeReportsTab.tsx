@@ -19,6 +19,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import type { Employee } from '@/types';
+import { formatPersonDisplayName } from '@/lib/personName';
 
 interface EmployeeReportsTabProps {
   employees: Employee[];
@@ -121,39 +122,45 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
           
           <div className="flex flex-col">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Sector</span>
-            <select
-              value={selectedDept}
-              onChange={(e) => {
-                setSelectedDept(e.target.value);
-                addToast(`Report focused on ${e.target.value} department`, 'info');
-              }}
-              className="bg-white border border-slate-200 hover:border-slate-350 rounded-xl px-3 py-1.5 text-xs text-slate-705 font-bold outline-none cursor-pointer"
-            >
-              <option value="All">All Departments &bull; Consolidated</option>
-              <option value="Engineering">Engineering Department</option>
-              <option value="Finance">Finance Team</option>
-              <option value="HR">Human Resources</option>
-              <option value="Marketing">Marketing &amp; Sales</option>
-              <option value="Operations">Operations Support</option>
-            </select>
+            <div className="relative">
+              <select
+                value={selectedDept}
+                onChange={(e) => {
+                  setSelectedDept(e.target.value);
+                  addToast(`Report focused on ${e.target.value} department`, 'info');
+                }}
+                className="appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3 pr-9 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer"
+              >
+                <option value="All">All Departments</option>
+                <option value="Engineering">Engineering Department</option>
+                <option value="Finance">Finance Team</option>
+                <option value="HR">Human Resources</option>
+                <option value="Marketing">Marketing &amp; Sales</option>
+                <option value="Operations">Operations Support</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 shrink-0" strokeWidth={2.25} />
+            </div>
           </div>
 
           <div className="flex flex-col">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Employment Type</span>
-            <select
-              value={selectedEmploymentType}
-              onChange={(e) => {
-                setSelectedEmploymentType(e.target.value);
-                addToast(`Report filtered to: ${e.target.value}`, 'info');
-              }}
-              className="bg-white border border-slate-200 hover:border-slate-350 rounded-xl px-3 py-1.5 text-xs text-slate-705 font-bold outline-none cursor-pointer"
-            >
-              <option value="All">All Types (Permanent &amp; Temp)</option>
-              <option value="Permanent">Permanent Staff</option>
-              <option value="Contract">Contract Roster</option>
-              <option value="Intern">Internships</option>
-              <option value="Part-time">Part-time</option>
-            </select>
+            <div className="relative">
+              <select
+                value={selectedEmploymentType}
+                onChange={(e) => {
+                  setSelectedEmploymentType(e.target.value);
+                  addToast(`Report filtered to: ${e.target.value}`, 'info');
+                }}
+                className="appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3 pr-9 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer"
+              >
+                <option value="All">All Types</option>
+                <option value="Permanent">Permanent Staff</option>
+                <option value="Contract">Contract Roster</option>
+                <option value="Intern">Internships</option>
+                <option value="Part-time">Part-time</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 shrink-0" strokeWidth={2.25} />
+            </div>
           </div>
 
         </div>
@@ -288,7 +295,7 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
 
               return (
                 <div key={dept.name} className={`space-y-1 ${!isFocused ? 'opacity-35 transition-opacity' : 'transition-opacity'}`}>
-                  <div className="flex justify-between text-xs font-bold text-slate-705">
+                  <div className="flex justify-between text-xs font-bold text-slate-700">
                     <span className="flex items-center gap-1.5">
                       <Building className="h-3.5 w-3.5 text-slate-400" />
                       <span>{dept.name} Team</span>
@@ -462,16 +469,16 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
                   <td className="py-3.5 px-4.5">
                     <div className="flex items-center gap-2.5">
                       <div className={`h-7 w-7 rounded-md flex items-center justify-center text-white font-bold text-[10.5px] shrink-0 ${emp.avatarColor}`}>
-                        {getInitials(emp.name)}
+                        {getInitials(formatPersonDisplayName(emp.name))}
                       </div>
                       <div>
-                        <span className="text-slate-800 font-bold block">{emp.name}</span>
+                        <span className="text-slate-800 font-bold block">{formatPersonDisplayName(emp.name)}</span>
                         <span className="text-[10px] text-slate-400 font-semibold block">{emp.email}</span>
                       </div>
                     </div>
                   </td>
                   <td className="py-3.5 px-4.5">
-                    <span className="text-slate-750 block">{emp.position}</span>
+                    <span className="text-slate-700 block">{emp.position}</span>
                     <span className="text-[10px] text-[#2f66e0] bg-blue-50 px-2 py-0.5 rounded font-bold inline-block mt-0.5">{emp.department}</span>
                   </td>
                   <td className="py-3.5 px-4.5">

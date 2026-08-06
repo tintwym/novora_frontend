@@ -662,11 +662,11 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
             <div className="grid grid-cols-2 gap-2.5">
               <div className="bg-white border border-slate-100/80 rounded-lg p-2.5">
                 <span className="text-[8.5px] text-slate-400 font-extrabold block uppercase tracking-wider">Clock In</span>
-                <span className="text-xs font-black text-slate-750 block mt-0.5 font-mono">{punchInTime}</span>
+                <span className="text-xs font-black text-slate-700 block mt-0.5 font-mono">{punchInTime}</span>
               </div>
               <div className="bg-white border border-slate-100/80 rounded-lg p-2.5">
                 <span className="text-[8.5px] text-slate-400 font-extrabold block uppercase tracking-wider">Clock Out</span>
-                <span className="text-xs font-black text-slate-750 block mt-0.5 font-mono">{punchOutTime}</span>
+                <span className="text-xs font-black text-slate-700 block mt-0.5 font-mono">{punchOutTime}</span>
               </div>
             </div>
 
@@ -806,7 +806,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
 
           <div className="flex flex-col gap-3">
             <div>
-              <span className="text-[28px] font-black text-slate-805 tracking-tight block leading-none">
+              <span className="text-[28px] font-black text-slate-800 tracking-tight block leading-none">
                 $1,248,320
               </span>
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block mt-1">
@@ -872,7 +872,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
       {/* PORTAL GATEWAY MODAL: Interactive Automated Audit Process Simulation */}
       {showAuditModal && (
         <div id="payroll-regulatory-modal" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-150 rounded-3xl p-6.5 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 duration-250">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6.5 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 duration-250">
             
             {/* Header branding */}
             <div>
@@ -959,7 +959,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
             <div className="mt-6 flex justify-end gap-2.5 border-t border-slate-100 pt-4">
               <button 
                 onClick={() => setShowAuditModal(false)}
-                className="px-4 py-2 text-[10.5px] font-black rounded-lg text-slate-500 hover:text-slate-800 bg-slate-50 hover:bg-slate-150 tracking-wide uppercase transition-all cursor-pointer"
+                className="px-4 py-2 text-[10.5px] font-black rounded-lg text-slate-500 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 tracking-wide uppercase transition-all cursor-pointer"
               >
                 {auditComplete ? 'Close Portal' : 'Cancel Audit'}
               </button>

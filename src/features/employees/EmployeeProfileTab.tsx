@@ -29,6 +29,7 @@ import {
   Printer
 } from 'lucide-react';
 import type { Employee, EmploymentStatus } from '@/types';
+import { formatPersonDisplayName } from '@/lib/personName'
 
 interface EmployeeProfileTabProps {
   employee: Employee | null;
@@ -54,6 +55,7 @@ export default function EmployeeProfileTab({
   // Generic Edit states
   const [isEditingSummary, setIsEditingSummary] = useState(false);
   const [isEditingPersonal, setIsEditingPersonal] = useState(false);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [isEditingPayRate, setIsEditingPayRate] = useState(false);
   const [isEditingHRNotes, setIsEditingHRNotes] = useState(false);
 
@@ -199,41 +201,41 @@ export default function EmployeeProfileTab({
     // Personal Subtab info
     dob: '14 March 1991',
     gender: 'Female',
-    nationality: 'Malaysian',
-    nric: '910314-10-5678',
+    nationality: 'Singaporean',
+    nric: 'S9103145A',
     religion: 'Buddhism',
     maritalStatus: 'Married',
     personalEmail: 'sarah.lim@gmail.com',
-    mobileNo: '+60 12-345 6789',
+    mobileNo: '+65 9123 4567',
     race: 'Chinese',
 
     // Passport
     passportEnabled: true,
     passportNo: 'A12345678',
-    passportCountry: 'Malaysia',
+    passportCountry: 'Singapore',
     passportIssueDate: '10 Jan 2020',
     passportExpiryDate: '9 Jan 2030',
 
     // Address
-    addressLine1: '12, Jalan Setia Prima A U13/A',
-    addressLine2: 'Setia Alam',
-    city: 'Shah Alam',
-    state: 'Selangor',
-    postcode: '40170',
-    country: 'Malaysia',
+    addressLine1: '12 Marina Boulevard, #28-01',
+    addressLine2: 'Marina Bay',
+    city: 'Singapore',
+    state: 'Singapore',
+    postcode: '018982',
+    country: 'Singapore',
     sameAsPermanent: true,
-    perAddress: '12, Jalan Setia Prima A U13/A, Setia Alam, 40170 Shah Alam, Selangor, Malaysia',
+    perAddress: '12 Marina Boulevard, #28-01, Marina Bay Financial Centre, Singapore 018982',
 
     // Family Members
     familyMembers: [
-      { id: '1', name: 'Lim Kah Fatt', relationship: 'Spouse', dob: '12 Jun 1988', nric: '880612-10-1234', taxExempt: true, passport: 'N/A' },
-      { id: '2', name: 'Lim Zhi Xuan', relationship: 'Child', dob: '4 Feb 2018', nric: '180204-10-5555', taxExempt: true, passport: 'N/A' },
-      { id: '3', name: 'Lim Mei Hua', relationship: 'Mother', dob: '8 Sep 1962', nric: '620908-10-4321', taxExempt: false, passport: 'N/A' }
+      { id: '1', name: 'Lim Kah Fatt', relationship: 'Spouse', dob: '12 Jun 1988', nric: 'S8806121B', taxExempt: true, passport: 'N/A' },
+      { id: '2', name: 'Lim Zhi Xuan', relationship: 'Child', dob: '4 Feb 2018', nric: 'T1802045C', taxExempt: true, passport: 'N/A' },
+      { id: '3', name: 'Lim Mei Hua', relationship: 'Mother', dob: '8 Sep 1962', nric: 'S6209087D', taxExempt: false, passport: 'N/A' }
     ],
 
     // Next of Kin
     nokList: [
-      { id: '1', name: 'Lim Kah Fatt', relationship: 'Spouse', contactNo: '+60 16-789 1234', address: 'Same as employee' }
+      { id: '1', name: 'Lim Kah Fatt', relationship: 'Spouse', contactNo: '+65 8765 4321', address: 'Same as employee' }
     ],
 
     // Biometrics Log
@@ -249,7 +251,7 @@ export default function EmployeeProfileTab({
 
     // Pay Rate Tab Info
     payType: 'Monthly',
-    currency: 'MYR (Malaysian Ringgit)',
+    currency: 'SGD (Singapore Dollar)',
     basicSalary: 7500.00,
     payEffectiveDate: '1 Mar 2024',
     bankAccount: 'Maybank •••• 4521',
@@ -261,27 +263,27 @@ export default function EmployeeProfileTab({
     ],
 
     deductions: [
-      { id: '1', type: 'EPF (Employee)', amount: 825.00, frequency: 'Monthly', reference: '11%', status: 'Active' },
-      { id: '2', type: 'SOCSO', amount: 49.40, frequency: 'Monthly', reference: 'Statutory', status: 'Active' },
-      { id: '3', type: 'Income Tax (PCB)', amount: 620.00, frequency: 'Monthly', reference: 'Est.', status: 'Active' }
+      { id: '1', type: 'CPF (Employee)', amount: 825.00, frequency: 'Monthly', reference: '11%', status: 'Active' },
+      { id: '2', type: 'CPF MediSave', amount: 49.40, frequency: 'Monthly', reference: 'Statutory', status: 'Active' },
+      { id: '3', type: 'Income Tax (IRAS)', amount: 620.00, frequency: 'Monthly', reference: 'Est.', status: 'Active' }
     ],
 
     // Career History
     careerHistory: [
-      { id: '1', company: 'Tech Solutions Sdn Bhd', position: 'Junior Developer', from: 'Jun 2013', to: 'Dec 2016', reason: 'Career growth' },
+      { id: '1', company: 'Tech Solutions Pte. Ltd.', position: 'Junior Developer', from: 'Jun 2013', to: 'Dec 2016', reason: 'Career growth' },
       { id: '2', company: 'Infineon Technologies', position: 'Software Engineer', from: 'Jan 2017', to: 'Dec 2020', reason: 'Better opportunity' }
     ],
 
     // Education
     educationList: [
-      { id: '1', institution: 'Universiti Malaya', qualification: "Bachelor's Degree", fieldOfStudy: 'Computer Science', year: '2013', grade: 'First Class' }
+      { id: '1', institution: 'National University of Singapore', qualification: "Bachelor's Degree", fieldOfStudy: 'Computer Science', year: '2013', grade: 'First Class' }
     ],
 
     // Documents
     documentsList: [
       { id: '1', name: 'Offer Letter', type: 'Contract', uploaded: '12 Jan 2021', expiry: '—' },
-      { id: '2', name: 'NRIC Copy', type: 'ID', uploaded: '12 Jan 2021', expiry: '—' },
-      { id: '3', name: 'Passport', type: 'ID', uploaded: '10 Jan 2020', expiry: '9 Jan 2030' }
+      { id: '2', name: 'NRIC Copy', type: 'NRIC', uploaded: '12 Jan 2021', expiry: '—' },
+      { id: '3', name: 'Passport', type: 'Passport', uploaded: '10 Jan 2020', expiry: '9 Jan 2030' }
     ]
   });
 
@@ -298,8 +300,8 @@ export default function EmployeeProfileTab({
 
     const defaultDocs = [
       { id: '1', name: `Offer Letter - ${employee.name}`, type: 'Contract', uploaded: '12 Jan 2021', expiry: '—' },
-      { id: '2', name: 'NRIC Copy', type: 'ID', uploaded: '12 Jan 2021', expiry: '—' },
-      { id: '3', name: 'Passport', type: 'ID', uploaded: '10 Jan 2020', expiry: '9 Jan 2030' }
+      { id: '2', name: 'NRIC Copy', type: 'NRIC', uploaded: '12 Jan 2021', expiry: '—' },
+      { id: '3', name: 'Passport', type: 'Passport', uploaded: '10 Jan 2020', expiry: '9 Jan 2030' }
     ];
     const existingDocs = employeeDocsMapRef.current[employeeId] || defaultDocs;
 
@@ -323,11 +325,11 @@ export default function EmployeeProfileTab({
 
         dob: isSarah ? '14 March 1991' : '22 May 1994',
         gender: isSarah ? 'Female' : 'Male',
-        nationality: 'Malaysian',
+        nationality: 'Singaporean',
         religion: isSarah ? 'Buddhism' : 'Islam',
         maritalStatus: isSarah ? 'Married' : 'Single',
         personalEmail: isSarah ? 'sarah.lim@gmail.com' : `${employee.name.toLowerCase().replace(/\s+/g, '.')}@gmail.com`,
-        mobileNo: isSarah ? '+60 12-345 6789' : employee.mobile,
+        mobileNo: isSarah ? '+65 9123 4567' : employee.mobile,
         race: isSarah ? 'Chinese' : 'Malay',
         basicSalary: isSarah ? 7500.00 : 5400.00,
         bankAccount: isSarah ? 'Maybank •••• 4521' : 'CIMB •••• 8812',
@@ -397,6 +399,35 @@ export default function EmployeeProfileTab({
   };
 
   // Document upload drag/drop & submit handlers
+  const MAX_DOC_BYTES = 10 * 1024 * 1024
+  const ALLOWED_DOC_TYPES = [
+    'application/pdf',
+    'image/png',
+    'image/jpeg',
+    'image/jpg',
+    'image/webp',
+  ]
+
+  const isAllowedDocFile = (file: File) => {
+    if (ALLOWED_DOC_TYPES.includes(file.type)) return true
+    const ext = file.name.split('.').pop()?.toLowerCase()
+    return ['pdf', 'png', 'jpg', 'jpeg', 'webp'].includes(ext || '')
+  }
+
+  const applySelectedDocFile = (file: File) => {
+    if (!isAllowedDocFile(file)) {
+      addToast('Only PDF, PNG, JPG, or WEBP files are allowed.', 'error')
+      return
+    }
+    if (file.size > MAX_DOC_BYTES) {
+      addToast('File must be 10MB or smaller.', 'error')
+      return
+    }
+    setSelectedFile(file)
+    const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name
+    setDocCustomName(baseName)
+  }
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -415,22 +446,15 @@ export default function EmployeeProfileTab({
     setIsDragging(false);
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      setSelectedFile(file);
-      // Autofill name (removing the file extension)
-      const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-      setDocCustomName(baseName);
+      applySelectedDocFile(e.dataTransfer.files[0]!);
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setSelectedFile(file);
-      // Autofill name (removing the file extension)
-      const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-      setDocCustomName(baseName);
+      applySelectedDocFile(e.target.files[0]!);
     }
+    e.target.value = '';
   };
 
   const handleUploadSubmit = (e: React.FormEvent) => {
@@ -1022,14 +1046,18 @@ export default function EmployeeProfileTab({
           
           <div className="flex items-center gap-5">
             {/* Ava */}
-            <div className={`h-22 w-22 rounded-full flex items-center justify-center font-bold text-2xl tracking-tighter shadow-md border border-slate-100 ${employee.avatarColor}`}>
-              {getInitials(employee.name)}
+            <div className={`h-22 w-22 rounded-full flex items-center justify-center font-bold text-2xl tracking-tighter shadow-md border border-slate-100 overflow-hidden relative ${employee.avatarColor}`}>
+              {employee.avatarUrl ? (
+                <img src={employee.avatarUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              ) : (
+                getInitials(formatPersonDisplayName(employee.name))
+              )}
             </div>
             
             {/* Core titles details */}
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2.5">
-                <h2 className="text-xl font-bold tracking-tight text-slate-800 leading-none">{employee.name}</h2>
+                <h2 className="text-xl font-bold tracking-tight text-slate-800 leading-none">{formatPersonDisplayName(employee.name)}</h2>
                 <span className="bg-emerald-50 text-[#059669] border border-emerald-100/30 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 whitespace-nowrap shrink-0">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse items-center shrink-0" />
                   Active
@@ -1043,7 +1071,7 @@ export default function EmployeeProfileTab({
                 </span>
                 <span className="flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" strokeWidth={2.2} />
-                  Kuala Lumpur, HQ
+                  Singapore HQ
                 </span>
               </div>
 
@@ -1057,19 +1085,19 @@ export default function EmployeeProfileTab({
           {/* Stat summary grid with thin vertical separators */}
           <div className="grid grid-cols-4 gap-4 xl:w-fit xl:gap-8 bg-slate-50/50 p-4.5 rounded-2xl border border-slate-100/50">
             <div className="text-center px-2">
-              <span className="text-[15px] font-black text-slate-850 block">{profileData.tenure}</span>
+              <span className="text-[15px] font-black text-slate-800 block">{profileData.tenure}</span>
               <span className="text-[9.5px] text-slate-400 font-extrabold uppercase tracking-wide block mt-0.5">Tenure</span>
             </div>
             <div className="text-center px-4 border-l border-slate-200/80">
-              <span className="text-[15px] font-black text-slate-850 block">{profileData.payGrade}</span>
+              <span className="text-[15px] font-black text-slate-800 block">{profileData.payGrade}</span>
               <span className="text-[9.5px] text-slate-400 font-extrabold uppercase tracking-wide block mt-0.5">Pay Grade</span>
             </div>
             <div className="text-center px-4 border-l border-slate-200/80">
-              <span className="text-[15px] font-black text-slate-850 block">{profileData.leaveLeft}</span>
+              <span className="text-[15px] font-black text-slate-800 block">{profileData.leaveLeft}</span>
               <span className="text-[9.5px] text-slate-400 font-extrabold uppercase tracking-wide block mt-0.5">Leave Left</span>
             </div>
             <div className="text-center px-2 border-l border-slate-200/80">
-              <span className="text-[15px] font-black text-slate-850 block">{profileData.performanceScore}</span>
+              <span className="text-[15px] font-black text-slate-800 block">{profileData.performanceScore}</span>
               <span className="text-[9.5px] text-slate-400 font-extrabold uppercase tracking-wide block mt-0.5">Performance</span>
             </div>
           </div>
@@ -1188,7 +1216,7 @@ export default function EmployeeProfileTab({
                             <option value="Part-time">Part-time</option>
                           </select>
                         ) : (
-                          <span className="text-slate-850 font-bold">{profileData.jobType}</span>
+                          <span className="text-slate-800 font-bold">{profileData.jobType}</span>
                         )}
                       </div>
 
@@ -1245,7 +1273,7 @@ export default function EmployeeProfileTab({
                           <span className="text-slate-500">Annual leave</span>
                           <span className="text-slate-800 font-mono font-black">{profileData.annualLeaveUsed} / {profileData.annualLeaveMax} days</span>
                         </div>
-                        <div className="w-full bg-slate-105 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50">
+                        <div className="w-full bg-slate-100 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50">
                           <div className="bg-[#2f66e0] h-full rounded-full" style={{ width: `${(profileData.annualLeaveUsed / profileData.annualLeaveMax) * 100}%` }} />
                         </div>
                       </div>
@@ -1455,7 +1483,7 @@ export default function EmployeeProfileTab({
                     
                     {/* Input Field Helper (Compact Inline Inputs) */}
                     {[
-                      { key: 'name', label: 'Full name', value: employee.name, editable: false },
+                      { key: 'name', label: 'Full name', value: formatPersonDisplayName(employee.name), editable: false },
                       { key: 'dob', label: 'Date of birth', value: profileData.dob },
                       { key: 'gender', label: 'Gender', value: profileData.gender },
                       { key: 'nationality', label: 'Nationality', value: profileData.nationality },
@@ -1473,10 +1501,10 @@ export default function EmployeeProfileTab({
                             type="text" 
                             value={(profileData as any)[field.key]} 
                             onChange={(e) => { setProfileData({...profileData, [field.key]: e.target.value}); setIsStateModified(true); }}
-                            className="bg-slate-55 bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 px-2 py-1 rounded text-xs font-bold text-slate-800"
+                            className="bg-slate-50 bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 px-2 py-1 rounded text-xs font-bold text-slate-800"
                           />
                         ) : (
-                          <span className="text-slate-850 font-bold block pt-0.5">{field.value}</span>
+                          <span className="text-slate-800 font-bold block pt-0.5">{field.value}</span>
                         )}
                       </div>
                     ))}
@@ -1518,7 +1546,7 @@ export default function EmployeeProfileTab({
                               className="bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 px-2 py-1 rounded text-xs font-bold text-slate-800"
                             />
                           ) : (
-                            <span className="text-slate-850 font-bold block pt-0.5">{field.value}</span>
+                            <span className="text-slate-800 font-bold block pt-0.5">{field.value}</span>
                           )}
                         </div>
                       ))}
@@ -1528,8 +1556,33 @@ export default function EmployeeProfileTab({
 
                 {/* Current Address */}
                 <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
-                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-50 pb-3">Current address</h3>
-                  
+                  <div className="flex justify-between items-center border-b border-slate-50 pb-3">
+                    <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Current address</h3>
+                    {!isEditingAddress ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingAddress(true)}
+                        className="text-[10px] font-black text-[#2f66e0] hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
+                        title="Edit address"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditingAddress(false);
+                          triggerAutoSave(undefined, profileData.mobileNo);
+                          addToast('Address updated and auto-saved.', 'success');
+                        }}
+                        className="text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-lg flex items-center gap-1 cursor-pointer"
+                      >
+                        <Check className="h-3 w-3" />
+                        <span>Done</span>
+                      </button>
+                    )}
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-12 text-xs">
                     {[
                       { key: 'addressLine1', label: 'Address line 1', value: profileData.addressLine1 },
@@ -1541,27 +1594,28 @@ export default function EmployeeProfileTab({
                     ].map((field) => (
                       <div key={field.key} className="flex flex-col gap-1 pb-2 border-b border-slate-50">
                         <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">{field.label}</span>
-                        {isEditingPersonal ? (
-                          <input 
-                            type="text" 
-                            value={(profileData as any)[field.key]} 
+                        {isEditingAddress ? (
+                          <input
+                            type="text"
+                            value={(profileData as any)[field.key]}
                             onChange={(e) => { setProfileData({...profileData, [field.key]: e.target.value}); setIsStateModified(true); }}
                             className="bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 px-2 py-1 rounded text-xs font-bold text-slate-800"
                           />
                         ) : (
-                          <span className="text-slate-850 font-bold block pt-0.5">{field.value}</span>
+                          <span className="text-slate-800 font-bold block pt-0.5">{field.value}</span>
                         )}
                       </div>
                     ))}
                   </div>
 
                   <div className="flex items-center gap-2 pt-2">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       id="address-same"
                       checked={profileData.sameAsPermanent}
+                      disabled={!isEditingAddress}
                       onChange={(e) => { setProfileData({...profileData, sameAsPermanent: e.target.checked}); setIsStateModified(true); }}
-                      className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                     />
                     <label htmlFor="address-same" className="text-xs font-semibold text-slate-600 cursor-pointer select-none">Same as permanent address</label>
                   </div>
@@ -1613,7 +1667,7 @@ export default function EmployeeProfileTab({
                         ) : (
                           profileData.familyMembers.map((fam) => (
                             <tr key={fam.id} className="hover:bg-slate-50/20">
-                              <td className="py-3.5 font-bold text-slate-850">
+                              <td className="py-3.5 font-bold text-slate-800">
                                 {fam.name}
                               </td>
                               <td className="py-3.5">
@@ -1708,7 +1762,7 @@ export default function EmployeeProfileTab({
                         ) : (
                           profileData.nokList.map((nok) => (
                             <tr key={nok.id} className="hover:bg-slate-50/20">
-                              <td className="py-3.5 font-bold text-slate-850">
+                              <td className="py-3.5 font-bold text-slate-800">
                                 {nok.name}
                               </td>
                               <td className="py-3.5">
@@ -1716,7 +1770,7 @@ export default function EmployeeProfileTab({
                                   {nok.relationship}
                                 </span>
                               </td>
-                              <td className="py-3.5 font-mono text-slate-650">
+                              <td className="py-3.5 font-mono text-slate-600">
                                 {nok.contactNo || '—'}
                               </td>
                               <td className="py-3.5 text-slate-600">
@@ -1812,7 +1866,7 @@ export default function EmployeeProfileTab({
                             profileData.biometricDevices.map((dev, idx) => (
                               <tr key={dev.taNumber || idx} className="hover:bg-slate-50/20">
                                 <td className="py-3.5 font-mono font-bold text-slate-500 text-[11px]">{dev.taNumber}</td>
-                                <td className="py-3.5 font-bold text-slate-850">{dev.terminalName}</td>
+                                <td className="py-3.5 font-bold text-slate-800">{dev.terminalName}</td>
                                 <td className="py-3.5">
                                   <span className="bg-blue-50 text-blue-700 border border-blue-100 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase inline-flex items-center whitespace-nowrap shrink-0">
                                     {dev.deviceType}
@@ -1832,7 +1886,7 @@ export default function EmployeeProfileTab({
                                   <div className="flex items-center justify-end gap-2">
                                     <button 
                                       onClick={() => handleEditBiometricDevice(dev)}
-                                      className="px-3 py-1.5 border border-slate-200 hover:border-slate-350 hover:bg-slate-55 rounded-lg text-slate-705 font-bold tracking-wide text-[10.5px] cursor-pointer"
+                                      className="px-3 py-1.5 border border-slate-200 hover:border-slate-200 hover:bg-slate-50 rounded-lg text-slate-700 font-bold tracking-wide text-[10.5px] cursor-pointer"
                                     >
                                     <Edit2 className="h-3.5 w-3.5" />
                                   </button>
@@ -1909,7 +1963,7 @@ export default function EmployeeProfileTab({
 
                       <div className="flex flex-col gap-1 pb-2 pl-6.5">
                         <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Assigned shift</span>
-                        <span className="text-slate-850 font-black block text-[12px]">{profileData.assignedShift}</span>
+                        <span className="text-slate-800 font-black block text-[12px]">{profileData.assignedShift}</span>
                       </div>
                     </div>
 
@@ -1978,13 +2032,13 @@ export default function EmployeeProfileTab({
                           />
                         </div>
                       ) : (
-                        <span className="text-[#2F66E0] font-black block text-[13.5px] pt-0.5">MYR {profileData.basicSalary.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span className="text-[#2F66E0] font-black block text-[13.5px] pt-0.5">SGD {profileData.basicSalary.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       )}
                     </div>
 
                     <div className="flex flex-col gap-1 pb-2 border-b border-slate-50">
                       <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Effective date</span>
-                      <span className="text-slate-850 font-bold block pt-0.5">{profileData.payEffectiveDate}</span>
+                      <span className="text-slate-800 font-bold block pt-0.5">{profileData.payEffectiveDate}</span>
                     </div>
 
                     <div className="flex flex-col gap-1 pb-2 border-b border-slate-50">
@@ -2024,7 +2078,7 @@ export default function EmployeeProfileTab({
                       <thead>
                         <tr className="text-slate-400 font-extrabold pb-3 border-b border-slate-100 text-[10.5px] uppercase tracking-wider select-none">
                           <th className="pb-3 text-left">Allowance type</th>
-                          <th className="pb-3 text-left">Amount (MYR)</th>
+                          <th className="pb-3 text-left">Amount (SGD)</th>
                           <th className="pb-3 text-left">Frequency</th>
                           <th className="pb-3 text-left">Taxable</th>
                           <th className="pb-3 text-left">Status</th>
@@ -2041,9 +2095,9 @@ export default function EmployeeProfileTab({
                         ) : (
                           profileData.allowances.map((allow, idx) => (
                             <tr key={allow.id || idx} className="hover:bg-slate-50/20">
-                              <td className="py-3.5 font-bold text-slate-850">{allow.type}</td>
+                              <td className="py-3.5 font-bold text-slate-800">{allow.type}</td>
                               <td className="py-3.5 font-mono font-bold text-[#2f66e0]">
-                                MYR {allow.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                SGD {allow.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </td>
                               <td className="py-3.5 text-slate-500 font-semibold">{allow.frequency}</td>
                               <td className="py-3.5">
@@ -2111,7 +2165,7 @@ export default function EmployeeProfileTab({
                       <thead>
                         <tr className="text-slate-400 font-extrabold pb-3 border-b border-slate-100 text-[10.5px] uppercase tracking-wider select-none">
                           <th className="pb-3 text-left">Deduction type</th>
-                          <th className="pb-3 text-left">Amount (MYR)</th>
+                          <th className="pb-3 text-left">Amount (SGD)</th>
                           <th className="pb-3 text-left">Frequency</th>
                           <th className="pb-3 text-left">Reference</th>
                           <th className="pb-3 text-left">Status</th>
@@ -2128,9 +2182,9 @@ export default function EmployeeProfileTab({
                         ) : (
                           profileData.deductions.map((ded, idx) => (
                             <tr key={ded.id || idx} className="hover:bg-slate-50/20">
-                              <td className="py-3.5 font-bold text-slate-850">{ded.type}</td>
+                              <td className="py-3.5 font-bold text-slate-800">{ded.type}</td>
                               <td className="py-3.5 font-mono font-bold text-rose-600">
-                                MYR {ded.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                SGD {ded.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </td>
                               <td className="py-3.5 text-slate-500 font-semibold">{ded.frequency}</td>
                               <td className="py-3.5 text-slate-600 font-bold">{ded.reference || '—'}</td>
@@ -2176,7 +2230,7 @@ export default function EmployeeProfileTab({
                       <Coins className="h-5.5 w-5.5 animate-pulse" />
                     </span>
                     <div>
-                      <span className="text-blue-505 text-blue-600 text-xs font-black block tracking-wide uppercase text-[10.5px]">Estimated net pay (monthly)</span>
+                      <span className="text-blue-500 text-blue-600 text-xs font-black block tracking-wide uppercase text-[10.5px]">Estimated net pay (monthly)</span>
                       <span className="text-slate-400 text-[10.5px] font-bold block mt-0.5">Basic + Allowances &ndash; Deductions</span>
                     </div>
                   </div>
@@ -2186,7 +2240,7 @@ export default function EmployeeProfileTab({
                       <ArrowDown className="h-4.5 w-4.5 shrink-0" />
                     </span>
                     <span className="text-[#1d4ed8] font-black text-2xl font-mono tracking-tighter">
-                      MYR {estimatedNetPay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      SGD {estimatedNetPay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
                 </div>
@@ -2234,7 +2288,7 @@ export default function EmployeeProfileTab({
                         ) : (
                           profileData.careerHistory.map((hist, idx) => (
                             <tr key={hist.id || idx} className="hover:bg-slate-50/20">
-                              <td className="py-3.5 font-bold text-slate-850">{hist.company}</td>
+                              <td className="py-3.5 font-bold text-slate-800">{hist.company}</td>
                               <td className="py-3.5 text-slate-600 font-semibold">{hist.position}</td>
                               <td className="py-3.5 font-mono text-slate-500">{hist.from}</td>
                               <td className="py-3.5 font-mono text-slate-500">{hist.to}</td>
@@ -2307,7 +2361,7 @@ export default function EmployeeProfileTab({
                         ) : (
                           profileData.educationList.map((edu, idx) => (
                             <tr key={edu.id || idx} className="hover:bg-slate-50/20">
-                              <td className="py-3.5 font-bold text-slate-850">{edu.institution}</td>
+                              <td className="py-3.5 font-bold text-slate-800">{edu.institution}</td>
                               <td className="py-3.5 text-slate-600 font-bold">{edu.qualification}</td>
                               <td className="py-3.5 text-slate-500 font-medium">{edu.fieldOfStudy}</td>
                               <td className="py-3.5 font-mono text-slate-500">{edu.year}</td>
@@ -2397,20 +2451,22 @@ export default function EmployeeProfileTab({
                         </thead>
                         <tbody className="divide-y divide-slate-50/70 font-bold text-slate-700">
                           {profileData.documentsList.map((doc, idx) => (
-                            <tr key={doc.id || idx} className="hover:bg-slate-55">
-                              <td className="py-3.5 text-slate-850 flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-blue-500 shrink-0" />
-                                <span 
-                                  onClick={() => {
-                                    setPreviewingDoc(doc);
-                                    setShowDocPreviewModal(true);
-                                  }}
-                                  className="hover:underline cursor-pointer"
-                                >
-                                  {doc.name}
-                                </span>
+                            <tr key={doc.id || idx} className="hover:bg-slate-50">
+                              <td className="py-3.5 text-slate-800">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <FileText className="h-4 w-4 text-blue-500 shrink-0" />
+                                  <span
+                                    onClick={() => {
+                                      setPreviewingDoc(doc);
+                                      setShowDocPreviewModal(true);
+                                    }}
+                                    className="hover:underline cursor-pointer truncate"
+                                  >
+                                    {doc.name}
+                                  </span>
+                                </div>
                               </td>
-                              <td className="py-3.5 text-slate-650">
+                              <td className="py-3.5 text-slate-600">
                                 <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold text-[9.5px]">
                                   {doc.type}
                                 </span>
@@ -2424,7 +2480,7 @@ export default function EmployeeProfileTab({
                                       setPreviewingDoc(doc);
                                       setShowDocPreviewModal(true);
                                     }}
-                                    className="px-3.5 py-1.5 border border-slate-200 hover:border-slate-350 hover:bg-slate-50 rounded-lg text-slate-705 font-bold tracking-wide text-[10.5px] cursor-pointer"
+                                    className="px-3.5 py-1.5 border border-slate-200 hover:border-slate-200 hover:bg-slate-50 rounded-lg text-slate-700 font-bold tracking-wide text-[10.5px] cursor-pointer"
                                   >
                                     View
                                   </button>
@@ -2465,8 +2521,8 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Delete Employee Confirmation Dialog */}
       {showDeleteModal && (
         <div id="profile-delete-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-150 rounded-3xl p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
-            <h4 className="text-sm font-black text-slate-850 uppercase tracking-wider">Archive Employee Record?</h4>
+          <div className="bg-white border border-slate-100 rounded-3xl p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">Archive Employee Record?</h4>
             <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">
               Are you sure you want to completely archive and revoke security clearance for <b>{employee.name}</b> ({employee.id})? This action is legally documented across active corporate ledgers.
             </p>
@@ -2493,8 +2549,8 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Reset Password Dialog */}
       {showResetModal && (
         <div id="profile-reset-pwd-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-150 rounded-3xl p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
-            <h4 className="text-sm font-black text-slate-850 uppercase tracking-wider">Regenerate Security Access</h4>
+          <div className="bg-white border border-slate-100 rounded-3xl p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">Regenerate Security Access</h4>
             <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">
               We generated a secure single-use temporary credentials profile for <b>{employee.name}</b>.
             </p>
@@ -2512,7 +2568,7 @@ export default function EmployeeProfileTab({
             <div className="mt-5 flex justify-end gap-2.5 pt-3 border-t border-slate-100">
               <button 
                 onClick={() => setShowResetModal(false)}
-                className="px-3.5 py-2 text-[10.5px] font-black rounded-xl text-slate-500 hover:text-slate-850 bg-slate-50 uppercase tracking-widest cursor-pointer"
+                className="px-3.5 py-2 text-[10.5px] font-black rounded-xl text-slate-500 hover:text-slate-800 bg-slate-50 uppercase tracking-widest cursor-pointer"
               >
                 Discard
               </button>
@@ -2531,20 +2587,20 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Document Upload Dialog */}
       {showUploadModal && (
         <div id="profile-upload-doc-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-150 rounded-3xl p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
-                <h4 className="text-xs font-black text-slate-850 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Upload className="h-4 w-4 text-blue-500 shrink-0" />
                   <span>Upload Document</span>
                 </h4>
-                <p className="text-[10px] text-slate-450">
+                <p className="text-[10px] text-slate-400">
                   Store secure files in the system dossier for <span className="font-extrabold text-slate-700">{employee.name}</span>.
                 </p>
               </div>
               <button 
                 onClick={() => setShowUploadModal(false)}
-                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-150 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
+                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
                 title="Close"
               >
                 <X className="h-4 w-4" />
@@ -2559,6 +2615,7 @@ export default function EmployeeProfileTab({
                 <input 
                   id="file-uploader-hidden"
                   type="file" 
+                  accept=".pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp"
                   onChange={handleFileSelect} 
                   className="hidden" 
                 />
@@ -2573,19 +2630,19 @@ export default function EmployeeProfileTab({
                       ? 'border-emerald-200 bg-emerald-50/20' 
                       : isDragging 
                         ? 'border-[#2f66e0] bg-blue-50/30 ring-4 ring-blue-50' 
-                        : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-350'
+                        : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-200'
                   }`}
                 >
                   {selectedFile ? (
                     <>
-                      <div className="h-9 w-9 bg-emerald-100 text-emerald-650 rounded-xl flex items-center justify-center">
+                      <div className="h-9 w-9 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
                         <FileText className="h-4.5 w-4.5 shrink-0" />
                       </div>
                       <div className="space-y-0.5">
                         <p className="text-[11px] font-bold text-slate-800 line-clamp-1 truncate max-w-60">
                           {selectedFile.name}
                         </p>
-                        <p className="text-[9px] text-slate-450 font-mono">
+                        <p className="text-[9px] text-slate-400 font-mono">
                           {(selectedFile.size / 1024 / 1024).toFixed(3)} MB • Ready
                         </p>
                       </div>
@@ -2602,14 +2659,14 @@ export default function EmployeeProfileTab({
                     </>
                   ) : (
                     <>
-                      <div className="h-9 w-9 bg-slate-150 text-slate-500 rounded-xl flex items-center justify-center">
-                        <Upload className="h-4 w-4 text-slate-450 shrink-0" />
+                      <div className="h-9 w-9 bg-slate-100 text-slate-500 rounded-xl flex items-center justify-center">
+                        <Upload className="h-4 w-4 text-slate-400 shrink-0" />
                       </div>
                       <div className="space-y-0.5">
                         <p className="text-[11px] font-extrabold text-slate-700 leading-tight">
                           {isDragging ? 'Drop your file now' : 'Drag & drop your file here'}
                         </p>
-                        <p className="text-[9.5px] text-slate-450">
+                        <p className="text-[9.5px] text-slate-400">
                           or <span className="text-[#2f66e0] underline font-bold">browse your computer</span>
                         </p>
                       </div>
@@ -2631,7 +2688,7 @@ export default function EmployeeProfileTab({
                   placeholder="e.g. Appointment Letter"
                   value={docCustomName}
                   onChange={(e) => setDocCustomName(e.target.value)}
-                  className="w-full bg-slate-50 hover:bg-slate-55 focus:bg-white border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-800 placeholder-slate-400"
+                  className="w-full bg-slate-50 hover:bg-slate-50 focus:bg-white border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-800 placeholder-slate-400"
                 />
               </div>
 
@@ -2646,7 +2703,8 @@ export default function EmployeeProfileTab({
                     className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800"
                   >
                     <option value="Contract">Contract / Offer</option>
-                    <option value="ID">Identity Card / Passport</option>
+                    <option value="NRIC">NRIC / National ID</option>
+                    <option value="Passport">Passport</option>
                     <option value="Certificate">Certificate / Degree</option>
                     <option value="Tax">Government Tax</option>
                     <option value="Payslip">Payslip</option>
@@ -2678,7 +2736,7 @@ export default function EmployeeProfileTab({
                     required={hasExpiry}
                     value={docExpiryDate}
                     onChange={(e) => setDocExpiryDate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-850"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-800"
                   />
                 </div>
               )}
@@ -2713,20 +2771,20 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Add & Edit Family Member Modal */}
       {showFamilyModal && (
         <div id="profile-family-modal-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-150 rounded-3xl p-6 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
-                <h4 className="text-xs font-black text-slate-850 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Plus className="h-4 w-4 text-blue-500 shrink-0" />
                   <span>{editingFamilyMember ? 'Edit Family Relation' : 'Add Family Relation'}</span>
                 </h4>
-                <p className="text-[10px] text-slate-450 border-0">
+                <p className="text-[10px] text-slate-400 border-0">
                   Update dependent credentials or tax relief eligibility info
                 </p>
               </div>
               <button 
                 onClick={() => setShowFamilyModal(false)}
-                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-150 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
+                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
                 title="Close"
               >
                 <X className="h-4 w-4" />
@@ -2742,7 +2800,7 @@ export default function EmployeeProfileTab({
                   placeholder="e.g. Sarah Connor"
                   value={familyForm.name}
                   onChange={(e) => setFamilyForm({...familyForm, name: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-850"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-800"
                 />
               </div>
 
@@ -2768,7 +2826,7 @@ export default function EmployeeProfileTab({
                     required
                     value={familyForm.dob}
                     onChange={(e) => setFamilyForm({...familyForm, dob: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-850"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800"
                   />
                 </div>
               </div>
@@ -2782,7 +2840,7 @@ export default function EmployeeProfileTab({
                     placeholder="e.g. 950812-14-1234"
                     value={familyForm.nric}
                     onChange={(e) => setFamilyForm({...familyForm, nric: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-850"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800"
                   />
                 </div>
 
@@ -2793,7 +2851,7 @@ export default function EmployeeProfileTab({
                     placeholder="e.g. A2345678"
                     value={familyForm.passport}
                     onChange={(e) => setFamilyForm({...familyForm, passport: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-850"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800"
                   />
                 </div>
               </div>
@@ -2835,20 +2893,20 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Add & Edit Next of Kin Modal */}
       {showNokModal && (
         <div id="profile-nok-modal-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-150 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
-                <h4 className="text-xs font-black text-slate-855 text-slate-850 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-slate-800 text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Plus className="h-4 w-4 text-blue-500 shrink-0" />
                   <span>{editingNok ? 'Edit Next of Kin' : 'Add Next of Kin'}</span>
                 </h4>
-                <p className="text-[10px] text-slate-450 border-0">
+                <p className="text-[10px] text-slate-400 border-0">
                   Update primary emergency dispatch contact details
                 </p>
               </div>
               <button 
                 onClick={() => setShowNokModal(false)}
-                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-150 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
+                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
                 title="Close"
               >
                 <X className="h-4 w-4" />
@@ -2864,7 +2922,7 @@ export default function EmployeeProfileTab({
                   placeholder="e.g. John Connor"
                   value={nokForm.name}
                   onChange={(e) => setNokForm({...nokForm, name: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-855 text-slate-850"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-800 text-slate-800"
                 />
               </div>
 
@@ -2894,7 +2952,7 @@ export default function EmployeeProfileTab({
                     placeholder="e.g. +6012345678"
                     value={nokForm.contactNo}
                     onChange={(e) => setNokForm({...nokForm, contactNo: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-855 text-slate-850"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800 text-slate-800"
                   />
                 </div>
               </div>
@@ -2903,10 +2961,10 @@ export default function EmployeeProfileTab({
                 <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Home Address</label>
                 <textarea 
                   rows={2}
-                  placeholder="e.g. No. 42, Taman Serene, 56000 Kuala Lumpur"
+                  placeholder="e.g. 42 Telok Ayer Street, Singapore 048434"
                   value={nokForm.address}
                   onChange={(e) => setNokForm({...nokForm, address: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-850 leading-relaxed resize-none"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-800 leading-relaxed resize-none"
                 />
               </div>
 
@@ -2934,20 +2992,20 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Add & Edit Biometric Device Modal */}
       {showBiometricModal && (
         <div id="profile-biometric-modal-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-150 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
-                <h4 className="text-xs font-black text-slate-855 text-slate-850 uppercase tracking-wider flex items-center gap-1.5">
-                  <Plus className="h-4 w-4 text-blue-550 shrink-0 text-blue-500" />
+                <h4 className="text-xs font-black text-slate-800 text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <Plus className="h-4 w-4 text-blue-500 shrink-0 text-blue-500" />
                   <span>{editingBiometricDevice ? 'Edit Device' : 'Register Device'}</span>
                 </h4>
-                <p className="text-[10px] text-slate-450 border-0">
+                <p className="text-[10px] text-slate-400 border-0">
                   Configure biometric access and allocation attributes
                 </p>
               </div>
               <button 
                 onClick={() => setShowBiometricModal(false)}
-                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-155 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
+                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
                 title="Close"
               >
                 <X className="h-4 w-4" />
@@ -2957,7 +3015,7 @@ export default function EmployeeProfileTab({
             <form onSubmit={handleSaveBiometricDevice} className="mt-4 space-y-4 text-xs font-semibold text-slate-700">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-750 text-slate-700 uppercase tracking-wider block">TA Number *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 text-slate-700 uppercase tracking-wider block">TA Number *</label>
                   <input 
                     type="text" 
                     required
@@ -2968,7 +3026,7 @@ export default function EmployeeProfileTab({
                     className={`w-full border rounded-xl px-3 py-2 text-xs font-bold transition-all ${
                       editingBiometricDevice 
                         ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed' 
-                        : 'bg-slate-50 border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 text-slate-850'
+                        : 'bg-slate-50 border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 text-slate-800'
                     }`}
                   />
                 </div>
@@ -2996,7 +3054,7 @@ export default function EmployeeProfileTab({
                   placeholder="e.g. Lobby Terminal 4"
                   value={biometricForm.terminalName}
                   onChange={(e) => setBiometricForm({...biometricForm, terminalName: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-855 text-slate-850"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-slate-800 text-slate-800"
                 />
               </div>
 
@@ -3008,12 +3066,12 @@ export default function EmployeeProfileTab({
                     placeholder="e.g. Lab Floor"
                     value={biometricForm.location}
                     onChange={(e) => setBiometricForm({...biometricForm, location: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-855 text-slate-850"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800 text-slate-800"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-750 text-slate-700 uppercase tracking-wider block">Status *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 text-slate-700 uppercase tracking-wider block">Status *</label>
                   <select 
                     value={biometricForm.status}
                     onChange={(e) => setBiometricForm({...biometricForm, status: e.target.value as any})}
@@ -3049,10 +3107,10 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Add & Edit Allowance Modal */}
       {showAllowanceModal && (
         <div id="profile-allowance-modal-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-150 rounded-3xl p-6 md:p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
-                <h4 className="text-xs font-black text-slate-850 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Plus className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                   <span>{editingAllowance ? 'Edit Allowance' : 'Add Allowance'}</span>
                 </h4>
@@ -3062,7 +3120,7 @@ export default function EmployeeProfileTab({
               </div>
               <button 
                 onClick={() => setShowAllowanceModal(false)}
-                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-150 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
+                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
                 title="Close"
               >
                 <X className="h-4 w-4" />
@@ -3078,13 +3136,13 @@ export default function EmployeeProfileTab({
                   placeholder="e.g. Housing Allowance, Travelling Allowance"
                   value={allowanceForm.type}
                   onChange={(e) => setAllowanceForm({...allowanceForm, type: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-850"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-800"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Amount (MYR) *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Amount (SGD) *</label>
                   <input 
                     type="number" 
                     required
@@ -3093,7 +3151,7 @@ export default function EmployeeProfileTab({
                     placeholder="0.00"
                     value={allowanceForm.amount || ''}
                     onChange={(e) => setAllowanceForm({...allowanceForm, amount: parseFloat(e.target.value) || 0})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-mono transition-all text-slate-850"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-mono transition-all text-slate-800"
                   />
                 </div>
 
@@ -3164,10 +3222,10 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Add & Edit Deduction Modal */}
       {showDeductionModal && (
         <div id="profile-deduction-modal-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-150 rounded-3xl p-6 md:p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
-                <h4 className="text-xs font-black text-slate-855 text-slate-850 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-slate-800 text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Plus className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                   <span>{editingDeduction ? 'Edit Deduction' : 'Add Deduction'}</span>
                 </h4>
@@ -3177,7 +3235,7 @@ export default function EmployeeProfileTab({
               </div>
               <button 
                 onClick={() => setShowDeductionModal(false)}
-                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-150 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
+                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
                 title="Close"
               >
                 <X className="h-4 w-4" />
@@ -3190,16 +3248,16 @@ export default function EmployeeProfileTab({
                 <input 
                   type="text" 
                   required
-                  placeholder="e.g. EPF, SOCSO, EIS, Tax Deduction"
+                  placeholder="e.g. CPF, CDAC, SHG, IRAS tax"
                   value={deductionForm.type}
                   onChange={(e) => setDeductionForm({...deductionForm, type: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-850"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-800"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Amount (MYR) *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Amount (SGD) *</label>
                   <input 
                     type="number" 
                     required
@@ -3208,7 +3266,7 @@ export default function EmployeeProfileTab({
                     placeholder="0.00"
                     value={deductionForm.amount || ''}
                     onChange={(e) => setDeductionForm({...deductionForm, amount: parseFloat(e.target.value) || 0})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-mono transition-all text-slate-850"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-mono transition-all text-slate-800"
                   />
                 </div>
 
@@ -3235,7 +3293,7 @@ export default function EmployeeProfileTab({
                     placeholder="e.g. Statutory, Loan"
                     value={deductionForm.reference}
                     onChange={(e) => setDeductionForm({...deductionForm, reference: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-sans transition-all text-slate-850"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-sans transition-all text-slate-800"
                   />
                 </div>
 
@@ -3276,10 +3334,10 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Add & Edit Career Modal */}
       {showCareerModal && (
         <div id="profile-career-modal-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-150 rounded-3xl p-6 md:p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
-                <h4 className="text-xs font-black text-slate-850 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Briefcase className="h-3.5 w-3.5 text-[#2f66e0] shrink-0" />
                   <span>{editingCareer ? 'Edit Career Entry' : 'Add Career Entry'}</span>
                 </h4>
@@ -3289,7 +3347,7 @@ export default function EmployeeProfileTab({
               </div>
               <button 
                 onClick={() => setShowCareerModal(false)}
-                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-55 border border-slate-150 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
+                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
                 title="Close"
               >
                 <X className="h-4 w-4" />
@@ -3305,7 +3363,7 @@ export default function EmployeeProfileTab({
                   placeholder="e.g. ACME Systems, Google LLC"
                   value={careerForm.company}
                   onChange={(e) => setCareerForm({...careerForm, company: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-850"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-800"
                 />
               </div>
 
@@ -3317,7 +3375,7 @@ export default function EmployeeProfileTab({
                   placeholder="e.g. Senior software engineer"
                   value={careerForm.position}
                   onChange={(e) => setCareerForm({...careerForm, position: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-850"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-800"
                 />
               </div>
 
@@ -3329,7 +3387,7 @@ export default function EmployeeProfileTab({
                     placeholder="e.g. Jan 2011"
                     value={careerForm.from}
                     onChange={(e) => setCareerForm({...careerForm, from: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-sans transition-all text-slate-850"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-sans transition-all text-slate-800"
                   />
                 </div>
 
@@ -3340,7 +3398,7 @@ export default function EmployeeProfileTab({
                     placeholder="e.g. Jun 2013 / Present"
                     value={careerForm.to}
                     onChange={(e) => setCareerForm({...careerForm, to: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-sans transition-all text-slate-850"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-sans transition-all text-slate-800"
                   />
                 </div>
               </div>
@@ -3352,7 +3410,7 @@ export default function EmployeeProfileTab({
                   placeholder="e.g. Better growth opportunities, relocation"
                   value={careerForm.reason}
                   onChange={(e) => setCareerForm({...careerForm, reason: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-850"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-800"
                 />
               </div>
 
@@ -3380,10 +3438,10 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Add & Edit Education Modal */}
       {showEducationModal && (
         <div id="profile-education-modal-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-150 rounded-3xl p-6 md:p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
-                <h4 className="text-xs font-black text-slate-850 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <GraduationCap className="h-4 w-4 text-[#2f66e0] shrink-0" />
                   <span>{editingEducation ? 'Edit Education' : 'Add Education'}</span>
                 </h4>
@@ -3393,7 +3451,7 @@ export default function EmployeeProfileTab({
               </div>
               <button 
                 onClick={() => setShowEducationModal(false)}
-                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-55 border border-slate-150 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
+                className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
                 title="Close"
               >
                 <X className="h-4 w-4" />
@@ -3409,7 +3467,7 @@ export default function EmployeeProfileTab({
                   placeholder="e.g. University of Malaya, MIT"
                   value={educationForm.institution}
                   onChange={(e) => setEducationForm({...educationForm, institution: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-850"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-800"
                 />
               </div>
 
@@ -3421,7 +3479,7 @@ export default function EmployeeProfileTab({
                   placeholder="e.g. Bachelor's Degree, Diploma, Master's"
                   value={educationForm.qualification}
                   onChange={(e) => setEducationForm({...educationForm, qualification: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-850"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-800"
                 />
               </div>
 
@@ -3432,7 +3490,7 @@ export default function EmployeeProfileTab({
                   placeholder="e.g. Computer Science, Accounting"
                   value={educationForm.fieldOfStudy}
                   onChange={(e) => setEducationForm({...educationForm, fieldOfStudy: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-850"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2 text-xs font-bold font-sans transition-all text-slate-800"
                 />
               </div>
 
@@ -3444,7 +3502,7 @@ export default function EmployeeProfileTab({
                     placeholder="e.g. 2015"
                     value={educationForm.year}
                     onChange={(e) => setEducationForm({...educationForm, year: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-sans transition-all text-slate-850"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-sans transition-all text-slate-800"
                   />
                 </div>
 
@@ -3455,7 +3513,7 @@ export default function EmployeeProfileTab({
                     placeholder="e.g. Pass, First Class"
                     value={educationForm.grade}
                     onChange={(e) => setEducationForm({...educationForm, grade: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-sans transition-all text-slate-850"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#2f66e0] focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-sans transition-all text-slate-800"
                   />
                 </div>
               </div>
@@ -3482,360 +3540,587 @@ export default function EmployeeProfileTab({
       )}
 
       {/* PORTAL OVERLAY TRIGGER: Document Preview Modal */}
-      {showDocPreviewModal && previewingDoc && (
-        <div id="profile-doc-preview-modal-overlay" className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center z-50 p-4 md:p-6 animate-in fade-in duration-150">
-          <div className="bg-slate-50 border border-slate-200 rounded-3xl max-w-2xl w-full shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh]">
-            
-            {/* Modal Header Controls */}
-            <div className="bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <h4 className="text-xs font-black text-slate-850 uppercase tracking-widest truncate">
-                    {previewingDoc.name}
-                  </h4>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] bg-slate-100 text-slate-600 rounded px-1.5 py-0.5 font-extrabold uppercase">
-                      {previewingDoc.type} Category
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                      Uploaded on {previewingDoc.uploaded}
-                    </span>
+      {showDocPreviewModal && previewingDoc && (() => {
+        const isIdDoc =
+          previewingDoc.type === 'ID' ||
+          previewingDoc.type === 'NRIC' ||
+          previewingDoc.type === 'Passport'
+        const isPassportDoc =
+          previewingDoc.type === 'Passport' || /passport/i.test(String(previewingDoc.name || ''))
+        const closePreview = () => {
+          setShowDocPreviewModal(false)
+          setPreviewingDoc(null)
+        }
+        const personName = formatPersonDisplayName(employee?.name)
+        const address =
+          [
+            profileData.addressLine1,
+            profileData.addressLine2,
+            [profileData.postcode, profileData.city].filter(Boolean).join(' '),
+            profileData.state,
+            profileData.country,
+          ]
+            .filter(Boolean)
+            .join(', ') ||
+          profileData.perAddress ||
+          'As per employee record'
+        const nameParts = personName.includes(' ')
+          ? personName.split(/\s+/).filter(Boolean)
+          : personName.split(/(?=[A-Z])/).filter(Boolean)
+        const initials =
+          (nameParts.map((n) => n[0]).filter(Boolean).slice(0, 2).join('') || 'EE').toUpperCase()
+        const sexCode = /female|^f$/i.test(String(profileData.gender || ''))
+          ? 'F'
+          : /male|^m$/i.test(String(profileData.gender || ''))
+            ? 'M'
+            : 'X'
+        const nricNo = profileData.nric || 'S0000000A'
+        const passportNo = profileData.passportNo || 'K0000000A'
+        const issueDate = profileData.passportIssueDate || previewingDoc.uploaded
+        const expiryDate =
+          profileData.passportExpiryDate ||
+          (previewingDoc.expiry && previewingDoc.expiry !== '—' ? previewingDoc.expiry : '—')
+        const surname = (nameParts.length > 1 ? nameParts[nameParts.length - 1] : nameParts[0] || '').toUpperCase()
+        const givenNames = (
+          nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : nameParts[0] || ''
+        ).toUpperCase()
+        const toMrzDate = (value: string | undefined) => {
+          if (!value || value === '—') return '000000'
+          const digits = String(value).replace(/[^0-9]/g, '')
+          if (digits.length >= 6) return digits.slice(-6)
+          const parsed = Date.parse(value)
+          if (!Number.isNaN(parsed)) {
+            const d = new Date(parsed)
+            const yy = String(d.getFullYear()).slice(-2)
+            const mm = String(d.getMonth() + 1).padStart(2, '0')
+            const dd = String(d.getDate()).padStart(2, '0')
+            return `${yy}${mm}${dd}`
+          }
+          return '000000'
+        }
+
+        return (
+          <div
+            id="profile-doc-preview-modal-overlay"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 md:p-6 animate-in fade-in duration-150"
+            onClick={closePreview}
+          >
+            <div
+              className={`bg-white border border-slate-200 rounded-3xl w-full shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] ${
+                isIdDoc ? 'max-w-3xl' : 'max-w-2xl'
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="bg-white border-b border-slate-100 px-5 sm:px-6 py-4 flex items-center justify-between gap-4 shrink-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-10 w-10 rounded-xl bg-[#2f66e0]/10 border border-[#2f66e0]/15 flex items-center justify-center text-[#2f66e0] shrink-0">
+                    <FileText className="h-5 w-5" />
                   </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <button 
-                  onClick={() => addToast(`Initializing printer spool... Document "${previewingDoc.name}" ready to queue.`, 'success')}
-                  className="p-2 text-slate-500 hover:text-slate-850 hover:bg-slate-100 border border-slate-150 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
-                  title="Print Document"
-                >
-                  <Printer className="h-4 w-4" />
-                </button>
-                <button 
-                  onClick={() => addToast(`Downloading certified attachment copy: ${previewingDoc.name}`, 'success')}
-                  className="p-2 text-slate-500 hover:text-slate-850 hover:bg-slate-100 border border-slate-150 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
-                  title="Download Copy"
-                >
-                  <Download className="h-4 w-4" />
-                </button>
-                <div className="h-6 w-px bg-slate-200 mx-1"></div>
-                <button 
-                  onClick={() => {
-                    setShowDocPreviewModal(false);
-                    setPreviewingDoc(null);
-                  }}
-                  className="h-8 w-8 text-slate-400 hover:text-slate-600 hover:bg-slate-200 border border-slate-150 rounded-lg flex items-center justify-center cursor-pointer transition-all"
-                  title="Close preview"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Body: The realistic page viewer */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 flex justify-center bg-slate-100/70">
-              
-              {/* Paper Sheet */}
-              <div className="bg-white border border-slate-250/80 rounded-2xl shadow-lg w-full max-w-xl p-8 md:p-10 relative text-slate-800 select-text font-sans leading-relaxed text-xs">
-                
-                {/* Security background watermarks and stampings */}
-                <div className="absolute inset-0 pointer-events-none opacity-[0.02] flex items-center justify-center select-none overflow-hidden">
-                  <div className="text-[5rem] font-black tracking-widest text-[#2f66e0] rotate-12 uppercase select-none">
-                    NOVORA HR SECURE
-                  </div>
-                </div>
-
-                {/* Top Corner Badge */}
-                <div className="absolute top-4 right-4 text-[9px] font-black text-slate-400 uppercase tracking-widest border border-slate-200 rounded px-2 py-0.5 select-none bg-slate-50 font-mono">
-                  REF: {previewingDoc.id}-NVR-{new Date().getFullYear()}
-                </div>
-
-                {/* TEMPLATE Rendering based on previewingDoc.type */}
-                {previewingDoc.type === 'Contract' ? (
-                  <div className="space-y-6">
-                    {/* Contract Header */}
-                    <div className="text-center pb-6 border-b border-slate-100">
-                      <h2 className="text-sm font-black text-slate-850 uppercase tracking-widest">Novora Business Systems Sdn Bhd</h2>
-                      <p className="text-[9.5px] text-slate-400 uppercase tracking-wider mt-1">Level 28, Menara Binjai, No. 2 Jalan Binjai, 50450 Kuala Lumpur, Malaysia</p>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-bold text-slate-900 truncate">{previewingDoc.name}</h4>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="text-[10px] bg-slate-100 text-slate-600 rounded-md px-1.5 py-0.5 font-bold">
+                        {previewingDoc.type}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        Uploaded {previewingDoc.uploaded}
+                        {previewingDoc.expiry && previewingDoc.expiry !== '—'
+                          ? ` · Expires ${previewingDoc.expiry}`
+                          : ''}
+                      </span>
                     </div>
+                  </div>
+                </div>
 
-                    {/* Letter Body */}
-                    <div className="space-y-4">
-                      <div className="flex justify-between text-[11px] font-bold text-slate-500">
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      addToast(`Print queued for "${previewingDoc.name}".`, 'success')
+                    }
+                    className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-slate-100 rounded-lg cursor-pointer transition-colors"
+                    title="Print"
+                  >
+                    <Printer className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      addToast(`Downloading "${previewingDoc.name}".`, 'success')
+                    }
+                    className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-slate-100 rounded-lg cursor-pointer transition-colors"
+                    title="Download"
+                  >
+                    <Download className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closePreview}
+                    className="h-8 w-8 text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center cursor-pointer transition-all"
+                    title="Close"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable body — min-h-0 so flex child can scroll instead of clipping */}
+              <div className="flex-1 min-h-0 overflow-y-auto bg-slate-50/80 p-5 sm:p-6">
+                <div
+                  className={
+                    isIdDoc
+                      ? 'w-full text-slate-800 text-xs leading-relaxed'
+                      : 'bg-white border border-slate-100 rounded-2xl shadow-sm w-full p-6 sm:p-8 text-slate-800 text-xs leading-relaxed'
+                  }
+                >
+                  {previewingDoc.type === 'Contract' ? (
+                    <div className="space-y-5">
+                      <div className="text-center pb-4 border-b border-slate-100">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                          Ref {previewingDoc.id}-NVR-{new Date().getFullYear()}
+                        </p>
+                        <h2 className="text-sm font-extrabold text-slate-900 tracking-tight">
+                          Novora Business Systems Pte. Ltd.
+                        </h2>
+                        <p className="text-[10px] text-slate-400 mt-1">
+                          Level 28, Marina Bay Financial Centre, 12 Marina Boulevard, Singapore 018982
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between text-[11px] font-semibold text-slate-500">
                         <span>Date: {previewingDoc.uploaded}</span>
-                        <span>Private & Confidential</span>
+                        <span>Private &amp; Confidential</span>
                       </div>
 
-                      <div className="space-y-1">
-                        <p className="font-extrabold text-slate-850 uppercase text-[11px]">To: {employee?.name}</p>
+                      <div className="space-y-1 text-[11px]">
+                        <p className="font-bold text-slate-900">To: {personName}</p>
                         <p className="text-slate-500">Employee ID: {employee?.id}</p>
-                        <p className="text-slate-500">Residential: {profileData.perAddress || 'As per employee record'}</p>
+                        <p className="text-slate-500">Residential: {address}</p>
                       </div>
 
-                      <div className="pt-2">
-                        <h3 className="text-xs font-black text-slate-850 uppercase tracking-wider underline">SUBJECT: LETTER OF EMPLOYMENT AND TERMS OF CONTRACT</h3>
-                      </div>
+                      <h3 className="text-xs font-extrabold text-slate-900 tracking-tight">
+                        Letter of Employment and Terms of Contract
+                      </h3>
 
-                      <p className="text-slate-650 leading-relaxed">
-                        We are pleased to offer you formal employment with <b>Novora Business Systems Sdn Bhd</b>. 
-                        Your appointment has been validated under the following core parameters as approved by our 
-                        Human Capital Management team:
+                      <p className="text-slate-600 leading-relaxed text-[11px]">
+                        We are pleased to offer you formal employment with{' '}
+                        <span className="font-semibold text-slate-800">
+                          Novora Business Systems Pte. Ltd.
+                        </span>
+                        . Your appointment has been recorded with the following details:
                       </p>
 
-                      {/* Contract Core Grid Data */}
-                      <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 grid grid-cols-2 gap-y-3.5 gap-x-4 text-[11.5px]">
-                        <div>
-                          <span className="block text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Position</span>
-                          <span className="font-bold text-slate-800">{employee?.position}</span>
-                        </div>
-                        <div>
-                          <span className="block text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Department</span>
-                          <span className="font-bold text-slate-800">{employee?.department}</span>
-                        </div>
-                        <div>
-                          <span className="block text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Grade Allocation</span>
-                          <span className="font-bold text-slate-800">{profileData.jobGrade}</span>
-                        </div>
-                        <div>
-                          <span className="block text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Commencement Date</span>
-                          <span className="font-bold text-slate-800">{profileData.positionStartDate}</span>
-                        </div>
-                        <div>
-                          <span className="block text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Basic Monthly Salary</span>
-                          <span className="font-bold text-blue-600 font-mono">MYR {profileData.basicSalary.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
-                        </div>
-                        <div>
-                          <span className="block text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Employment Status</span>
-                          <span className="font-bold text-slate-800">{employee?.employmentStatus}</span>
-                        </div>
-                      </div>
-
-                      <p className="text-slate-650 leading-relaxed">
-                        This position includes standard corporate coverage including health insurance, <b>{profileData.leaveLeft} days</b> of annual leave entitlement, 
-                        and standard statutory contributions to EPF, SOCSO, and EIS. Your designated payroll will be wired to <b>{profileData.bankAccount}</b> monthly.
-                      </p>
-
-                      <div className="pt-4 space-y-2">
-                        <p className="text-slate-650">We look forward to your dedication and outstanding contributions to the team.</p>
-                        <p className="text-slate-500">Yours faithfully,<br/><span className="font-black text-slate-800">NOVORA HUMAN RESOURCES DEPT.</span></p>
-                      </div>
-
-                      <div className="pt-8 grid grid-cols-2 gap-4 border-t border-slate-100 text-center text-slate-400 text-[10px]">
-                        <div className="space-y-4">
-                          <div className="h-8 border-b border-dashed border-slate-200"></div>
-                          <p className="font-black text-slate-700 uppercase">Authorized Signature</p>
-                          <p>For Novora Business Systems</p>
-                        </div>
-                        <div className="space-y-4">
-                          <div className="h-8 border-b border-dashed border-slate-200 flex items-center justify-center">
-                            <span className="text-[10px] text-blue-500 font-extrabold italic font-mono uppercase tracking-widest">{employee?.name?.split(' ')[0]} / SIGNED DIGITAL</span>
-                          </div>
-                          <p className="font-black text-slate-700 uppercase">Employee Acceptance</p>
-                          <p>Sign & Date</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : previewingDoc.type === 'ID' ? (
-                  <div className="space-y-8">
-                    {/* ID Badge Header */}
-                    <div className="text-center">
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 rounded-full border border-red-150 mb-2 whitespace-nowrap shrink-0">
-                        <Shield className="h-3.5 w-3.5 text-red-500" />
-                        <span className="text-[8.5px] font-black tracking-widest uppercase">Verified Official Identity Card</span>
-                      </div>
-                      <h2 className="text-sm font-black text-slate-850 uppercase tracking-widest">GOVERNMENT OF MALAYSIA</h2>
-                      <p className="text-[9.5px] text-slate-400 uppercase tracking-wider">KEMENTERIAN DALAM NEGERI — NATIONAL REGISTRATION PREVIEW</p>
-                    </div>
-
-                    {/* Simulated Malaysian Identity Card (MyKad clone) */}
-                    <div className="bg-linear-to-tr from-sky-50 to-indigo-50 border border-slate-250 rounded-2xl p-6 shadow-sm relative overflow-hidden flex flex-col md:flex-row gap-6">
-                      
-                      {/* Holographic secure element stamp */}
-                      <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-yellow-400/10 border border-yellow-500/10 rotate-45 select-none pointer-events-none inline-flex items-center shrink-0"></div>
-
-                      {/* Photo Section */}
-                      <div className="flex flex-col items-center shrink-0 space-y-2">
-                        <div className="h-28 w-24 bg-slate-200 border border-slate-300 rounded-md overflow-hidden flex flex-col items-center justify-center text-slate-400 relative shadow-inner">
-                          <div className="absolute inset-0 bg-linear-to-b from-[#2F66E0]/5 to-[#2F66E0]/15"></div>
-                          {/* Circular Badge as Face */}
-                          <div className="h-14 w-14 bg-slate-400 rounded-full flex items-center justify-center text-slate-150 text-lg font-black border-2 border-white/80 mt-3 shadow z-10 shrink-0">
-                            {employee ? employee.name.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase() : 'EE'}
-                          </div>
-                          <span className="text-[8px] font-black tracking-widest uppercase text-slate-600 z-10 mt-2 font-mono">ID MATCHED</span>
-                          <div className="absolute bottom-2 right-2 text-yellow-500 text-[10px] opacity-75">❇</div>
-                        </div>
-                        <span className="text-[9px] font-bold text-slate-500 font-mono">UID: #{employee?.id}</span>
-                      </div>
-
-                      {/* Details Segment */}
-                      <div className="flex-1 space-y-3 text-[11px] font-bold text-slate-700">
-                        <div>
-                          <span className="block text-[8px] font-black text-slate-400 uppercase tracking-wider font-sans">Full Legal Name</span>
-                          <span className="block text-slate-850 font-black text-sm uppercase font-mono tracking-tight">{employee?.name}</span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <span className="block text-[8px] font-black text-slate-400 uppercase tracking-wider font-sans">Nationality</span>
-                            <span className="block text-slate-850 font-extrabold uppercase font-mono">{profileData.nationality}</span>
-                          </div>
-                          <div>
-                            <span className="block text-[8px] font-black text-slate-400 uppercase tracking-wider font-sans">Gender</span>
-                            <span className="block text-slate-850 font-extrabold uppercase font-mono">{profileData.gender}</span>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <span className="block text-[8px] font-black text-slate-400 uppercase tracking-wider font-sans">Date of Birth</span>
-                            <span className="block text-slate-850 font-extrabold font-mono">{profileData.dob}</span>
-                          </div>
-                          <div>
-                            <span className="block text-[8px] font-black text-slate-400 uppercase tracking-wider font-sans">Religion</span>
-                            <span className="block text-slate-850 font-extrabold uppercase font-mono">{profileData.religion}</span>
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="block text-[8px] font-black text-slate-400 uppercase tracking-wider font-sans">Residential Address</span>
-                          <span className="block text-slate-650 font-extrabold text-[10px] leading-relaxed uppercase font-mono">{profileData.perAddress || '12 JALAN AMPANG, KUALA LUMPUR'}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-slate-50 border border-slate-150 rounded-xl p-4 space-y-2 text-[10px] text-slate-505 text-slate-500">
-                      <p className="font-extrabold text-slate-700 uppercase tracking-wider">Corporate Security Clearance Details:</p>
-                      <ul className="list-disc pl-4 space-y-1">
-                        <li>Verified of authentic Malaysian NRIC registry or valid immigration passport credentials.</li>
-                        <li>This profile has been cataloged under fingerprint clearance code: <span className="font-mono text-slate-700 font-extrabold">TA-{employee?.id}-SEC</span>.</li>
-                        <li>Security verification is maintained for the active calendar year. Last audit check executed on {previewingDoc.uploaded}.</li>
-                      </ul>
-                    </div>
-                  </div>
-                ) : (
-                  // Default elegant document canvas for certificates, Tax Form EA or CV
-                  <div className="space-y-6">
-                    <div className="border-b border-slate-100 pb-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h2 className="text-sm font-black text-slate-850 uppercase tracking-widest">{previewingDoc.name}</h2>
-                          <p className="text-[9.5px] text-slate-400 uppercase tracking-wider mt-0.5">Corporate Employee Documents Repository</p>
-                        </div>
-                        <div className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-100 font-extrabold text-[9px] uppercase tracking-wider select-none inline-flex items-center whitespace-nowrap shrink-0">
-                          HR Checked
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4 bg-slate-50 border border-slate-150 rounded-2xl p-4 text-[11px]">
-                        <div>
-                          <span className="block text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Employee Name</span>
-                          <span className="font-bold text-slate-800">{employee?.name}</span>
-                        </div>
-                        <div>
-                          <span className="block text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Employee ID</span>
-                          <span className="font-bold text-slate-800">{employee?.id}</span>
-                        </div>
-                        <div>
-                          <span className="block text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Document category</span>
-                          <span className="font-bold text-slate-800 uppercase">{previewingDoc.type}</span>
-                        </div>
-                        <div>
-                          <span className="block text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Security Clear status</span>
-                          <span className="font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block items-center shrink-0"></span>
-                            <span>Active & Validated</span>
-                          </span>
-                        </div>
-                      </div>
-
-                      {previewingDoc.name.toLowerCase().includes('resume') || previewingDoc.name.toLowerCase().includes('cv') || previewingDoc.type.toLowerCase().includes('other') ? (
-                        <div className="space-y-4 pt-2">
-                          <p className="font-bold text-slate-700 text-xs uppercase tracking-wider border-b border-slate-100 pb-1">Professional Career Resume Summary:</p>
-                          
-                          <div className="space-y-3.5">
-                            <div className="space-y-2">
-                              <span className="text-[10px] font-extrabold text-[#2f66e0] uppercase block">Professional History:</span>
-                              {profileData.careerHistory.length === 0 ? (
-                                <p className="text-[10px] italic text-slate-400 pl-3">No professional experiences listed</p>
-                              ) : (
-                                profileData.careerHistory.map((hist, idx) => (
-                                  <div key={idx} className="pl-3 border-l-2 border-slate-150 text-[10.5px]">
-                                    <p className="font-bold text-slate-800 text-[11px]">{hist.position} &mdash; <span className="text-slate-500 font-medium">{hist.company}</span></p>
-                                    <p className="text-slate-[405] font-mono text-[9px] text-slate-400">{hist.from} to {hist.to}</p>
-                                  </div>
-                                ))
-                              )}
-                            </div>
-
-                            <div className="space-y-2">
-                              <span className="text-[10px] font-extrabold text-[#2f66e0] uppercase block">Academic Credentials:</span>
-                              {profileData.educationList.length === 0 ? (
-                                <p className="text-[10px] italic text-slate-400 pl-3">No academic history defined</p>
-                              ) : (
-                                profileData.educationList.map((edu, idx) => (
-                                  <div key={idx} className="pl-3 border-l-2 border-slate-150 text-[10.5px]">
-                                    <p className="font-bold text-slate-800 text-[11px]">{edu.qualification} ({edu.fieldOfStudy})</p>
-                                    <div className="text-slate-500 font-medium text-[10px]">
-                                      <span>{edu.institution} &bull; Year {edu.year} </span>
-                                      <span className="bg-[#ecfdf5] text-[#059669] px-1 py-0.2 rounded text-[9px] font-extrabold">{edu.grade || 'Pass'}</span>
-                                    </div>
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-3 py-2 leading-relaxed text-slate-650">
-                          <p>
-                            This document serves as an official confirmation of <b>{previewingDoc.name}</b> registered under employee profile file mapping. 
-                            It has been encrypted with SHA-256 local database hashing and signed electronically for corporate compliance auditing.
-                          </p>
-                          <p>
-                            We verify that the visual layout matches the scanned paperwork hosted inside the Novora corporate distributed safe. 
-                            Any further audits should cross-reference document hash: 
-                            <span className="block font-mono bg-slate-50 border border-slate-150 px-2 py-1.5 rounded text-[9.5px] font-bold text-slate-600 mt-1 uppercase select-all">
-                              SHA256-{`doc-${employee?.id ?? 'unknown'}-ledger`}
+                      <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-[11px]">
+                        {[
+                          { label: 'Position', value: employee?.position },
+                          { label: 'Department', value: employee?.department },
+                          { label: 'Grade', value: profileData.jobGrade },
+                          { label: 'Commencement', value: profileData.positionStartDate },
+                          {
+                            label: 'Basic monthly salary',
+                            value: `SGD ${Number(profileData.basicSalary || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                          },
+                          { label: 'Employment status', value: employee?.employmentStatus },
+                        ].map((row) => (
+                          <div key={row.label}>
+                            <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                              {row.label}
                             </span>
+                            <span className="font-semibold text-slate-800">{row.value || '—'}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <p className="text-slate-600 leading-relaxed text-[11px]">
+                        Benefits include health coverage,{' '}
+                        <span className="font-semibold">{profileData.leaveLeft} days</span> annual
+                        leave, and statutory CPF contributions (and SDL where applicable). Payroll is credited to{' '}
+                        <span className="font-semibold">{profileData.bankAccount || 'the registered account'}</span>.
+                      </p>
+
+                      <div className="pt-2 space-y-1 text-[11px]">
+                        <p className="text-slate-600">We look forward to working with you.</p>
+                        <p className="text-slate-500">
+                          Yours faithfully,
+                          <br />
+                          <span className="font-bold text-slate-800">Novora Human Resources</span>
+                        </p>
+                      </div>
+
+                      <div className="pt-6 grid grid-cols-2 gap-6 border-t border-slate-100 text-center text-[10px] text-slate-400">
+                        <div className="space-y-3">
+                          <div className="h-8 border-b border-dashed border-slate-200" />
+                          <p className="font-bold text-slate-600 uppercase tracking-wide">
+                            Authorized signature
                           </p>
                         </div>
-                      )}
-
-                      <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-slate-400 text-[10px]">
-                        <span>Secure HR Ledger Node: <b>KUL-MYS-N014</b></span>
-                        <span>Authorized audit signature generated</span>
+                        <div className="space-y-3">
+                          <div className="h-8 border-b border-dashed border-slate-200" />
+                          <p className="font-bold text-slate-600 uppercase tracking-wide">
+                            Employee acceptance
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  ) : isPassportDoc ? (
+                    <div className="space-y-3">
+                      <p className="text-[10px] text-slate-400 font-medium">
+                        HR scan preview · {previewingDoc.name} · Uploaded {previewingDoc.uploaded}
+                      </p>
 
+                      <div
+                        className="relative rounded-2xl overflow-hidden shadow-[0_10px_24px_-16px_rgba(70,80,110,0.38)]"
+                        style={{ border: '1px solid #c8ccd8' }}
+                      >
+                        <div
+                          className="relative px-3.5 pt-3 pb-2.5"
+                          style={{
+                            background:
+                              'linear-gradient(120deg, #e8eef6 0%, #ebe9f4 50%, #ece6ef 100%)',
+                          }}
+                        >
+                          <div
+                            className="absolute inset-0 pointer-events-none opacity-[0.18]"
+                            style={{
+                              backgroundImage:
+                                'repeating-linear-gradient(0deg, transparent 0 6px, rgba(120,130,170,0.16) 6px 7px)',
+                            }}
+                          />
+
+                          <p
+                            className="relative text-[12px] font-bold tracking-[0.2em] uppercase mb-2.5"
+                            style={{ color: '#8b3a45', fontFamily: 'Georgia, "Times New Roman", serif' }}
+                          >
+                            Passport
+                          </p>
+
+                          <div className="relative flex gap-3 items-start">
+                            <div
+                              className="w-[84px] h-[108px] shrink-0 flex items-center justify-center"
+                              style={{
+                                border: '2px solid #fff',
+                                boxShadow: '0 0 0 1px #c5cad6',
+                                background: 'linear-gradient(180deg, #d9dee8 0%, #c8ceda 100%)',
+                              }}
+                            >
+                              <div
+                                className="h-12 w-12 rounded-full flex items-center justify-center font-extrabold text-sm"
+                                style={{
+                                  background: 'rgba(90,100,130,0.25)',
+                                  color: '#3a4560',
+                                  border: '1px solid rgba(255,255,255,0.7)',
+                                }}
+                              >
+                                {initials}
+                              </div>
+                            </div>
+
+                            <div className="flex-1 min-w-0 grid grid-cols-2 gap-x-5 gap-y-1.5">
+                              {(
+                                [
+                                  { label: 'Type', value: 'P' },
+                                  { label: 'Code', value: 'SGP' },
+                                  { label: 'Surname', value: surname },
+                                  { label: 'Passport No', value: passportNo },
+                                  { label: 'Given names', value: givenNames },
+                                  { label: 'Sex', value: sexCode },
+                                  {
+                                    label: 'Nationality',
+                                    value: (profileData.nationality || 'SINGAPOREAN').toUpperCase(),
+                                  },
+                                  {
+                                    label: 'Authority',
+                                    value: (profileData.passportCountry || 'SINGAPORE').toUpperCase(),
+                                  },
+                                  {
+                                    label: 'Date of birth',
+                                    value: (profileData.dob || '—').toUpperCase(),
+                                  },
+                                  {
+                                    label: 'Date of expiration',
+                                    value: String(expiryDate || '—').toUpperCase(),
+                                  },
+                                  { label: 'Place of birth', value: 'SINGAPORE' },
+                                  {
+                                    label: 'Signature of Bearer',
+                                    value: `${(givenNames[0] || personName[0] || 'J').toUpperCase()}. ${surname.charAt(0)}${surname.slice(1).toLowerCase()}`,
+                                    signature: true,
+                                  },
+                                  {
+                                    label: 'Date of issue',
+                                    value: String(issueDate || '—').toUpperCase(),
+                                  },
+                                ] as Array<{ label: string; value: string; signature?: boolean }>
+                              ).map((row) => (
+                                <div key={row.label} className="min-w-0">
+                                  <p
+                                    className="text-[7.5px] italic leading-none mb-0.5"
+                                    style={{ color: '#7a879c' }}
+                                  >
+                                    {row.label}
+                                  </p>
+                                  <p
+                                    className="text-[10.5px] font-bold italic leading-tight truncate"
+                                    style={{
+                                      color: '#2a3348',
+                                      fontFamily: row.signature
+                                        ? 'Georgia, "Palatino Linotype", cursive'
+                                        : undefined,
+                                      textTransform: row.signature ? 'none' : 'uppercase',
+                                      fontWeight: row.signature ? 600 : 700,
+                                    }}
+                                    title={row.value}
+                                  >
+                                    {row.value}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          className="px-3 py-2 font-mono text-[8.5px] leading-[1.45] tracking-wider select-none overflow-x-auto whitespace-nowrap"
+                          style={{
+                            background: 'linear-gradient(90deg, #eef2f7 0%, #f0ebf2 100%)',
+                            color: '#3a4255',
+                            borderTop: '1px solid #d7dbe6',
+                          }}
+                        >
+                          <p>
+                            {`P<SGP${`${surname}<<${givenNames.replace(/\s+/g, '<')}`.replace(/[^A-Z<]/g, '').padEnd(39, '<').slice(0, 39)}`}
+                          </p>
+                          <p>
+                            {`${String(passportNo).replace(/\s/g, '').toUpperCase().padEnd(9, '<').slice(0, 9)}SGP${toMrzDate(profileData.dob)}${sexCode}${toMrzDate(expiryDate)}<<<<<<<<<<<<<<<`}
+                          </p>
+                        </div>
+                      </div>
+
+                      <p className="text-[10px] text-slate-400">
+                        Simulated passport biodata page for HR verification — not an official travel document.
+                      </p>
+                    </div>
+                  ) : isIdDoc ? (
+                    <div className="space-y-3">
+                      <p className="text-[10px] text-slate-400 font-medium">
+                        HR scan preview · {previewingDoc.name} · Uploaded {previewingDoc.uploaded}
+                      </p>
+
+                      <div className="mx-auto w-full max-w-[520px]">
+                        <div
+                          className="relative rounded-2xl overflow-hidden shadow-[0_10px_24px_-16px_rgba(140,80,100,0.32)]"
+                          style={{ border: '1px solid #d2b0bc', aspectRatio: '1.586 / 1' }}
+                        >
+                          <div
+                            className="absolute inset-0"
+                            style={{
+                              background:
+                                'radial-gradient(ellipse 85% 75% at 100% 100%, #efc5d2 0%, transparent 50%), #f3d9e2',
+                            }}
+                          />
+                          <div
+                            className="absolute inset-0 pointer-events-none opacity-[0.3]"
+                            style={{
+                              backgroundImage:
+                                'repeating-radial-gradient(circle at 95% 90%, transparent 0 7px, rgba(190,100,130,0.2) 7px 8px)',
+                            }}
+                          />
+
+                          <div
+                            className="relative flex items-center justify-between px-3.5 py-2"
+                            style={{ background: '#f3f3f3', borderBottom: '1px solid #e6e0e2' }}
+                          >
+                            <div className="min-w-0">
+                              <p
+                                className="text-[10px] font-bold uppercase tracking-[0.06em] leading-none text-black"
+                                style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+                              >
+                                Republic of Singapore
+                              </p>
+                              <p className="mt-1.5 text-[9px] leading-none text-[#333]">
+                                IDENTITY CARD NO.{' '}
+                                <span className="font-black text-[12px] tracking-wider font-mono text-black">
+                                  {nricNo}
+                                </span>
+                              </p>
+                            </div>
+                            <svg width="40" height="40" viewBox="0 0 64 64" className="shrink-0" aria-hidden>
+                              <path d="M22 20c0-7 4-12 10-12s10 5 10 12c0 9-4 15-10 20-6-5-10-11-10-20z" fill="#c8102e" />
+                              <circle cx="32" cy="18" r="5" fill="#fff" />
+                              <g fill="#fff">
+                                <circle cx="32" cy="12" r="1.15" />
+                                <circle cx="28.4" cy="14" r="1.15" />
+                                <circle cx="35.6" cy="14" r="1.15" />
+                                <circle cx="29.2" cy="18.2" r="1.15" />
+                                <circle cx="34.8" cy="18.2" r="1.15" />
+                              </g>
+                              <path d="M12 26c3-9 8-13 13-12-3 6-3 13 0 18-5-1-10-3-13-6z" fill="#d4a017" />
+                              <path d="M52 26c-3-9-8-13-13-12 3 6 3 13 0 18 5-1 10-3 13-6z" fill="#8b7355" />
+                              <ellipse cx="32" cy="56" rx="16" ry="3.5" fill="#c9a227" />
+                              <text x="32" y="48" textAnchor="middle" fontSize="5.5" fontWeight="700" fill="#222">
+                                MAJULAH
+                              </text>
+                            </svg>
+                          </div>
+
+                          <div className="relative px-3.5 pt-2.5 pb-2.5 h-[calc(100%-52px)]">
+                            <div className="flex gap-3 h-full">
+                              <div className="relative shrink-0 w-[76px]">
+                                <div
+                                  className="w-[76px] h-[98px] flex items-center justify-center"
+                                  style={{
+                                    background: 'linear-gradient(180deg, #d7dbe4 0%, #c4cad6 100%)',
+                                    borderRadius: '38px 38px 3px 3px',
+                                    boxShadow: '0 1px 4px rgba(0,0,0,0.14)',
+                                  }}
+                                >
+                                  <div
+                                    className="h-11 w-11 rounded-full flex items-center justify-center font-extrabold text-sm"
+                                    style={{
+                                      background: 'rgba(80,90,110,0.28)',
+                                      color: '#2f3648',
+                                      border: '1px solid rgba(255,255,255,0.7)',
+                                    }}
+                                  >
+                                    {initials}
+                                  </div>
+                                </div>
+                                <div
+                                  className="absolute left-1 bottom-0 w-8 h-8 rounded-full flex items-center justify-center text-[7px] font-bold"
+                                  style={{
+                                    background: 'rgba(255,255,255,0.28)',
+                                    border: '1px solid rgba(170,130,145,0.45)',
+                                    color: '#5a4050',
+                                    opacity: 0.5,
+                                  }}
+                                >
+                                  {initials}
+                                </div>
+                              </div>
+
+                              <div className="flex-1 min-w-0 relative pb-8">
+                                <div className="mb-3">
+                                  <p className="text-[7.5px] leading-none mb-0.5 text-[#777]">Name</p>
+                                  <p
+                                    className="text-[12px] font-black uppercase tracking-wide leading-snug text-black break-words"
+                                    title={personName}
+                                  >
+                                    {personName}
+                                  </p>
+                                </div>
+
+                                <div className="mb-2.5">
+                                  <p className="text-[7.5px] leading-none mb-0.5 text-[#777]">Race</p>
+                                  <p className="text-[11px] font-black uppercase text-black">
+                                    {profileData.race || '—'}
+                                  </p>
+                                </div>
+
+                                <div className="flex gap-8 mb-2.5">
+                                  <div>
+                                    <p className="text-[7.5px] leading-none mb-0.5 text-[#777]">
+                                      Date of Birth
+                                    </p>
+                                    <p className="text-[11px] font-black text-black">
+                                      {profileData.dob || '—'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[7.5px] leading-none mb-0.5 text-[#777]">Sex</p>
+                                    <p className="text-[11px] font-black font-mono text-black">{sexCode}</p>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <p className="text-[7.5px] leading-none mb-0.5 text-[#777]">
+                                    Country of Birth
+                                  </p>
+                                  <p className="text-[11px] font-black uppercase text-black">Singapore</p>
+                                </div>
+
+                                <div
+                                  className="absolute right-0 bottom-0 w-[96px] h-8 rounded-[50%] flex items-center justify-center"
+                                  style={{
+                                    background:
+                                      'linear-gradient(135deg, rgba(175,180,190,0.55), rgba(205,198,208,0.42), rgba(155,165,180,0.5))',
+                                    boxShadow: 'inset 0 0 5px rgba(255,255,255,0.55)',
+                                    border: '1px solid rgba(145,150,160,0.4)',
+                                  }}
+                                >
+                                  <span className="text-[9px] font-semibold font-mono tracking-wider text-[#555] opacity-60">
+                                    {nricNo}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="text-[10px] text-slate-400">
+                        Simulated Singapore NRIC layout for HR verification — not an official identity card.
+                      </p>
+                    </div>
+                  ) : (
+
+                    <div className="space-y-5">
+                      <div className="pb-4 border-b border-slate-100 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h2 className="text-sm font-extrabold text-slate-900 tracking-tight">
+                            {previewingDoc.name}
+                          </h2>
+                          <p className="text-[10px] text-slate-400 mt-1">Employee document preview</p>
+                        </div>
+                        <span className="shrink-0 text-[10px] font-bold text-[#2f66e0] bg-[#2f66e0]/10 border border-[#2f66e0]/15 px-2 py-0.5 rounded-md">
+                          {previewingDoc.type}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-slate-50 border border-slate-100 rounded-xl p-4 text-[11px]">
+                        {[
+                          { label: 'Employee', value: personName },
+                          { label: 'Employee ID', value: employee?.id },
+                          { label: 'Uploaded', value: previewingDoc.uploaded },
+                          {
+                            label: 'Expiry',
+                            value:
+                              previewingDoc.expiry && previewingDoc.expiry !== '—'
+                                ? previewingDoc.expiry
+                                : '—',
+                          },
+                        ].map((row) => (
+                          <div key={row.label}>
+                            <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                              {row.label}
+                            </span>
+                            <span className="font-semibold text-slate-800">{row.value || '—'}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Preview of <span className="font-semibold">{previewingDoc.name}</span> on file for{' '}
+                        {personName}. Use Download or Print from the header for a local copy.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white border-t border-slate-100 px-5 sm:px-6 py-3.5 flex justify-end shrink-0">
+                <button
+                  type="button"
+                  onClick={closePreview}
+                  className="px-4 py-2 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-all border border-slate-200"
+                >
+                  Close
+                </button>
               </div>
             </div>
-
-            {/* Bottom Footer bar for additional controls */}
-            <div className="bg-white border-t border-slate-150 px-6 py-4 flex justify-end gap-3 shrink-0">
-              <button 
-                type="button"
-                onClick={() => {
-                  setShowDocPreviewModal(false);
-                  setPreviewingDoc(null);
-                }}
-                className="px-5 py-2.5 text-[10.5px] font-black rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 uppercase tracking-widest cursor-pointer transition-all border border-slate-200"
-              >
-                Close Document Frame
-              </button>
-            </div>
-
           </div>
-        </div>
-      )}
+        )
+      })()}
 
     </div>
   );

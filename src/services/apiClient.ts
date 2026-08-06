@@ -11,6 +11,21 @@ export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undef
 let cachedCsrfToken: string | null = null
 let csrfHeaderName = 'X-XSRF-TOKEN'
 
+type SessionExpiredHandler = () => void
+let onSessionExpired: SessionExpiredHandler | null = null
+
+/** Register once from App — called when an authenticated API returns 401. */
+export function setSessionExpiredHandler(handler: SessionExpiredHandler | null) {
+  onSessionExpired = handler
+}
+
+function notifySessionExpired(path: string, status: number) {
+  if (status !== 401) return
+  if (path.includes('/api/auth/login') || path.includes('/api/auth/register') || path.includes('/api/auth/csrf')) {
+    return
+  }
+  onSessionExpired?.()
+}
 function readCookie(name: string): string | null {
   const match = document.cookie.match(
     new RegExp(`(?:^|; )${name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1')}=([^;]*)`),
@@ -124,6 +139,10 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
     }
     if (res.status === 403) {
       clearCsrfCache()
+    }
+    if (res.status === 401) {
+      clearCsrfCache()
+      notifySessionExpired(path, res.status)
     }
     throw await parseError(res)
   }

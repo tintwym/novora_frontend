@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, UserPlus, ArrowUpRight, Filter, ClipboardList } from 'lucide-react';
 import type { Employee } from '@/types';
+import { formatPersonDisplayName } from '@/lib/personName';
 
 interface EmployeeDirectoryTabProps {
   employees: Employee[];
@@ -33,12 +34,16 @@ export default function EmployeeDirectoryTab({
   });
 
   const getInitials = (fullName: string) => {
-    return fullName
-      .split(' ')
+    const display = formatPersonDisplayName(fullName)
+    const parts = display.includes(' ')
+      ? display.split(/\s+/).filter(Boolean)
+      : display.split(/(?=[A-Z])/).filter(Boolean)
+    return parts
       .map((n) => n[0])
+      .filter(Boolean)
       .slice(0, 2)
       .join('')
-      .toUpperCase();
+      .toUpperCase() || 'EE'
   };
 
   return (
@@ -122,12 +127,16 @@ export default function EmployeeDirectoryTab({
                     {/* Name */}
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-bold text-xs ${emp.avatarColor}`}>
-                          {getInitials(emp.name)}
+                        <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-bold text-xs overflow-hidden relative ${emp.avatarColor}`}>
+                          {emp.avatarUrl ? (
+                            <img src={emp.avatarUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                          ) : (
+                            getInitials(emp.name)
+                          )}
                         </div>
                         <div>
                           <p className="text-xs font-bold text-slate-800 leading-snug group-hover:text-blue-600 transition-colors">
-                            {emp.name}
+                            {formatPersonDisplayName(emp.name)}
                           </p>
                           <p className="text-[10.5px] text-slate-400 mt-0.5 font-medium">Joined {emp.joinDate}</p>
                         </div>

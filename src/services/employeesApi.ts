@@ -1,4 +1,5 @@
 import { apiRequest } from './apiClient'
+import { formatPersonDisplayName } from '@/lib/personName'
 import type { Department, Employee, EmployeeStatus, EmploymentStatus } from '@/types'
 
 export interface EmployeeApiRow {
@@ -20,6 +21,27 @@ export interface EmployeeApiRow {
   city: string | null
   country: string | null
   managerName: string | null
+}
+
+export type CreateEmployeePayload = {
+  firstName: string
+  lastName: string
+  email: string
+  departmentId: string
+  positionId?: string | null
+  employeeCode?: string
+  hireDate?: string
+}
+
+export type UpdateEmployeePayload = {
+  firstName: string
+  lastName: string
+  email: string
+  departmentId: string
+  positionId?: string | null
+  employeeCode?: string
+  hireDate?: string
+  status?: string
 }
 
 const AVATAR_COLORS = [
@@ -78,12 +100,17 @@ function avatarFor(key: string): string {
 }
 
 export function mapEmployeeRow(row: EmployeeApiRow): Employee {
-  const name = [row.firstName, row.lastName].filter(Boolean).join(' ').trim() || row.email
+  const first = row.firstName?.trim() || ''
+  const last = row.lastName?.trim() || ''
+  const lastClean = /^employee$/i.test(last) ? '' : last
+  const name =
+    formatPersonDisplayName([first, lastClean].filter(Boolean).join(' ').trim() || row.email)
   const code = row.employeeCode?.trim() || row.id
   const location = [row.city, row.country].filter(Boolean).join(', ')
 
   return {
     id: code,
+    apiId: row.id,
     name,
     department: mapDepartment(row.departmentName),
     position: row.positionTitle?.trim() || '—',
@@ -97,7 +124,9 @@ export function mapEmployeeRow(row: EmployeeApiRow): Employee {
     avatarColor: avatarFor(code),
     dependents: '—',
     emergencyContact: '—',
-    reportsTo: undefined,
+    reportsTo: row.managerName?.trim() || undefined,
+    departmentId: row.departmentId ?? undefined,
+    positionId: row.positionId ?? undefined,
   }
 }
 
@@ -107,4 +136,32 @@ export async function listEmployees(): Promise<Employee[]> {
     skipCsrf: true,
   })
   return (rows ?? []).map(mapEmployeeRow)
+}
+
+export async function getEmployee(id: string): Promise<Employee> {
+  const row = await apiRequest<EmployeeApiRow>(`/api/admin/employees/${id}`, {
+    method: 'GET',
+    skipCsrf: true,
+  })
+  return mapEmployeeRow(row)
+}
+
+export async function createEmployee(payload: CreateEmployeePayload): Promise<Employee> {
+  const row = await apiRequest<EmployeeApiRow>('/api/admin/employees', {
+    method: 'POST',
+    body: payload,
+  })
+  return mapEmployeeRow(row)
+}
+
+export async function updateEmployee(id: string, payload: UpdateEmployeePayload): Promise<Employee> {
+  const row = await apiRequest<EmployeeApiRow>(`/api/admin/employees/${id}`, {
+    method: 'PUT',
+    body: payload,
+  })
+  return mapEmployeeRow(row)
+}
+
+export async function deleteEmployee(id: string): Promise<void> {
+  await apiRequest<void>(`/api/admin/employees/${id}`, { method: 'DELETE' })
 }

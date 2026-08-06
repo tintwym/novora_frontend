@@ -5,14 +5,13 @@ import {
   ChevronDown,
   LogOut,
   User,
-  Building,
-  ClipboardCheck,
   ShieldCheck,
   Briefcase,
 } from 'lucide-react'
 import type { AuthSession } from '@/types'
 import { primaryRole, roleDisplayLabel } from '@/lib/roles'
 import { sidebarLabel } from '@/lib/navLabels'
+import { formatPersonDisplayName } from '@/lib/personName'
 
 interface TopbarProps {
   activeTabName: string
@@ -34,17 +33,6 @@ function RoleIcon({ roles, className }: { roles: string[] | undefined; className
   return <User className={className} />
 }
 
-/** Prefer the person's given name; drop placeholder last name "Employee". */
-function personDisplayName(fullName: string): string {
-  const trimmed = fullName.trim()
-  if (!trimmed) return 'User'
-  const parts = trimmed.split(/\s+/)
-  if (parts.length >= 2 && parts[parts.length - 1].toLowerCase() === 'employee') {
-    return parts.slice(0, -1).join(' ')
-  }
-  return trimmed
-}
-
 function sectionTitle(tab: string): string {
   return sidebarLabel(tab)
 }
@@ -62,7 +50,7 @@ export default function Topbar({
   const profileRef = useRef<HTMLDivElement>(null)
   const notifyRef = useRef<HTMLDivElement>(null)
 
-  const displayName = personDisplayName(session?.fullName || 'pinky')
+  const displayName = formatPersonDisplayName(session?.fullName || 'pinky')
   const displayEmail = session?.email || 'pinky.sharma@novora.com'
   const displayRole = roleDisplayLabel(session?.roles)
   const initial = displayName.trim().charAt(0).toUpperCase() || 'P'
@@ -220,39 +208,6 @@ export default function Topbar({
                   </div>
                 )}
               </div>
-              <button
-                type="button"
-                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left cursor-pointer"
-                onClick={() => {
-                  setProfileOpen(false)
-                  addToast('Opened Profile Dashboard', 'info')
-                }}
-              >
-                <User className="h-4 w-4 text-slate-500" />
-                My Profile
-              </button>
-              <button
-                type="button"
-                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left cursor-pointer"
-                onClick={() => {
-                  setProfileOpen(false)
-                  addToast('Opened company profile', 'info')
-                }}
-              >
-                <Building className="h-4 w-4 text-slate-500" />
-                Company Profile
-              </button>
-              <button
-                type="button"
-                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left cursor-pointer"
-                onClick={() => {
-                  setProfileOpen(false)
-                  addToast('Security audit log loaded', 'info')
-                }}
-              >
-                <ClipboardCheck className="h-4 w-4 text-slate-500" />
-                Security Logs
-              </button>
               <div className="border-t border-slate-50 my-1" />
               <button
                 type="button"

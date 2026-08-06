@@ -60,17 +60,17 @@ export default function SettingsTab({
     companySize: '1,001 - 5,000 employees',
     foundedYear: '2016',
     website: 'www.novora.com',
-    addr1: 'Level 18, Menara Novora, Jalan Sultan Ismail',
-    city: 'Kuala Lumpur',
-    state: 'Wilayah Persekutuan Kuala Lumpur',
+    addr1: 'Level 18, Novora Tower, 1 Raffles Place',
+    city: 'Singapore',
+    state: 'Central Region',
     postcode: '50250',
-    country: 'Malaysia',
-    phone: '+60 3-2100 0000',
+    country: 'Singapore',
+    phone: '+65 3-2100 0000',
     hrEmail: 'hr@novora.com',
     payrollEmail: 'payroll@novora.com',
-    epfNo: 'EPF-12345678',
-    socsoNo: 'SSB-12345678',
-    incomeTaxNo: 'PCB-12345678',
+    epfNo: 'CPF-201234567A',
+    socsoNo: 'UEN-201912345A',
+    incomeTaxNo: 'IRAS-12345678',
   });
 
   const handleProfileSave = (e: React.FormEvent) => {
@@ -108,9 +108,9 @@ export default function SettingsTab({
 
   // 3. Branches State
   const [branches, setBranches] = useState([
-    { id: 1, name: 'Kuala Lumpur HQ office', city: 'Kuala Lumpur', count: 1024, isMain: true },
-    { id: 2, name: 'Penang Innovation hub', city: 'Georgetown', count: 142, isMain: false },
-    { id: 3, name: 'Johor Fulfillment center', city: 'Johor Bahru', count: 118, isMain: false },
+    { id: 1, name: 'Singapore HQ office', city: 'Singapore', count: 1024, isMain: true },
+    { id: 2, name: 'Jurong Innovation Hub', city: 'Jurong East', count: 142, isMain: false },
+    { id: 3, name: 'Changi Logistics Centre', city: 'Changi', count: 118, isMain: false },
   ]);
   const [newBranch, setNewBranch] = useState({ name: '', city: '', count: 0 });
   const [showAddBranch, setShowAddBranch] = useState(false);
@@ -140,7 +140,7 @@ export default function SettingsTab({
   const startEditBranch = (b: { id: number; name: string; city: string; count: number }) => {
     setEditingBranchId(b.id);
     setEditBranchForm({ name: b.name, city: b.city, count: b.count });
-    addToast(`Loaded settings for branch "${b.name}"`, 'info');
+    addToast(`Loaded settings for branch " ${b.name}"`, 'info');
   };
 
   const saveEditedBranch = () => {
@@ -176,10 +176,10 @@ export default function SettingsTab({
   };
 
   const [grades, setGrades] = useState([
-    { id: 'G-3', min: 'MYR 2,500', max: 'MYR 4,000' },
-    { id: 'G-5', min: 'MYR 4,500', max: 'MYR 6,000' },
-    { id: 'G-7', min: 'MYR 6,550', max: 'MYR 9,000' },
-    { id: 'G-9', min: 'MYR 9,550', max: 'MYR 15,000' },
+    { id: 'G-3', min: 'SGD 2,500', max: 'SGD 4,000' },
+    { id: 'G-5', min: 'SGD 4,500', max: 'SGD 6,000' },
+    { id: 'G-7', min: 'SGD 6,550', max: 'SGD 9,000' },
+    { id: 'G-9', min: 'SGD 9,550', max: 'SGD 15,000' },
   ]);
   const [newGrade, setNewGrade] = useState({ id: '', min: '', max: '' });
   const [showAddGrade, setShowAddGrade] = useState(false);
@@ -303,7 +303,7 @@ export default function SettingsTab({
 
     setNewRoleForm({ name: '', desc: '', type: 'Custom role' });
     setShowCreateRole(false);
-    addToast(`Security role "${newRoleForm.name}" registered successfully!`, 'success');
+    addToast(`Security role " ${newRoleForm.name}" registered successfully!`, 'success');
   };
 
   const handleToggleCell = (role: string, module: string, field: 'read' | 'create' | 'edit' | 'delete' | 'export') => {
@@ -400,7 +400,7 @@ export default function SettingsTab({
     ]);
     setNewWorkflowForm({ name: '', desc: '', chain: 'Direct Manager' });
     setShowCreateWorkflow(false);
-    addToast(`Workflow template "${newWorkflowForm.name}" enabled successfully.`, 'success');
+    addToast(`Workflow template " ${newWorkflowForm.name}" enabled successfully.`, 'success');
   };
 
   const toggleWorkflow = (id: string) => {
@@ -442,7 +442,7 @@ export default function SettingsTab({
   const generateNewKey = () => {
     addToast('Generating cryptographic tokens...', 'loading');
     setTimeout(() => {
-      const newKey = `sk-aperio-${createLocalId('key').replace(/-/g, '')}8e91`;
+      const newKey = `sk-aperio- ${createLocalId('key').replace(/-/g, '')}8e91`;
       setApiKey(newKey);
       addToast('New Live API access key generated.', 'success');
     }, 1200);
@@ -473,7 +473,7 @@ export default function SettingsTab({
   // 11. Audit Log Filter
   const [logFilter, setLogFilter] = useState('');
   const auditLogs = [
-    { time: '6 May 10:42', user: 'David Ng', action: 'Approved claim MYR 120.00', module: 'Claims', ip: '192.168.1.24' },
+    { time: '6 May 10:42', user: 'David Ng', action: 'Approved claim SGD 120.00', module: 'Claims', ip: '192.168.1.24' },
     { time: '6 May 09:15', user: 'HR Admin', action: 'Updated payroll - May 2026', module: 'Payroll', ip: '192.168.1.10' },
     { time: '5 May 18:30', user: 'Nina Reza', action: 'Added disciplinary case EMP-0187', module: 'Disciplinary', ip: '192.168.1.14' },
     { time: '5 May 16:00', user: 'HR Admin', action: 'Deleted user account (EMP-0199)', module: 'Users', ip: '192.168.1.10' },
@@ -496,10 +496,10 @@ export default function SettingsTab({
   // 13. Languages State
   const [regional, setRegional] = useState({
     language: 'English (US)',
-    timezone: 'Asia/Kuala_Lumpur (UTC+8)',
+    timezone: 'Asia/Singapore (UTC+8)',
     dateFormat: 'DD/MM/YYYY',
     timeFormat: '12-hour (AM/PM)',
-    currency: 'MYR — Malaysian Ringgit',
+    currency: 'SGD — Singapore Dollar',
     weekStart: 'Monday',
   });
 
@@ -531,7 +531,7 @@ export default function SettingsTab({
     if (editingTemplateId) {
       setTemplates(prev => prev.map(t => t.id === editingTemplateId ? { ...t, name: newTemplateForm.name, trigger: newTemplateForm.trigger, subject: newTemplateForm.subject, body: newTemplateForm.body, edited: todayStr } : t));
       setEditingTemplateId(null);
-      addToast(`Email template "${newTemplateForm.name}" updated successfully.`, 'success');
+      addToast(`Email template " ${newTemplateForm.name}" updated successfully.`, 'success');
     } else {
       setTemplates([
         ...templates,
@@ -545,7 +545,7 @@ export default function SettingsTab({
         }
       ]);
       setShowCreateTemplate(false);
-      addToast(`New email template "${newTemplateForm.name}" registered successfully.`, 'success');
+      addToast(`New email template " ${newTemplateForm.name}" registered successfully.`, 'success');
     }
     setNewTemplateForm({ id: 0, name: '', trigger: 'On employee creation', subject: '', body: '' });
   };
@@ -553,7 +553,7 @@ export default function SettingsTab({
   const startEditTemplate = (t: any) => {
     setEditingTemplateId(t.id);
     setNewTemplateForm({ id: t.id, name: t.name, trigger: t.trigger, subject: t.subject || 'Statutory Operational Notification', body: t.body || 'Email content matching employee workflow triggers.' });
-    addToast(`Loaded template editor for "${t.name}"`, 'info');
+    addToast(`Loaded template editor for " ${t.name}"`, 'info');
   };
 
   // 15. Backup & Data
@@ -675,7 +675,7 @@ export default function SettingsTab({
 
             {/* Address fields */}
             <div className="border-t border-slate-100 pt-5 space-y-4">
-              <h3 className="text-xs font-bold text-slate-750">Registered Corporate Address</h3>
+              <h3 className="text-xs font-bold text-slate-700">Registered Corporate Address</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-3 space-y-1.5">
                   <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Address Line 1</label>
@@ -718,7 +718,7 @@ export default function SettingsTab({
 
             {/* Contact & statutory Tax details */}
             <div className="border-t border-slate-100 pt-5 space-y-4">
-              <h3 className="text-xs font-bold text-slate-750">Contact &amp; Tax Identifiers</h3>
+              <h3 className="text-xs font-bold text-slate-700">Contact &amp; Tax Identifiers</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Phone Number</label>
@@ -748,7 +748,7 @@ export default function SettingsTab({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">EPF Employer ID No.</label>
+                  <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">CPF Submission No.</label>
                   <input
                     type="text"
                     value={profile.epfNo}
@@ -757,7 +757,7 @@ export default function SettingsTab({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">SOCSO Employer ID No.</label>
+                  <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Company UEN</label>
                   <input
                     type="text"
                     value={profile.socsoNo}
@@ -766,7 +766,7 @@ export default function SettingsTab({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Monthly Tax No. (PCB)</label>
+                  <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Monthly Tax No. (IRAS)</label>
                   <input
                     type="text"
                     value={profile.incomeTaxNo}
@@ -810,7 +810,7 @@ export default function SettingsTab({
               {modules.map((m) => (
                 <div
                   key={m.id}
-                  className={`p-4 rounded-2xl border transition-all flex items-start justify-between gap-4 ${
+                  className={`p-4 rounded-2xl border border-slate-100 transition-all flex items-start justify-between gap-4 ${
                     m.enabled ? 'bg-white border-slate-200/90 shadow-2xs' : 'bg-slate-50 border-slate-100 opacity-60'
                   }`}
                 >
@@ -821,7 +821,7 @@ export default function SettingsTab({
                   <button
                     onClick={() => {
                       toggleModule(m.id);
-                      addToast(`${m.name} module toggled ${!m.enabled ? 'ON' : 'OFF'}`, 'info');
+                      addToast(` ${m.name} module toggled ${!m.enabled ? 'ON' : 'OFF'}`, 'info');
                     }}
                     className={`h-6.5 w-11 rounded-full p-0.5 transition-all outline-none cursor-pointer flex items-center shrink-0 ${
                       m.enabled ? 'bg-[#2f66e0]' : 'bg-slate-300'
@@ -866,7 +866,7 @@ export default function SettingsTab({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <input
                     type="text"
-                    placeholder="Branch name (e.g. Johor Branch)"
+                    placeholder="Branch name (e.g. Woodlands Branch)"
                     value={newBranch.name}
                     onChange={(e) => setNewBranch({ ...newBranch, name: e.target.value })}
                     className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none"
@@ -910,21 +910,21 @@ export default function SettingsTab({
                     placeholder="Branch name"
                     value={editBranchForm.name}
                     onChange={(e) => setEditBranchForm({ ...editBranchForm, name: e.target.value })}
-                    className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-semibold outline-none focus:border-[#2f66e0]"
+                    className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-[#2f66e0]"
                   />
                   <input
                     type="text"
                     placeholder="City / Region"
                     value={editBranchForm.city}
                     onChange={(e) => setEditBranchForm({ ...editBranchForm, city: e.target.value })}
-                    className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-semibold outline-none focus:border-[#2f66e0]"
+                    className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-[#2f66e0]"
                   />
                   <input
                     type="number"
                     placeholder="Employees"
                     value={editBranchForm.count || ''}
                     onChange={(e) => setEditBranchForm({ ...editBranchForm, count: parseInt(e.target.value) || 0 })}
-                    className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-semibold outline-none focus:border-[#2f66e0]"
+                    className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-[#2f66e0]"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -939,9 +939,9 @@ export default function SettingsTab({
             )}
 
             {/* Branches Table */}
-            <div className="border border-slate-150/80 rounded-2xl overflow-hidden bg-white">
+            <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50/75 border-b border-slate-150 text-slate-500 font-bold uppercase tracking-wider">
+                <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">
                   <tr>
                     <th className="px-5 py-3.5 font-bold">Branch Name</th>
                     <th className="px-5 py-3.5 font-bold">City</th>
@@ -953,7 +953,7 @@ export default function SettingsTab({
                 <tbody className="divide-y divide-slate-100 font-semibold text-slate-600">
                   {branches.map((b) => (
                     <tr key={b.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-5 py-3.5 font-bold text-slate-750">{b.name}</td>
+                      <td className="px-5 py-3.5 font-bold text-slate-700">{b.name}</td>
                       <td className="px-5 py-3.5">{b.city}</td>
                       <td className="px-5 py-3.5">{b.count} staff members</td>
                       <td className="px-5 py-3.5">
@@ -994,9 +994,9 @@ export default function SettingsTab({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               
               {/* DEPARTMENTS CARD */}
-              <div className="space-y-4.5 bg-white border border-slate-150/80 rounded-2xl p-5 shadow-2xs">
+              <div className="space-y-4.5 bg-white border border-slate-100 rounded-2xl p-5 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b pb-1.5 flex-1">Corporate Departments</h3>
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-1.5 flex-1">Corporate Departments</h3>
                   <button onClick={() => setShowAddDept(true)} className="text-[#2f66e0] hover:text-blue-800 text-[11px] font-bold flex items-center gap-0.5 cursor-pointer">
                     <Plus className="h-3 w-3" />
                     <span>Department</span>
@@ -1004,7 +1004,7 @@ export default function SettingsTab({
                 </div>
 
                 {showAddDept && (
-                  <div className="bg-slate-50 p-4 border rounded-xl space-y-3.5">
+                  <div className="bg-slate-50 p-4 border border-slate-100 rounded-xl space-y-3.5">
                     <h4 className="text-[11px] font-bold text-slate-800">Add Department</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <input
@@ -1037,7 +1037,7 @@ export default function SettingsTab({
                   {departments.map((d, index) => (
                     <div key={index} className="py-2.5 flex justify-between items-center hover:bg-slate-50/40 px-2 rounded-lg">
                       <div>
-                        <div className="font-bold text-slate-750">{d.name}</div>
+                        <div className="font-bold text-slate-700">{d.name}</div>
                         <div className="text-[10px] text-slate-400 font-bold mt-0.5 uppercase tracking-wide">Head: &bull; {d.head}</div>
                       </div>
                       <div className="text-[11px] font-bold text-[#2f66e0] bg-blue-50/80 px-2 py-0.5 rounded-md border border-blue-100">
@@ -1049,9 +1049,9 @@ export default function SettingsTab({
               </div>
 
               {/* JOB GRADES CARD */}
-              <div className="space-y-4.5 bg-white border border-slate-150/80 rounded-2xl p-5 shadow-2xs">
+              <div className="space-y-4.5 bg-white border border-slate-100 rounded-2xl p-5 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b pb-1.5 flex-1">Job Salary Grades</h3>
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-1.5 flex-1">Job Salary Grades</h3>
                   <button onClick={() => setShowAddGrade(true)} className="text-[#2f66e0] hover:text-blue-800 text-[11px] font-bold flex items-center gap-0.5 cursor-pointer">
                     <Plus className="h-3 w-3" />
                     <span>Grade Bracket</span>
@@ -1059,7 +1059,7 @@ export default function SettingsTab({
                 </div>
 
                 {showAddGrade && (
-                  <div className="bg-slate-50 p-4 border rounded-xl space-y-3.5">
+                  <div className="bg-slate-50 p-4 border border-slate-100 rounded-xl space-y-3.5">
                     <h4 className="text-[11px] font-bold text-slate-800">Add Grade Bracket</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <input
@@ -1071,14 +1071,14 @@ export default function SettingsTab({
                       />
                       <input
                         type="text"
-                        placeholder="Min salary (MYR)"
+                        placeholder="Min salary (SGD)"
                         value={newGrade.min}
                         onChange={(e) => setNewGrade({ ...newGrade, min: e.target.value })}
                         className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none"
                       />
                       <input
                         type="text"
-                        placeholder="Max salary (MYR)"
+                        placeholder="Max salary (SGD)"
                         value={newGrade.max}
                         onChange={(e) => setNewGrade({ ...newGrade, max: e.target.value })}
                         className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none"
@@ -1130,7 +1130,7 @@ export default function SettingsTab({
             </div>
 
             {showAddUser && (
-              <div className="bg-slate-50/50 p-4 border rounded-2xl max-w-xl space-y-4">
+              <div className="bg-slate-50/50 p-4 border border-slate-100 rounded-2xl max-w-xl space-y-4">
                 <h4 className="text-xs font-bold text-slate-800">Assign New Operator Account</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <input
@@ -1161,7 +1161,7 @@ export default function SettingsTab({
                   <button onClick={inviteUser} className="px-3 py-1.5 bg-[#2f66e0] text-white font-bold text-xs rounded-lg cursor-pointer">
                     Dispatch invite
                   </button>
-                  <button onClick={() => setShowAddUser(false)} className="px-3 py-1.5 bg-slate-200 text-slate-705 font-bold text-xs rounded-lg cursor-pointer">
+                  <button onClick={() => setShowAddUser(false)} className="px-3 py-1.5 bg-slate-200 text-slate-700 font-bold text-xs rounded-lg cursor-pointer">
                     Dismiss
                   </button>
                 </div>
@@ -1169,9 +1169,9 @@ export default function SettingsTab({
             )}
 
             {/* Operator Users table */}
-            <div className="border border-slate-150/80 rounded-2xl overflow-hidden bg-white">
+            <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50/75 border-b border-slate-150 text-slate-500 font-bold uppercase tracking-wider">
+                <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">
                   <tr>
                     <th className="px-5 py-3.5 font-bold">User / Operator Contact</th>
                     <th className="px-5 py-3.5 font-bold">Assigned Security Role</th>
@@ -1184,11 +1184,11 @@ export default function SettingsTab({
                   {systemUsers.map((su) => (
                     <tr key={su.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-5 py-3.5">
-                        <div className="font-bold text-slate-750">{su.name}</div>
+                        <div className="font-bold text-slate-700">{su.name}</div>
                         <div className="text-[10px] text-slate-400 font-bold mt-0.5">{su.email}</div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={`px-2 py-0.5 text-[9.5px] font-extrabold rounded-md uppercase tracking-wide border ${
+                        <span className={`px-2 py-0.5 text-[9.5px] font-extrabold rounded-md uppercase tracking-wide border border-slate-100 ${
                           su.role === 'Super admin'
                             ? 'bg-blue-50 text-blue-650 border-blue-100'
                             : su.role === 'HR manager'
@@ -1264,7 +1264,7 @@ export default function SettingsTab({
                         updated[module] = { read: true, create: true, edit: true, delete: true, export: true };
                       });
                       setMatrixPermissions(prev => ({ ...prev, [editingMatrixRole]: updated }));
-                      addToast(`Granted all platform credentials for "${editingMatrixRole}"`, 'info');
+                      addToast(`Granted all platform credentials for " ${editingMatrixRole}"`, 'info');
                     }}
                     className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
                   >
@@ -1279,7 +1279,7 @@ export default function SettingsTab({
                         updated[module] = { read: false, create: false, edit: false, delete: false, export: false };
                       });
                       setMatrixPermissions(prev => ({ ...prev, [editingMatrixRole]: updated }));
-                      addToast(`Revoked all platform credentials for "${editingMatrixRole}"`, 'info');
+                      addToast(`Revoked all platform credentials for " ${editingMatrixRole}"`, 'info');
                     }}
                     className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
                   >
@@ -1324,10 +1324,10 @@ export default function SettingsTab({
               </div>
 
               {/* THE MATRIX GRID */}
-              <div className="border border-slate-150 rounded-2xl overflow-hidden bg-white shadow-3xs">
+              <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-3xs">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse min-w-[700px]">
-                    <thead className="bg-slate-50 border-b border-slate-150 text-slate-500 font-bold uppercase tracking-wider">
+                    <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">
                       <tr>
                         <th className="px-5 py-4 font-bold text-slate-600 min-w-[200px]">Module / Capability</th>
                         
@@ -1527,7 +1527,7 @@ export default function SettingsTab({
                                   onClick={() => {
                                     const allChecked = perms.read && perms.create && perms.edit && perms.delete && perms.export;
                                     handleToggleRow(editingMatrixRole, moduleName, !allChecked);
-                                    addToast(`${!allChecked ? 'Enabled' : 'Disabled'} all permissions for ${moduleName}`, 'info');
+                                    addToast(` ${!allChecked ? 'Enabled' : 'Disabled'} all permissions for ${moduleName}`, 'info');
                                   }}
                                   className="text-xs text-[#2f66e0] hover:underline font-bold cursor-pointer mr-3"
                                 >
@@ -1581,7 +1581,7 @@ export default function SettingsTab({
                   <button
                     type="button"
                     onClick={() => {
-                      addToast(`Roles Authorization Matrix for "${editingMatrixRole}" updated successfully!`, 'success');
+                      addToast(`Roles Authorization Matrix for " ${editingMatrixRole}" updated successfully!`, 'success');
                       setEditingMatrixRole(null);
                     }}
                     className="bg-[#2f66e0] text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-opacity-95 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
@@ -1651,7 +1651,7 @@ export default function SettingsTab({
                     <div className="max-w-xl space-y-1">
                       <div className="flex items-center gap-2">
                         <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wide">{r.name}</h4>
-                        <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 bg-white border rounded-md text-slate-500">{r.type || 'Custom role'}</span>
+                        <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 bg-white border border-slate-100 rounded-md text-slate-500">{r.type || 'Custom role'}</span>
                       </div>
                       <p className="text-[10.5px] font-bold text-slate-400">{r.desc}</p>
                     </div>
@@ -1740,14 +1740,14 @@ export default function SettingsTab({
               {workflows.map((w) => (
                 <div
                   key={w.id}
-                  className={`p-4.5 rounded-2xl border transition-all flex items-start justify-between gap-4 ${
+                  className={`p-4.5 rounded-2xl border border-slate-100 transition-all flex items-start justify-between gap-4 ${
                     w.active ? 'bg-white border-slate-200 shadow-2xs' : 'bg-slate-50/50 border-slate-100 opacity-60'
                   }`}
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-3">
                       <h4 className="text-xs font-bold text-slate-800">{w.name}</h4>
-                      <span className={`px-2 py-0.5 text-[9px] font-extrabold rounded-md uppercase tracking-wide border ${
+                      <span className={`px-2 py-0.5 text-[9px] font-extrabold rounded-md uppercase tracking-wide border border-slate-100 ${
                         w.active ? 'bg-emerald-50 text-emerald-650 border-emerald-100' : 'bg-slate-100 text-slate-400 border-slate-200'
                       }`}>
                         {w.active ? 'Active Routing' : 'Deactivated'}
@@ -1761,8 +1761,8 @@ export default function SettingsTab({
                   <div className="flex items-center gap-2.5 shrink-0 self-center">
                     <button
                       onClick={() => toggleWorkflow(w.id)}
-                      className={`px-3 py-1.5 border hover:border-slate-300 font-bold text-xs rounded-xl cursor-pointer bg-white ${
-                        w.active ? 'text-slate-650' : 'text-[#2f66e0]'
+                      className={`px-3 py-1.5 border border-slate-100 hover:border-slate-300 font-bold text-xs rounded-xl cursor-pointer bg-white ${
+                        w.active ? 'text-slate-600' : 'text-[#2f66e0]'
                       }`}
                     >
                       {w.active ? 'Deactivate' : 'Activate'}
@@ -1794,13 +1794,13 @@ export default function SettingsTab({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* Alert channels */}
-              <div className="space-y-4.5 bg-white border border-slate-150/80 rounded-2xl p-5 shadow-2xs">
-                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b pb-1.5">Alert Channels</h3>
+              <div className="space-y-4.5 bg-white border border-slate-100 rounded-2xl p-5 shadow-2xs">
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-1.5">Alert Channels</h3>
                 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-bold text-slate-750">In-app notifications</div>
+                      <div className="text-xs font-bold text-slate-700">In-app notifications</div>
                       <div className="text-[10px] font-medium text-slate-400 mt-0.5">Real-time alerts in portal panel bell icon</div>
                     </div>
                     <button
@@ -1818,7 +1818,7 @@ export default function SettingsTab({
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-bold text-slate-750">Email alerts</div>
+                      <div className="text-xs font-bold text-slate-700">Email alerts</div>
                       <div className="text-[10px] font-medium text-slate-400 mt-0.5">Dispatches emails for approvals, tickets, schedules</div>
                     </div>
                     <button
@@ -1836,7 +1836,7 @@ export default function SettingsTab({
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-bold text-slate-750">Mobile smart push</div>
+                      <div className="text-xs font-bold text-slate-700">Mobile smart push</div>
                       <div className="text-[10px] font-medium text-slate-400 mt-0.5">Deliver push notifications straight to Novora HR mobile app</div>
                     </div>
                     <button
@@ -1854,7 +1854,7 @@ export default function SettingsTab({
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-bold text-slate-750">SMS / WhatsApp alerts</div>
+                      <div className="text-xs font-bold text-slate-700">SMS / WhatsApp alerts</div>
                       <div className="text-[10px] font-medium text-slate-400 mt-0.5">Urgent SMS integration (premium gateway rates apply)</div>
                     </div>
                     <button
@@ -1873,8 +1873,8 @@ export default function SettingsTab({
               </div>
 
               {/* Module-Level Alerts */}
-              <div className="space-y-4.5 bg-white border border-slate-150/80 rounded-2xl p-5 shadow-2xs">
-                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b pb-1.5">Triggers Hierarchy</h3>
+              <div className="space-y-4.5 bg-white border border-slate-100 rounded-2xl p-5 shadow-2xs">
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-1.5">Triggers Hierarchy</h3>
                 
                 <div className="space-y-4">
                   {[
@@ -1885,7 +1885,7 @@ export default function SettingsTab({
                     { label: 'Contract renewal upcoming (30d)', key: 'contractRenew' },
                   ].map((item) => (
                     <div key={item.key} className="flex items-center justify-between">
-                      <div className="text-xs font-bold text-slate-705">{item.label}</div>
+                      <div className="text-xs font-bold text-slate-700">{item.label}</div>
                       <input
                         type="checkbox"
                         checked={(notifs as any)[item.key]}
@@ -1915,10 +1915,10 @@ export default function SettingsTab({
                 { name: 'Biometric Access logs terminal', desc: 'Sync swipe schedules via hardware biometric endpoints', connected: true },
                 { name: 'Currency exchange API engine', desc: 'Live FX conversion metrics for corporate claims', connected: true },
                 { name: 'SMTP &mdash; Custom mail server', desc: 'smtp.aperiooccasio.com on TLS port 587', connected: true },
-                { name: 'KWSP EPF e-filing sync portal', desc: 'Immediate direct submission to retirement funds', connected: false },
+                { name: 'CPF Board submission portal', desc: 'Direct submission to CPF Board for contribution filing', connected: false },
                 { name: 'OCR Document translation sync', desc: 'Tesseract AI engine receipt translation', connected: true },
               ].map((item, idx) => (
-                <div key={idx} className="p-4 rounded-xl border border-slate-150/90 hover:border-slate-200 transition-all bg-white flex items-center justify-between gap-4">
+                <div key={idx} className="p-4 rounded-xl border border-slate-100 hover:border-slate-200 transition-all bg-white flex items-center justify-between gap-4">
                   <div className="space-y-1">
                     <h4 className="text-xs font-bold text-slate-800" dangerouslySetInnerHTML={{ __html: item.name }} />
                     <p className="text-[10.5px] font-bold text-slate-400 pr-2 leading-relaxed">{item.desc}</p>
@@ -1956,7 +1956,7 @@ export default function SettingsTab({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setApiKeyVisible(!apiKeyVisible)}
-                    className="px-3.5 py-2 bg-white border font-bold text-xs rounded-xl hover:bg-slate-50 cursor-pointer"
+                    className="px-3.5 py-2 bg-white border border-slate-100 font-bold text-xs rounded-xl hover:bg-slate-50 cursor-pointer"
                   >
                     {apiKeyVisible ? 'Obscure Token' : 'Reveal Key'}
                   </button>
@@ -1999,13 +1999,13 @@ export default function SettingsTab({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* Authentications card */}
-              <div className="space-y-4.5 bg-white border border-slate-150/80 rounded-2xl p-5 shadow-2xs">
-                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b pb-1.5">Access Control &amp; 2FA</h3>
+              <div className="space-y-4.5 bg-white border border-slate-100 rounded-2xl p-5 shadow-2xs">
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-1.5">Access Control &amp; 2FA</h3>
                 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-bold text-slate-750">Enforce Multi-Factor (2FA)</div>
+                      <div className="text-xs font-bold text-slate-700">Enforce Multi-Factor (2FA)</div>
                       <div className="text-[10px] font-medium text-slate-400 mt-0.5">Enforces verification on administrator credentials</div>
                     </div>
                     <button
@@ -2023,7 +2023,7 @@ export default function SettingsTab({
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-bold text-slate-750">Corporate SSO (Google / AD)</div>
+                      <div className="text-xs font-bold text-slate-700">Corporate SSO (Google / AD)</div>
                       <div className="text-[10px] font-medium text-slate-400 mt-0.5">Allow employees to logging in via company email suites</div>
                     </div>
                     <button
@@ -2041,7 +2041,7 @@ export default function SettingsTab({
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-bold text-slate-750">Force reset upon creation</div>
+                      <div className="text-xs font-bold text-slate-700">Force reset upon creation</div>
                       <div className="text-[10px] font-medium text-slate-400 mt-0.5">Newly boarded staff must set custom secrets upon entry</div>
                     </div>
                     <button
@@ -2060,12 +2060,12 @@ export default function SettingsTab({
               </div>
 
               {/* Password credentials complexity criteria */}
-              <div className="space-y-4.5 bg-white border border-slate-150/80 rounded-2xl p-5 shadow-2xs">
-                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b pb-1.5">Strength guidelines</h3>
+              <div className="space-y-4.5 bg-white border border-slate-100 rounded-2xl p-5 shadow-2xs">
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-1.5">Strength guidelines</h3>
                 
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-705">Minimum Length Character count</span>
+                    <span className="text-xs font-bold text-slate-700">Minimum Length Character count</span>
                     <select
                       value={securityParams.pwMinLength}
                       onChange={(e) => setSecurityParams({ ...securityParams, pwMinLength: e.target.value })}
@@ -2078,7 +2078,7 @@ export default function SettingsTab({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-705">Automatic Expiration indices</span>
+                    <span className="text-xs font-bold text-slate-700">Automatic Expiration indices</span>
                     <select
                       value={securityParams.pwExpiryDays}
                       onChange={(e) => setSecurityParams({ ...securityParams, pwExpiryDays: e.target.value })}
@@ -2147,9 +2147,9 @@ export default function SettingsTab({
             </div>
 
             {/* Audit Tables */}
-            <div className="border border-slate-150/80 rounded-2xl overflow-hidden bg-white">
+            <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50/75 border-b border-slate-150 text-slate-500 font-bold uppercase tracking-wider">
+                <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">
                   <tr>
                     <th className="px-5 py-3.5 font-bold">Timestamp UTC</th>
                     <th className="px-5 py-3.5 font-bold">User</th>
@@ -2165,7 +2165,7 @@ export default function SettingsTab({
                       <td className="px-5 py-3.5 font-bold text-slate-800">{log.user}</td>
                       <td className="px-5 py-3.5 font-medium">{log.action}</td>
                       <td className="px-5 py-3.5">
-                        <span className={`px-2 py-0.5 text-[9px] font-extrabold rounded-md uppercase tracking-wide border ${
+                        <span className={`px-2 py-0.5 text-[9px] font-extrabold rounded-md uppercase tracking-wide border border-slate-100 ${
                           log.module === 'Payroll'
                             ? 'bg-green-50 text-green-650 border-green-100'
                             : log.module === 'Claims'
@@ -2220,10 +2220,10 @@ export default function SettingsTab({
                         setThemePref(theme.name);
                         addToast(`Visual theme shifted to ${theme.name}`, 'success');
                       }}
-                      className={`p-4 text-left border rounded-2xl cursor-pointer transition-all ${
+                      className={`p-4 text-left border border-slate-100 rounded-2xl cursor-pointer transition-all ${
                         themePref === theme.name
                           ? 'border-[#2f66e0] bg-[#2f66e0]/5 text-slate-800 outline-none ring-1 ring-[#2f66e0]/20 font-bold'
-                          : 'border-slate-150 hover:border-slate-200 bg-white text-slate-505'
+                          : 'border-slate-100 hover:border-slate-200 bg-white text-slate-505'
                       }`}
                     >
                       <div className="text-xs font-bold">{theme.name}</div>
@@ -2274,7 +2274,7 @@ export default function SettingsTab({
                         setAccentColor(color.name);
                         addToast(`Accents highlights mapped to ${color.name}`, 'info');
                       }}
-                      className={`h-9 w-9 rounded-full flex items-center justify-center transition-all cursor-pointer relative ${color.color} hover:scale-105`}
+                      className={`h-9 w-9 rounded-full flex items-center justify-center transition-all cursor-pointer relative ${color.color}hover:scale-105`}
                       title={color.name}
                     >
                       {accentColor === color.name && (
@@ -2313,7 +2313,7 @@ export default function SettingsTab({
                 >
                   <option>English (US)</option>
                   <option>English (UK)</option>
-                  <option>Bahasa Malaysia</option>
+                  <option>Bahasa Melayu</option>
                   <option>Chinese Simplified</option>
                 </select>
               </div>
@@ -2325,7 +2325,7 @@ export default function SettingsTab({
                   onChange={(e) => setRegional({ ...regional, timezone: e.target.value })}
                   className="w-full px-3.5 py-2.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:border-[#2f66e0] outline-none text-slate-700"
                 >
-                  <option>Asia/Kuala_Lumpur (UTC+8)</option>
+                  <option>Asia/Singapore (UTC+8)</option>
                   <option>Asia/Singapore (UTC+8)</option>
                   <option>Asia/London (UTC+0)</option>
                   <option>America/New_York (UTC-5)</option>
@@ -2352,9 +2352,8 @@ export default function SettingsTab({
                   onChange={(e) => setRegional({ ...regional, currency: e.target.value })}
                   className="w-full px-3.5 py-2.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:border-[#2f66e0] outline-none text-slate-700"
                 >
-                  <option>MYR — Malaysian Ringgit</option>
                   <option>SGD — Singapore Dollar</option>
-                  <option>USD — United States Dollar</option>
+                  <option>USD — US Dollar</option>
                   <option>GBP — British Pound Sterling</option>
                 </select>
               </div>
@@ -2363,9 +2362,9 @@ export default function SettingsTab({
             {/* Public holidays subpanel */}
             <div className="border-t border-slate-100 pt-5 space-y-4">
               <h3 className="text-xs font-bold text-slate-800">Public Holidays Schedule</h3>
-              <p className="text-[10.5px] font-semibold text-slate-400 leading-normal">Selected country: **Malaysia**. State-specific holidays mapped to **all regions**. 4 custom holiday override guidelines added.</p>
+              <p className="text-[10.5px] font-semibold text-slate-400 leading-normal">Selected country: **Singapore**. Public holidays mapped to Singapore calendar. 4 custom holiday override guidelines added.</p>
               
-              <div className="bg-slate-50/55 rounded-2xl border border-slate-100 p-4 divide-y divide-slate-150 font-semibold text-slate-650 text-xs">
+              <div className="bg-slate-50/55 rounded-2xl border border-slate-100 p-4 divide-y divide-slate-100 font-semibold text-slate-600 text-xs">
                 <div className="py-2.5 flex justify-between items-center">
                   <span>Hari Raya Aidilfitri</span>
                   <span className="font-bold text-slate-800">31 March</span>
@@ -2379,8 +2378,8 @@ export default function SettingsTab({
                   <span className="font-bold text-slate-800">12 May</span>
                 </div>
                 <div className="py-2.5 flex justify-between items-center">
-                  <span>National Day (Hari Kebangsaan)</span>
-                  <span className="font-bold text-slate-800">31 August</span>
+                  <span>National Day</span>
+                  <span className="font-bold text-slate-800">9 August</span>
                 </div>
               </div>
             </div>
@@ -2423,7 +2422,7 @@ export default function SettingsTab({
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in transition-all">
                 {/* Editor Panel */}
                 <div className="bg-slate-50/50 rounded-2xl p-5 border border-slate-200 space-y-4">
-                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b pb-2">
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">
                     {editingTemplateId ? 'Edit Email Template' : 'Create New Email Template'}
                   </h4>
                   <div className="space-y-3.5">
@@ -2498,7 +2497,7 @@ export default function SettingsTab({
 
                 {/* Branded Live Preview Panel */}
                 <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col space-y-4">
-                  <div className="flex items-center justify-between border-b pb-2">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                     <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                       Live Mailbox Output Render
                     </h4>
@@ -2507,7 +2506,7 @@ export default function SettingsTab({
 
                   <div className="bg-white border border-slate-200/80 rounded-xl shadow-xs overflow-hidden flex-1 flex flex-col">
                     {/* Simulated Mail Client Header */}
-                    <div className="bg-slate-50 px-4 py-3.5 border-b border-slate-150 space-y-1 text-[11px] font-bold">
+                    <div className="bg-slate-50 px-4 py-3.5 border-b border-slate-100 space-y-1 text-[11px] font-bold">
                       <div>
                         <span className="text-slate-400">From: </span>
                         <span className="text-slate-700">Novora Alerts &lt;no-reply@novora.com&gt;</span>
@@ -2531,7 +2530,7 @@ export default function SettingsTab({
                       </div>
 
                       {/* Dynamic Interpolated Text */}
-                      <div className="whitespace-pre-line text-slate-705 leading-relaxed font-sans font-semibold">
+                      <div className="whitespace-pre-line text-slate-700 leading-relaxed font-sans font-semibold">
                         {newTemplateForm.body ? (
                           newTemplateForm.body
                             .replace(/\{name\}/g, 'Jane Doe')
@@ -2555,9 +2554,9 @@ export default function SettingsTab({
             )}
 
             {/* Templates Table */}
-            <div className="border border-slate-150/80 rounded-2xl overflow-hidden bg-white">
+            <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50/75 border-b border-slate-150 text-slate-500 font-bold uppercase tracking-wider">
+                <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">
                   <tr>
                     <th className="px-5 py-3.5 font-bold pb-2">Template Name</th>
                     <th className="px-5 py-3.5 font-bold pb-2">Process Trigger</th>
@@ -2610,12 +2609,12 @@ export default function SettingsTab({
             {/* Quick backup parameters */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              <div className="space-y-4 bg-white border border-slate-150/80 rounded-2xl p-5 shadow-2xs">
-                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b pb-1.5">Backup Schedules</h3>
+              <div className="space-y-4 bg-white border border-slate-100 rounded-2xl p-5 shadow-2xs">
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-1.5">Backup Schedules</h3>
                 
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-705">Auto-backup frequency</span>
+                    <span className="text-xs font-bold text-slate-700">Auto-backup frequency</span>
                     <select className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 outline-none">
                       <option>Daily</option>
                       <option>Weekly</option>
@@ -2624,7 +2623,7 @@ export default function SettingsTab({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-705">Backup capture time</span>
+                    <span className="text-xs font-bold text-slate-700">Backup capture time</span>
                     <select className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 outline-none">
                       <option>02:00 AM</option>
                       <option>12:00 AM</option>
@@ -2633,7 +2632,7 @@ export default function SettingsTab({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-705">Retention period</span>
+                    <span className="text-xs font-bold text-slate-700">Retention period</span>
                     <select className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 outline-none">
                       <option>90 days</option>
                       <option>180 days</option>
@@ -2644,7 +2643,7 @@ export default function SettingsTab({
 
                   <div className="border-t border-slate-100 pt-3 flex justify-between items-center">
                     <div>
-                      <div className="text-xs font-bold text-slate-705">Last success: 6 May 02:00 AM</div>
+                      <div className="text-xs font-bold text-slate-700">Last success: 6 May 02:00 AM</div>
                       <div className="text-[10px] font-medium text-slate-400 mt-0.5">Automated cron verified &bull; S3 Bucket: novora_backups</div>
                     </div>
                     <span className="bg-emerald-50 text-emerald-650 border border-emerald-100 px-2.5 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase">
@@ -2655,8 +2654,8 @@ export default function SettingsTab({
               </div>
 
               {/* Data Export Center */}
-              <div className="space-y-4 bg-white border border-slate-150/80 rounded-2xl p-5 shadow-2xs">
-                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b pb-1.5">Data Export Center</h3>
+              <div className="space-y-4 bg-white border border-slate-100 rounded-2xl p-5 shadow-2xs">
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-1.5">Data Export Center</h3>
                 <p className="text-[11px] font-bold text-slate-400 leading-normal">Instantly compile and packaging corporate database tables into pristine spreadsheet assets.</p>
                 
                 <div className="grid grid-cols-2 gap-2.5">

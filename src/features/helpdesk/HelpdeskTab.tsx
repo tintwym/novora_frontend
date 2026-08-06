@@ -838,7 +838,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                       placeholder="Ref, name or title..."
                       value={ticketSearchQuery}
                       onChange={(e) => setTicketSearchQuery(e.target.value)}
-                      className="w-full text-xs bg-slate-50 border border-slate-150 rounded-xl pl-8 pr-1 px-2.5 py-2 outline-none focus:bg-white font-medium text-slate-705"
+                      className="w-full text-xs bg-slate-50 border border-slate-100 rounded-xl pl-8 pr-1 px-2.5 py-2 outline-none focus:bg-white font-medium text-slate-700"
                     />
                   </div>
                 </div>
@@ -848,7 +848,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   <select
                     value={ticketCategoryFilter}
                     onChange={(e) => setTicketCategoryFilter(e.target.value)}
-                    className="w-full text-[11.5px] font-semibold text-slate-600 bg-slate-50 border border-slate-150 rounded-xl p-2 outline-none cursor-pointer"
+                    className="w-full text-[11.5px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 rounded-xl p-2 outline-none cursor-pointer"
                   >
                     <option value="All">All Categories</option>
                     <option value="Payroll Discrepancy">Payroll Discrepancy</option>
@@ -864,7 +864,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   <select
                     value={ticketPriorityFilter}
                     onChange={(e) => setTicketPriorityFilter(e.target.value)}
-                    className="w-full text-[11.5px] font-semibold text-slate-600 bg-slate-50 border border-slate-150 rounded-xl p-2 outline-none cursor-pointer"
+                    className="w-full text-[11.5px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 rounded-xl p-2 outline-none cursor-pointer"
                   >
                     <option value="All">All Priorities</option>
                     <option value="Critical">Critical</option>
@@ -879,7 +879,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   <select
                     value={ticketStatusFilter}
                     onChange={(e) => setTicketStatusFilter(e.target.value)}
-                    className="w-full text-[11.5px] font-semibold text-slate-600 bg-slate-50 border border-slate-150 rounded-xl p-2 outline-none cursor-pointer"
+                    className="w-full text-[11.5px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 rounded-xl p-2 outline-none cursor-pointer"
                   >
                     <option value="All">All States</option>
                     <option value="Open">Open</option>
@@ -1034,7 +1034,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                       <select
                         value={activeTicketObj.status}
                         onChange={(e) => handleToggleTicketStatus(activeTicketObj.id, e.target.value as any)}
-                        className="text-[11px] font-black border border-slate-100 rounded bg-slate-50 cursor-pointer outline-none focus:ring-1 focus:ring-[#2f66e0] p-1 text-slate-705"
+                        className="text-[11px] font-black border border-slate-100 rounded bg-slate-50 cursor-pointer outline-none focus:ring-1 focus:ring-[#2f66e0] p-1 text-slate-700"
                       >
                         <option value="Open">Open</option>
                         <option value="In Progress">In Progress</option>
@@ -1094,7 +1094,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                     <span className="absolute -top-2 left-3 bg-white border border-slate-100 text-[9px] font-mono text-slate-400 px-2 py-0.5 rounded-full font-bold uppercase inline-flex items-center shrink-0">
                       Reporter Transcript
                     </span>
-                    <p className="mt-1 font-medium text-slate-650">{activeTicketObj.description}</p>
+                    <p className="mt-1 font-medium text-slate-600">{activeTicketObj.description}</p>
 
                     {/* List simulated attachments */}
                     {activeTicketObj.attachments.length > 0 && (
@@ -1164,7 +1164,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                                 <span>{rep.senderName}</span>
                                 <span className="font-mono text-[8.5px] font-medium">{rep.timestamp}</span>
                               </div>
-                              <p className="font-medium text-slate-705 leading-relaxed">{rep.text}</p>
+                              <p className="font-medium text-slate-700 leading-relaxed">{rep.text}</p>
                             </div>
                           );
                         })
@@ -1211,7 +1211,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                       value={chatInputText}
                       onChange={(e) => setChatInputText(e.target.value)}
                       placeholder={chatInternalNote ? "Write operational internal supervisor audit log..." : "Clarify calculation details with the reporter..."}
-                      className="flex-1 text-xs bg-slate-50 border border-slate-150 rounded-xl px-3 py-2.5 outline-none focus:bg-white focus:border-[#2f66e0]/35 text-slate-750"
+                      className="flex-1 text-xs bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 outline-none focus:bg-white focus:border-[#2f66e0]/35 text-slate-700"
                     />
                     
                     <button
@@ -1262,7 +1262,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                     required
                     value={selectedEmpId}
                     onChange={(e) => setSelectedEmpId(e.target.value)}
-                    className="w-full text-xs text-slate-705 bg-slate-50 border border-slate-150 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white focus:border-[#2f66e0]/30"
+                    className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white focus:border-[#2f66e0]/30"
                   >
                     <option value="">-- Choose employee details --</option>
                     {employees.map(emp => (
@@ -1279,7 +1279,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   <select
                     value={selectedTemplate}
                     onChange={(e) => setSelectedTemplate(e.target.value)}
-                    className="w-full text-xs text-slate-705 bg-slate-50 border border-slate-150 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white"
+                    className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white"
                   >
                     <option value="Standard Employment Verification Letter">Standard Employment Verification Letter (Bank/Embassy Spec)</option>
                     <option value="Salary Certificate">Salary Certificate (Consolidated base + allowances listing)</option>
@@ -1296,7 +1296,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                     placeholder="e.g. Citibank Mortgage Hub, Japanese Consulate Regional Office"
                     value={recipientOrg}
                     onChange={(e) => setRecipientOrg(e.target.value)}
-                    className="w-full text-xs text-slate-705 bg-slate-50 border border-slate-150 rounded-xl p-2.5 outline-none focus:bg-white focus:border-[#2f66e0]/30"
+                    className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 outline-none focus:bg-white focus:border-[#2f66e0]/30"
                   />
                 </div>
 
@@ -1308,7 +1308,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                     placeholder="e.g. To facilitate the processing of a home loan application under official package clauses."
                     value={customMemoField}
                     onChange={(e) => setCustomMemoField(e.target.value)}
-                    className="w-full text-xs text-slate-705 bg-slate-50 border border-slate-150 rounded-xl p-2.5 outline-none focus:bg-white resize-none"
+                    className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 outline-none focus:bg-white resize-none"
                   />
                 </div>
 
@@ -1396,7 +1396,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                     <p className="font-bold text-slate-500">Destination Desk: {verificationOutput.issuedFor}</p>
                   </div>
 
-                  <div className="space-y-2.5 mt-4 font-medium text-slate-650">
+                  <div className="space-y-2.5 mt-4 font-medium text-slate-600">
                     <p>
                       This serves to officially verify and certify that <strong>{verificationOutput.employeeName}</strong> (ID: <strong>{verificationOutput.employeeId}</strong>) is currently employed under active full-time status at Novora Global Corp.
                     </p>
@@ -1498,9 +1498,9 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
 
               </div>
             ) : (
-              <div className="bg-slate-50 border border-slate-150 border-dashed rounded-3xl p-24 text-center text-slate-400">
+              <div className="bg-slate-50 border border-slate-100 border-dashed rounded-3xl p-24 text-center text-slate-400">
                 <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                <h6 className="text-xs font-black text-slate-705 uppercase">No Dynamic Letter Active</h6>
+                <h6 className="text-xs font-black text-slate-700 uppercase">No Dynamic Letter Active</h6>
                 <p className="text-[11px] text-slate-400 max-w-sm mx-auto mt-1">Select an employee record on the left-wing console and click "Compile & Auto-Populate Letter" to generate a beautiful printable corporate verification document.</p>
               </div>
             )}
@@ -1603,7 +1603,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   { priority: 'Medium', hours: '24 hrs', avg: '18.0 hrs', active: false, score: 'bg-[#2f66e0] text-white' },
                   { priority: 'Low', hours: '48 hrs', avg: '34.2 hrs', active: false, score: 'bg-teal-500 text-white' }
                 ].map((bench) => (
-                  <div key={bench.priority} className="flex items-center justify-between border-b pb-2 text-[11px] font-semibold text-slate-650">
+                  <div key={bench.priority} className="flex items-center justify-between border-b pb-2 text-[11px] font-semibold text-slate-600">
                     <div className="flex items-center gap-1.5">
                       <span className={`text-[8px] px-1 rounded uppercase font-black ${bench.score}`}>
                         {bench.priority}
@@ -1728,7 +1728,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   placeholder="Query payroll, tax, handbook clauses..."
                   value={kbSearchTerm}
                   onChange={(e) => setKbSearchTerm(e.target.value)}
-                  className="w-full text-xs bg-slate-50 border border-slate-150 rounded-xl pl-9 pr-3 py-2 outline-none focus:bg-white focus:border-[#2f66e0]/30 transition-all font-semibold text-slate-705"
+                  className="w-full text-xs bg-slate-50 border border-slate-100 rounded-xl pl-9 pr-3 py-2 outline-none focus:bg-white focus:border-[#2f66e0]/30 transition-all font-semibold text-slate-700"
                 />
               </div>
             </div>
@@ -1770,7 +1770,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                       </button>
 
                       {isExpanded && (
-                        <div className="mt-3.5 pt-3.5 border-t border-slate-100 text-xs text-slate-650 leading-relaxed space-y-3 font-medium">
+                        <div className="mt-3.5 pt-3.5 border-t border-slate-100 text-xs text-slate-600 leading-relaxed space-y-3 font-medium">
                           <p className="bg-slate-50 p-3 rounded-2xl border border-slate-100/80">
                             {faq.answer}
                           </p>
@@ -1830,7 +1830,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   required
                   value={newCreatorId}
                   onChange={(e) => setNewCreatorId(e.target.value)}
-                  className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-150 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white focus:ring-1 focus:ring-blue-105"
+                  className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white focus:ring-1 focus:ring-blue-105"
                 >
                   <option value="">-- Select employee reporter --</option>
                   {employees.map(emp => (
@@ -1848,7 +1848,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value as any)}
-                    className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-150 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white"
+                    className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white"
                   >
                     <option value="Payroll Discrepancy">Payroll Discrepancy</option>
                     <option value="Document Request">Document Request</option>
@@ -1863,7 +1863,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   <select
                     value={newPriority}
                     onChange={(e) => setNewPriority(e.target.value as any)}
-                    className="w-full text-xs text-slate-705 bg-slate-50 border border-slate-150 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white"
+                    className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white"
                   >
                     <option value="Low">Low - Informational query (48h)</option>
                     <option value="Medium">Medium - Standard (24h)</option>
@@ -1882,7 +1882,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   placeholder="Draft clear title (e.g. Lost optical verification benefits password)"
                   value={newSubject}
                   onChange={(e) => setNewSubject(e.target.value)}
-                  className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-150 rounded-xl p-2.5 outline-none focus:bg-white focus:border-[#2f66e0]/30"
+                  className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 outline-none focus:bg-white focus:border-[#2f66e0]/30"
                 />
               </div>
 
@@ -1927,7 +1927,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   placeholder="Delineate dates, wage metrics calculation multipliers, or precise tax statements discrepancies to permit correct resolution diagnostics."
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
-                  className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-150 rounded-xl p-2.5 outline-none focus:bg-white focus:border-[#2f66e0]/30 resize-none font-medium"
+                  className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 outline-none focus:bg-white focus:border-[#2f66e0]/30 resize-none font-medium"
                 />
               </div>
 

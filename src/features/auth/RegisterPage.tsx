@@ -141,7 +141,7 @@ export default function RegisterPage({ onSuccess, onGoLogin, onGoLanding }: Regi
           label="Company name"
           type="text"
           autoComplete="organization"
-          placeholder="Acme Sdn Bhd"
+          placeholder="Acme Pte. Ltd."
           value={values.companyName}
           onChange={(e) => update('companyName', e.target.value)}
           error={errors.companyName}

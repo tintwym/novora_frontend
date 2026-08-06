@@ -72,7 +72,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
       status: 'In Use',
       purchaseDate: '2025-06-12',
       cost: 14899.00,
-      location: 'Kuala Lumpur HQ (Level 12)',
+      location: 'Singapore HQ (Level 12)',
       notes: 'Developer primary workspace machine. High priority support warranty active.'
     },
     {
@@ -85,7 +85,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
       status: 'In Use',
       purchaseDate: '2025-02-18',
       cost: 5499.00,
-      location: 'Kuala Lumpur HQ (Level 10)',
+      location: 'Singapore HQ (Level 10)',
       notes: 'Operations deployment machine. Clean condition.'
     },
     {
@@ -98,7 +98,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
       status: 'In Use',
       purchaseDate: '2024-11-05',
       cost: 3200.00,
-      location: 'Kuala Lumpur HQ (Level 12)',
+      location: 'Singapore HQ (Level 12)',
       notes: 'Calibrated color gamut specs.'
     },
     {
@@ -111,7 +111,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
       status: 'In Use',
       purchaseDate: '2024-09-30',
       cost: 4899.00,
-      location: 'Kuala Lumpur HQ (Level 11)',
+      location: 'Singapore HQ (Level 11)',
       notes: 'Testing rig and emergency contact device.'
     },
     {
@@ -244,7 +244,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
       employeeName: 'Raj Kumar',
       category: 'Laptops',
       assetRequested: 'Laptop Travel Charger Replacement (96W USB-C)',
-      reason: 'Lost original charger during client site survey visitation in Penang.',
+      reason: 'Lost original charger during client site survey visitation in Jurong.',
       priority: 'High',
       requestDate: '2026-05-12',
       status: 'Pending'
@@ -312,7 +312,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
   const [formAssetCustodian, setFormAssetCustodian] = useState('Unassigned');
   const [formAssetPurchaseDate, setFormAssetPurchaseDate] = useState('2026-05-19');
   const [formAssetCost, setFormAssetCost] = useState('');
-  const [formAssetLocation, setFormAssetLocation] = useState('Kuala Lumpur HQ');
+  const [formAssetLocation, setFormAssetLocation] = useState('Singapore HQ');
   const [formAssetStatus, setFormAssetStatus] = useState('Available');
   const [formAssetNotes, setFormAssetNotes] = useState('');
 
@@ -356,7 +356,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
     setFormAssetCustodian('Unassigned');
     setFormAssetPurchaseDate('2026-05-19');
     setFormAssetCost('');
-    setFormAssetLocation('Kuala Lumpur HQ');
+    setFormAssetLocation('Singapore HQ');
     setFormAssetStatus('Available');
     setFormAssetNotes('');
 
@@ -743,7 +743,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
         status: 'In Use' as const,
         purchaseDate: new Date().toISOString().split('T')[0],
         cost: 1500.00,
-        location: 'Kuala Lumpur HQ',
+        location: 'Singapore HQ',
         notes: `Provisioned automatically from approved Request: ${req.id}`
       };
 
@@ -1105,7 +1105,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
       {/* Main Interactive Table & Filter Suite */}
       <div id="assets-management-table-card" className="bg-white border border-slate-100 rounded-2xl shadow-xs overflow-hidden">
         {/* Filtering & Search Bar */}
-        <div className="p-4 bg-slate-50/55 border-b border-slate-150 flex flex-col md:flex-row items-center gap-3">
+        <div className="p-4 bg-slate-50/55 border-b border-slate-100 flex flex-col md:flex-row items-center gap-3">
           <div className="relative w-full md:w-80">
             <span className="absolute inset-y-0 left-3 flex items-center pr-1 text-slate-400">
               <Search className="h-4 w-4" />
@@ -1129,7 +1129,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                   id="assets-filter-category"
                   value={categoryFilter}
                   onChange={e => setCategoryFilter(e.target.value)}
-                  className="bg-white border border-slate-250 hover:border-slate-400 text-slate-700 text-xs py-1 px-2 rounded-xl focus:border-blue-500 outline-none transition-all cursor-pointer font-medium"
+                  className="bg-white border border-slate-200 hover:border-slate-400 text-slate-700 text-xs py-1 px-2 rounded-xl focus:border-blue-500 outline-none transition-all cursor-pointer font-medium"
                 >
                   <option value="All categories">All categories</option>
                   {categories.map(cat => (
@@ -1145,7 +1145,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                   id="assets-filter-status"
                   value={statusFilter}
                   onChange={e => setStatusFilter(e.target.value)}
-                  className="bg-white border border-slate-250 hover:border-slate-400 text-slate-700 text-xs py-1 px-2 rounded-xl focus:border-blue-500 outline-none transition-all cursor-pointer font-medium"
+                  className="bg-white border border-slate-200 hover:border-slate-400 text-slate-700 text-xs py-1 px-2 rounded-xl focus:border-blue-500 outline-none transition-all cursor-pointer font-medium"
                 >
                   <option value="All statuses">All statuses</option>
                   <option value="Available">Available Only</option>
@@ -1511,7 +1511,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase leading-none ${
                           inc.payrollDeduction
                             ? 'bg-amber-50 text-amber-700 border border-amber-100'
-                            : 'bg-slate-150 text-slate-500'
+                            : 'bg-slate-100 text-slate-500'
                         }`}>
                           {inc.payrollDeduction ? 'Active Charge' : 'Co. Absorbed'}
                         </span>

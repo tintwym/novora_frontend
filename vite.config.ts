@@ -7,7 +7,8 @@ import { fileURLToPath } from 'url'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const API_PROXY_TARGET = process.env.VITE_API_PROXY_TARGET || 'https://novora-backend-56ot.onrender.com'
+const API_PROXY_TARGET = process.env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8081'
+// const API_PROXY_TARGET = process.env.VITE_API_PROXY_TARGET || 'https://novora-backend-56ot.onrender.com'
 
 /** Production cookies are Secure; strip so HTTP localhost can keep the session via the Vite proxy. */
 function rewriteUpstreamCookies(proxyRes: IncomingMessage) {
@@ -22,10 +23,11 @@ function rewriteUpstreamCookies(proxyRes: IncomingMessage) {
 }
 
 function apiProxy(): ProxyOptions {
+  const isLocalHttp = API_PROXY_TARGET.startsWith('http://')
   return {
     target: API_PROXY_TARGET,
     changeOrigin: true,
-    secure: true,
+    secure: !isLocalHttp,
     configure: (proxy) => {
       proxy.on('proxyRes', (proxyRes: IncomingMessage, _req: IncomingMessage, _res: ServerResponse) => {
         rewriteUpstreamCookies(proxyRes)
