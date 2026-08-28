@@ -2,10 +2,11 @@ import type { NextConfig } from 'next'
 
 const renderApi = 'https://novora-backend-wiem.onrender.com'
 
-/** Local dev uses Spring on 8081; Vercel production proxies to Render. */
-const apiProxyTarget =
-  process.env.API_PROXY_TARGET ??
-  (process.env.VERCEL ? renderApi : 'http://127.0.0.1:8081')
+/**
+ * Local dev: proxy /api and /auth to Spring on 8081.
+ * Production: Vercel applies `vercel.json` rewrites to Render before Next.js runs.
+ */
+const apiProxyTarget = process.env.API_PROXY_TARGET ?? 'http://127.0.0.1:8081'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -13,6 +14,11 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   async rewrites() {
+    // Skip external rewrites on Vercel — vercel.json handles production proxying.
+    if (process.env.VERCEL) {
+      return []
+    }
+
     return [
       {
         source: '/api/:path*',

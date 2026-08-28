@@ -2,7 +2,7 @@ import { ApiError } from './types'
 
 /**
  * Base URL for API calls.
- * - Local / Vercel: leave empty and use same-origin `/api` (Next.js rewrites in next.config.ts)
+ * - Local / Vercel: leave empty and use same-origin `/api` (vercel.json + next.config rewrites)
  *   so session cookies + CSRF stay same-site.
  * - Only set `NEXT_PUBLIC_API_BASE_URL` if you intentionally call the API origin directly.
  */
