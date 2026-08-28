@@ -1,0 +1,310 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, monospace;
+
+  --color-novora: #2563eb;
+  --color-novora-deep: #1d4ed8;
+  --color-novora-sky: #0ea5e9;
+  --color-novora-amber: #f59e0b;
+  --color-novora-ink: #0f172a;
+  --color-novora-muted: #64748b;
+  --color-novora-surface: #f8fafc;
+  --color-novora-border: #e2e8f0;
+}
+
+html {
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-novora-surface);
+  color: var(--color-novora-ink);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-novora) 18%, white);
+  color: var(--color-novora-ink);
+}
+
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-novora) 55%, white);
+  outline-offset: 2px;
+}
+
+@keyframes soft-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-soft-fade-up {
+  animation: soft-fade-up 320ms ease-out both;
+}
+
+@keyframes mesh-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(2%, -1%) scale(1.02); }
+}
+
+.animate-mesh-drift {
+  animation: mesh-drift 18s ease-in-out infinite;
+}
+
+.nv-page-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-novora-ink);
+}
+
+.nv-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.875rem;
+  background: linear-gradient(135deg, var(--color-novora) 0%, var(--color-novora-deep) 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.625rem 1.25rem;
+  transition: transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-novora) 25%, transparent),
+    0 8px 24px color-mix(in srgb, var(--color-novora) 18%, transparent);
+}
+
+.nv-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-novora) 28%, transparent),
+    0 12px 32px color-mix(in srgb, var(--color-novora) 22%, transparent);
+}
+
+.nv-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--color-novora-border);
+  background: white;
+  color: var(--color-novora-ink);
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.625rem 1.25rem;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.nv-btn-secondary:hover {
+  border-color: color-mix(in srgb, var(--color-novora) 35%, var(--color-novora-border));
+  background: color-mix(in srgb, var(--color-novora) 4%, white);
+}
+
+.nv-glass {
+  background: color-mix(in srgb, white 82%, transparent);
+  backdrop-filter: blur(16px);
+  border: 1px solid color-mix(in srgb, white 60%, var(--color-novora-border));
+}
+
+.nv-card {
+  border-radius: 1.25rem;
+  border: 1px solid var(--color-novora-border);
+  background: white;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-novora-ink) 4%, transparent);
+}
+
+.nv-input {
+  width: 100%;
+  border-radius: 0.875rem;
+  border: 1px solid var(--color-novora-border);
+  background: white;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-novora-ink);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.nv-input::placeholder {
+  color: #94a3b8;
+}
+
+.nv-input:hover {
+  border-color: #cbd5e1;
+}
+
+.nv-input:focus {
+  border-color: var(--color-novora);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-novora) 14%, transparent);
+  outline: none;
+}
+
+.nv-section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--color-novora) 12%, var(--color-novora-border));
+  background: color-mix(in srgb, var(--color-novora) 6%, white);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-novora-deep);
+}
+
+/* HR module surfaces inside the authenticated portal */
+#portal-inner-board {
+  color: var(--color-novora-ink);
+}
+
+.nv-panel {
+  border-radius: 1.25rem;
+  border: 1px solid var(--color-novora-border);
+  background: white;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-novora-ink) 3%, transparent);
+}
+
+.nv-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--color-novora-border);
+  background: white;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-novora-ink) 3%, transparent);
+}
+
+.nv-stat-card {
+  border-radius: 1.25rem;
+  border: 1px solid var(--color-novora-border);
+  background: white;
+  padding: 1rem;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-novora-ink) 3%, transparent);
+  transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.nv-stat-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-novora-ink) 6%, transparent);
+}
+
+.nv-stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.875rem;
+  background: color-mix(in srgb, var(--color-novora) 10%, white);
+  color: var(--color-novora-deep);
+  padding: 0.5rem;
+}
+
+.nv-tab-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.nv-tab {
+  border-radius: 0.875rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.nv-tab:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.nv-tab-active {
+  background: color-mix(in srgb, var(--color-novora) 10%, white);
+  color: var(--color-novora-deep);
+}
+
+#portal-inner-board input:not([type='checkbox']):not([type='radio']),
+#portal-inner-board select,
+#portal-inner-board textarea {
+  border-radius: 0.875rem;
+  border-color: var(--color-novora-border);
+}
+
+#portal-inner-board input:not([type='checkbox']):not([type='radio']):focus,
+#portal-inner-board select:focus,
+#portal-inner-board textarea:focus {
+  border-color: var(--color-novora);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-novora) 12%, transparent);
+}
+
+#portal-inner-board button.bg-novora,
+#portal-inner-board .nv-btn-primary {
+  cursor: pointer;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+[id$="-upper-actions"],
+[id$="-top-controls"],
+#performance-filters,
+#payroll-global-ctrls,
+#employees-top-controls {
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+[id$="-upper-actions"] > *,
+[id$="-top-controls"] > *,
+#performance-filters > *,
+#payroll-global-ctrls > *,
+#employees-top-controls > * {
+  flex-shrink: 0;
+}
+
+[id$="-upper-actions"] button,
+[id$="-upper-actions"] select,
+[id$="-top-controls"] button,
+[id$="-top-controls"] select,
+#performance-filters button,
+#performance-filters select,
+#payroll-global-ctrls button,
+#payroll-global-ctrls select,
+#employees-top-controls button,
+#employees-top-controls select {
+  white-space: nowrap !important;
+  flex-shrink: 0;
+}
