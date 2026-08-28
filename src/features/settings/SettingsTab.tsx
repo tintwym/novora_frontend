@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { createLocalNumericId, createLocalId } from '@/lib/createLocalId'
+import { useTheme } from '@/providers/ThemeProvider';
+import type { AccentPreset, DensityPreset, ThemePreset } from '@/lib/theme';
 import {
   Building2,
   Blocks,
@@ -50,6 +52,8 @@ export default function SettingsTab({
   addToast,
   employees,
 }: SettingsTabProps) {
+  const { theme: themePref, density, accent: accentColor, setTheme, setDensity, setAccent } = useTheme();
+
   // --- STATE FOR SETTINGS ---
 
   // 1. Company Profile State
@@ -488,10 +492,6 @@ export default function SettingsTab({
       log.module.toLowerCase().includes(logFilter.toLowerCase())
   );
 
-  // 12. Appearance settings
-  const [themePref, setThemePref] = useState('Slate Light');
-  const [density, setDensity] = useState('Cozy');
-  const [accentColor, setAccentColor] = useState('Novora Blue');
 
   // 13. Languages State
   const [regional, setRegional] = useState({
@@ -2217,7 +2217,7 @@ export default function SettingsTab({
                       key={theme.name}
                       type="button"
                       onClick={() => {
-                        setThemePref(theme.name);
+                        setTheme(theme.name as ThemePreset);
                         addToast(`Visual theme shifted to ${theme.name}`, 'success');
                       }}
                       className={`p-4 text-left border border-slate-100 rounded-2xl cursor-pointer transition-all ${
@@ -2242,7 +2242,7 @@ export default function SettingsTab({
                       key={item}
                       type="button"
                       onClick={() => {
-                        setDensity(item);
+                        setDensity(item as DensityPreset);
                         addToast(`Spacing array toggled to ${item}`, 'info');
                       }}
                       className={`px-4.5 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
@@ -2271,7 +2271,7 @@ export default function SettingsTab({
                       key={color.name}
                       type="button"
                       onClick={() => {
-                        setAccentColor(color.name);
+                        setAccent(color.name as AccentPreset);
                         addToast(`Accents highlights mapped to ${color.name}`, 'info');
                       }}
                       className={`h-9 w-9 rounded-full flex items-center justify-center transition-all cursor-pointer relative ${color.color}hover:scale-105`}

@@ -215,7 +215,8 @@ export default function PortalShell() {
 
         <div
           id="portal-inner-board"
-          className="flex-1 min-h-0 overflow-y-auto px-5 sm:px-8 py-5 sm:py-6 bg-gradient-to-b from-slate-50/80 to-white"
+          key={activeTab}
+          className="flex-1 min-h-0 overflow-y-auto bg-gradient-to-b from-slate-50/80 to-white animate-portal-content-in"
         >
           {!canAccessTab(session.roles, activeTab) ? null : activeTab === 'Employees Management' ? (
             <div id="employees-module-root" className="space-y-6">

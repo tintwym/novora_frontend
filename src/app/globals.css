@@ -18,6 +18,67 @@
 html {
   color-scheme: light;
   scroll-behavior: smooth;
+
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e2e8f0;
+  --sidebar-text: #64748b;
+  --sidebar-text-hover: #0f172a;
+  --sidebar-text-active: #ffffff;
+  --sidebar-item-hover-bg: #f1f5f9;
+  --sidebar-item-active-bg: var(--color-novora);
+  --sidebar-muted: #94a3b8;
+  --sidebar-input-bg: #f8fafc;
+  --sidebar-input-border: #e2e8f0;
+  --sidebar-dropdown-bg: #ffffff;
+  --sidebar-footer-bg: #f8fafc;
+  --sidebar-footer-border: #e2e8f0;
+  --sidebar-sub-active-bg: color-mix(in srgb, var(--color-novora) 10%, white);
+  --sidebar-sub-active-text: var(--color-novora-deep);
+  --sidebar-help-icon: var(--color-novora);
+}
+
+html[data-theme='minimal-off-white'] {
+  --sidebar-bg: #fafaf9;
+  --sidebar-border: #e7e5e4;
+  --sidebar-item-hover-bg: #f5f5f4;
+  --sidebar-input-bg: #ffffff;
+  --sidebar-footer-bg: #ffffff;
+}
+
+html[data-theme='cyber-dark'] {
+  color-scheme: dark;
+  --sidebar-bg: #020617;
+  --sidebar-border: rgba(30, 41, 59, 0.8);
+  --sidebar-text: #94a3b8;
+  --sidebar-text-hover: #f1f5f9;
+  --sidebar-text-active: #ffffff;
+  --sidebar-item-hover-bg: rgba(255, 255, 255, 0.05);
+  --sidebar-item-active-bg: var(--color-novora);
+  --sidebar-muted: #64748b;
+  --sidebar-input-bg: rgba(15, 23, 42, 0.8);
+  --sidebar-input-border: #334155;
+  --sidebar-dropdown-bg: #0f172a;
+  --sidebar-footer-bg: rgba(15, 23, 42, 0.6);
+  --sidebar-footer-border: rgba(30, 41, 59, 0.8);
+  --sidebar-sub-active-bg: color-mix(in srgb, var(--color-novora) 15%, #0f172a);
+  --sidebar-sub-active-text: #bae6fd;
+  --sidebar-help-icon: #7dd3fc;
+}
+
+html[data-theme='emerald-forest'] {
+  --sidebar-bg: #f0fdf4;
+  --sidebar-border: #bbf7d0;
+  --sidebar-text: #4b5563;
+  --sidebar-text-hover: #14532d;
+  --sidebar-item-hover-bg: #dcfce7;
+  --sidebar-input-bg: #ffffff;
+  --sidebar-input-border: #bbf7d0;
+  --sidebar-dropdown-bg: #ffffff;
+  --sidebar-footer-bg: #ecfdf5;
+  --sidebar-footer-border: #bbf7d0;
+  --sidebar-sub-active-bg: color-mix(in srgb, var(--color-novora) 12%, #ecfdf5);
+  --sidebar-sub-active-text: #047857;
+  --sidebar-help-icon: #059669;
 }
 
 body {
@@ -51,6 +112,134 @@ body {
 
 .animate-soft-fade-up {
   animation: soft-fade-up 320ms ease-out both;
+}
+
+@keyframes sidebar-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes sidebar-item-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes sidebar-expand-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes nav-active-glow {
+  0%, 100% {
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--color-novora) 25%, transparent),
+      0 4px 14px color-mix(in srgb, var(--color-novora) 18%, transparent);
+  }
+  50% {
+    box-shadow: 0 2px 4px color-mix(in srgb, var(--color-novora) 30%, transparent),
+      0 8px 20px color-mix(in srgb, var(--color-novora) 24%, transparent);
+  }
+}
+
+@keyframes portal-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-sidebar-item-in {
+  animation: sidebar-item-in 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-sidebar-expand-in {
+  animation: sidebar-expand-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-portal-content-in {
+  animation: portal-content-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+#app-sidebar {
+  transition:
+    width 280ms cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 420ms ease,
+    border-color 420ms ease,
+    box-shadow 420ms ease;
+}
+
+.nv-sidebar-nav-btn {
+  position: relative;
+  overflow: hidden;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms ease;
+}
+
+.nv-sidebar-nav-btn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 0;
+  border-radius: 0 9999px 9999px 0;
+  background: var(--color-novora);
+  transform: translateY(-50%);
+  transition: height 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease;
+  opacity: 0;
+}
+
+.nv-sidebar-nav-btn:hover {
+  transform: translateX(2px);
+}
+
+.nv-sidebar-nav-btn[data-active='true'] {
+  animation: nav-active-glow 2.4s ease-in-out infinite;
+}
+
+.nv-sidebar-nav-btn[data-active='true']::before {
+  height: 55%;
+  opacity: 1;
+}
+
+.nv-sidebar-subnav {
+  animation: sidebar-slide-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+html[data-density='compact'] #portal-inner-board {
+  padding: 1rem 1.25rem;
+}
+
+html[data-density='cozy'] #portal-inner-board {
+  padding: 1.25rem 2rem;
+}
+
+html[data-density='spacious'] #portal-inner-board {
+  padding: 1.75rem 2.5rem;
 }
 
 @keyframes mesh-drift {
@@ -168,6 +357,7 @@ body {
 /* HR module surfaces inside the authenticated portal */
 #portal-inner-board {
   color: var(--color-novora-ink);
+  padding: 1.25rem 2rem;
 }
 
 .nv-panel {
