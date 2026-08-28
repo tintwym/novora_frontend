@@ -67,7 +67,7 @@ export default function PortalShell() {
 
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('Employee Profile')
   const [reportsSubTab, setReportsSubTab] = useState<'centre' | 'scheduled' | 'builder'>('centre')
-  const [settingsSubTab, setSettingsSubTab] = useState<string>('Departments')
+  const [settingsSubTab, setSettingsSubTab] = useState<string>('Company profile')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false)
@@ -191,7 +191,7 @@ export default function PortalShell() {
   return (
     <div
       id="novora-hrms-root"
-      className="flex h-dvh min-h-0 bg-[var(--color-novora-surface)] select-none font-sans overflow-hidden"
+      className="flex h-dvh min-h-0 select-none font-sans overflow-hidden"
     >
       <Sidebar
         activeTab={activeTab}
@@ -216,7 +216,7 @@ export default function PortalShell() {
         <div
           id="portal-inner-board"
           key={activeTab}
-          className="flex-1 min-h-0 overflow-y-auto bg-gradient-to-b from-slate-50/80 to-white animate-portal-content-in"
+          className="flex-1 min-h-0 overflow-y-auto animate-portal-content-in"
         >
           {!canAccessTab(session.roles, activeTab) ? null : activeTab === 'Employees Management' ? (
             <div id="employees-module-root" className="space-y-6">

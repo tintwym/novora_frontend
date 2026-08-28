@@ -86,7 +86,7 @@ export default function Topbar({
   return (
     <header
       id="app-topbar"
-      className="sticky top-0 z-40 h-16 nv-glass px-6 md:px-8 flex items-center justify-between shrink-0"
+      className="sticky top-0 z-40 h-16 px-6 md:px-8 flex items-center justify-between shrink-0"
     >
       <div className="flex items-center gap-2 min-w-0">
         <h1
@@ -99,17 +99,16 @@ export default function Topbar({
       </div>
 
       <div className="flex items-center gap-3 md:gap-4">
-        <div id="topbar-search-container" className="relative w-48 sm:w-64 md:w-80 hidden sm:block">
-          <span className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-slate-400" />
-          </span>
+        <div id="topbar-search-container" className="nv-search-wrap w-48 sm:w-64 md:w-80 hidden sm:block">
+          <Search className="nv-search-icon h-4 w-4" aria-hidden />
           <input
             id="topbar-search-input"
-            type="text"
+            type="search"
             placeholder="Search employees, modules..."
             value={searchValue}
             onChange={(e) => onSearchChange?.(e.target.value)}
-            className="w-full text-sm text-slate-800 nv-input py-1.5 pl-10 pr-4"
+            className="nv-search-input"
+            aria-label="Search employees and modules"
           />
         </div>
 
@@ -121,7 +120,7 @@ export default function Topbar({
               setNotificationsOpen((open) => !open)
               setProfileOpen(false)
             }}
-            className="p-2.5 rounded-xl border border-slate-200/80 hover:border-slate-300 hover:bg-white transition-colors relative cursor-pointer"
+            className="p-2.5 rounded-xl border border-[var(--shell-topbar-border)] hover:bg-[var(--sidebar-item-hover-bg)] transition-colors relative cursor-pointer"
             aria-label="Notifications"
             aria-expanded={notificationsOpen}
           >
@@ -174,14 +173,14 @@ export default function Topbar({
               setProfileOpen((open) => !open)
               setNotificationsOpen(false)
             }}
-            className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl border border-slate-200/80 hover:border-slate-300 hover:bg-white transition-colors cursor-pointer"
+            className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl border border-[var(--shell-topbar-border)] hover:bg-[var(--sidebar-item-hover-bg)] transition-colors cursor-pointer"
             title={displayRole}
             aria-expanded={profileOpen}
           >
             <div className="h-7 w-7 bg-novora/10 border border-novora/20 rounded-lg flex items-center justify-center text-sm font-bold text-novora">
               {initial}
             </div>
-            <span className="text-xs font-bold text-slate-700 tracking-tight max-w-28 truncate hidden md:inline">
+            <span className="text-xs font-bold text-[var(--shell-title)] tracking-tight max-w-28 truncate hidden md:inline">
               {displayName}
             </span>
             <RoleIcon roles={session?.roles} className="h-3.5 w-3.5 text-slate-500 shrink-0 hidden sm:block" />
