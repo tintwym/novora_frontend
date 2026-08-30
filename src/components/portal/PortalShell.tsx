@@ -196,10 +196,6 @@ export default function PortalShell() {
       <Sidebar
         activeTab={activeTab}
         setActiveTab={goToTab}
-        reportsSubTab={reportsSubTab}
-        setReportsSubTab={setReportsSubTab}
-        settingsSubTab={settingsSubTab}
-        setSettingsSubTab={setSettingsSubTab}
         roles={session.roles}
       />
 
@@ -262,7 +258,7 @@ export default function PortalShell() {
                       className="h-9 inline-flex items-center gap-2 px-4 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 transition-colors rounded-xl cursor-pointer whitespace-nowrap shrink-0"
                     >
                       <span className="whitespace-nowrap">{deptFilterState}</span>
-                      <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
                     </button>
 
                     {deptDropdownOpen && (
@@ -293,7 +289,7 @@ export default function PortalShell() {
                     >
                       <Download className="h-4 w-4 text-slate-500 shrink-0" />
                       <span>Export</span>
-                      <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
                     </button>
 
                     {exportDropdownOpen && (

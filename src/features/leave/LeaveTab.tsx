@@ -514,7 +514,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
               className="h-9 bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 rounded-xl inline-flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-all whitespace-nowrap"
             >
               <span>{selectedYear}</span>
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
             </button>
             {yearDropdownOpen && (
               <div className="absolute right-0 mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl w-32 py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
@@ -538,7 +538,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
               className="h-9 bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 rounded-xl inline-flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-all whitespace-nowrap"
             >
               <span>{selectedDept}</span>
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
             </button>
             {deptDropdownOpen && (
               <div className="absolute right-0 mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl w-48 py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
@@ -600,7 +600,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   className="h-9 bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 rounded-xl inline-flex items-center gap-1.5 select-none cursor-pointer whitespace-nowrap shrink-0"
                 >
                   <span className="whitespace-nowrap">{typeFilter}</span>
-                  <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                  <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
                 </button>
                 {typeFilterDropdown && (
                   <div className="absolute left-0 mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl w-36 py-1 z-20">

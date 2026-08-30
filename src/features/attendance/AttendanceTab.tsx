@@ -618,7 +618,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
               className="h-9 inline-flex items-center gap-2 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 transition-colors rounded-xl cursor-pointer whitespace-nowrap shrink-0"
             >
               <span className="whitespace-nowrap">{deptFilter}</span>
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
             </button>
             {deptDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">

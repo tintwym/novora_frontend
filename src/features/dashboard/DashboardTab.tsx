@@ -354,7 +354,7 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
                 className="h-8 inline-flex items-center gap-1.5 px-3.5 text-[11px] font-black text-slate-600 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
               >
                 <span className="whitespace-nowrap">{timelineFilter}</span>
-                <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
+                <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
               </button>
 
               {dropdownOpen && (

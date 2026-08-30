@@ -122,14 +122,14 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
           
           <div className="flex flex-col">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Sector</span>
-            <div className="relative">
+            <div className="relative nv-select-wrap">
               <select
                 value={selectedDept}
                 onChange={(e) => {
                   setSelectedDept(e.target.value);
                   addToast(`Report focused on ${e.target.value} department`, 'info');
                 }}
-                className="appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3 pr-9 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer"
+                className="nv-select-field bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer w-full"
               >
                 <option value="All">All Departments</option>
                 <option value="Engineering">Engineering Department</option>
@@ -138,20 +138,20 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
                 <option value="Marketing">Marketing &amp; Sales</option>
                 <option value="Operations">Operations Support</option>
               </select>
-              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 shrink-0" strokeWidth={2.25} />
+              <ChevronDown className="nv-select-chevron nv-chevron-down--lg" strokeWidth={2.25} />
             </div>
           </div>
 
           <div className="flex flex-col">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Employment Type</span>
-            <div className="relative">
+            <div className="relative nv-select-wrap">
               <select
                 value={selectedEmploymentType}
                 onChange={(e) => {
                   setSelectedEmploymentType(e.target.value);
                   addToast(`Report filtered to: ${e.target.value}`, 'info');
                 }}
-                className="appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3 pr-9 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer"
+                className="nv-select-field bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer w-full"
               >
                 <option value="All">All Types</option>
                 <option value="Permanent">Permanent Staff</option>
@@ -159,7 +159,7 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
                 <option value="Intern">Internships</option>
                 <option value="Part-time">Part-time</option>
               </select>
-              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 shrink-0" strokeWidth={2.25} />
+              <ChevronDown className="nv-select-chevron nv-chevron-down--lg" strokeWidth={2.25} />
             </div>
           </div>
 

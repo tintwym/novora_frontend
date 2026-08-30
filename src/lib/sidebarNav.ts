@@ -41,57 +41,42 @@ export type NavItem = {
 }
 
 export type NavSection = {
-  label: string
+  id: string
   items: NavItem[]
+  /** Show a divider line above this section (except the first). */
+  divider?: boolean
 }
 
+/** Three clean blocks: home, modules, system — no noisy section labels in the rail. */
 export const MAIN_NAV_SECTIONS: NavSection[] = [
   {
-    label: 'Overview',
+    id: 'home',
     items: [{ name: 'Dashboard', icon: LayoutDashboard }],
   },
   {
-    label: 'People',
+    id: 'modules',
+    divider: true,
     items: [
       { name: 'Employees Management', icon: Users },
       { name: 'Recruitment Management', icon: Briefcase },
       { name: 'On/Off-boarding Management', icon: UserPlus },
-    ],
-  },
-  {
-    label: 'Time & attendance',
-    items: [
       { name: 'Attendance Management', icon: CalendarCheck2 },
       { name: 'Leave Management', icon: FileMinus },
-    ],
-  },
-  {
-    label: 'Pay & benefits',
-    items: [
       { name: 'Payroll Management', icon: CreditCard },
       { name: 'Claims Management', icon: Receipt },
       { name: 'Benefits Management', icon: HeartHandshake },
-    ],
-  },
-  {
-    label: 'Operations',
-    items: [
       { name: 'Disciplinary Management', icon: ShieldAlert },
       { name: 'Helpdesk & Inquiries Management', icon: LifeBuoy },
-      { name: 'Assets Management', icon: Package },
-    ],
-  },
-  {
-    label: 'Growth',
-    items: [
       { name: 'Performance Management', icon: TrendingDown },
       { name: 'Training Management', icon: GraduationCap },
       { name: 'Learning Management', icon: BookOpen },
       { name: 'Engagement Management', icon: Smile },
+      { name: 'Assets Management', icon: Package },
     ],
   },
   {
-    label: 'System',
+    id: 'system',
+    divider: true,
     items: [
       { name: 'Reports', icon: FileBarChart },
       { name: 'Settings', icon: Settings },

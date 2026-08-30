@@ -173,7 +173,7 @@ export default function Topbar({
               setProfileOpen((open) => !open)
               setNotificationsOpen(false)
             }}
-            className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl border border-[var(--shell-topbar-border)] hover:bg-[var(--sidebar-item-hover-bg)] transition-colors cursor-pointer"
+            className="flex items-center gap-2.5 pl-2.5 pr-3.5 py-1.5 rounded-xl border border-[var(--shell-topbar-border)] hover:bg-[var(--sidebar-item-hover-bg)] transition-colors cursor-pointer"
             title={displayRole}
             aria-expanded={profileOpen}
           >
@@ -185,7 +185,7 @@ export default function Topbar({
             </span>
             <RoleIcon roles={session?.roles} className="h-3.5 w-3.5 text-slate-500 shrink-0 hidden sm:block" />
             <ChevronDown
-              className={`h-3.5 w-3.5 text-slate-400 shrink-0 transition-transform ${profileOpen ? 'rotate-180' : ''}`}
+              className={`nv-chevron-down nv-chevron-down--md transition-transform ${profileOpen ? 'rotate-180' : ''}`}
             />
           </button>
 

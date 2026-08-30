@@ -512,7 +512,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
               className="h-9 flex items-center gap-2 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 transition-colors rounded-xl cursor-pointer whitespace-nowrap"
             >
               <span>{deptFilter}</span>
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
             </button>
 
             {deptDropdownOpen && (
@@ -543,7 +543,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
             >
               <Download className="h-3.5 w-3.5 text-slate-500 shrink-0" />
               <span>Export</span>
-              <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
+              <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
 
             {exportDropdownOpen && (
@@ -897,13 +897,13 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 <div id="position-dropdown" className="relative">
                   <button className="h-9 inline-flex items-center gap-2 px-3.5 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0">
                     <span className="whitespace-nowrap">Position: HR Business Partner</span>
-                    <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                    <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
                   </button>
                 </div>
                 <div id="source-dropdown" className="relative">
                   <button className="h-9 inline-flex items-center gap-2 px-3.5 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0">
                     <span className="whitespace-nowrap">All sources</span>
-                    <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                    <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
                   </button>
                 </div>
               </div>

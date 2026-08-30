@@ -598,7 +598,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
               className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 whitespace-nowrap shrink-0"
             >
               <span className="whitespace-nowrap">{selectedYear}</span>
-              <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
+              <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {yearDropdownOpen && (
               <div className="absolute right-0 mt-1 w-24 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
@@ -625,7 +625,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
               className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 whitespace-nowrap shrink-0"
             >
               <span className="whitespace-nowrap">{selectedDept}</span>
-              <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
+              <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {deptDropdownOpen && (
               <div className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">

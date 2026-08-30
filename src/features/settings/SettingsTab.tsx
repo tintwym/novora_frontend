@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createLocalNumericId, createLocalId } from '@/lib/createLocalId'
 import { useTheme } from '@/providers/ThemeProvider';
 import type { AccentPreset, DensityPreset, ThemePreset } from '@/lib/theme';
+import SettingsSubNav from '@/components/settings/SettingsSubNav';
 import {
   Building2,
   Blocks,
@@ -565,7 +566,9 @@ export default function SettingsTab({
   };
 
   return (
-    <div className="space-y-6 max-w-5xl select-none">
+    <div className="flex flex-col lg:flex-row gap-5 max-w-6xl select-none">
+      <SettingsSubNav activeSubTab={activeSubTab} setActiveSubTab={setActiveSubTab} />
+      <div className="flex-1 min-w-0 space-y-6">
       {/* SECTION CONTAINER WITH BENTO BOX FEEL */}
       <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-xs">
         
@@ -2697,6 +2700,7 @@ export default function SettingsTab({
           </div>
         )}
 
+      </div>
       </div>
     </div>
   );

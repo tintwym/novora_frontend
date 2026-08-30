@@ -512,7 +512,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0"
             >
               <span className="whitespace-nowrap">{headerMonth}</span>
-              <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
+              <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {monthDropdownOpen && (
               <div className="absolute right-0 mt-1 w-32 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50 animate-in slide-in-from-top-1">
@@ -536,7 +536,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0"
             >
               <span className="whitespace-nowrap">{headerDept}</span>
-              <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
+              <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {deptDropdownOpen && (
               <div className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-50 animate-in slide-in-from-top-1">

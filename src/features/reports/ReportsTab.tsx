@@ -1243,7 +1243,41 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
 
   return (
     <div id="reports-hub-main-frame" className="w-full animate-in fade-in duration-150">
-      
+      <div className="nv-card p-1.5 mb-5 flex flex-wrap gap-1">
+        {(
+          [
+            { id: 'centre' as const, label: 'Report centre' },
+            { id: 'scheduled' as const, label: 'Scheduled reports', badge: '3' },
+            { id: 'builder' as const, label: 'Custom builder' },
+          ] as const
+        ).map((tab) => {
+          const isActive = activeSidebarTab === tab.id
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveSidebarTab(tab.id)}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                isActive
+                  ? 'bg-novora text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              }`}
+            >
+              <span>{tab.label}</span>
+              {'badge' in tab && tab.badge && (
+                <span
+                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                  }`}
+                >
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
       {/* ==================== RIGHT PANEL: MAIN REPORTS BOARD ==================== */}
       <section id="reports-hub-main-board" className="w-full space-y-6">
         

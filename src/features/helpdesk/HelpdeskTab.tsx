@@ -1760,11 +1760,11 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                             {faq.question}
                           </h6>
                         </div>
-                        <span>
+                        <span className="nv-trailing-icon">
                           {isExpanded ? (
-                            <ChevronDown className="h-4 w-4 text-slate-400" />
+                            <ChevronDown className="nv-chevron-down nv-chevron-down--lg" />
                           ) : (
-                            <ChevronRight className="h-4 w-4 text-slate-400" />
+                            <ChevronRight className="nv-chevron-icon nv-chevron-down--lg" />
                           )}
                         </span>
                       </button>
