@@ -682,7 +682,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   <select
                     value={selectedStaffName}
                     onChange={(e) => setSelectedStaffName(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-350 focus:border-novora rounded-xl px-3 py-2 outline-none cursor-pointer"
+                    className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-350 focus:border-novora rounded-xl pl-3 py-2 outline-none cursor-pointer"
                   >
                     <option value="">Consolidated Selection (Choose employee)</option>
                     {[
@@ -702,7 +702,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   <select
                     value={claimCategory}
                     onChange={(e) => setClaimCategory(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-350 focus:border-novora rounded-xl px-3 py-2 outline-none cursor-pointer"
+                    className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-350 focus:border-novora rounded-xl pl-3 py-2 outline-none cursor-pointer"
                   >
                     <option>-- Select category --</option>
                     <option value="Meal allowance">Meal allowance</option>
