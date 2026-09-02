@@ -74,6 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const expireSession = useCallback(
     async (reason: 'timeout' | 'server' = 'timeout') => {
       if (sessionExpiryLock.current) return
+      const hadSession = sessionRef.current != null
+      if (!hadSession) return
+
       sessionExpiryLock.current = true
       clearSessionStarted()
       setSession(null)

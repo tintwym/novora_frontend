@@ -350,6 +350,7 @@ export default function PortalShell() {
               setActiveSidebarTab={goToTab}
               addToast={addToast}
               roles={session.roles}
+              userName={session.fullName || session.email}
             />
           ) : activeTab === 'On/Off-boarding Management' ? (
             <OnOffBoardingTab employees={employees} addToast={addToast} />

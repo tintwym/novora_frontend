@@ -22,7 +22,13 @@ export function setSessionExpiredHandler(handler: SessionExpiredHandler | null) 
 
 function notifySessionExpired(path: string, status: number) {
   if (status !== 401) return
-  if (path.includes('/api/auth/login') || path.includes('/api/auth/register') || path.includes('/api/auth/csrf')) {
+  if (
+    path.includes('/api/auth/login') ||
+    path.includes('/api/auth/register') ||
+    path.includes('/api/auth/logout') ||
+    path.includes('/api/auth/csrf') ||
+    path.includes('/api/me')
+  ) {
     return
   }
   onSessionExpired?.()

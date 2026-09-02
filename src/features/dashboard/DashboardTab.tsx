@@ -1,986 +1,717 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  UserPlus, 
-  Umbrella, 
-  CheckCircle, 
-  Briefcase, 
-  RefreshCw, 
-  TrendingUp, 
-  TrendingDown, 
-  Clock, 
-  ArrowUpRight, 
-  ArrowRight, 
-  Coins, 
-  DollarSign, 
-  CheckCircle2, 
-  ArrowRightLeft, 
-  ShieldCheck, 
-  ChevronRight, 
-  Sparkles,
-  Award,
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import {
+  ArrowRight,
+  Briefcase,
+  Calendar,
+  CheckCircle2,
   ChevronDown,
-  Lock,
-  Play,
-  RotateCcw,
-  Zap,
-  Check,
+  Clock,
+  DollarSign,
+  FileText,
   LogIn,
-  LogOut
-} from 'lucide-react';
+  TrendingDown,
+  TrendingUp,
+  Umbrella,
+  UserPlus,
+  Users,
+} from 'lucide-react'
 import type { Employee, SidebarTab } from '@/types'
 import { canManageFullSystem } from '@/lib/roles'
 
 interface DashboardTabProps {
-  employees: Employee[];
-  setActiveSidebarTab: (tab: SidebarTab) => void;
-  addToast: (text: string, type: 'success' | 'info' | 'error' | 'loading') => void;
-  roles?: string[];
+  employees: Employee[]
+  setActiveSidebarTab: (tab: SidebarTab) => void
+  addToast: (text: string, type: 'success' | 'info' | 'error' | 'loading') => void
+  roles?: string[]
+  userName?: string
 }
 
-export default function DashboardTab({ employees, setActiveSidebarTab, addToast, roles = [] }: DashboardTabProps) {
-  // Live dynamic clock and date state
-  const [time, setTime] = useState(new Date());
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+type TimelineFilter = 'Last 12 months' | 'Last 6 months' | 'Last 3 months' | 'Last 30 days'
 
-  // Time tracking Punch-In Punch-Out states
-  const [isPunchedIn, setIsPunchedIn] = useState(false);
-  const [punchInTime, setPunchInTime] = useState('--:--');
-  const [punchOutTime, setPunchOutTime] = useState('--:--');
-  const [sessionSeconds, setSessionSeconds] = useState(0);
+const ATTENTION_ITEMS = [
+  {
+    id: 'leave-1',
+    title: '3 leave requests pending',
+    detail: 'John Doe, Robert Smith, and 1 more',
+    tab: 'Leave Management' as SidebarTab,
+    tone: 'amber' as const,
+  },
+  {
+    id: 'hire-1',
+    title: '2 new hires to onboard',
+    detail: 'Sarah Johnson starts this week',
+    tab: 'On/Off-boarding Management' as SidebarTab,
+    tone: 'blue' as const,
+  },
+  {
+    id: 'payroll-1',
+    title: 'Payroll run in 2 days',
+    detail: 'June cycle — review deductions',
+    tab: 'Payroll Management' as SidebarTab,
+    tone: 'slate' as const,
+  },
+]
 
-  useEffect(() => {
-    let timerId: any;
-    if (isPunchedIn) {
-      timerId = setInterval(() => {
-        setSessionSeconds(prev => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(timerId);
-  }, [isPunchedIn]);
+const NEW_HIRES = [
+  { name: 'Sarah Johnson', role: 'UI/UX Designer', date: '28 May', initials: 'SJ', color: 'bg-indigo-100 text-indigo-700' },
+  { name: 'Michael Chen', role: 'Backend Developer', date: '27 May', initials: 'MC', color: 'bg-emerald-100 text-emerald-700' },
+  { name: 'Priya Sharma', role: 'HR Executive', date: '26 May', initials: 'PS', color: 'bg-sky-100 text-sky-700' },
+]
 
-  const handlePunchIn = () => {
-    if (isPunchedIn) return;
-    const now = new Date();
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-    
-    setIsPunchedIn(true);
-    setPunchInTime(timeStr);
-    setPunchOutTime('--:--');
-    setSessionSeconds(0);
-    addToast('Punched In successfully! Duty tracking active.', 'success');
-  };
+const LEAVE_QUEUE = [
+  { name: 'John Doe', type: 'Annual leave', dates: '30 May – 3 Jun', status: 'Pending' as const },
+  { name: 'Emily Davis', type: 'Sick leave', dates: '29 – 30 May', status: 'Approved' as const },
+  { name: 'Robert Smith', type: 'Personal leave', dates: '31 May – 2 Jun', status: 'Pending' as const },
+]
 
-  const handlePunchOut = () => {
-    if (!isPunchedIn) return;
-    const now = new Date();
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-    
-    setIsPunchedIn(false);
-    setPunchOutTime(timeStr);
-    
-    const h = Math.floor(sessionSeconds / 3600);
-    const m = Math.floor((sessionSeconds % 3600) / 60);
-    const s = sessionSeconds % 60;
-    addToast(`Punched Out successfully! Session duration: ${h}h ${m}m ${s}s`, 'success');
-  };
+function getGreeting(hour: number) {
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
+}
 
-  const formatSessionTime = (seconds: number) => {
-    if (seconds === 0 && !isPunchedIn) return '0h 0m';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    return `${h}h ${m}m`;
-  };
+function formatHeaderDate(d: Date) {
+  return d.toLocaleDateString('en-SG', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
 
-  // Format digital clock
-  const getDigitalTimeString = (d: Date) => {
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-  };
+function firstName(name: string) {
+  const trimmed = name.trim()
+  if (!trimmed) return 'there'
+  return trimmed.split(/\s+/)[0]
+}
 
-  const getCalendarDateString = (d: Date) => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June', 
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-  };
+function getTimelineData(filter: TimelineFilter) {
+  switch (filter) {
+    case 'Last 6 months':
+      return {
+        values: [980, 1045, 1110, 1185, 1240, 1284],
+        labels: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        minY: 800,
+        maxY: 1400,
+      }
+    case 'Last 3 months':
+      return {
+        values: [1190, 1245, 1284],
+        labels: ['Mar', 'Apr', 'May'],
+        minY: 1100,
+        maxY: 1350,
+      }
+    case 'Last 30 days':
+      return {
+        values: [1260, 1268, 1275, 1284],
+        labels: ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4'],
+        minY: 1240,
+        maxY: 1300,
+      }
+    default:
+      return {
+        values: [611, 700, 780, 830, 890, 950, 980, 1030, 1090, 1145, 1200, 1284],
+        labels: ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        minY: 611,
+        maxY: 1316,
+      }
+  }
+}
 
-  // Timeline variables filter
-  const [timelineFilter, setTimelineFilter] = useState<'Last 12 months' | 'Last 6 months' | 'Last 3 months' | 'Last 30 days'>('Last 12 months');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; value: number; label: string } | null>(null);
+function smoothPath(pts: { x: number; y: number }[]) {
+  if (pts.length === 0) return ''
+  let d = `M ${pts[0].x},${pts[0].y}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i]
+    const p1 = pts[i + 1]
+    const cp1x = p0.x + (p1.x - p0.x) / 3
+    const cp1y = p0.y
+    const cp2x = p0.x + (2 * (p1.x - p0.x)) / 3
+    const cp2y = p1.y
+    d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p1.x},${p1.y}`
+  }
+  return d
+}
 
-  const getTimelineData = () => {
-    switch (timelineFilter) {
-      case 'Last 6 months':
-        return {
-          values: [980, 1045, 1110, 1185, 1240, 1284],
-          labels: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
-          minY: 800,
-          maxY: 1400,
-          yLabels: ['1400', '1200', '1000', '800']
-        };
-      case 'Last 3 months':
-        return {
-          values: [1190, 1245, 1284],
-          labels: ['Mar', 'Apr', 'May'],
-          minY: 1100,
-          maxY: 1350,
-          yLabels: ['1350', '1250', '1150']
-        };
-      case 'Last 30 days':
-        return {
-          values: [1260, 1268, 1275, 1284],
-          labels: ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4'],
-          minY: 1240,
-          maxY: 1300,
-          yLabels: ['1300', '1280', '1260', '1240']
-        };
-      default: // Last 12 months
-        return {
-          values: [611, 700, 780, 830, 890, 950, 980, 1030, 1090, 1145, 1200, 1284],
-          labels: ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
-          minY: 611,
-          maxY: 1316,
-          yLabels: ['1316', '1200', '1000', '800', '611']
-        };
-    }
-  };
+function Panel({
+  title,
+  action,
+  children,
+  className = '',
+}: {
+  title: string
+  action?: ReactNode
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <section className={`nv-card flex flex-col p-5 shadow-sm ${className}`}>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
+        {action}
+      </div>
+      {children}
+    </section>
+  )
+}
 
-  const trendData = getTimelineData();
-  const chartWidth = 550;
-  const chartHeight = 155;
-  const paddingLeft = 45;
-  const paddingRight = 15;
-  const paddingTop = 15;
-  const paddingBottom = 25;
+function KpiCard({
+  label,
+  value,
+  trend,
+  trendUp,
+  icon: Icon,
+  iconClass,
+}: {
+  label: string
+  value: string
+  trend?: string
+  trendUp?: boolean
+  icon: typeof Users
+  iconClass: string
+}) {
+  return (
+    <div className="nv-stat-card">
+      <div className="flex items-start justify-between gap-3">
+        <span className={`nv-stat-icon ${iconClass}`}>
+          <Icon className="h-4 w-4" />
+        </span>
+        {trend && (
+          <span
+            className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+              trendUp ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'
+            }`}
+          >
+            {trendUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+            {trend}
+          </span>
+        )}
+      </div>
+      <p className="mt-3 text-2xl font-bold tracking-tight text-slate-900">{value}</p>
+      <p className="mt-1 text-xs font-medium text-slate-500">{label}</p>
+    </div>
+  )
+}
 
-  const actualWidth = chartWidth - paddingLeft - paddingRight;
-  const actualHeight = chartHeight - paddingTop - paddingBottom;
+function StatusBadge({ status }: { status: 'Pending' | 'Approved' | 'Rejected' }) {
+  const styles = {
+    Pending: 'bg-amber-50 text-amber-700 ring-amber-100',
+    Approved: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
+    Rejected: 'bg-rose-50 text-rose-700 ring-rose-100',
+  }
+  return (
+    <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${styles[status]}`}>
+      {status}
+    </span>
+  )
+}
 
-  // Map elements to SVG coordinates
+function WorkforceTrendChart({
+  filter,
+  onFilterChange,
+}: {
+  filter: TimelineFilter
+  onFilterChange: (f: TimelineFilter) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [hovered, setHovered] = useState<{ x: number; y: number; value: number; label: string } | null>(null)
+
+  const trendData = useMemo(() => getTimelineData(filter), [filter])
+  const chartWidth = 560
+  const chartHeight = 180
+  const padL = 40
+  const padR = 12
+  const padT = 12
+  const padB = 28
+  const w = chartWidth - padL - padR
+  const h = chartHeight - padT - padB
+
   const points = trendData.values.map((v, idx) => {
-    const x = paddingLeft + (actualWidth / (trendData.values.length - 1)) * idx;
-    const fraction = (v - trendData.minY) / (trendData.maxY - trendData.minY);
-    const y = paddingTop + actualHeight * (1 - fraction);
-    return { x, y, value: v, label: trendData.labels[idx] };
-  });
+    const x = padL + (w / Math.max(trendData.values.length - 1, 1)) * idx
+    const fraction = (v - trendData.minY) / (trendData.maxY - trendData.minY)
+    const y = padT + h * (1 - fraction)
+    return { x, y, value: v, label: trendData.labels[idx] }
+  })
 
-  // Calculate high-quality cubic Bézier smooth control path for exact matched visual
-  const getCurvePath = (pts: { x: number; y: number }[]) => {
-    if (pts.length === 0) return '';
-    let d = `M ${pts[0].x},${pts[0].y}`;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p0 = pts[i];
-      const p1 = pts[i + 1];
-      const cp1x = p0.x + (p1.x - p0.x) / 3;
-      const cp1y = p0.y + (p1.y - p0.y) / 15; // gentle upward drift
-      const cp2x = p0.x + 2 * (p1.x - p0.x) / 3;
-      const cp2y = p1.y - (p1.y - p0.y) / 15;
-      d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p1.x},${p1.y}`;
-    }
-    return d;
-  };
-
-  const linePath = getCurvePath(points);
-  const areaPath = points.length > 0 
-    ? `${linePath} L ${points[points.length - 1].x},${paddingTop + actualHeight} L ${points[0].x},${paddingTop + actualHeight} Z`
-    : '';
-
-  // Financial audit compilation states
-  const [showAuditModal, setShowAuditModal] = useState(false);
-  const [auditStep, setAuditStep] = useState(0);
-  const [auditProgress, setAuditProgress] = useState(0);
-  const [auditComplete, setAuditComplete] = useState(false);
-
-  const startFinancialAudit = () => {
-    setShowAuditModal(true);
-    setAuditStep(0);
-    setAuditProgress(0);
-    setAuditComplete(false);
-  };
-
-  useEffect(() => {
-    if (!showAuditModal || auditComplete) return;
-
-    const interval = setInterval(() => {
-      setAuditProgress(prev => {
-        if (prev >= 100) {
-          if (auditStep < 2) {
-            setAuditStep(s => s + 1);
-            return 0;
-          } else {
-            setAuditComplete(true);
-            addToast('Financial payroll ledger audit certified successfully!', 'success');
-            clearInterval(interval);
-            return 100;
-          }
-        }
-        return prev + 6;
-      });
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [showAuditModal, auditStep, auditComplete, addToast]);
-
-  // Unified configuration structure for key indicators mapping the exact screenshot specs
-  const keyIndicators = [
-    {
-      id: 'total-employees',
-      title: 'TOTAL EMPLOYEES',
-      value: '1,284',
-      trend: '+8.5%',
-      isPositive: true,
-      icon: Users,
-      colorClass: 'bg-blue-50 text-novora-deep border border-blue-100/30'
-    },
-    {
-      id: 'new-hires',
-      title: 'NEW HIRES',
-      value: '42',
-      trend: '+16.7%',
-      isPositive: true,
-      icon: UserPlus,
-      colorClass: 'bg-emerald-50 text-emerald-600 border border-emerald-100/30'
-    },
-    {
-      id: 'on-leave',
-      title: 'ON LEAVE',
-      value: '87',
-      trend: '-3.2%',
-      isPositive: false,
-      icon: Umbrella,
-      colorClass: 'bg-indigo-50 text-[#5473e8] border border-indigo-100/30'
-    },
-    {
-      id: 'attendance-rate',
-      title: 'ATTENDANCE RATE',
-      value: '96.8%',
-      trend: '+2.4%',
-      isPositive: true,
-      icon: CheckCircle,
-      colorClass: 'bg-[#ecfdf5] text-[#059669] border border-emerald-100/20'
-    },
-    {
-      id: 'open-positions',
-      title: 'OPEN POSITIONS',
-      value: '23',
-      trend: '-8.0%',
-      isPositive: false,
-      icon: Briefcase,
-      colorClass: 'bg-orange-50 text-orange-600 border border-orange-100/30'
-    },
-    {
-      id: 'turnover-rate',
-      title: 'TURNOVER RATE',
-      value: '6.2%',
-      trend: '+1.1%',
-      isPositive: true,
-      icon: ArrowRightLeft,
-      colorClass: 'bg-teal-50 text-teal-605 border border-teal-100/30'
-    }
-  ];
+  const line = smoothPath(points)
+  const area =
+    points.length > 0
+      ? `${line} L ${points[points.length - 1].x},${padT + h} L ${points[0].x},${padT + h} Z`
+      : ''
 
   return (
-    <div id="dynamic-combined-dashboard-root" className="space-y-4 select-none animate-in fade-in duration-300">
-      
-      {/* SECTION 1: Top Row Strategic Stat cards (Matching screenshot perfectly) */}
-      <div id="strategic-indicators-grid" className="grid grid-cols-2 lg:grid-cols-6 gap-3">
-        {keyIndicators.map((card) => {
-          const IconComponent = card.icon;
-          return (
-            <div 
-              key={card.id} 
-              className="nv-stat-card p-3.5 flex flex-col justify-between"
-            >
-              {/* Top Row: Icon Container */}
-              <div className="flex justify-between items-start">
-                <span className={`p-2 rounded-xl ${card.colorClass} flex items-center justify-center`}>
-                  <IconComponent className="h-4.5 w-4.5 shrink-0" />
-                </span>
-              </div>
+    <Panel
+      title="Workforce growth"
+      action={
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer"
+          >
+            {filter}
+            <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
+          </button>
+          {open && (
+            <div className="nv-dropdown-menu absolute right-0 z-20 w-40 overflow-hidden rounded-xl border border-slate-100 bg-white py-1 shadow-lg">
+              {(['Last 12 months', 'Last 6 months', 'Last 3 months', 'Last 30 days'] as const).map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => {
+                    onFilterChange(opt)
+                    setOpen(false)
+                  }}
+                  className="w-full px-3 py-2 text-left text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-novora cursor-pointer"
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      }
+      className="lg:col-span-8"
+    >
+      <p className="-mt-2 mb-4 text-xs text-slate-500">Headcount trend across your organisation</p>
+      <div className="relative h-48">
+        {hovered && (
+          <div
+            className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg bg-slate-900 px-2.5 py-1.5 text-[10px] font-medium text-white shadow-lg"
+            style={{ left: hovered.x, top: hovered.y - 8 }}
+          >
+            <div>{hovered.label}</div>
+            <div className="text-blue-300">{hovered.value.toLocaleString()} people</div>
+          </div>
+        )}
+        <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="h-full w-full">
+          <defs>
+            <linearGradient id="dash-area-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#2563eb" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {[0, 0.5, 1].map((ratio) => {
+            const y = padT + h * ratio
+            return (
+              <line
+                key={ratio}
+                x1={padL}
+                y1={y}
+                x2={chartWidth - padR}
+                y2={y}
+                className="stroke-slate-100"
+                strokeDasharray="4 4"
+              />
+            )
+          })}
+          {area && <path d={area} fill="url(#dash-area-fill)" />}
+          {line && (
+            <path d={line} fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" />
+          )}
+          {points.map((p, idx) => (
+            <g key={idx}>
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r={12}
+                className="fill-transparent cursor-pointer"
+                onMouseEnter={() => setHovered(p)}
+                onMouseLeave={() => setHovered(null)}
+              />
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r={hovered?.value === p.value ? 5 : 3}
+                className="fill-white stroke-[#2563eb] stroke-2"
+              />
+              <text x={p.x} y={chartHeight - 6} textAnchor="middle" className="fill-slate-400 text-[9px] font-medium">
+                {p.label}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    </Panel>
+  )
+}
 
-              {/* Bottom Block content (Sequential order: Value -> Title -> Trend) */}
-              <div className="mt-2.5">
-                <span className="text-[22px] font-black tracking-tight text-slate-800 leading-none block">
-                  {card.value}
+export default function DashboardTab({
+  employees,
+  setActiveSidebarTab,
+  addToast,
+  roles = [],
+  userName = '',
+}: DashboardTabProps) {
+  const [now, setNow] = useState(() => new Date())
+  const [timelineFilter, setTimelineFilter] = useState<TimelineFilter>('Last 12 months')
+  const isAdmin = canManageFullSystem(roles)
+  const headcount = employees.length > 0 ? employees.length.toLocaleString() : '1,284'
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 60_000)
+    return () => window.clearInterval(id)
+  }, [])
+
+  const goTo = (tab: SidebarTab, message?: string) => {
+    setActiveSidebarTab(tab)
+    if (message) addToast(message, 'info')
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="space-y-6 animate-in fade-in duration-300">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-slate-500">{formatHeaderDate(now)}</p>
+            <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-slate-900">
+              {getGreeting(now.getHours())}, {firstName(userName)}
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">Here&apos;s your workspace at a glance.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => goTo('Attendance Management')}
+              className="nv-btn-primary cursor-pointer px-4 py-2 text-xs"
+            >
+              <LogIn className="h-3.5 w-3.5" />
+              Go to attendance
+            </button>
+            <button
+              type="button"
+              onClick={() => goTo('Leave Management')}
+              className="nv-btn-secondary cursor-pointer px-4 py-2 text-xs"
+            >
+              Apply for leave
+            </button>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <KpiCard label="Leave balance" value="14 days" icon={Umbrella} iconClass="!bg-violet-50 !text-violet-600" />
+          <KpiCard label="Attendance this month" value="96%" trend="+2%" trendUp icon={CheckCircle2} iconClass="" />
+          <KpiCard label="Pending claims" value="1" icon={FileText} iconClass="!bg-amber-50 !text-amber-600" />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+          <Panel title="Today" className="lg:col-span-5">
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-novora shadow-sm">
+                  <Clock className="h-5 w-5" />
                 </span>
-                <span className="text-[9.5px] font-black text-slate-400 mt-1 block tracking-wider uppercase">
-                  {card.title}
-                </span>
-                <div className="flex items-center gap-1.5 mt-1 text-[10.5px] font-bold">
-                  {card.isPositive ? (
-                    <span className="text-emerald-600 flex items-center font-extrabold">
-                      ↑ {card.trend}
-                    </span>
-                  ) : (
-                    <span className="text-rose-600 flex items-center font-extrabold">
-                      ↓ {card.trend}
-                    </span>
-                  )}
-                  <span className="text-slate-400 font-medium">vs last month</span>
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">Not clocked in yet</p>
+                  <p className="text-xs text-slate-500">Use Attendance to punch in for today</p>
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={() => goTo('Attendance Management', 'Opening attendance…')}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-semibold text-slate-700 hover:border-novora/30 hover:text-novora cursor-pointer"
+              >
+                Open attendance
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
             </div>
-          );
-        })}
+          </Panel>
+
+          <Panel title="Upcoming" className="lg:col-span-7">
+            <ul className="space-y-3">
+              {[
+                { title: 'Public holiday — National Day', date: '9 Aug', icon: Calendar },
+                { title: 'Team stand-up', date: 'Tomorrow, 10:00', icon: Users },
+                { title: 'Performance review window opens', date: '15 Jun', icon: CheckCircle2 },
+              ].map((item) => (
+                <li
+                  key={item.title}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-3 py-2.5"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-50 text-slate-500">
+                      <item.icon className="h-4 w-4" />
+                    </span>
+                    <span className="text-sm font-medium text-slate-700">{item.title}</span>
+                  </div>
+                  <span className="shrink-0 text-xs font-medium text-slate-400">{item.date}</span>
+                </li>
+              ))}
+            </ul>
+          </Panel>
+        </div>
+
+        <Panel
+          title="Quick links"
+          action={
+            <button
+              type="button"
+              onClick={() => goTo('Helpdesk & Inquiries Management')}
+              className="text-xs font-semibold text-novora hover:underline cursor-pointer"
+            >
+              Helpdesk
+            </button>
+          }
+        >
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: 'Claims', tab: 'Claims Management' as SidebarTab },
+              { label: 'Benefits', tab: 'Benefits Management' as SidebarTab },
+              { label: 'Learning', tab: 'Learning Management' as SidebarTab },
+              { label: 'Assets', tab: 'Assets Management' as SidebarTab },
+            ].map((link) => (
+              <button
+                key={link.label}
+                type="button"
+                onClick={() => goTo(link.tab)}
+                className="rounded-xl border border-slate-100 bg-slate-50/50 px-3 py-3 text-left text-sm font-semibold text-slate-700 hover:border-novora/20 hover:bg-white cursor-pointer"
+              >
+                {link.label}
+              </button>
+            ))}
+          </div>
+        </Panel>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-sm font-medium text-slate-500">{formatHeaderDate(now)}</p>
+          <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-slate-900">
+            {getGreeting(now.getHours())}, {firstName(userName)}
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            {ATTENTION_ITEMS.length} items need your attention today.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => goTo('Employees Management', 'Opening employee directory…')}
+            className="nv-btn-secondary cursor-pointer px-4 py-2 text-xs"
+          >
+            <UserPlus className="h-3.5 w-3.5" />
+            Add employee
+          </button>
+          <button
+            type="button"
+            onClick={() => goTo('Leave Management')}
+            className="nv-btn-secondary cursor-pointer px-4 py-2 text-xs"
+          >
+            Review leave
+          </button>
+          <button
+            type="button"
+            onClick={() => goTo('Payroll Management')}
+            className="nv-btn-primary cursor-pointer px-4 py-2 text-xs"
+          >
+            <DollarSign className="h-3.5 w-3.5" />
+            Payroll
+          </button>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          label="Total employees"
+          value={headcount}
+          trend="+8.5%"
+          trendUp
+          icon={Users}
+          iconClass=""
+        />
+        <KpiCard label="On leave today" value="87" trend="-3.2%" trendUp={false} icon={Umbrella} iconClass="!bg-violet-50 !text-violet-600" />
+        <KpiCard label="Attendance rate" value="96.8%" trend="+2.4%" trendUp icon={CheckCircle2} iconClass="!bg-emerald-50 !text-emerald-600" />
+        <KpiCard label="Open positions" value="23" trend="-8%" trendUp={false} icon={Briefcase} iconClass="!bg-orange-50 !text-orange-600" />
       </div>
 
-      {/* SECTION 2: Middle interactive grid (Trends + Radial + Time punch) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        
-        {/* Card A: Workforce Trends Line Chart (lg:col-span-6) */}
-        <div className="lg:col-span-6 nv-card p-4 shadow-xs flex flex-col gap-3 relative overflow-hidden">
-          
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Workforce Trends</h3>
-              <p className="text-[10px] text-slate-400 font-medium mt-0.5">Dynamic company headcount progression metrics</p>
-            </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <WorkforceTrendChart filter={timelineFilter} onFilterChange={setTimelineFilter} />
 
-            {/* Time period filter selection dropdown */}
-            <div className="relative">
-              <button 
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="h-8 inline-flex items-center gap-1.5 px-3.5 text-[11px] font-black text-slate-600 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
-              >
-                <span className="whitespace-nowrap">{timelineFilter}</span>
-                <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
-              </button>
-
-              {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-40 bg-white border border-slate-100 rounded-xl shadow-lg z-30 overflow-hidden divide-y divide-slate-50 animate-in fade-in slide-in-from-top-1">
-                  {(['Last 12 months', 'Last 6 months', 'Last 3 months', 'Last 30 days'] as const).map((filter) => (
-                    <button
-                      key={filter}
-                      onClick={() => {
-                        setTimelineFilter(filter);
-                        setDropdownOpen(false);
-                        addToast(`Dataset scale synchronized to: ${filter}`, 'info');
-                      }}
-                      className="w-full text-left px-3.5 py-2 text-[10.5px] font-bold text-slate-600 hover:text-[#1d4ed8] hover:bg-slate-50 cursor-pointer transition-colors"
-                    >
-                      {filter}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Core SVG line chart area */}
-          <div className="relative flex-1 min-h-[11.5rem] h-44 select-none">
-            
-            {/* Tooltip Overlay */}
-            {hoveredPoint && (
-              <div 
-                className="absolute bg-slate-900 border border-slate-800 text-white text-[10px] font-medium px-2.5 py-1.5 rounded-lg pointer-events-none shadow-md z-20 transition-all font-sans -translate-x-1/2 -translate-y-12"
-                style={{ 
-                  left: `${((hoveredPoint.x - paddingLeft) / actualWidth) * actualWidth + paddingLeft}px`, 
-                  top: `${hoveredPoint.y}px` 
-                }}
-              >
-                <div className="font-black text-white">{hoveredPoint.label}</div>
-                <div className="text-[10px] text-blue-400 font-bold mt-0.5">{hoveredPoint.value.toLocaleString()} Employees</div>
-              </div>
-            )}
-
-            <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} width="100%" height="100%">
-              <defs>
-                <linearGradient id="area-gradient-refined" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#1d4ed8" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#1d4ed8" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-
-              {/* Vertical evaluation divider guidelines */}
-              {points.map((p, idx) => (
-                <line 
-                  key={`vline-${idx}`}
-                  x1={p.x}
-                  y1={paddingTop}
-                  x2={p.x}
-                  y2={chartHeight - paddingBottom}
-                  className="stroke-slate-100/50"
-                  strokeWidth="1"
-                />
-              ))}
-
-              {/* Horizontal grid guide tracks */}
-              {trendData.yLabels.map((lbl, idx) => {
-                const ratio = idx / (trendData.yLabels.length - 1);
-                const y = paddingTop + actualHeight * ratio;
-                return (
-                  <g key={`hl-${idx}`}>
-                    <text x={paddingLeft - 12} y={y + 3} textAnchor="end" className="fill-slate-400 font-mono text-[9px] font-bold">
-                      {lbl}
-                    </text>
-                    <line 
-                      x1={paddingLeft} 
-                      y1={y} 
-                      x2={chartWidth - paddingRight} 
-                      y2={y} 
-                      className="stroke-slate-100" 
-                      strokeDasharray="4 4" 
-                    />
-                  </g>
-                );
-              })}
-
-              {/* X-Axis month labels */}
-              {points.map((p, idx) => (
-                <text 
-                  key={`xl-${idx}`} 
-                  x={p.x} 
-                  y={chartHeight - 4} 
-                  textAnchor="middle" 
-                  className="fill-slate-400 font-bold text-[8.5px] uppercase tracking-wide"
+        <Panel
+          title="Needs attention"
+          action={
+            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+              {ATTENTION_ITEMS.length} open
+            </span>
+          }
+          className="lg:col-span-4"
+        >
+          <ul className="space-y-2">
+            {ATTENTION_ITEMS.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  onClick={() => goTo(item.tab)}
+                  className="group flex w-full items-start gap-3 rounded-xl border border-slate-100 p-3 text-left hover:border-novora/20 hover:bg-slate-50/80 cursor-pointer"
                 >
-                  {p.label}
-                </text>
-              ))}
-
-              {/* Ambient visual gradient region */}
-              {areaPath && (
-                <path d={areaPath} fill="url(#area-gradient-refined)" className="transition-all duration-300" />
-              )}
-
-              {/* S-curve line stroke */}
-              {linePath && (
-                <path 
-                  d={linePath} 
-                  fill="none" 
-                  stroke="#1d4ed8" 
-                  strokeWidth="2.5" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  className="transition-all duration-300"
-                />
-              )}
-
-              {/* Active hover crosshair guide line */}
-              {hoveredPoint && (
-                <line
-                  x1={hoveredPoint.x}
-                  y1={paddingTop}
-                  x2={hoveredPoint.x}
-                  y2={paddingTop + actualHeight}
-                  className="stroke-[#1d4ed8]/30"
-                  strokeDasharray="2 2"
-                />
-              )}
-
-              {/* Circular data points handles and triggers */}
-              {points.map((p, idx) => (
-                <g key={`pt-${idx}`}>
-                  <circle
-                    cx={p.x}
-                    cy={p.y}
-                    r={14}
-                    className="fill-transparent cursor-pointer"
-                    onMouseEnter={() => setHoveredPoint(p)}
-                    onMouseLeave={() => setHoveredPoint(null)}
-                  />
-                  <circle
-                    cx={p.x}
-                    cy={p.y}
-                    r={hoveredPoint?.value === p.value ? 5.5 : 3}
-                    className={`transition-all duration-150 pointer-events-none ${
-                       hoveredPoint?.value === p.value
-                        ? 'fill-[#1d4ed8] stroke-white stroke-2'
-                        : 'fill-white stroke-[#1d4ed8] stroke-2 shadow-xs'
+                  <span
+                    className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
+                      item.tone === 'amber'
+                        ? 'bg-amber-400'
+                        : item.tone === 'blue'
+                          ? 'bg-novora'
+                          : 'bg-slate-400'
                     }`}
                   />
-                </g>
-              ))}
-            </svg>
-          </div>
-        </div>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-slate-800 group-hover:text-novora">
+                      {item.title}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-slate-500">{item.detail}</span>
+                  </span>
+                  <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-300 group-hover:text-novora" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      </div>
 
-        {/* Card B: Live Attendance Donut Gauge (lg:col-span-3) */}
-        <div className="lg:col-span-3 nv-card p-4 shadow-xs flex flex-col gap-3">
-          <div className="flex justify-between items-center border-b border-slate-50 pb-2">
-            <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Attendance</h3>
-            <span className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100/30 whitespace-nowrap shrink-0">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse items-center shrink-0" />
-              <span className="text-[9px] text-emerald-600 font-black uppercase tracking-wider">Live</span>
-            </span>
-          </div>
-
-          {/* SVG circle donut — % inside the ring; caption sits below so it never crowds the arc */}
-          <div className="flex flex-col items-center gap-2 py-1">
-            <div className="relative flex justify-center items-center size-[118px]">
-              <svg width="118" height="118" viewBox="0 0 100 100" className="transform -rotate-90" aria-hidden>
-                {/* Backing Track */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Panel
+          title="Attendance today"
+          action={
+            <button
+              type="button"
+              onClick={() => goTo('Attendance Management')}
+              className="text-xs font-semibold text-novora hover:underline cursor-pointer"
+            >
+              View all
+            </button>
+          }
+        >
+          <div className="flex items-center gap-5">
+            <div className="relative flex h-24 w-24 shrink-0 items-center justify-center">
+              <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#f1f5f9" strokeWidth="8" />
                 <circle
                   cx="50"
                   cy="50"
                   r="38"
-                  fill="transparent"
-                  stroke="#f1f5f9"
-                  strokeWidth="7"
-                />
-                {/* Sector 1: Present (89.4% -> 224.68 long, 251.32 total circ) */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  fill="transparent"
-                  stroke="#1d4ed8"
-                  strokeWidth="7"
-                  strokeDasharray="224.68 251.32"
-                  strokeDashoffset="0"
+                  fill="none"
+                  stroke="#2563eb"
+                  strokeWidth="8"
+                  strokeDasharray="214 251"
                   strokeLinecap="round"
-                  className="transition-all duration-300"
-                />
-                {/* Sector 2: On Leave (7.3% -> 18.35 long, offset cumulative) */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  fill="transparent"
-                  stroke="#818cf8"
-                  strokeWidth="7"
-                  strokeDasharray="18.35 251.32"
-                  strokeDashoffset="-224.68"
-                  strokeLinecap="round"
-                  className="transition-all duration-300"
-                />
-                {/* Sector 3: Absent (2.3% -> 5.78 long) */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  fill="transparent"
-                  stroke="#cbd5e1"
-                  strokeWidth="7"
-                  strokeDasharray="5.78 251.32"
-                  strokeDashoffset="-243.03"
-                  strokeLinecap="round"
-                  className="transition-all duration-300"
-                />
-                {/* Sector 4: Late (1.0% -> 2.51 long) */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  fill="transparent"
-                  stroke="#f59e0b"
-                  strokeWidth="7"
-                  strokeDasharray="2.51 251.32"
-                  strokeDashoffset="-248.81"
-                  strokeLinecap="round"
-                  className="transition-all duration-300"
                 />
               </svg>
-
-              <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-                <span className="text-2xl font-black text-slate-800 leading-none tracking-tight tabular-nums">
-                  89.4%
-                </span>
-              </div>
+              <span className="absolute text-lg font-bold text-slate-800">89%</span>
             </div>
-            <span className="text-[8px] text-slate-400 font-bold uppercase tracking-[0.08em] whitespace-nowrap">
-              Attendance rate
-            </span>
+            <ul className="flex-1 space-y-2 text-xs">
+              {[
+                { label: 'Present', value: '1,148', color: 'bg-novora' },
+                { label: 'On leave', value: '87', color: 'bg-violet-400' },
+                { label: 'Absent / late', value: '49', color: 'bg-amber-400' },
+              ].map((row) => (
+                <li key={row.label} className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2 text-slate-600">
+                    <span className={`h-2 w-2 rounded-full ${row.color}`} />
+                    {row.label}
+                  </span>
+                  <span className="font-semibold text-slate-800">{row.value}</span>
+                </li>
+              ))}
+            </ul>
           </div>
+        </Panel>
 
-          {/* High-accuracy aligned dataset ledger */}
-          <div className="space-y-0.5 text-[11px] font-bold text-slate-600">
-            <div className="flex items-center justify-between py-0.5 px-1 border-b border-slate-50/50">
-              <span className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#1d4ed8] items-center shrink-0" />
-                <span className="text-slate-500 font-bold">Present</span>
-              </span>
-              <span className="text-slate-800 font-black font-mono">89.4%</span>
-            </div>
-
-            <div className="flex items-center justify-between py-0.5 px-1 border-b border-slate-50/50">
-              <span className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#cbd5e1] items-center shrink-0" />
-                <span className="text-slate-500 font-bold">Absent</span>
-              </span>
-              <span className="text-slate-800 font-black font-mono">2.3%</span>
-            </div>
-
-            <div className="flex items-center justify-between py-0.5 px-1 border-b border-slate-50/50">
-              <span className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#f59e0b] items-center shrink-0" />
-                <span className="text-slate-500 font-bold">Late</span>
-              </span>
-              <span className="text-slate-800 font-black font-mono">1.0%</span>
-            </div>
-
-            <div className="flex items-center justify-between py-0.5 px-1">
-              <span className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#818cf8] items-center shrink-0" />
-                <span className="text-slate-500 font-bold">On Leave</span>
-              </span>
-              <span className="text-slate-800 font-black font-mono">7.3%</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card C: Strategic Live Time Tracking & Punching (lg:col-span-3) */}
-        <div className="lg:col-span-3 nv-card p-4 shadow-xs flex flex-col gap-3">
-          <div className="flex justify-between items-center border-b border-slate-50 pb-2">
-            <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Time Tracking</h3>
-            <span className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100/30 whitespace-nowrap shrink-0">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse items-center shrink-0" />
-              <span className="text-[9px] text-emerald-600 font-black uppercase tracking-wider">Live</span>
-            </span>
-          </div>
-
-          {/* Time digits container using JetBrains Mono to avoid shifting layout */}
-          <div className="text-center relative">
-            <span className="text-[28px] font-black font-mono text-slate-800 tracking-tighter leading-none block">
-              {getDigitalTimeString(time)}
-            </span>
-            <span className="text-[9px] text-[#64748b] font-black block mt-1.5 text-center uppercase tracking-wider">
-              {getCalendarDateString(time)}
-            </span>
-          </div>
-
-          {/* Standing status and inputs panel */}
-          <div className="bg-slate-50/85 border border-slate-100 rounded-xl p-3 space-y-2.5 relative">
-            <span className={`absolute right-3 top-2.5 text-[8.5px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md ${
-              isPunchedIn ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
-            }`}>
-              {isPunchedIn ? 'Working' : 'Standby'}
-            </span>
-
-            {/* Shift logs block */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="bg-white border border-slate-100/80 rounded-lg p-2.5">
-                <span className="text-[8.5px] text-slate-400 font-extrabold block uppercase tracking-wider">Clock In</span>
-                <span className="text-xs font-black text-slate-700 block mt-0.5 font-mono">{punchInTime}</span>
-              </div>
-              <div className="bg-white border border-slate-100/80 rounded-lg p-2.5">
-                <span className="text-[8.5px] text-slate-400 font-extrabold block uppercase tracking-wider">Clock Out</span>
-                <span className="text-xs font-black text-slate-700 block mt-0.5 font-mono">{punchOutTime}</span>
-              </div>
-            </div>
-
-            {/* Session tracking time accumulator box */}
-            <div className="bg-slate-900 rounded-lg px-3 py-1.5 flex justify-between items-center text-white">
-              <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Total session time</span>
-              <span className="text-[11px] font-black font-mono text-emerald-400">{formatSessionTime(sessionSeconds)}</span>
-            </div>
-          </div>
-
-          {/* Action trigger punch-card loops */}
-          <div className="grid grid-cols-2 gap-2.5 mt-auto">
-            <button 
-              disabled={isPunchedIn}
-              onClick={handlePunchIn}
-              className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${
-                isPunchedIn 
-                  ? 'bg-slate-50 border-slate-100 text-slate-400 cursor-not-allowed' 
-                  : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-755 hover:text-[#1d4ed8] active:scale-[0.98]'
-              }`}
+        <Panel
+          title="New hires"
+          action={
+            <button
+              type="button"
+              onClick={() => goTo('Employees Management')}
+              className="text-xs font-semibold text-novora hover:underline cursor-pointer"
             >
-              <LogIn className="h-3.5 w-3.5 shrink-0" />
-              <span className="uppercase tracking-wide text-[9.5px]">Punch In</span>
+              Directory
             </button>
-            <button 
-              disabled={!isPunchedIn}
-              onClick={handlePunchOut}
-              className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${
-                !isPunchedIn 
-                  ? 'bg-slate-50 border-slate-100 text-slate-400 cursor-not-allowed' 
-                  : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-755 hover:text-rose-600 active:scale-[0.98]'
-              }`}
-            >
-              <LogOut className="h-3.5 w-3.5 shrink-0" />
-              <span className="uppercase tracking-wide text-[9.5px]">Punch Out</span>
-            </button>
-          </div>
-        </div>
-
-      </div>
-
-      {/* SECTION 3: Bottom strategic logs & directory columns (New Joiners, Absence Queue, Financial Audit) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        
-        {/* Card X: New Talent Ledger (lg:col-span-4) */}
-        <div className="lg:col-span-4 nv-card p-4 shadow-xs flex flex-col">
-          <div className="border-b border-slate-50 pb-2 flex justify-between items-center">
-            <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">New Talent</h3>
-            {canManageFullSystem(roles) && (
-              <button 
-                onClick={() => {
-                  setActiveSidebarTab('Employees Management');
-                  addToast('Transferred scope directory to workforce pipeline grid view.', 'info');
-                }}
-                className="text-[9.5px] font-black uppercase text-[#1d4ed8] hover:underline cursor-pointer flex items-center gap-0.5"
-              >
-                <span>Explorer</span>
-                <ChevronRight className="h-3 w-3" />
-              </button>
-            )}
-          </div>
-
-          <div className="divide-y divide-slate-100/60 mt-1.5">
-            {[
-              { name: 'Sarah Johnson', role: 'UI/UX Designer', date: 'May 28, 2025', initials: 'SJ', color: 'bg-indigo-100/80 text-indigo-750' },
-              { name: 'Michael Chen', role: 'Backend Developer', date: 'May 27, 2025', initials: 'MC', color: 'bg-emerald-100/80 text-emerald-750' },
-              { name: 'Priya Sharma', role: 'HR Executive', date: 'May 26, 2025', initials: 'PS', color: 'bg-teal-100/80 text-teal-750' },
-              { name: 'David Wilson', role: 'Sales Manager', date: 'May 24, 2025', initials: 'DW', color: 'bg-orange-100/80 text-orange-750' },
-              { name: 'Emma Brown', role: 'Marketing Specialist', date: 'May 23, 2025', initials: 'EB', color: 'bg-pink-100/80 text-pink-750' },
-            ].map((talent, idx) => (
-              <div key={idx} className="py-2 flex items-center justify-between text-xs font-semibold">
-                <div className="flex items-center gap-2.5">
-                  <span className={`h-8 w-8 rounded-full ${talent.color} font-black text-[11px] flex items-center justify-center`}>
-                    {talent.initials}
+          }
+        >
+          <ul className="divide-y divide-slate-100">
+            {NEW_HIRES.map((person) => (
+              <li key={person.name} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
+                <div className="flex items-center gap-3">
+                  <span className={`flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold ${person.color}`}>
+                    {person.initials}
                   </span>
                   <div>
-                    <span className="text-slate-800 font-bold block leading-tight">{talent.name}</span>
-                    <span className="text-[10px] text-slate-400 font-medium block mt-0.5">{talent.role}</span>
+                    <p className="text-sm font-semibold text-slate-800">{person.name}</p>
+                    <p className="text-xs text-slate-500">{person.role}</p>
                   </div>
                 </div>
-                <span className="text-[9.5px] text-slate-400 font-bold">{talent.date}</span>
-              </div>
+                <span className="text-xs font-medium text-slate-400">{person.date}</span>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </Panel>
 
-        {/* Card Y: Absence Leave queue lists (lg:col-span-4) */}
-        <div className="lg:col-span-4 nv-card p-4 shadow-xs flex flex-col">
-          <div className="border-b border-slate-50 pb-2 flex justify-between items-center">
-            <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Absence Queue</h3>
-            <button 
-              onClick={() => {
-                setActiveSidebarTab('Leave Management');
-                addToast('Transferred directory to corporate leaves verification ledger.', 'info');
-              }}
-              className="text-[9.5px] font-black uppercase text-[#1d4ed8] hover:underline cursor-pointer flex items-center gap-0.5"
+        <Panel
+          title="Payroll snapshot"
+          action={
+            <button
+              type="button"
+              onClick={() => goTo('Payroll Management')}
+              className="text-xs font-semibold text-novora hover:underline cursor-pointer"
             >
-              <span>Action List</span>
-              <ChevronRight className="h-3 w-3" />
+              Open payroll
             </button>
-          </div>
-
-          <div className="divide-y divide-slate-100/60 mt-1.5">
-            {[
-              { name: 'John Doe', type: 'Annual Leave', dates: 'May 30 – Jun 03', status: 'Pending', initials: 'JD', badge: 'bg-[#fef3c7] text-[#d97706] border border-[#fef3c7]' },
-              { name: 'Emily Davis', type: 'Sick Leave', dates: 'May 29 – May 30', status: 'Approved', initials: 'ED', badge: 'bg-[#dcfce7] text-[#15803d] border border-[#dcfce7]' },
-              { name: 'Robert Smith', type: 'Personal Leave', dates: 'May 31 – Jun 02', status: 'Pending', initials: 'RS', badge: 'bg-[#fef3c7] text-[#d97706] border border-[#fef3c7]' },
-              { name: 'Lisa Wilson', type: 'Annual Leave', dates: 'Jun 02 – Jun 06', status: 'Approved', initials: 'LW', badge: 'bg-[#dcfce7] text-[#15803d] border border-[#dcfce7]' },
-              { name: 'James Taylor', type: 'Sick Leave', dates: 'May 30 – May 31', status: 'Rejected', initials: 'JT', badge: 'bg-[#fee2e2] text-[#b91c1c] border border-[#fee2e2]' },
-            ].map((item, idx) => (
-              <div key={idx} className="py-2 flex items-center justify-between text-xs font-semibold">
-                <div className="flex items-center gap-2.5">
-                  <span className="h-8 w-8 rounded-full bg-slate-100 text-slate-600 font-extrabold text-[11px] flex items-center justify-center shrink-0">
-                    {item.initials}
-                  </span>
-                  <div>
-                    <span className="text-slate-800 font-bold block leading-tight">{item.name}</span>
-                    <span className="text-[10px] text-slate-400 font-medium block mt-0.5">{item.type} &bull; {item.dates}</span>
-                  </div>
-                </div>
-                <span className={`text-[8.5px] font-black tracking-wider uppercase px-2 py-0.5 rounded-md ${item.badge}`}>
-                  {item.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Card Z: Financial Overview & Certified Ledger Auditing (lg:col-span-4) */}
-        <div className="lg:col-span-4 nv-card p-4 shadow-xs flex flex-col gap-3">
-          <div className="border-b border-slate-50 pb-2 flex justify-between items-center">
-            <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Financial Overview</h3>
-            <span className="p-1 rounded-full bg-slate-50/10 inline-flex items-center whitespace-nowrap shrink-0">
-              <Coins className="h-4.5 w-4.5 text-emerald-600" />
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <div>
-              <span className="text-[28px] font-black text-slate-800 tracking-tight block leading-none">
-                $1,248,320
-              </span>
-              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block mt-1">
-                Total Operational Payroll
-              </span>
+          }
+        >
+          <p className="text-2xl font-bold tracking-tight text-slate-900">$1,248,320</p>
+          <p className="mt-1 text-xs text-slate-500">Total operational payroll · June cycle</p>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className="flex h-full">
+              <div className="h-full bg-novora" style={{ width: '71%' }} />
+              <div className="h-full bg-teal-500" style={{ width: '16%' }} />
+              <div className="h-full bg-violet-400" style={{ width: '13%' }} />
             </div>
-
-            {/* Split multi-segmented high precision progress bar */}
-            <div className="w-full h-1.5 rounded-full overflow-hidden flex bg-slate-100">
-              <div className="h-full bg-[#1d4ed8] transition-all" style={{ width: '71%' }} />
-              <div className="h-full bg-[#0d9488] transition-all" style={{ width: '16%' }} />
-              <div className="h-full bg-[#818cf8] transition-all" style={{ width: '13%' }} />
-            </div>
-
-            {/* Dynamic ledger detail breakdown alignments */}
-            <div className="space-y-2 text-[11.5px] font-bold text-[#475569]">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-[#1d4ed8] items-center shrink-0" />
-                  <span className="font-bold text-slate-500">Net Pay</span>
-                </span>
-                <div className="flex items-center gap-1.5 font-mono">
-                  <span className="text-slate-800 font-black">$896,450</span>
-                  <span className="text-[10px] text-slate-400 font-bold">(71%)</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-[#0d9488] items-center shrink-0" />
-                  <span className="font-bold text-slate-500">Deductions</span>
-                </span>
-                <div className="flex items-center gap-1.5 font-mono">
-                  <span className="text-slate-800 font-black">$195,870</span>
-                  <span className="text-[10px] text-slate-400 font-bold">(16%)</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-[#818cf8] items-center shrink-0" />
-                  <span className="font-bold text-slate-500">Taxes</span>
-                </span>
-                <div className="flex items-center gap-1.5 font-mono">
-                  <span className="text-slate-800 font-black">$156,000</span>
-                  <span className="text-[10px] text-slate-400 font-bold">(12%)</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Solid dark finalize audit corporate button */}
-            <button 
-              onClick={startFinancialAudit}
-              className="w-full mt-auto py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl text-[10.5px] uppercase font-black tracking-widest transition-all cursor-pointer shadow-sm active:scale-[0.98] flex items-center justify-center gap-2"
-            >
-              <span>$ FINALIZE AUDIT</span>
-            </button>
           </div>
-        </div>
-
+          <ul className="mt-3 space-y-1.5 text-xs">
+            <li className="flex justify-between text-slate-600">
+              <span>Net pay</span>
+              <span className="font-semibold text-slate-800">$896,450</span>
+            </li>
+            <li className="flex justify-between text-slate-600">
+              <span>Deductions</span>
+              <span className="font-semibold text-slate-800">$195,870</span>
+            </li>
+          </ul>
+        </Panel>
       </div>
 
-      {/* PORTAL GATEWAY MODAL: Interactive Automated Audit Process Simulation */}
-      {showAuditModal && (
-        <div id="payroll-regulatory-modal" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-100 rounded-3xl p-6.5 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 duration-250">
-            
-            {/* Header branding */}
-            <div>
-              <span className="text-[9px] font-black uppercase tracking-widest text-[#1d4ed8] bg-blue-50 border border-blue-100 px-3 py-1 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
-                Ledger Audit Protocol v12.4
-              </span>
-              <h4 className="text-sm font-black text-slate-850 mt-3.5 uppercase tracking-wide">Financial Payroll Ledger Compiler</h4>
-              <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
-                Compiles RM 1,248,320 across 1,284 personnel file entities for electronic bank routing and regulatory certifications.
-              </p>
-            </div>
-
-            {/* Interlaced progression states */}
-            <div className="mt-5 space-y-4">
-              
-              {/* Dynamic incremental indicator */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-[10.5px] font-black">
-                  <span className="text-slate-500">Processing Ledger Segments</span>
-                  <span className="text-[#1d4ed8]">{auditComplete ? 100 : auditProgress}%</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div 
-                    className="bg-emerald-500 h-full rounded-full transition-all duration-150" 
-                    style={{ width: `${auditComplete ? 100 : auditProgress}%` }} 
-                  />
-                </div>
+      <Panel
+        title="Leave queue"
+        action={
+          <button
+            type="button"
+            onClick={() => goTo('Leave Management')}
+            className="text-xs font-semibold text-novora hover:underline cursor-pointer"
+          >
+            Manage all
+          </button>
+        }
+      >
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {LEAVE_QUEUE.map((item) => (
+            <div
+              key={item.name}
+              className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-3 py-3"
+            >
+              <div>
+                <p className="text-sm font-semibold text-slate-800">{item.name}</p>
+                <p className="text-xs text-slate-500">
+                  {item.type} · {item.dates}
+                </p>
               </div>
-
-              {/* Verified Checklist Nodes */}
-              <div className="space-y-2 text-[11px] font-bold text-slate-600">
-                <div className="flex items-center gap-2.5">
-                  {auditStep >= 1 ? (
-                    <span className="h-4 w-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
-                  ) : (
-                    <span className="h-4 w-4 rounded-full border-2 border-slate-200 animate-spin border-t-[#1d4ed8] items-center shrink-0" />
-                  )}
-                  <span className={auditStep >= 1 ? 'line-through text-slate-400' : 'text-slate-700'}>
-                    Verifying Tax Reserves: RM 156,000 alignment
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2.5">
-                  {auditStep >= 2 ? (
-                    <span className="h-4 w-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
-                  ) : auditStep === 1 ? (
-                    <span className="h-4 w-4 rounded-full border-2 border-slate-200 animate-spin border-t-emerald-500 items-center shrink-0" />
-                  ) : (
-                    <span className="h-4 w-4 rounded-full border border-slate-200 inline-flex items-center shrink-0" />
-                  )}
-                  <span className={auditStep >= 2 ? 'line-through text-slate-400' : 'text-slate-700'}>
-                    Reconciling Corporate Benefit Deductions: RM 195,870
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2.5">
-                  {auditComplete ? (
-                    <span className="h-4 w-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
-                  ) : auditStep === 2 ? (
-                    <span className="h-4 w-4 rounded-full border-2 border-slate-200 animate-spin border-t-indigo-500 items-center shrink-0" />
-                  ) : (
-                    <span className="h-4 w-4 rounded-full border border-slate-200 inline-flex items-center shrink-0" />
-                  )}
-                  <span className={auditComplete ? 'line-through text-slate-400 font-bold' : 'text-slate-700'}>
-                    Generating Electronic Bank Routing Instruction: RM 896,450
-                  </span>
-                </div>
-              </div>
-
+              <StatusBadge status={item.status} />
             </div>
-
-            {/* Complete status certification shield block */}
-            {auditComplete && (
-              <div className="mt-5 p-3.5 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start gap-2.5 text-[11px] font-medium leading-relaxed text-emerald-850 animate-in fade-in duration-200">
-                <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-extrabold block text-emerald-950 uppercase text-[9.5px]">Audit Certified Successfully</span>
-                  Ledger verification is finalized. Electronic disbursement instruction transmitted to corporate Alliance Bank routing queues.
-                </div>
-              </div>
-            )}
-
-            {/* Buttons footer actions */}
-            <div className="mt-6 flex justify-end gap-2.5 border-t border-slate-100 pt-4">
-              <button 
-                onClick={() => setShowAuditModal(false)}
-                className="px-4 py-2 text-[10.5px] font-black rounded-lg text-slate-500 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 tracking-wide uppercase transition-all cursor-pointer"
-              >
-                {auditComplete ? 'Close Portal' : 'Cancel Audit'}
-              </button>
-              {auditComplete && (
-                <button 
-                  onClick={() => {
-                    setShowAuditModal(false);
-                    addToast('Ledger audit protocol is certified as archived.', 'success');
-                  }}
-                  className="px-4 py-2 text-[10.5px] font-black rounded-lg bg-slate-900 text-white hover:bg-slate-800 tracking-wide uppercase transition-all cursor-pointer flex items-center gap-1.5"
-                >
-                  <Lock className="h-3 w-3 text-emerald-400" />
-                  <span>Archive Certification</span>
-                </button>
-              )}
-            </div>
-
-          </div>
+          ))}
         </div>
-      )}
-
+      </Panel>
     </div>
-  );
+  )
 }
