@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Lock, ShieldCheck } from 'lucide-react'
 import BrandLockup from '@/components/brand/BrandLockup'
 
 interface AuthShellProps {
@@ -59,6 +60,17 @@ export default function AuthShell({ title, subtitle, children, footer }: AuthShe
           </div>
 
           <div className="nv-card p-6 shadow-sm">
+            <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+              <span className="inline-flex items-center gap-1.5">
+                <Lock className="h-3.5 w-3.5 text-novora" aria-hidden />
+                TLS encrypted
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-novora" aria-hidden />
+                CSRF-protected sessions
+              </span>
+              <span>1-hour session timeout</span>
+            </div>
             {children}
           </div>
 

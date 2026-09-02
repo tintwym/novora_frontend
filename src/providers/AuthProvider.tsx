@@ -14,11 +14,6 @@ import { useRouter } from 'next/navigation'
 import Toast, { type ToastMessage } from '@/components/ui/Toast'
 import { toAuthSession } from '@/features/auth/mapSession'
 import {
-  clearSessionBiometricUnlocked,
-  isSessionBiometricUnlocked,
-  markSessionBiometricUnlocked,
-} from '@/features/auth/biometricGate'
-import {
   ApiError,
   fetchMe,
   listEmployees,
@@ -39,8 +34,6 @@ type AddToast = (text: string, type: 'success' | 'loading' | 'error' | 'info') =
 type AuthContextValue = {
   authReady: boolean
   session: AuthSession | null
-  biometricUnlocked: boolean
-  unlockBiometric: () => void
   employees: Employee[]
   setEmployees: React.Dispatch<React.SetStateAction<Employee[]>>
   selectedEmployee: Employee | null
@@ -62,7 +55,6 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const [session, setSession] = useState<AuthSession | null>(null)
-  const [biometricUnlocked, setBiometricUnlocked] = useState(false)
   const [authBootstrapping, setAuthBootstrapping] = useState(true)
   const [employees, setEmployees] = useState<Employee[]>([])
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
@@ -79,25 +71,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const removeToast = () => setToast(null)
 
-  const unlockBiometric = useCallback(() => {
-    const userId = sessionRef.current?.userId
-    if (userId) markSessionBiometricUnlocked(userId)
-    setBiometricUnlocked(true)
-  }, [])
-
-  const lockBiometric = useCallback(() => {
-    clearSessionBiometricUnlocked()
-    setBiometricUnlocked(false)
-  }, [])
-
   const expireSession = useCallback(
     async (reason: 'timeout' | 'server' = 'timeout') => {
       if (sessionExpiryLock.current) return
       sessionExpiryLock.current = true
       clearSessionStarted()
-      clearSessionBiometricUnlocked()
       setSession(null)
-      setBiometricUnlocked(false)
       setEmployees([])
       setSelectedEmployee(null)
       router.replace('/login')
@@ -170,7 +149,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               markSessionStarted()
             }
             setSession(next)
-            setBiometricUnlocked(isSessionBiometricUnlocked(next.userId))
             void loadEmployees(next.roles)
           }
         }
@@ -231,9 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleAuthSuccess = useCallback(
     (next: AuthSession) => {
       markSessionStarted()
-      clearSessionBiometricUnlocked()
       setSession(next)
-      setBiometricUnlocked(false)
       addToast(`Welcome to Novora, ${next.fullName}`, 'success')
       void loadEmployees(next.roles)
       router.replace(portalHomePath(next.roles))
@@ -243,7 +219,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleLogout = useCallback(async () => {
     clearSessionStarted()
-    lockBiometric()
     setSession(null)
     setEmployees([])
     setSelectedEmployee(null)
@@ -254,14 +229,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // Still signed out locally
     }
-  }, [addToast, lockBiometric, router])
+  }, [addToast, router])
 
   const value = useMemo<AuthContextValue>(
     () => ({
       authReady: !authBootstrapping,
       session,
-      biometricUnlocked,
-      unlockBiometric,
       employees,
       setEmployees,
       selectedEmployee,
@@ -274,8 +247,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [
       authBootstrapping,
       session,
-      biometricUnlocked,
-      unlockBiometric,
       employees,
       selectedEmployee,
       addToast,

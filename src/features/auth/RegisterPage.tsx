@@ -2,7 +2,10 @@ import { useState, type FormEvent } from 'react'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import AuthShell from './AuthShell'
 import AuthField from './AuthField'
+import PasswordRequirements from './PasswordRequirements'
 import {
+  normalizeEmail,
+  PASSWORD_MAX_LENGTH,
   passwordStrength,
   validateRegister,
   type RegisterValues,
@@ -34,6 +37,7 @@ export default function RegisterPage({ onSuccess, onGoLogin, onGoLanding }: Regi
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [termsError, setTermsError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
+  const [honeypot, setHoneypot] = useState('')
 
   const strength = passwordStrength(values.password)
 
@@ -45,6 +49,12 @@ export default function RegisterPage({ onSuccess, onGoLogin, onGoLanding }: Regi
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
+
+    if (honeypot.trim()) {
+      setFormError('Unable to create account. Please try again.')
+      return
+    }
+
     const nextErrors = validateRegister(values)
     setErrors(nextErrors)
 
@@ -62,7 +72,7 @@ export default function RegisterPage({ onSuccess, onGoLogin, onGoLanding }: Regi
     try {
       const fullName = values.fullName.trim()
       const response = await register({
-        email: values.email.trim(),
+        email: normalizeEmail(values.email),
         password: values.password,
         companyName: values.companyName.trim(),
         ...(fullName ? { fullName } : {}),
@@ -117,18 +127,36 @@ export default function RegisterPage({ onSuccess, onGoLogin, onGoLanding }: Regi
         </>
       }
     >
-      <form onSubmit={handleSubmit} noValidate className="space-y-4">
+      <form onSubmit={handleSubmit} noValidate className="space-y-4" autoComplete="on">
         {formError && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-600">
+          <div
+            role="alert"
+            className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-600"
+          >
             {formError}
           </div>
         )}
+
+        {/* Honeypot — hidden from users, bots may fill it */}
+        <div className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden>
+          <label htmlFor="register-website">Website</label>
+          <input
+            id="register-website"
+            type="text"
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+          />
+        </div>
 
         <AuthField
           id="register-fullname"
           label="Full name"
           type="text"
           autoComplete="name"
+          maxLength={200}
           placeholder="Sarah Lim"
           value={values.fullName}
           onChange={(e) => update('fullName', e.target.value)}
@@ -141,6 +169,7 @@ export default function RegisterPage({ onSuccess, onGoLogin, onGoLanding }: Regi
           label="Company name"
           type="text"
           autoComplete="organization"
+          maxLength={120}
           placeholder="Acme Pte. Ltd."
           value={values.companyName}
           onChange={(e) => update('companyName', e.target.value)}
@@ -151,7 +180,11 @@ export default function RegisterPage({ onSuccess, onGoLogin, onGoLanding }: Regi
           id="register-email"
           label="Work email"
           type="email"
+          inputMode="email"
           autoComplete="email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           placeholder="you@company.com"
           value={values.email}
           onChange={(e) => update('email', e.target.value)}
@@ -164,15 +197,11 @@ export default function RegisterPage({ onSuccess, onGoLogin, onGoLanding }: Regi
             label="Password"
             type={showPassword ? 'text' : 'password'}
             autoComplete="new-password"
+            maxLength={PASSWORD_MAX_LENGTH}
             placeholder="Create a strong password"
             value={values.password}
             onChange={(e) => update('password', e.target.value)}
             error={errors.password}
-            hint={
-              errors.password
-                ? undefined
-                : '8–72 chars, with upper, lower, number, and symbol'
-            }
             rightSlot={
               <button
                 type="button"
@@ -184,6 +213,8 @@ export default function RegisterPage({ onSuccess, onGoLogin, onGoLanding }: Regi
               </button>
             }
           />
+
+          <PasswordRequirements password={values.password} />
 
           {values.password && !errors.password && (
             <div className="space-y-1.5 px-0.5">
@@ -209,6 +240,7 @@ export default function RegisterPage({ onSuccess, onGoLogin, onGoLanding }: Regi
           label="Confirm password"
           type={showConfirm ? 'text' : 'password'}
           autoComplete="new-password"
+          maxLength={PASSWORD_MAX_LENGTH}
           placeholder="Re-enter your password"
           value={values.confirmPassword}
           onChange={(e) => update('confirmPassword', e.target.value)}

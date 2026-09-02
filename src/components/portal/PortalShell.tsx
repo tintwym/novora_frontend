@@ -28,11 +28,6 @@ import { OnOffBoardingTab } from '@/features/onboarding'
 import { RecruitmentTab } from '@/features/recruitment'
 import { ReportsTab } from '@/features/reports'
 import { SettingsTab } from '@/features/settings'
-import {
-  BiometricEnrollOverlay,
-  BiometricUnlockOverlay,
-  isEnrolledFor,
-} from '@/features/auth'
 import { useAuth } from '@/providers/AuthProvider'
 import type { SidebarTab, SubTab, Employee } from '@/types'
 import {
@@ -55,8 +50,6 @@ export default function PortalShell() {
   const {
     authReady,
     session,
-    biometricUnlocked,
-    unlockBiometric,
     employees,
     setEmployees,
     selectedEmployee,
@@ -114,30 +107,6 @@ export default function PortalShell() {
 
   if (!moduleParam || !tabFromSlug || activeTab !== requestedTab) {
     return null
-  }
-
-  if (!biometricUnlocked) {
-    const displayName = session.fullName?.trim() || session.email
-    return (
-      <>
-        {isEnrolledFor(session.userId) ? (
-          <BiometricUnlockOverlay
-            userId={session.userId}
-            displayName={displayName}
-            onUnlocked={unlockBiometric}
-            onSkip={unlockBiometric}
-          />
-        ) : (
-          <BiometricEnrollOverlay
-            userId={session.userId}
-            displayName={displayName}
-            email={session.email}
-            onEnrolled={unlockBiometric}
-            onSkip={unlockBiometric}
-          />
-        )}
-      </>
-    )
   }
 
   const goToTab = (tab: SidebarTab) => {
