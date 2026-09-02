@@ -1,3 +1,5 @@
 export { default as Toast } from './Toast'
 export type { ToastMessage } from './Toast'
+export { default as SelectMenu, selectOptions } from './SelectMenu'
+export type { SelectMenuOption } from './SelectMenu'
 export { ModulePanel, ModuleStatCard, ModuleTabs, ModuleToolbar } from './module'

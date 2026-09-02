@@ -133,7 +133,7 @@ export default function Topbar({
           {notificationsOpen && (
             <div
               id="topbar-notifications-dropdown"
-              className="absolute right-0 mt-2.5 w-80 nv-card shadow-xl py-2 z-50 animate-soft-fade-up"
+              className="absolute right-0 top-full mt-2.5 w-80 nv-card shadow-xl py-2 z-50 nv-dropdown-in"
             >
               <div className="px-4 py-2.5 border-b border-slate-50 flex items-center justify-between">
                 <span className="font-bold text-slate-800 text-sm">Notifications</span>
@@ -192,7 +192,7 @@ export default function Topbar({
           {profileOpen && (
             <div
               id="topbar-profile-dropdown"
-              className="absolute right-0 mt-2.5 w-56 nv-card shadow-xl py-1.5 z-50 animate-soft-fade-up"
+              className="absolute right-0 top-full mt-2.5 w-56 nv-card shadow-xl py-1.5 z-50 nv-dropdown-in"
             >
               <div className="px-4 py-3 border-b border-slate-50">
                 <div className="font-bold text-xs text-slate-800 truncate">{displayName}</div>

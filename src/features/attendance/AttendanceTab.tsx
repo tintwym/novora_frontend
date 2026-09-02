@@ -621,7 +621,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
               <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
             </button>
             {deptDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
+              <div className="nv-dropdown-menu nv-dropdown-menu--right w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
                 {['All departments', 'Engineering', 'HR', 'Marketing', 'Operations'].map((dept) => (
                   <button
                     key={dept}

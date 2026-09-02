@@ -26,6 +26,7 @@ import {
   Printer,
   Edit2,
 } from 'lucide-react';
+import { SelectMenu } from '@/components/ui';
 
 interface ClaimsTabProps {
   employees: any[];
@@ -515,7 +516,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {monthDropdownOpen && (
-              <div className="absolute right-0 mt-1 w-32 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50 animate-in slide-in-from-top-1">
+              <div className="nv-dropdown-menu nv-dropdown-menu--right w-32 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
                 {['May 2026', 'Apr 2026', 'Mar 2026'].map((m) => (
                   <button
                     key={m}
@@ -539,7 +540,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {deptDropdownOpen && (
-              <div className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-50 animate-in slide-in-from-top-1">
+              <div className="nv-dropdown-menu nv-dropdown-menu--right w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
                 {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map((d) => (
                   <button
                     key={d}
@@ -679,40 +680,39 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Claimant Employee Name *</label>
-                  <select
+                  <SelectMenu
                     value={selectedStaffName}
-                    onChange={(e) => setSelectedStaffName(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-350 focus:border-novora rounded-xl pl-3 py-2 outline-none cursor-pointer"
-                  >
-                    <option value="">Consolidated Selection (Choose employee)</option>
-                    {[
-                      { name: 'Sarah Lim' },
-                      { name: 'Raj Kumar' },
-                      { name: 'Maya Tan' },
-                      { name: 'Ahmad L' },
-                      { name: 'Nadia Chen' }
-                    ].map((em) => (
-                      <option key={em.name} value={em.name}>{em.name}</option>
-                    ))}
-                  </select>
+                    onChange={setSelectedStaffName}
+                    placeholder="Consolidated Selection (Choose employee)"
+                    triggerClassName="text-xs font-semibold text-slate-700"
+                    options={[
+                      { value: '', label: 'Consolidated Selection (Choose employee)' },
+                      { value: 'Sarah Lim', label: 'Sarah Lim' },
+                      { value: 'Raj Kumar', label: 'Raj Kumar' },
+                      { value: 'Maya Tan', label: 'Maya Tan' },
+                      { value: 'Ahmad L', label: 'Ahmad L' },
+                      { value: 'Nadia Chen', label: 'Nadia Chen' },
+                    ]}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Claim category *</label>
-                  <select
+                  <SelectMenu
                     value={claimCategory}
-                    onChange={(e) => setClaimCategory(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-350 focus:border-novora rounded-xl pl-3 py-2 outline-none cursor-pointer"
-                  >
-                    <option>-- Select category --</option>
-                    <option value="Meal allowance">Meal allowance</option>
-                    <option value="Transport">Transport</option>
-                    <option value="Hotel / stay">Hotel / stay</option>
-                    <option value="Air ticket">Air ticket</option>
-                    <option value="Mileage">Mileage</option>
-                    <option value="Entertainment">Entertainment</option>
-                    <option value="Wellness">Wellness</option>
-                  </select>
+                    onChange={setClaimCategory}
+                    triggerClassName="text-xs font-semibold text-slate-700"
+                    options={[
+                      { value: '-- Select category --', label: '-- Select category --' },
+                      { value: 'Meal allowance', label: 'Meal allowance' },
+                      { value: 'Transport', label: 'Transport' },
+                      { value: 'Hotel / stay', label: 'Hotel / stay' },
+                      { value: 'Air ticket', label: 'Air ticket' },
+                      { value: 'Mileage', label: 'Mileage' },
+                      { value: 'Entertainment', label: 'Entertainment' },
+                      { value: 'Wellness', label: 'Wellness' },
+                    ]}
+                  />
                 </div>
               </div>
 

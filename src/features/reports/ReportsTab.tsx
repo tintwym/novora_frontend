@@ -44,6 +44,7 @@ import {
   Filter
 } from 'lucide-react';
 import type { Employee } from '@/types';
+import { SelectMenu } from '@/components/ui';
 
 interface ReportsTabProps {
   employees: Employee[];
@@ -1523,7 +1524,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                 </div>
 
                 {/* RECENT ACTIVITY */}
-                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4 overflow-visible">
                   <div>
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Recent Activity</h3>
                   </div>
@@ -1549,7 +1550,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                 </div>
 
                 {/* EXPORT FORMATS */}
-                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4 overflow-visible">
                   <div>
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Export Formats</h3>
                   </div>
@@ -1800,7 +1801,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
           <div id="scheduled-reports-view" className="space-y-6 animate-in fade-in duration-200">
             
             {/* SCHEDULE NEW REPORT form block */}
-            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4 overflow-visible">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Schedule New Report</h3>
               
               <form onSubmit={handleSaveSchedule} className="space-y-4">
@@ -1899,7 +1900,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
             </div>
 
             {/* ACTIVE SCHEDULES LIST */}
-            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4 overflow-visible">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Active Schedules</h3>
               
               <div className="overflow-x-auto border border-slate-100 rounded-2xl">
@@ -1989,7 +1990,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
           <div id="custom-builder-stages" className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-200">
             
             {/* STAGE 1: DATA SOURCE */}
-            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4 overflow-visible">
               <div className="flex items-center gap-2 border-b border-slate-50 pb-2">
                 <span className="text-slate-400 font-extrabold text-sm font-mono">1.</span>
                 <span className="text-[10px] font-bold text-slate-405 uppercase tracking-widest">Data Source</span>
@@ -1999,17 +2000,18 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                 {/* Primary selection */}
                 <div className="flex flex-col space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Primary module</label>
-                  <select
+                  <SelectMenu
                     value={builderModule}
-                    onChange={(e) => handleBuilderModuleChange(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-2xl px-4 py-3 text-xs text-slate-700 font-bold outline-none cursor-pointer"
-                  >
-                    <option value="Employee management">Employee management</option>
-                    <option value="Attendance log module">Attendance data records</option>
-                    <option value="Leave tracking module">Leave tracker systems</option>
-                    <option value="Payroll processing">Payroll ledger systems</option>
-                    <option value="Performance scorecard">Performance appraisals</option>
-                  </select>
+                    onChange={handleBuilderModuleChange}
+                    triggerClassName="bg-slate-50 border-slate-200 rounded-2xl py-3"
+                    options={[
+                      { value: 'Employee management', label: 'Employee management' },
+                      { value: 'Attendance log module', label: 'Attendance data records' },
+                      { value: 'Leave tracking module', label: 'Leave tracker systems' },
+                      { value: 'Payroll processing', label: 'Payroll ledger systems' },
+                      { value: 'Performance scorecard', label: 'Performance appraisals' },
+                    ]}
+                  />
                 </div>
 
                 {/* Combine with check values */}
@@ -2071,7 +2073,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
             </div>
 
             {/* STAGE 2: SELECT FIELDS */}
-            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4 overflow-visible">
               <div className="flex items-center gap-2 border-b border-slate-50 pb-2">
                 <span className="text-slate-400 font-extrabold text-sm font-mono">2.</span>
                 <span className="text-[10px] font-bold text-slate-405 uppercase tracking-widest flex items-center gap-1.5">
@@ -2101,7 +2103,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
             </div>
 
             {/* STAGE 3: FILTERS */}
-            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4 overflow-visible">
               <div className="flex items-center gap-2 border-b border-slate-50 pb-2">
                 <span className="text-slate-400 font-extrabold text-sm font-mono">3.</span>
                 <span className="text-[10px] font-bold text-slate-405 uppercase tracking-widest">Filters</span>
@@ -2133,38 +2135,40 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                 {/* Filters Dropdowns */}
                 <div className="flex flex-col space-y-1">
                   <label className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Department</label>
-                  <select
+                  <SelectMenu
                     value={filterDept}
-                    onChange={(e) => setFilterDept(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl px-3 py-2 text-xs text-slate-700 font-bold outline-none cursor-pointer"
-                  >
-                    <option value="All departments">All departments &bull; Global Roster</option>
-                    <option value="Engineering">Engineering Sector</option>
-                    <option value="Finance">Finance Team</option>
-                    <option value="HR">Human Resources</option>
-                    <option value="Marketing">Marketing Operations</option>
-                    <option value="Operations">Operations Support</option>
-                  </select>
+                    onChange={setFilterDept}
+                    triggerClassName="bg-slate-50 border-slate-200 rounded-xl py-2 text-xs font-bold"
+                    options={[
+                      { value: 'All departments', label: 'All departments · Global Roster' },
+                      { value: 'Engineering', label: 'Engineering Sector' },
+                      { value: 'Finance', label: 'Finance Team' },
+                      { value: 'HR', label: 'Human Resources' },
+                      { value: 'Marketing', label: 'Marketing Operations' },
+                      { value: 'Operations', label: 'Operations Support' },
+                    ]}
+                  />
                 </div>
 
                 <div className="flex flex-col space-y-1">
                   <label className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Employment Status</label>
-                  <select
+                  <SelectMenu
                     value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl px-3 py-2 text-xs text-slate-700 font-bold outline-none cursor-pointer"
-                  >
-                    <option value="All statuses">All personnel records</option>
-                    <option value="Active only">Active rosters only</option>
-                    <option value="On Leave">On leaves list</option>
-                    <option value="Inactive">Terminated or retired</option>
-                  </select>
+                    onChange={setFilterStatus}
+                    triggerClassName="bg-slate-50 border-slate-200 rounded-xl py-2 text-xs font-bold"
+                    options={[
+                      { value: 'All statuses', label: 'All personnel records' },
+                      { value: 'Active only', label: 'Active rosters only' },
+                      { value: 'On Leave', label: 'On leaves list' },
+                      { value: 'Inactive', label: 'Terminated or retired' },
+                    ]}
+                  />
                 </div>
               </div>
             </div>
 
             {/* STAGE 4: OUTPUT */}
-            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4 overflow-visible">
               <div className="flex items-center gap-2 border-b border-slate-50 pb-2">
                 <span className="text-slate-400 font-extrabold text-sm font-mono">4.</span>
                 <span className="text-[10px] font-bold text-slate-405 uppercase tracking-widest">Output</span>
@@ -2174,30 +2178,31 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                 {/* Sort fields */}
                 <div className="flex flex-col space-y-1">
                   <label className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Sort by</label>
-                  <select
+                  <SelectMenu
                     value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl px-3 py-2 text-xs text-slate-700 font-bold outline-none cursor-pointer"
-                  >
-                    <option value="Employee No.">Employee No. Sequence</option>
-                    <option value="Full Name">Full Name alphabetically</option>
-                    <option value="Join Date">Hire Joining Chronology</option>
-                    <option value="Department">Department Sectors group</option>
-                  </select>
+                    onChange={setSortBy}
+                    triggerClassName="bg-slate-50 border-slate-200 rounded-xl py-2 text-xs font-bold"
+                    options={[
+                      { value: 'Employee No.', label: 'Employee No. Sequence' },
+                      { value: 'Full Name', label: 'Full Name alphabetically' },
+                      { value: 'Join Date', label: 'Hire Joining Chronology' },
+                      { value: 'Department', label: 'Department Sectors group' },
+                    ]}
+                  />
                 </div>
 
-                {/* Format selection */}
                 <div className="flex flex-col space-y-1">
                   <label className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Format</label>
-                  <select
+                  <SelectMenu
                     value={builderFormat}
-                    onChange={(e) => setBuilderFormat(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 hover:border-slate-350 rounded-xl px-3 py-2 text-xs text-slate-700 font-bold outline-none cursor-pointer"
-                  >
-                    <option value="Excel (.xlsx)">Excel Spreadsheet (.xlsx)</option>
-                    <option value="CSV (.csv)">Raw Comma Separated (.csv)</option>
-                    <option value="PDF (.pdf)">Printable Executive Layout (.pdf)</option>
-                  </select>
+                    onChange={setBuilderFormat}
+                    triggerClassName="bg-slate-50 border-slate-200 rounded-xl py-2 text-xs font-bold"
+                    options={[
+                      { value: 'Excel (.xlsx)', label: 'Excel Spreadsheet (.xlsx)' },
+                      { value: 'CSV (.csv)', label: 'Raw Comma Separated (.csv)' },
+                      { value: 'PDF (.pdf)', label: 'Printable Executive Layout (.pdf)' },
+                    ]}
+                  />
                 </div>
 
                 {/* Submitting custom construction request */}

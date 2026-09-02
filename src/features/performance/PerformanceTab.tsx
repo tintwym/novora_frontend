@@ -601,7 +601,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {yearDropdownOpen && (
-              <div className="absolute right-0 mt-1 w-24 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
+              <div className="nv-dropdown-menu nv-dropdown-menu--right w-24 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
                 {['2026', '2025', '2024'].map((y) => (
                   <button
                     key={y}
@@ -628,7 +628,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {deptDropdownOpen && (
-              <div className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
+              <div className="nv-dropdown-menu nv-dropdown-menu--right w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
                 {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map((d) => (
                   <button
                     key={d}

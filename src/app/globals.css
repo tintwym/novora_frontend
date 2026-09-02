@@ -694,13 +694,13 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
 }
 
 .nv-chevron-down {
-  margin-inline-end: 0.25rem;
+  margin-inline-end: 0.125rem;
 }
 
-button:has(> .nv-chevron-down:last-child),
-button:has(> .lucide-chevron-down:last-child) {
-  padding-inline-end: 1.375rem !important;
-  gap: 0.625rem;
+button:has(> .nv-chevron-down:last-child):not(.nv-select-trigger),
+button:has(> .lucide-chevron-down:last-child):not(.nv-select-trigger) {
+  padding-inline-end: 1rem !important;
+  gap: 0.5rem;
 }
 
 .nv-trailing-icon {
@@ -708,7 +708,155 @@ button:has(> .lucide-chevron-down:last-child) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding-inline: 0.25rem 0.75rem;
+  padding-inline: 0.25rem 0.625rem;
+}
+
+/* Custom dropdown anchor — menu always opens below trigger */
+.nv-dropdown-anchor {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.nv-dropdown-panel,
+.nv-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  z-index: 50;
+  margin-top: 0;
+}
+
+.nv-dropdown-panel {
+  left: 0;
+  right: 0;
+}
+
+.nv-dropdown-menu {
+  min-width: 100%;
+  animation: nv-dropdown-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.nv-dropdown-in {
+  animation: nv-dropdown-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.nv-dropdown-menu--right {
+  right: 0;
+  left: auto;
+}
+
+.nv-dropdown-menu--left {
+  left: 0;
+  right: auto;
+}
+
+.nv-dropdown-panel--align-right {
+  left: auto;
+  right: 0;
+  min-width: 100%;
+  width: max-content;
+}
+
+/* Custom select menu (replaces native select — panel opens below, not over trigger) */
+.nv-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--color-novora-border);
+  background: white;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-novora-ink);
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.nv-select-trigger:hover:not(:disabled) {
+  border-color: #cbd5e1;
+}
+
+.nv-select-trigger--open,
+.nv-select-trigger:focus-visible {
+  border-color: var(--color-novora);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-novora) 12%, transparent);
+  outline: none;
+}
+
+.nv-select-trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.nv-select-trigger-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.nv-select-trigger-chevron {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+  color: #94a3b8;
+  transition: transform 200ms ease, color 150ms ease;
+}
+
+.nv-select-trigger--open .nv-select-trigger-chevron {
+  color: var(--color-novora);
+}
+
+.nv-select-panel {
+  list-style: none;
+  margin: 0;
+  padding: 0.375rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--color-novora-border);
+  background: white;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-novora-ink) 8%, transparent);
+  max-height: 16rem;
+  overflow-y: auto;
+  animation: nv-dropdown-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.nv-select-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.nv-select-option:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.nv-select-option--active {
+  background: color-mix(in srgb, var(--color-novora) 10%, white);
+  color: var(--color-novora-deep);
+}
+
+@keyframes nv-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .nv-select-wrap {
@@ -719,32 +867,31 @@ button:has(> .lucide-chevron-down:last-child) {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  padding-inline-end: 2.875rem !important;
+  padding-inline-end: 2rem !important;
   background-image: none !important;
 }
 
 .nv-select-chevron {
   pointer-events: none;
   position: absolute;
-  right: 0.875rem;
+  right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
   color: #64748b;
 }
 
 /*
- * All portal selects: hide native arrow, draw inset chevron, reserve right padding.
- * Covers every module (Claims, Payroll, Recruitment, modals under #novora-hrms-root, etc.)
+ * Remaining native selects (fallback): balanced chevron — not flush, not too inset.
  */
 #novora-hrms-root select:not([multiple]):not([size]) {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  padding-inline-end: 2.875rem !important;
+  padding-inline-end: 2rem !important;
   background-color: inherit;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 0.875rem center;
+  background-position: right 0.75rem center;
   background-size: 0.875rem 0.875rem;
   cursor: pointer;
   overflow: hidden;
@@ -752,21 +899,16 @@ button:has(> .lucide-chevron-down:last-child) {
   white-space: nowrap;
 }
 
-/* Custom wrap uses Lucide chevron instead of background image */
 #novora-hrms-root .nv-select-wrap select {
   background-image: none !important;
 }
 
-/*
- * Dropdown buttons with chevron icons (filters, export, profile, etc.)
- * Works when chevron is anywhere inside the button, not only last child.
- */
-#novora-hrms-root button:has(.nv-chevron-down),
-#novora-hrms-root button:has(.lucide-chevron-down),
-#app-topbar button:has(.nv-chevron-down),
-#app-topbar button:has(.lucide-chevron-down) {
-  padding-inline-end: 1.375rem !important;
-  gap: 0.625rem;
+#novora-hrms-root button:has(.nv-chevron-down):not(.nv-select-trigger),
+#novora-hrms-root button:has(.lucide-chevron-down):not(.nv-select-trigger),
+#app-topbar button:has(.nv-chevron-down):not(.nv-select-trigger),
+#app-topbar button:has(.lucide-chevron-down):not(.nv-select-trigger) {
+  padding-inline-end: 1rem !important;
+  gap: 0.5rem;
 }
 
 #novora-hrms-root select:not([multiple]):not([size]):disabled {

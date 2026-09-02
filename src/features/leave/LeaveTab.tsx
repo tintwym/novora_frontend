@@ -517,7 +517,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
               <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
             </button>
             {yearDropdownOpen && (
-              <div className="absolute right-0 mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl w-32 py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+              <div className="nv-dropdown-menu nv-dropdown-menu--right w-32 bg-white border border-slate-100 rounded-xl shadow-xl py-1 animate-in fade-in duration-150">
                 {['2025', '2026', '2027'].map(year => (
                   <button
                     key={year}
@@ -541,7 +541,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
               <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
             </button>
             {deptDropdownOpen && (
-              <div className="absolute right-0 mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl w-48 py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+              <div className="nv-dropdown-menu nv-dropdown-menu--right w-48 bg-white border border-slate-100 rounded-xl shadow-xl py-1 animate-in fade-in duration-150">
                 {['All departments', 'Engineering', 'HR', 'Finance', 'Marketing', 'Operations'].map(dept => (
                   <button
                     key={dept}
@@ -603,7 +603,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
                 </button>
                 {typeFilterDropdown && (
-                  <div className="absolute left-0 mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl w-36 py-1 z-20">
+                  <div className="nv-dropdown-menu nv-dropdown-menu--left w-36 bg-white border border-slate-100 rounded-xl shadow-xl py-1">
                     {['All types', 'Paid', 'Unpaid'].map(t => (
                       <button
                         key={t}

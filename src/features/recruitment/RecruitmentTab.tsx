@@ -516,7 +516,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
             </button>
 
             {deptDropdownOpen && (
-              <div id="dept-dropdown-menu" className="absolute right-0 mt-1.5 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-40">
+              <div id="dept-dropdown-menu" className="nv-dropdown-menu nv-dropdown-menu--right w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
                 {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map((dept) => (
                   <button
                     key={dept}
@@ -547,7 +547,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
             </button>
 
             {exportDropdownOpen && (
-              <div id="export-dropdown-items" className="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-40">
+              <div id="export-dropdown-items" className="nv-dropdown-menu nv-dropdown-menu--right w-52 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
                 <div className="px-3.5 py-1 text-[9.5px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
                   Export Settings
                 </div>

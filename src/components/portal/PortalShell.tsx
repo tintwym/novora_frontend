@@ -264,7 +264,7 @@ export default function PortalShell() {
                     {deptDropdownOpen && (
                       <div
                         id="dept-dropdown-menu"
-                        className="absolute right-0 mt-2 w-48 nv-card shadow-lg py-1.5 z-40"
+                        className="nv-dropdown-menu nv-dropdown-menu--right w-48 nv-card shadow-lg py-1.5"
                       >
                         {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map(
                           (dept) => (
@@ -295,7 +295,7 @@ export default function PortalShell() {
                     {exportDropdownOpen && (
                       <div
                         id="export-dropdown-items"
-                        className="absolute right-0 mt-2 w-44 nv-card shadow-lg py-1.5 z-40"
+                        className="nv-dropdown-menu nv-dropdown-menu--right w-44 nv-card shadow-lg py-1.5"
                       >
                         <div className="px-3.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-50">
                           Export Settings
