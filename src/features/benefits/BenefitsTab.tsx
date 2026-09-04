@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { createLocalId } from '@/lib/createLocalId'
 import { 
   HeartHandshake, 
@@ -25,6 +25,17 @@ import {
   Sparkles
 } from 'lucide-react';
 import type { Employee } from '@/types';
+import ModuleHeader from '@/components/ui/ModuleHeader';
+import {
+  ApiError,
+  createBenefitEnrollment,
+  createBenefitPlan,
+  fetchBenefitEnrollments,
+  fetchBenefitPlans,
+  fetchMyBenefitEnrollments,
+  type BenefitEnrollmentRow,
+  type BenefitPlanRow,
+} from '@/services';
 
 interface BenefitsTabProps {
   employees: Employee[];
@@ -92,27 +103,86 @@ interface PayrollSyncItem {
   lastSynced: string;
 }
 
+function mapBenefitCategory(raw: string | null): BenefitPlan['category'] {
+  const v = (raw || '').toLowerCase();
+  if (v.includes('dental')) return 'Dental';
+  if (v.includes('well')) return 'Wellness';
+  if (v.includes('life') || v.includes('transit')) return 'Lifestyle';
+  return 'Medical';
+}
+
+function mapBenefitPlanRow(row: BenefitPlanRow): BenefitPlan {
+  const summary = row.coverageSummary?.trim();
+  return {
+    id: row.id,
+    name: row.name,
+    provider: row.provider || '—',
+    category: mapBenefitCategory(row.category),
+    monthlyCost: row.employeeCost ?? row.employerCost ?? 0,
+    description: summary || `${row.name} coverage plan`,
+    features: summary ? summary.split(/[;|]/).map((s) => s.trim()).filter(Boolean) : ['Standard plan coverage'],
+  };
+}
+
+function buildEnrolledMap(
+  rows: BenefitEnrollmentRow[],
+  emps: Employee[],
+): Record<string, string[]> {
+  const map: Record<string, string[]> = {};
+  for (const row of rows) {
+    const emp = emps.find((e) => e.apiId === row.employeeId || e.id === row.employeeId);
+    const key = emp?.id || row.employeeId;
+    if (!map[key]) map[key] = [];
+    if (!map[key].includes(row.planId)) map[key].push(row.planId);
+  }
+  return map;
+}
+
 export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
   const [activeSubTab, setActiveSubTab] = useState<BenefitsSubTab>('Enrollment & Selection');
   const [selectedSubEmployee, setSelectedSubEmployee] = useState<string>(employees[0]?.id || '');
   const currentEmployeeObj = employees.find(e => e.id === selectedSubEmployee) || employees[0];
 
   // -------------------------------------------------------------
-  // MOCK STATE - PLANS & SELECTIONS
+  // PLANS & SELECTIONS (live ops API)
   // -------------------------------------------------------------
-  const plans: BenefitPlan[] = [
-    { id: 'PLN-01', name: 'Gold Premium Care Plus', provider: 'Alliance Insurance Group', category: 'Medical', monthlyCost: 450, description: 'Highest available tier with direct billing access, 10% co-pay, and private suite rooms.', features: ['Direct Clinic Billing', 'Overseas Emergencies', 'Maternity Cover included'] },
-    { id: 'PLN-02', name: 'Comprehensive Dental Core', provider: 'SmileCare Dental', category: 'Dental', monthlyCost: 75, description: 'General prophylaxis, scaling, prosthodontics, and surgical extractions coverage catalog.', features: ['Prophylaxis 2x/year', 'Crowns & Bridges subsidized', 'Zero wait window for emergencies'] },
-    { id: 'PLN-03', name: 'Active Mental Rest & Fit Wallet', provider: 'MindBody Global', category: 'Wellness', monthlyCost: 45, description: 'Subscription cover for mindfulness apps (Calm/Headspace) plus national gym access cards.', features: ['Unlimited Calm premium log', 'Anytime Fitness discounts', '2x counseling sessions/quarter'] },
-    { id: 'PLN-04', name: 'Lifestyle Transit & Carbon Credit', provider: 'Novora Green Fleet', category: 'Lifestyle', monthlyCost: 120, description: 'Green transport commuter benefits including MRT transit passes or EV rental subsidies.', features: ['RM100 monthly Touch n Go pass', 'Commute tax deductions synced', 'EV charging rebates'] },
-  ];
+  const [plans, setPlans] = useState<BenefitPlan[]>([]);
+  const [enrolledPlans, setEnrolledPlans] = useState<Record<string, string[]>>({});
 
-  // Track enrolled plans by employee (e.g., EMP-001 has active PLN-01, PLN-02)
-  const [enrolledPlans, setEnrolledPlans] = useState<Record<string, string[]>>({
-    'EMP-0285': ['PLN-01', 'PLN-03'],
-    'EMP-001': ['PLN-01', 'PLN-02'],
-    'EMP-002': ['PLN-02', 'PLN-04'],
-  });
+  const loadBenefits = useCallback(async () => {
+    try {
+      const planRows = await fetchBenefitPlans();
+      setPlans(planRows.map(mapBenefitPlanRow));
+    } catch (err) {
+      setPlans([]);
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load benefit plans from the server.', 'error');
+      }
+    }
+
+    try {
+      let enrollmentRows: BenefitEnrollmentRow[];
+      try {
+        enrollmentRows = await fetchBenefitEnrollments();
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 403) {
+          enrollmentRows = await fetchMyBenefitEnrollments();
+        } else {
+          throw err;
+        }
+      }
+      setEnrolledPlans(buildEnrolledMap(enrollmentRows, employees));
+    } catch (err) {
+      setEnrolledPlans({});
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load benefit enrollments from the server.', 'error');
+      }
+    }
+  }, [addToast, employees]);
+
+  useEffect(() => {
+    void loadBenefits();
+  }, [loadBenefits]);
 
   // -------------------------------------------------------------
   // MOCK STATE - WELLNESS WALLETS (FSA/HSA)
@@ -178,48 +248,86 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
   // -------------------------------------------------------------
   // HANDLERS
   // -------------------------------------------------------------
-  const handleTogglePlanEnrollment = (planId: string, planName: string) => {
-    setEnrolledPlans(prev => {
-      const activeList = prev[selectedSubEmployee] || [];
-      const exists = activeList.includes(planId);
-      let updatedList: string[];
-      
-      if (exists) {
-        updatedList = activeList.filter(id => id !== planId);
-        addToast(`Disenrolled from ${planName}`, 'info');
-      } else {
-        updatedList = [...activeList, planId];
-        addToast(`Successfully enrolled in ${planName}!`, 'success');
-      }
+  const [newPlanName, setNewPlanName] = useState('');
+  const [newPlanProvider, setNewPlanProvider] = useState('');
+  const [newPlanCategory, setNewPlanCategory] = useState<BenefitPlan['category']>('Medical');
+  const [newPlanCost, setNewPlanCost] = useState('');
 
-      // Automatically add/update a sync item for Payroll
-      const matchingPlan = plans.find(p => p.id === planId);
-      if (matchingPlan) {
-        const syncExists = payrollSyncs.some(item => item.employeeId === selectedSubEmployee && item.perkName.includes(matchingPlan.name));
-        if (exists) {
-          // Remove from payroll sync state
-          setPayrollSyncs(prevSync => prevSync.filter(item => !(item.employeeId === selectedSubEmployee && item.perkName.includes(matchingPlan.name))));
-        } else {
-          // Add as stale sync to reflect integration
-          const newSync: PayrollSyncItem = {
-            id: createLocalId('PSC'),
-            employeeId: selectedSubEmployee,
-            employeeName: currentEmployeeObj?.name || 'Officer',
-            perkName: `${matchingPlan.name} Deduction`,
-            value: Number((matchingPlan.monthlyCost * 0.1).toFixed(2)), // 10% co-pay
-            deductionType: matchingPlan.category === 'Lifestyle' ? 'Taxable Perk' : 'Co-Pay Deductible',
-            syncStatus: 'Stale - Out of Sync',
-            lastSynced: 'Pending'
-          };
-          setPayrollSyncs(prevSync => [newSync, ...prevSync]);
-        }
-      }
+  const handleCreateBenefitPlan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPlanName.trim()) {
+      addToast('Please enter a benefit plan name.', 'error');
+      return;
+    }
+    try {
+      const created = await createBenefitPlan({
+        name: newPlanName.trim(),
+        category: newPlanCategory,
+        provider: newPlanProvider.trim() || undefined,
+        employeeCost: newPlanCost ? parseFloat(newPlanCost) : undefined,
+        status: 'Active',
+      });
+      setPlans((prev) => [...prev, mapBenefitPlanRow(created)]);
+      setNewPlanName('');
+      setNewPlanProvider('');
+      setNewPlanCost('');
+      addToast(`Benefit plan "${created.name}" created.`, 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create benefit plan.', 'error');
+    }
+  };
 
-      return {
+  const handleTogglePlanEnrollment = async (planId: string, planName: string) => {
+    const activeList = enrolledPlans[selectedSubEmployee] || [];
+    const exists = activeList.includes(planId);
+
+    if (exists) {
+      setEnrolledPlans((prev) => ({
         ...prev,
-        [selectedSubEmployee]: updatedList
-      };
-    });
+        [selectedSubEmployee]: (prev[selectedSubEmployee] || []).filter((id) => id !== planId),
+      }));
+      const matchingPlan = plans.find((p) => p.id === planId);
+      if (matchingPlan) {
+        setPayrollSyncs((prevSync) =>
+          prevSync.filter(
+            (item) => !(item.employeeId === selectedSubEmployee && item.perkName.includes(matchingPlan.name)),
+          ),
+        );
+      }
+      addToast(`Disenrolled from ${planName}`, 'info');
+      return;
+    }
+
+    const employeeApiId = currentEmployeeObj?.apiId;
+    if (!employeeApiId) {
+      addToast('Selected employee is missing a server id (apiId).', 'error');
+      return;
+    }
+
+    try {
+      await createBenefitEnrollment({ planId, employeeId: employeeApiId, status: 'Active' });
+      setEnrolledPlans((prev) => ({
+        ...prev,
+        [selectedSubEmployee]: [...(prev[selectedSubEmployee] || []), planId],
+      }));
+      const matchingPlan = plans.find((p) => p.id === planId);
+      if (matchingPlan) {
+        const newSync: PayrollSyncItem = {
+          id: createLocalId('PSC'),
+          employeeId: selectedSubEmployee,
+          employeeName: currentEmployeeObj?.name || 'Officer',
+          perkName: `${matchingPlan.name} Deduction`,
+          value: Number((matchingPlan.monthlyCost * 0.1).toFixed(2)),
+          deductionType: matchingPlan.category === 'Lifestyle' ? 'Taxable Perk' : 'Co-Pay Deductible',
+          syncStatus: 'Stale - Out of Sync',
+          lastSynced: 'Pending',
+        };
+        setPayrollSyncs((prevSync) => [newSync, ...prevSync]);
+      }
+      addToast(`Successfully enrolled in ${planName}!`, 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not enroll in benefit plan.', 'error');
+    }
   };
 
   const handleClaimSubmit = (e: React.FormEvent) => {
@@ -336,7 +444,11 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
 
   return (
     <div id="benefits-module" className="space-y-6">
-      
+      <ModuleHeader
+        title="Benefits"
+        description="Enrollment, wallets, dependents, and vendor coverage."
+      />
+
       {/* Dynamic Selector Row - Matches Employee Directory & Onboarding Navigation */}
       <div id="benefits-navigation-layout" className="flex flex-col lg:flex-row lg:items-center justify-between nv-card px-4 py-1.5 gap-3">
         
@@ -389,7 +501,58 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
       {/* SUB-TAB 1: BENEFITS ENROLLMENT & SELECTION */}
       {activeSubTab === 'Enrollment & Selection' && (
         <div id="benefits-subview-enrollment" className="space-y-6">
-
+          <form onSubmit={handleCreateBenefitPlan} className="nv-card p-4 flex flex-col md:flex-row md:items-end gap-3">
+            <div className="flex-1">
+              <label className="text-[10px] text-slate-400 font-bold block mb-1">New Plan Name</label>
+              <input
+                type="text"
+                value={newPlanName}
+                onChange={(e) => setNewPlanName(e.target.value)}
+                placeholder="e.g. Gold Medical Plus"
+                className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 outline-none"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-[10px] text-slate-400 font-bold block mb-1">Provider</label>
+              <input
+                type="text"
+                value={newPlanProvider}
+                onChange={(e) => setNewPlanProvider(e.target.value)}
+                placeholder="e.g. Alliance Insurance"
+                className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 outline-none"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-slate-400 font-bold block mb-1">Category</label>
+              <select
+                value={newPlanCategory}
+                onChange={(e) => setNewPlanCategory(e.target.value as BenefitPlan['category'])}
+                className="text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 outline-none"
+              >
+                <option value="Medical">Medical</option>
+                <option value="Dental">Dental</option>
+                <option value="Wellness">Wellness</option>
+                <option value="Lifestyle">Lifestyle</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] text-slate-400 font-bold block mb-1">Monthly Cost</label>
+              <input
+                type="text"
+                value={newPlanCost}
+                onChange={(e) => setNewPlanCost(e.target.value)}
+                placeholder="0.00"
+                className="w-28 text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 outline-none"
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-novora text-white text-xs font-extrabold px-4 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>Create Plan</span>
+            </button>
+          </form>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {plans.map((plan) => {
@@ -408,7 +571,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                           plan.category === 'Medical' ? 'bg-indigo-50 text-novora' :
                           plan.category === 'Dental' ? 'bg-amber-50 text-amber-700' :
                           plan.category === 'Wellness' ? 'bg-emerald-50 text-emerald-700' :
-                          'bg-purple-50 text-purple-700'
+                          'bg-sky-50 text-sky-700'
                         }`}>
                           {plan.category} Plan
                         </span>
@@ -614,7 +777,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                             <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md ${
                               claim.category === 'Medical' ? 'bg-indigo-50 text-novora' :
                               claim.category === 'Dental' ? 'bg-amber-50 text-amber-700' :
-                              claim.category === 'Optical' ? 'bg-purple-50 text-purple-700' :
+                              claim.category === 'Optical' ? 'bg-sky-50 text-sky-700' :
                               'bg-emerald-50 text-emerald-700'
                             }`}>
                               {claim.category}
@@ -856,7 +1019,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                       <td className="p-3.5 font-semibold text-slate-600">{sync.perkName}</td>
                       <td className="p-3.5">
                         <span className={`text-[9.5px] font-extrabold px-2 py-0.5 rounded-md ${
-                          sync.deductionType === 'Taxable Perk' ? 'bg-purple-50 text-purple-700' :
+                          sync.deductionType === 'Taxable Perk' ? 'bg-sky-50 text-sky-700' :
                           sync.deductionType === 'Co-Pay Deductible' ? 'bg-amber-50 text-amber-700 font-bold' :
                           'bg-indigo-50 text-novora'
                         }`}>
@@ -900,7 +1063,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
             </div>
 
             <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs flex items-center gap-4.5">
-              <span className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+              <span className="p-3 bg-sky-50 text-sky-600 rounded-xl">
                 <Coins className="h-5.5 w-5.5" />
               </span>
               <div>
@@ -1067,7 +1230,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
             <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Covered Dependents</span>
-                <Users className="h-4 w-4 text-purple-500" />
+                <Users className="h-4 w-4 text-sky-500" />
               </div>
               <div className="mt-2.5">
                 <span className="text-2xl font-black text-slate-800">
@@ -1156,7 +1319,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                     { category: 'Medical Treatment', amount: claims.filter(c => c.category === 'Medical').reduce((sum, c) => sum + c.amount, 0), percentage: 40, color: 'bg-novora' },
                     { category: 'Dental & Crowns', amount: claims.filter(c => c.category === 'Dental').reduce((sum, c) => sum + c.amount, 0), percentage: 30, color: 'bg-emerald-500' },
                     { category: 'Optical & Contact Lenses', amount: claims.filter(c => c.category === 'Optical').reduce((sum, c) => sum + c.amount, 0), percentage: 20, color: 'bg-indigo-500' },
-                    { category: 'Wellness & Gym Reimbursements', amount: claims.filter(c => c.category === 'Wellness').reduce((sum, c) => sum + c.amount, 0), percentage: 10, color: 'bg-purple-500' }
+                    { category: 'Wellness & Gym Reimbursements', amount: claims.filter(c => c.category === 'Wellness').reduce((sum, c) => sum + c.amount, 0), percentage: 10, color: 'bg-sky-500' }
                   ].map((cat, idx) => (
                     <div key={idx} className="space-y-1">
                       <div className="flex justify-between items-center text-[10.5px]">
@@ -1182,7 +1345,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                   {[
                     { provider: 'Alliance Insurance Group', count: 18, share: 65, color: 'bg-indigo-500' },
                     { provider: 'SmileCare Dental Services', count: 12, share: 20, color: 'bg-emerald-500' },
-                    { provider: 'MindBody Global Health', count: 8, share: 15, color: 'bg-purple-500' }
+                    { provider: 'MindBody Global Health', count: 8, share: 15, color: 'bg-sky-500' }
                   ].map((pv, idx) => (
                     <div key={idx} className="flex justify-between items-center text-xs font-semibold">
                       <span className="text-slate-600 font-bold block truncate max-w-[200px]">{pv.provider}</span>

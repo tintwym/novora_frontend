@@ -1,46 +1,46 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-space-grotesk), sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, monospace;
 
-  --color-novora: #2563eb;
-  --color-novora-deep: #1d4ed8;
+  --color-novora: #1a6cff;
+  --color-novora-deep: #0b4fd6;
   --color-novora-sky: #0ea5e9;
   --color-novora-amber: #f59e0b;
-  --color-novora-ink: #0f172a;
-  --color-novora-muted: #64748b;
-  --color-novora-surface: #f8fafc;
-  --color-novora-border: #e2e8f0;
+  --color-novora-ink: #0b1220;
+  --color-novora-muted: #5b6b7c;
+  --color-novora-surface: #f4f7fb;
+  --color-novora-border: #e3eaf3;
 }
 
 html {
   color-scheme: light;
   scroll-behavior: smooth;
 
-  --shell-surface: #f8fafc;
-  --shell-content-from: rgba(248, 250, 252, 0.92);
+  --shell-surface: #f4f7fb;
+  --shell-content-from: rgba(244, 247, 251, 0.92);
   --shell-content-to: #ffffff;
-  --shell-topbar-bg: color-mix(in srgb, white 88%, transparent);
-  --shell-topbar-border: #e2e8f0;
-  --shell-title: #0f172a;
-  --shell-muted: #64748b;
+  --shell-topbar-bg: color-mix(in srgb, white 86%, transparent);
+  --shell-topbar-border: #e3eaf3;
+  --shell-title: #0b1220;
+  --shell-muted: #5b6b7c;
 
   --sidebar-bg: #ffffff;
-  --sidebar-border: #e2e8f0;
-  --sidebar-text: #64748b;
-  --sidebar-text-hover: #0f172a;
+  --sidebar-border: #e3eaf3;
+  --sidebar-text: #5b6b7c;
+  --sidebar-text-hover: #0b1220;
   --sidebar-text-active: var(--color-novora-deep);
   --sidebar-icon-active: var(--color-novora-deep);
   --sidebar-item-hover-bg: #f1f5f9;
   --sidebar-item-active-bg: color-mix(in srgb, var(--color-novora) 10%, white);
   --sidebar-muted: #94a3b8;
   --sidebar-input-bg: #f8fafc;
-  --sidebar-input-border: #e2e8f0;
+  --sidebar-input-border: #e3eaf3;
   --sidebar-dropdown-bg: #ffffff;
   --sidebar-footer-bg: #f8fafc;
-  --sidebar-footer-border: #e2e8f0;
+  --sidebar-footer-border: #e3eaf3;
   --sidebar-sub-active-bg: color-mix(in srgb, var(--color-novora) 10%, white);
   --sidebar-sub-active-text: var(--color-novora-deep);
   --sidebar-help-icon: var(--color-novora);
@@ -138,11 +138,14 @@ body {
 }
 
 #portal-inner-board {
-  background: linear-gradient(
-    to bottom,
-    var(--shell-content-from),
-    var(--shell-content-to)
-  );
+  background:
+    radial-gradient(ellipse 90% 55% at 0% -10%, color-mix(in srgb, var(--color-novora) 10%, transparent), transparent 55%),
+    radial-gradient(ellipse 70% 45% at 100% 0%, color-mix(in srgb, var(--color-novora-sky) 8%, transparent), transparent 50%),
+    linear-gradient(
+      to bottom,
+      var(--shell-content-from),
+      var(--shell-content-to)
+    );
   transition: background 420ms ease;
 }
 
@@ -577,8 +580,16 @@ html[data-density='spacious'] #portal-inner-board {
 .nv-card {
   border-radius: 1.25rem;
   border: 1px solid var(--color-novora-border);
-  background: white;
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-novora-ink) 4%, transparent);
+  background: color-mix(in srgb, white 94%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--color-novora-ink) 4%, transparent),
+    0 12px 32px color-mix(in srgb, var(--color-novora-ink) 3%, transparent);
+  transition: box-shadow 200ms ease, border-color 200ms ease, transform 200ms ease;
+}
+
+.nv-card:hover {
+  border-color: color-mix(in srgb, var(--color-novora) 18%, var(--color-novora-border));
 }
 
 .nv-input {
@@ -964,15 +975,16 @@ html[data-theme='cyber-dark'] #novora-hrms-root select:not([multiple]):not([size
 .nv-stat-card {
   border-radius: 1.25rem;
   border: 1px solid var(--color-novora-border);
-  background: white;
-  padding: 1rem;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  padding: 1.05rem 1.1rem;
   box-shadow: 0 1px 2px color-mix(in srgb, var(--color-novora-ink) 3%, transparent);
   transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
 .nv-stat-card:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-novora-ink) 6%, transparent);
+  border-color: color-mix(in srgb, var(--color-novora) 22%, #cbd5e1);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--color-novora-ink) 7%, transparent);
+  transform: translateY(-2px);
 }
 
 .nv-stat-icon {
@@ -1078,4 +1090,230 @@ html[data-theme='cyber-dark'] #novora-hrms-root select:not([multiple]):not([size
 #employees-top-controls select {
   white-space: nowrap !important;
   flex-shrink: 0;
+}
+
+/* —— Module chrome (shared across tabs) —— */
+.nv-module-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.nv-module-header__title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--color-novora-ink);
+  line-height: 1.2;
+}
+
+.nv-module-header__desc {
+  margin-top: 0.35rem;
+  max-width: 40rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--shell-muted);
+}
+
+.nv-module-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nv-table-shell {
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid var(--color-novora-border);
+  background: white;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-novora-ink) 3%, transparent);
+}
+
+.nv-table-shell table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.nv-table-shell thead th {
+  padding: 0.85rem 1.1rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7b8a9a;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--color-novora-border);
+  text-align: left;
+}
+
+.nv-table-shell tbody td {
+  padding: 0.9rem 1.1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.nv-table-shell tbody tr {
+  transition: background-color 140ms ease;
+}
+
+.nv-table-shell tbody tr:hover {
+  background: color-mix(in srgb, var(--color-novora) 4%, white);
+}
+
+.nv-table-shell tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.nv-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  border-radius: 1.25rem;
+  border: 1px dashed color-mix(in srgb, var(--color-novora) 22%, var(--color-novora-border));
+  background:
+    radial-gradient(ellipse 60% 80% at 50% 0%, color-mix(in srgb, var(--color-novora) 6%, transparent), transparent),
+    #fbfdff;
+}
+
+.nv-empty__title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-novora-ink);
+}
+
+.nv-empty__desc {
+  max-width: 22rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--shell-muted);
+}
+
+.nv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 0.5rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.nv-badge--success {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.nv-badge--warn {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.nv-badge--info {
+  background: color-mix(in srgb, var(--color-novora) 8%, white);
+  color: var(--color-novora-deep);
+  border-color: color-mix(in srgb, var(--color-novora) 18%, white);
+}
+
+.nv-badge--neutral {
+  background: #f8fafc;
+  color: #475569;
+  border-color: #e2e8f0;
+}
+
+.nv-dash-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid var(--color-novora-border);
+  background:
+    radial-gradient(ellipse 80% 120% at -10% 0%, color-mix(in srgb, var(--color-novora) 16%, transparent), transparent 55%),
+    radial-gradient(ellipse 60% 80% at 110% 20%, color-mix(in srgb, var(--color-novora-sky) 14%, transparent), transparent 50%),
+    linear-gradient(135deg, #0b1220 0%, #13233f 55%, #0f1b33 100%);
+  color: white;
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 16px 40px color-mix(in srgb, #0b1220 18%, transparent);
+}
+
+.nv-dash-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 36px 36px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.nv-dash-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes nv-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nv-stagger > * {
+  animation: nv-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.nv-stagger > *:nth-child(1) { animation-delay: 40ms; }
+.nv-stagger > *:nth-child(2) { animation-delay: 90ms; }
+.nv-stagger > *:nth-child(3) { animation-delay: 140ms; }
+.nv-stagger > *:nth-child(4) { animation-delay: 190ms; }
+.nv-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.nv-stagger > *:nth-child(6) { animation-delay: 290ms; }
+
+#portal-inner-board .nv-toolbar,
+#portal-inner-board [id$='-top-controls'],
+#portal-inner-board [id$='-upper-actions'],
+#portal-inner-board #performance-module-navigator,
+#portal-inner-board #payroll-global-ctrls {
+  background: color-mix(in srgb, white 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-color: var(--color-novora-border);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-novora-ink) 3%, transparent);
+}
+
+html[data-theme='cyber-dark'] .nv-dash-hero {
+  background:
+    radial-gradient(ellipse 80% 120% at -10% 0%, rgba(37, 99, 235, 0.35), transparent 55%),
+    linear-gradient(135deg, #020617 0%, #0f172a 100%);
+}
+
+html[data-theme='cyber-dark'] .nv-module-header__title {
+  color: var(--shell-title);
+}
+
+html[data-theme='cyber-dark'] .nv-table-shell,
+html[data-theme='cyber-dark'] .nv-empty {
+  background: rgba(15, 23, 42, 0.72);
+  border-color: var(--color-novora-border);
 }

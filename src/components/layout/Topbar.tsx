@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Search,
   Bell,
@@ -12,6 +12,12 @@ import type { AuthSession } from '@/types'
 import { primaryRole, roleDisplayLabel } from '@/lib/roles'
 import { sidebarLabel } from '@/lib/navLabels'
 import { formatPersonDisplayName } from '@/lib/personName'
+import {
+  ApiError,
+  fetchMyNotifications,
+  markNotificationRead,
+  type NotificationRow,
+} from '@/services'
 
 interface TopbarProps {
   activeTabName: string
@@ -21,6 +27,8 @@ interface TopbarProps {
   session?: AuthSession | null
   onLogout?: () => void | Promise<void>
 }
+
+type NotifyUi = { id: string; title: string; msg: string; time: string; read: boolean }
 
 function RoleIcon({ roles, className }: { roles: string[] | undefined; className?: string }) {
   const raw = primaryRole(roles)
@@ -37,6 +45,31 @@ function sectionTitle(tab: string): string {
   return sidebarLabel(tab)
 }
 
+function relativeFrom(createdAt: string | null): string {
+  if (!createdAt) return '—'
+  const then = new Date(createdAt).getTime()
+  if (Number.isNaN(then)) return createdAt
+  const seconds = Math.max(0, Math.floor((Date.now() - then) / 1000))
+  if (seconds < 60) return 'just now'
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes} min ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days} day${days === 1 ? '' : 's'} ago`
+  return new Date(createdAt).toLocaleDateString()
+}
+
+function mapNotification(row: NotificationRow): NotifyUi {
+  return {
+    id: row.id,
+    title: row.title,
+    msg: row.message,
+    time: relativeFrom(row.createdAt),
+    read: row.read,
+  }
+}
+
 export default function Topbar({
   activeTabName,
   onSearchChange,
@@ -47,6 +80,7 @@ export default function Topbar({
 }: TopbarProps) {
   const [profileOpen, setProfileOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [notifications, setNotifications] = useState<NotifyUi[]>([])
   const profileRef = useRef<HTMLDivElement>(null)
   const notifyRef = useRef<HTMLDivElement>(null)
 
@@ -55,14 +89,28 @@ export default function Topbar({
   const displayRole = roleDisplayLabel(session?.roles)
   const initial = displayName.trim().charAt(0).toUpperCase() || 'P'
   const title = sectionTitle(activeTabName)
+  const unreadCount = notifications.filter((n) => !n.read).length
 
-  const notifications = [
-    { id: 1, title: 'Leave Approval', msg: 'Sarah Lim applied for 3 days annual leave', time: '10 min ago' },
-    { id: 2, title: 'Onboarding Update', msg: 'System prepared accounts for new developer', time: '1 hour ago' },
-    { id: 3, title: 'Claim Pending', msg: 'Travel claim uploaded by Raj Kumar', time: '3 hours ago' },
-    { id: 4, title: 'Performance Review', msg: 'Daily feedback logs summarized', time: '1 day ago' },
-    { id: 5, title: 'System Alert', msg: 'Automatic backup completed successfully', time: '1 day ago' },
-  ]
+  const loadNotifications = useCallback(async () => {
+    try {
+      const rows = await fetchMyNotifications()
+      setNotifications(rows.map(mapNotification))
+    } catch (err) {
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load notifications.', 'error')
+      }
+    }
+  }, [addToast])
+
+  useEffect(() => {
+    void loadNotifications()
+  }, [loadNotifications])
+
+  useEffect(() => {
+    if (notificationsOpen) {
+      void loadNotifications()
+    }
+  }, [notificationsOpen, loadNotifications])
 
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
@@ -78,8 +126,14 @@ export default function Topbar({
     return () => document.removeEventListener('mousedown', onPointerDown)
   }, [])
 
-  const handleNotificationClick = (itemTitle: string) => {
-    addToast(`Opened notification: "${itemTitle}"`, 'info')
+  const handleNotificationClick = async (id: string, itemTitle: string) => {
+    try {
+      await markNotificationRead(id)
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+      addToast(`Opened notification: "${itemTitle}"`, 'info')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not mark notification read.', 'error')
+    }
     setNotificationsOpen(false)
   }
 
@@ -88,14 +142,20 @@ export default function Topbar({
       id="app-topbar"
       className="sticky top-0 z-40 h-16 px-6 md:px-8 flex items-center justify-between shrink-0"
     >
-      <div className="flex items-center gap-2 min-w-0">
-        <h1
-          id="topbar-section-title"
-          className="nv-page-title text-lg md:text-xl truncate"
-          title={activeTabName}
-        >
-          {title}
-        </h1>
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="hidden sm:block h-8 w-1 rounded-full bg-gradient-to-b from-novora to-novora-sky shrink-0" />
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--shell-muted)]">
+            Workspace
+          </p>
+          <h1
+            id="topbar-section-title"
+            className="nv-page-title text-base md:text-lg truncate leading-tight"
+            title={activeTabName}
+          >
+            {title}
+          </h1>
+        </div>
       </div>
 
       <div className="flex items-center gap-3 md:gap-4">
@@ -125,9 +185,11 @@ export default function Topbar({
             aria-expanded={notificationsOpen}
           >
             <Bell className="h-4.5 w-4.5 text-slate-600" />
-            <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
-              {notifications.length}
-            </span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
+                {unreadCount}
+              </span>
+            )}
           </button>
 
           {notificationsOpen && (
@@ -146,20 +208,26 @@ export default function Topbar({
                 </button>
               </div>
               <div className="max-h-80 overflow-y-auto">
-                {notifications.map((n) => (
-                  <button
-                    key={n.id}
-                    type="button"
-                    onClick={() => handleNotificationClick(n.title)}
-                    className="w-full text-left px-4 py-2.5 hover:bg-slate-50 cursor-pointer transition-colors border-b border-slate-50/50 last:border-0"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="font-semibold text-xs text-slate-800">{n.title}</span>
-                      <span className="text-[10px] text-slate-400 shrink-0">{n.time}</span>
-                    </div>
-                    <p className="text-[11.5px] text-slate-500 mt-0.5 leading-relaxed truncate">{n.msg}</p>
-                  </button>
-                ))}
+                {notifications.length === 0 ? (
+                  <p className="px-4 py-6 text-xs text-slate-400 text-center">No notifications yet.</p>
+                ) : (
+                  notifications.map((n) => (
+                    <button
+                      key={n.id}
+                      type="button"
+                      onClick={() => void handleNotificationClick(n.id, n.title)}
+                      className={`w-full text-left px-4 py-2.5 hover:bg-slate-50 cursor-pointer transition-colors border-b border-slate-50/50 last:border-0 ${
+                        n.read ? '' : 'bg-novora/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-semibold text-xs text-slate-800">{n.title}</span>
+                        <span className="text-[10px] text-slate-400 shrink-0">{n.time}</span>
+                      </div>
+                      <p className="text-[11.5px] text-slate-500 mt-0.5 leading-relaxed truncate">{n.msg}</p>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
           )}

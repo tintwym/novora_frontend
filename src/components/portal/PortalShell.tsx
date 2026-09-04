@@ -29,6 +29,7 @@ import { RecruitmentTab } from '@/features/recruitment'
 import { ReportsTab } from '@/features/reports'
 import { SettingsTab } from '@/features/settings'
 import { useAuth } from '@/providers/AuthProvider'
+import { ApiError, deleteEmployee, updateEmployee } from '@/services'
 import type { SidebarTab, SubTab, Employee } from '@/types'
 import {
   canAccessPortal,
@@ -56,6 +57,7 @@ export default function PortalShell() {
     setSelectedEmployee,
     addToast,
     handleLogout,
+    loadEmployees,
   } = useAuth()
 
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('Employee Profile')
@@ -122,10 +124,14 @@ export default function PortalShell() {
       addToast('Only Admin or HR can add employees.', 'error')
       return
     }
-    setEmployees((prev) => [newEmp, ...prev])
+    setEmployees((prev) => {
+      const withoutDup = prev.filter((e) => e.apiId !== newEmp.apiId && e.id !== newEmp.id)
+      return [newEmp, ...withoutDup]
+    })
     setSelectedEmployee(newEmp)
     setActiveSubTab('Employee Profile')
     router.push(portalPath(portal, 'Employees Management'))
+    void loadEmployees(session.roles)
   }
 
   const handleSelectEmployee = (emp: Employee) => {
@@ -305,14 +311,64 @@ export default function PortalShell() {
                     employee={selectedEmployee}
                     onBackToDirectory={() => handleSubTabChange('Employee Directory')}
                     onDeleteEmployee={(id) => {
-                      const nextEmps = employees.filter((e) => e.id !== id)
-                      setEmployees(nextEmps)
-                      setSelectedEmployee(nextEmps[0] || null)
-                      handleSubTabChange('Employee Directory')
+                      void (async () => {
+                        const target = employees.find((e) => e.id === id || e.apiId === id)
+                        const apiId = target?.apiId
+                        if (!apiId) {
+                          addToast('This employee has no server id and cannot be deleted.', 'error')
+                          return
+                        }
+                        try {
+                          await deleteEmployee(apiId)
+                          const nextEmps = employees.filter((e) => e.apiId !== apiId && e.id !== id)
+                          setEmployees(nextEmps)
+                          setSelectedEmployee(nextEmps[0] || null)
+                          handleSubTabChange('Employee Directory')
+                          addToast('Employee deleted.', 'success')
+                          void loadEmployees(session.roles)
+                        } catch (err) {
+                          addToast(
+                            err instanceof ApiError ? err.message : 'Could not delete employee.',
+                            'error',
+                          )
+                        }
+                      })()
                     }}
                     onUpdateEmployee={(updatedEmp) => {
-                      setEmployees((prev) => prev.map((e) => (e.id === updatedEmp.id ? updatedEmp : e)))
-                      setSelectedEmployee(updatedEmp)
+                      void (async () => {
+                        const apiId = updatedEmp.apiId
+                        if (!apiId || !updatedEmp.departmentId || !updatedEmp.positionId) {
+                          setEmployees((prev) =>
+                            prev.map((e) => (e.id === updatedEmp.id ? updatedEmp : e)),
+                          )
+                          setSelectedEmployee(updatedEmp)
+                          return
+                        }
+                        try {
+                          const parts = updatedEmp.name.trim().split(/\s+/)
+                          const firstName = parts[0] || 'Employee'
+                          const lastName = parts.slice(1).join(' ') || 'Staff'
+                          const saved = await updateEmployee(apiId, {
+                            firstName,
+                            lastName,
+                            email: updatedEmp.email,
+                            departmentId: updatedEmp.departmentId,
+                            positionId: updatedEmp.positionId,
+                            employeeCode: updatedEmp.id,
+                            status: updatedEmp.status === 'Inactive' ? 'inactive' : 'active',
+                          })
+                          setEmployees((prev) =>
+                            prev.map((e) => (e.apiId === apiId || e.id === updatedEmp.id ? saved : e)),
+                          )
+                          setSelectedEmployee(saved)
+                          addToast('Employee updated on server.', 'success')
+                        } catch (err) {
+                          addToast(
+                            err instanceof ApiError ? err.message : 'Could not update employee.',
+                            'error',
+                          )
+                        }
+                      })()
                     }}
                     addToast={addToast}
                   />
@@ -369,15 +425,15 @@ export default function PortalShell() {
           ) : activeTab === 'Recruitment Management' ? (
             <RecruitmentTab addToast={addToast} onAddEmployeeAsRecord={handleAddEmployee} />
           ) : activeTab === 'Attendance Management' ? (
-            <AttendanceTab addToast={addToast} />
+            <AttendanceTab employees={employees} addToast={addToast} />
           ) : activeTab === 'Leave Management' ? (
-            <LeaveTab employees={employees} addToast={addToast} />
+            <LeaveTab employees={employees} addToast={addToast} roles={session.roles} />
           ) : activeTab === 'Disciplinary Management' ? (
             <DisciplinaryTab employees={employees} addToast={addToast} />
           ) : activeTab === 'Payroll Management' ? (
             <PayrollTab employees={employees} addToast={addToast} />
           ) : activeTab === 'Claims Management' ? (
-            <ClaimsTab employees={employees} addToast={addToast} />
+            <ClaimsTab employees={employees} addToast={addToast} roles={session.roles} />
           ) : activeTab === 'Performance Management' ? (
             <PerformanceTab employees={employees} addToast={addToast} />
           ) : activeTab === 'Reports' ? (

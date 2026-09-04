@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { createLocalId } from '@/lib/createLocalId'
 import { 
   UserPlus, 
@@ -31,6 +31,13 @@ import {
   CheckCircle
 } from 'lucide-react';
 import type { Employee } from '@/types';
+import ModuleHeader from '@/components/ui/ModuleHeader';
+import {
+  ApiError,
+  createOnboardingTask,
+  fetchAdminOnboardingTasks,
+  type OnboardingTaskRow,
+} from '@/services';
 
 interface OnOffBoardingTabProps {
   employees: Employee[];
@@ -89,6 +96,32 @@ interface ExitInterviewForm {
   comments: string;
 }
 
+function mapOnboardingTaskRow(row: OnboardingTaskRow, emps: Employee[]): ChecklistItem {
+  const emp = emps.find((e) => e.apiId === row.employeeId || e.id === row.employeeId);
+  const deptHint = (row.description || '').toLowerCase();
+  let department: ChecklistItem['department'] = 'HR Administration';
+  if (deptHint.includes('it ') || deptHint.includes('laptop') || deptHint.includes('email')) {
+    department = 'IT Operations';
+  } else if (deptHint.includes('finance') || deptHint.includes('payroll')) {
+    department = 'Finance Payroll';
+  } else if (deptHint.includes('security') || deptHint.includes('badge')) {
+    department = 'Security Assets';
+  } else if (deptHint.includes('compliance') || deptHint.includes('contract')) {
+    department = 'HR Compliance';
+  } else if (deptHint.includes('engineer')) {
+    department = 'Engineering department';
+  }
+
+  return {
+    id: row.id,
+    task: row.title,
+    department,
+    completed: Boolean(row.completedAt) || /complete|done|cleared/i.test(row.status),
+    dueDate: row.dueDate || '',
+    targetEmployeeId: emp?.id || row.employeeId,
+  };
+}
+
 export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingTabProps) {
   const [activeSubTab, setActiveSubTab] = useState<OnOffSubTab>('Pre-Onboarding Portal');
 
@@ -112,23 +145,28 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
   const [isOfferSigned, setIsOfferSigned] = useState(false);
 
   // -------------------------------------------------------------
-  // STATE 2: TASK & CHECKLIST AUTOMATION STATE
+  // STATE 2: TASK & CHECKLIST AUTOMATION STATE (live ops API)
   // -------------------------------------------------------------
-  const [checklist, setChecklist] = useState<ChecklistItem[]>([
-    // Onboarding checklist
-    { id: 'ob-1', task: 'Issue high-spec corporate development laptop', department: 'IT Operations', completed: true, dueDate: '2026-06-20', targetEmployeeId: 'EMP-001' },
-    { id: 'ob-2', task: 'Register active corporate email & OAuth accounts', department: 'IT Operations', completed: true, dueDate: '2026-06-20', targetEmployeeId: 'EMP-001' },
-    { id: 'ob-3', task: 'Sign physical Employee Master Pledge contract', department: 'HR Compliance', completed: false, dueDate: '2026-06-22', targetEmployeeId: 'EMP-001' },
-    { id: 'ob-4', task: 'Brief overview on Novora Core culture structures', department: 'HR Administration', completed: false, dueDate: '2026-06-24', targetEmployeeId: 'EMP-001' },
-    { id: 'ob-5', task: 'Assign peer guide & local team team-bonding call', department: 'Engineering department', completed: false, dueDate: '2026-06-26', targetEmployeeId: 'EMP-001' },
-    
-    // Other employees checklists
-    { id: 'ob-6', task: 'Enroll in gold premium benefits package', department: 'HR Administration', completed: true, dueDate: '2026-06-18', targetEmployeeId: 'EMP-002' },
-    { id: 'ob-7', task: 'Configure local server cluster clearance credentials', department: 'IT Operations', completed: false, dueDate: '2026-06-28', targetEmployeeId: 'EMP-002' },
-  ]);
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [newChecklistTask, setNewChecklistTask] = useState('');
   const [newChecklistDept, setNewChecklistDept] = useState<'IT Operations' | 'HR Compliance' | 'Finance Payroll' | 'Security Assets' | 'Engineering department' | 'HR Administration'>('IT Operations');
   const [newChecklistDueDate, setNewChecklistDueDate] = useState('2026-06-25');
+
+  const loadOnboardingTasks = useCallback(async () => {
+    try {
+      const rows = await fetchAdminOnboardingTasks();
+      setChecklist(rows.map((row) => mapOnboardingTaskRow(row, employees)));
+    } catch (err) {
+      setChecklist([]);
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load onboarding tasks from the server.', 'error');
+      }
+    }
+  }, [addToast, employees]);
+
+  useEffect(() => {
+    void loadOnboardingTasks();
+  }, [loadOnboardingTasks]);
 
   // -------------------------------------------------------------
   // STATE 3: KNOWLEDGE BASE STATE
@@ -249,23 +287,31 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
     }));
   };
 
-  const handleAddChecklistTask = (e: React.FormEvent) => {
+  const handleAddChecklistTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newChecklistTask.trim()) {
       addToast('Please enter a task statement', 'error');
       return;
     }
-    const newTask: ChecklistItem = {
-      id: createLocalId('ob'),
-      task: newChecklistTask,
-      department: newChecklistDept,
-      completed: false,
-      dueDate: newChecklistDueDate,
-      targetEmployeeId: selectedSubEmployee
-    };
-    setChecklist([...checklist, newTask]);
-    setNewChecklistTask('');
-    addToast('Task added to active department backlog.', 'success');
+    const employeeApiId = currentEmployeeObj?.apiId;
+    if (!employeeApiId) {
+      addToast('Selected employee is missing a server id (apiId).', 'error');
+      return;
+    }
+
+    try {
+      const created = await createOnboardingTask({
+        employeeId: employeeApiId,
+        title: newChecklistTask.trim(),
+        description: newChecklistDept,
+        dueDate: newChecklistDueDate || undefined,
+      });
+      setChecklist((prev) => [...prev, mapOnboardingTaskRow(created, employees)]);
+      setNewChecklistTask('');
+      addToast('Task added to active department backlog.', 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create onboarding task.', 'error');
+    }
   };
 
   // Video Playing Mock Trigger
@@ -372,7 +418,11 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
 
   return (
     <div id="on-offboarding-module-root" className="space-y-6">
-      
+      <ModuleHeader
+        title="On / Off boarding"
+        description="Pre-boarding, checklists, clearance, and exit interviews."
+      />
+
       {/* Upper sub-tab switcher bar */}
       <div id="onboarding-navigator-row" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
         <div id="onboarding-nav-tabs" className="flex items-center gap-1.5 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
@@ -1409,7 +1459,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
             <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Exit Satisfaction Score</span>
-                <Award className="h-4 w-4 text-purple-500" />
+                <Award className="h-4 w-4 text-emerald-500" />
               </div>
               <div className="mt-2.5">
                 <span className="text-2xl font-black text-slate-800">
@@ -1423,8 +1473,8 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                 </span>
               </div>
               <div className="flex items-center gap-1 mt-3.5">
-                <TrendingUp className="h-3.5 w-3.5 text-purple-500" />
-                <span className="text-[9.5px] text-purple-600 font-extrabold uppercase">Healthy team morale indicators</span>
+                <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+                <span className="text-[9.5px] text-emerald-600 font-extrabold uppercase">Healthy team morale indicators</span>
               </div>
             </div>
           </div>

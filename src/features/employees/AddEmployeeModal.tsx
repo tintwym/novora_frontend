@@ -21,6 +21,7 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import type { Employee, Department, EmploymentStatus } from '@/types';
+import { ApiError, createDepartment, createEmployee, fetchDepartments } from '@/services';
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
@@ -35,9 +36,29 @@ interface BiometricTerminalRow {
   terminal: string;
 }
 
+async function resolveDepartmentId(departmentName: string): Promise<string> {
+  const depts = await fetchDepartments()
+  const needle = departmentName.trim().toLowerCase()
+  const hit = depts.find((d) => {
+    const n = d.name.trim().toLowerCase()
+    if (n === needle) return true
+    if (needle === 'hr' && (n.includes('hr') || n.includes('human'))) return true
+    return false
+  })
+  if (hit) return hit.id
+
+  const code = departmentName.replace(/[^A-Za-z0-9]/g, '').slice(0, 8).toUpperCase() || 'DEPT'
+  const created = await createDepartment({
+    name: departmentName,
+    code: `${code}${Date.now().toString().slice(-3)}`,
+  })
+  return created.id
+}
+
 export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addToast }: AddEmployeeModalProps) {
   // Current creation wizard step
   const [step, setStep] = useState<number>(1);
+  const [submitting, setSubmitting] = useState(false);
 
   // --- WIZARD FORM STATE ---
   
@@ -198,63 +219,59 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
     setTerminalsList(terminalsList.filter(t => t.id !== id));
   };
 
-  // Step 5 Submit handler
-  const handleFinalSubmit = () => {
-    const computedName = [firstName, lastName].filter(Boolean).join(' ').trim() || firstName || 'New hire';
-    
-    if (!firstName && !lastName) {
-      addToast('Please enter employee name in the Personal step.', 'error');
-      setStep(2);
-      return;
+  // Step 5 Submit handler — persists via /api/admin/employees
+  const handleFinalSubmit = async () => {
+    const first = firstName.trim()
+    const last = lastName.trim() || 'Employee'
+    if (!first) {
+      addToast('Please enter the employee first name in the Personal step.', 'error')
+      setStep(2)
+      return
     }
 
-    const randomColors = [
-      'bg-indigo-600 text-indigo-50',
-      'bg-blue-600 text-blue-50',
-      'bg-emerald-600 text-emerald-50',
-      'bg-purple-600 text-purple-50',
-      'bg-rose-600 text-rose-50',
-      'bg-amber-600 text-amber-50',
-      'bg-teal-600 text-teal-50',
-    ];
-    const pickedColor = randomColors[createLocalNumericId() % randomColors.length];
+    const email = (workEmail || personalEmail).trim().toLowerCase()
+    if (!email || !email.includes('@')) {
+      addToast('Please enter a valid work or personal email.', 'error')
+      setStep(2)
+      return
+    }
 
-    const formatDateString = (dt: string) => {
-      try {
-        const parsed = new Date(dt);
-        if (isNaN(parsed.getTime())) return '17 Jun 2026';
-        return parsed.toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric'
-        });
-      } catch {
-        return '17 Jun 2026';
-      }
-    };
+    setSubmitting(true)
+    addToast('Saving employee to the server…', 'loading')
+    try {
+      const departmentId = await resolveDepartmentId(department)
+      const created = await createEmployee({
+        firstName: first,
+        lastName: last,
+        email,
+        departmentId,
+        employeeCode: employeeNo.trim() || undefined,
+        hireDate: joinDate || undefined,
+      })
 
-    const newEmpRecord: Employee = {
-      id: employeeNo || 'EMP-0285',
-      name: computedName,
-      department,
-      position: position || 'Software Engineer',
-      employmentStatus,
-      status: activeEmployee ? 'Active' : 'Inactive',
-      joinDate: formatDateString(joinDate),
-      nric: nric || 'S9103145A',
-      mobile: mobileNo || '+65 9123 4567',
-      email: workEmail || `${computedName.toLowerCase().replace(/\s+/g, '.')}@novora.com`,
-      address: addressLine1 ? `${addressLine1}, ${addressLine2 ? addressLine2 + ', ' : ''}${city}, ${state}` : 'Singapore',
-      avatarColor: pickedColor,
-      avatarUrl: profilePhoto || undefined,
-      dependents: 'Spouse, 1 Dependent',
-      emergencyContact: '+65 8765 4321 (Lim Kah Fatt)',
-      reportsTo,
-    };
-
-    onAddEmployee(newEmpRecord);
-    addToast(`Successfully created active registry record for ${computedName}!`, 'success');
-    onClose();
+      onAddEmployee({
+        ...created,
+        avatarUrl: profilePhoto || created.avatarUrl,
+        mobile: mobileNo.trim() || created.mobile,
+        nric: nric.trim() || created.nric,
+        address: addressLine1
+          ? `${addressLine1}${addressLine2 ? `, ${addressLine2}` : ''}, ${city}`
+          : created.address,
+        employmentStatus,
+        reportsTo: reportsTo || created.reportsTo,
+        position: position.trim() || created.position,
+      })
+      addToast(`Employee ${created.name} saved successfully.`, 'success')
+      onClose()
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : 'Could not save employee. Check the API is running and try again.'
+      addToast(message, 'error')
+    } finally {
+      setSubmitting(false)
+    }
   };
 
   // Initials calculation for step 5 review avatar
@@ -1501,10 +1518,11 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
             <button 
               id="wizard-bottom-commit-action-btn"
               type="button"
-              onClick={handleFinalSubmit}
-              className="bg-novora hover:bg-opacity-90 font-black text-xs text-white px-5 py-2.5 rounded-xl transition-all shadow-xs inline-flex items-center gap-2 cursor-pointer"
+              disabled={submitting}
+              onClick={() => void handleFinalSubmit()}
+              className="bg-novora hover:bg-opacity-90 font-black text-xs text-white px-5 py-2.5 rounded-xl transition-all shadow-xs inline-flex items-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <span>Save employee</span>
+              <span>{submitting ? 'Saving…' : 'Save employee'}</span>
               <Check className="h-4.5 w-4.5 shrink-0" strokeWidth={3} />
             </button>
           )}

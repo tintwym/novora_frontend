@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { createLocalId } from '@/lib/createLocalId'
 import {
   Clock,
@@ -25,12 +25,226 @@ import {
   X,
   Network,
 } from 'lucide-react';
+import {
+  ApiError,
+  checkInAttendance,
+  checkOutAttendance,
+  createRosterEntry,
+  createShiftPattern,
+  fetchAttendanceRoster,
+  fetchMyAttendance,
+  fetchRoster,
+  fetchShiftPatterns,
+  type AttendanceLog,
+  type AttendanceRosterLog,
+  type RosterEntryRow,
+  type ShiftPatternRow,
+} from '@/services'
+import type { Employee } from '@/types'
+import ModuleHeader from '@/components/ui/ModuleHeader'
 
 interface AttendanceTabProps {
-  addToast: (text: string, type: 'success' | 'loading' | 'error' | 'info') => void;
+  addToast: (text: string, type: 'success' | 'loading' | 'error' | 'info') => void
+  employees?: Employee[]
 }
 
-export default function AttendanceTab({ addToast }: AttendanceTabProps) {
+type RosterDayCell = { time: string; status: string; half?: boolean }
+type RosterEmployee = {
+  id: string
+  name: string
+  initials: string
+  dept: string
+  schedule: {
+    Mon: RosterDayCell
+    Tue: RosterDayCell
+    Wed: RosterDayCell
+    Thu: RosterDayCell
+    Fri: RosterDayCell
+    Sat: RosterDayCell
+    Sun: RosterDayCell
+  }
+}
+
+type ShiftPatternUi = {
+  id?: string
+  name: string
+  activeOnly: boolean
+  data: {
+    hours: string
+    breakTime: string
+    nearestIn: string
+    nearestOut: string
+    allowInOT: string
+    allowOutOT: string
+    nightShift: string
+    employees: number | string
+  }
+}
+
+function formatShiftClock(raw: string) {
+  const m = raw.match(/(\d{1,2}):(\d{2})(?::\d{2})?/)
+  if (!m) return raw
+  return `${m[1].padStart(2, '0')}:${m[2]}`
+}
+
+function mapShiftPatternRow(row: ShiftPatternRow): ShiftPatternUi {
+  const start = formatShiftClock(row.startTime)
+  const end = formatShiftClock(row.endTime)
+  const startHour = Number(start.slice(0, 2))
+  const endHour = Number(end.slice(0, 2))
+  const night = !Number.isNaN(startHour) && !Number.isNaN(endHour) && (startHour >= 18 || endHour < startHour)
+  return {
+    id: row.id,
+    name: row.name,
+    activeOnly: row.active,
+    data: {
+      hours: `${start} - ${end}`,
+      breakTime: row.breakMins > 0 ? `${row.breakMins} mins` : '—',
+      nearestIn: '—',
+      nearestOut: '—',
+      allowInOT: '—',
+      allowOutOT: '—',
+      nightShift: night ? 'Yes' : 'No',
+      employees: 0,
+    },
+  }
+}
+
+function initialsFromName(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((p) => p[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || '??'
+}
+
+function mapRosterEntries(entries: RosterEntryRow[]): RosterEmployee[] {
+  const dayKeys = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
+  const byEmp = new Map<string, RosterEmployee>()
+
+  for (const entry of entries) {
+    let emp = byEmp.get(entry.employeeId)
+    if (!emp) {
+      emp = {
+        id: entry.employeeId,
+        name: entry.employeeName || entry.employeeId,
+        initials: initialsFromName(entry.employeeName || entry.employeeId),
+        dept: '—',
+        schedule: {
+          Mon: { time: 'Off', status: 'Off' },
+          Tue: { time: 'Off', status: 'Off' },
+          Wed: { time: 'Off', status: 'Off' },
+          Thu: { time: 'Off', status: 'Off' },
+          Fri: { time: 'Off', status: 'Off' },
+          Sat: { time: 'Off', status: 'Off' },
+          Sun: { time: 'Off', status: 'Off' },
+        },
+      }
+      byEmp.set(entry.employeeId, emp)
+    }
+    const d = new Date(entry.workDate)
+    if (Number.isNaN(d.getTime())) continue
+    const key = dayKeys[d.getDay()] as keyof RosterEmployee['schedule']
+    const statusUpper = (entry.status || 'PLANNED').toUpperCase()
+    let status = 'Planned'
+    if (statusUpper.includes('LEAVE')) status = 'On leave'
+    else if (statusUpper.includes('ABSENT')) status = 'Absent'
+    else if (statusUpper.includes('COMPLETE')) status = 'Completed'
+    else if (statusUpper.includes('NIGHT')) status = 'Night'
+    else if (statusUpper.includes('OFF')) status = 'Off'
+    emp.schedule[key] = {
+      time: entry.shiftPatternName || entry.status || 'Shift',
+      status,
+    }
+  }
+
+  return Array.from(byEmp.values())
+}
+
+function formatRosterPunch(iso: string | null | undefined) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) {
+    const m = iso.match(/(\d{1,2}:\d{2})/)
+    return m ? m[1] : iso
+  }
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+function mapAttendanceToTimesheet(log: AttendanceRosterLog) {
+  return {
+    id: log.id,
+    name: log.employeeId,
+    dept: '—',
+    shift: log.status || 'Standard',
+    start: log.workDate,
+    end: log.workDate,
+    days: 1,
+    dutyDays: '—',
+    status: (log.status || 'Active').toUpperCase() === 'PRESENT' ? 'Active' : (log.status || 'Active'),
+  }
+}
+
+function mapAttendanceToReport(log: AttendanceRosterLog) {
+  const name = log.employeeId
+  return {
+    name,
+    initials: initialsFromName(name),
+    date: log.workDate,
+    shift: log.status || 'Standard',
+    in: formatRosterPunch(log.checkInTime),
+    out: formatRosterPunch(log.checkOutTime),
+    hrs: log.workHours != null ? `${log.workHours}h` : '—',
+    late: '—',
+    ot: '—',
+    status: (log.status || 'PRESENT').replace(/_/g, ' '),
+  }
+}
+
+function parseHoursRange(hours: string): { startTime: string; endTime: string } {
+  const m = hours.match(/(\d{1,2}:\d{2})(?::\d{2})?\s*[-–/]\s*(\d{1,2}:\d{2})(?::\d{2})?/)
+  if (m) {
+    return {
+      startTime: formatShiftClock(m[1]),
+      endTime: formatShiftClock(m[2]),
+    }
+  }
+  return { startTime: '09:00', endTime: '18:00' }
+}
+
+function parseBreakMins(breakTime: string): number | undefined {
+  const m = breakTime.match(/(\d+)\s*m/i)
+  if (m) return Number(m[1])
+  const range = breakTime.match(/(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})/)
+  if (range) {
+    const start = Number(range[1]) * 60 + Number(range[2])
+    const end = Number(range[3]) * 60 + Number(range[4])
+    const diff = end >= start ? end - start : end + 24 * 60 - start
+    return diff
+  }
+  return undefined
+}
+
+function formatPunchTime(iso: string | null | undefined) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+function mapAttendanceRow(log: AttendanceLog) {
+  return {
+    date: log.workDate,
+    in: formatPunchTime(log.checkInTime),
+    out: formatPunchTime(log.checkOutTime),
+    hours: log.workHours != null ? String(log.workHours) : '—',
+    status: (log.status || 'PRESENT').toUpperCase(),
+  }
+}
+
+export default function AttendanceTab({ addToast, employees = [] }: AttendanceTabProps) {
   const [activeSubTab, setActiveSubTab] = useState<string>('Duty Roster');
   const [searchValue, setSearchValue] = useState<string>('');
   const [deptFilter, setDeptFilter] = useState<string>('All departments');
@@ -40,180 +254,55 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
   const [checkedIn, setCheckedIn] = useState<boolean>(false);
   const [checkInTime, setCheckInTime] = useState<string | null>(null);
   const [checkOutTime, setCheckOutTime] = useState<string | null>(null);
-  const [recentChecks, setRecentChecks] = useState([
-    { date: '2026-06-12', in: '09:02 AM', out: '06:05 PM', hours: '9.0', status: 'PRESENT' },
-    { date: '2026-06-11', in: '08:58 AM', out: '06:01 PM', hours: '9.0', status: 'PRESENT' },
-    { date: '2026-06-10', in: '09:12 AM', out: '06:15 PM', hours: '9.0', status: 'PRESENT' },
-    { date: '2026-06-09', in: '09:01 AM', out: '06:03 PM', hours: '9.0', status: 'PRESENT' },
-    { date: '2026-06-02', in: '07:59 AM', out: '07:59 AM', hours: '0.0', status: 'PRESENT' },
-  ]);
+  const [attendanceBusy, setAttendanceBusy] = useState(false);
+  const [recentChecks, setRecentChecks] = useState<
+    { date: string; in: string; out: string; hours: string; status: string }[]
+  >([]);
+
+  const loadMyAttendance = useCallback(async () => {
+    try {
+      const rows = await fetchMyAttendance()
+      setRecentChecks(rows.slice(0, 14).map(mapAttendanceRow))
+
+      const today = new Date().toISOString().slice(0, 10)
+      const todayLog = rows.find((r) => r.workDate === today)
+      if (todayLog?.checkInTime && !todayLog.checkOutTime) {
+        setCheckedIn(true)
+        setCheckInTime(formatPunchTime(todayLog.checkInTime))
+        setCheckOutTime(null)
+      } else if (todayLog?.checkInTime && todayLog.checkOutTime) {
+        setCheckedIn(false)
+        setCheckInTime(formatPunchTime(todayLog.checkInTime))
+        setCheckOutTime(formatPunchTime(todayLog.checkOutTime))
+      } else {
+        setCheckedIn(false)
+        setCheckInTime(null)
+        setCheckOutTime(null)
+      }
+    } catch (err) {
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load attendance logs.', 'error')
+      }
+    }
+  }, [addToast])
+
+  useEffect(() => {
+    void loadMyAttendance()
+  }, [loadMyAttendance])
 
   // Roster view configuration
   const [rosterView, setRosterView] = useState<'Week' | 'Day' | 'Month'>('Week');
   
-  // Dummy Roster Data for 5 - 11 May 2026
-  const [rosterData, setRosterData] = useState([
-    {
-      id: 'EMP-0021',
-      name: 'Sarah Lim',
-      initials: 'SL',
-      dept: 'Engineering',
-      schedule: {
-        Mon: { time: '09:00-18:00', status: 'Completed' },
-        Tue: { time: '09:00-18:00', status: 'Completed' },
-        Wed: { time: '09:00-18:00', status: 'Clock in' },
-        Thu: { time: '09:00-18:00', status: 'Planned' },
-        Fri: { time: '09:00-13:00', status: 'Planned', half: true },
-        Sat: { time: 'Off', status: 'Off' },
-        Sun: { time: 'Off', status: 'Off' },
-      }
-    },
-    {
-      id: 'EMP-0048',
-      name: 'Raj Kumar',
-      initials: 'RK',
-      dept: 'Engineering',
-      schedule: {
-        Mon: { time: '09:00-18:00', status: 'Completed' },
-        Tue: { time: '09:00-18:00', status: 'Completed' },
-        Wed: { time: '09:00-20:00', status: 'OT active' },
-        Thu: { time: '09:00-18:00', status: 'Planned' },
-        Fri: { time: '09:00-13:00', status: 'Planned' },
-        Sat: { time: 'Off', status: 'Off' },
-        Sun: { time: 'Off', status: 'Off' },
-      }
-    },
-    {
-      id: 'EMP-0033',
-      name: 'Maya Tan',
-      initials: 'MT',
-      dept: 'HR',
-      schedule: {
-        Mon: { time: 'Annual Leave', status: 'On leave' },
-        Tue: { time: 'Annual Leave', status: 'On leave' },
-        Wed: { time: 'Annual Leave', status: 'On leave' },
-        Thu: { time: '09:00-18:00', status: 'Planned' },
-        Fri: { time: '09:00-13:00', status: 'Planned' },
-        Sat: { time: 'Off', status: 'Off' },
-        Sun: { time: 'Off', status: 'Off' },
-      }
-    },
-    {
-      id: 'EMP-0187',
-      name: 'Ahmad L',
-      initials: 'AL',
-      dept: 'Operations',
-      schedule: {
-        Mon: { time: '09:00-18:00', status: 'Completed' },
-        Tue: { time: '09:00-18:00', status: 'Completed' },
-        Wed: { time: '09:00-18:00', status: 'Late in' },
-        Thu: { time: '22:00-07:00', status: 'Night' },
-        Fri: { time: '22:00-07:00', status: 'Night' },
-        Sat: { time: 'Off', status: 'Off' },
-        Sun: { time: 'Off', status: 'Off' },
-      }
-    },
-    {
-      id: 'EMP-0092',
-      name: 'Nadia Chen',
-      initials: 'NC',
-      dept: 'Marketing',
-      schedule: {
-        Mon: { time: '09:00-18:00', status: 'Completed' },
-        Tue: { time: '09:00-18:00', status: 'Completed' },
-        Wed: { time: '09:00-18:00', status: 'Completed' },
-        Thu: { time: '09:00-18:00', status: 'Planned' },
-        Fri: { time: '09:00-13:00', status: 'Planned' },
-        Sat: { time: 'Off', status: 'Off' },
-        Sun: { time: 'Off', status: 'Off' },
-      }
-    },
-    {
-      id: 'EMP-0285',
-      name: 'Zara Nor',
-      initials: 'ZN',
-      dept: 'Operations',
-      schedule: {
-        Mon: { time: '09:00-18:00', status: 'Completed' },
-        Tue: { time: 'Absent', status: 'Absent' },
-        Wed: { time: '09:00-18:00', status: 'Clock in' },
-        Thu: { time: '09:00-18:00', status: 'Planned' },
-        Fri: { time: '09:00-13:00', status: 'Planned' },
-        Sat: { time: 'Off', status: 'Off' },
-        Sun: { time: 'Off', status: 'Off' },
-      }
-    }
-  ]);
+  // Roster / timesheets / shifts — loaded from catalog APIs (demo fallback until load)
+  const [rosterData, setRosterData] = useState<RosterEmployee[]>([]);
 
   // Timesheets Data
-  const [timesheets, setTimesheets] = useState([
-    { id: '1', name: 'Sarah Lim', dept: 'Engineering', shift: 'Standard', start: '1 May', end: '31 May', days: 22, dutyDays: 'Mon-Fri', status: 'Active' },
-    { id: '2', name: 'Raj Kumar', dept: 'Engineering', shift: 'Std + OT', start: '1 May', end: '31 May', days: 22, dutyDays: 'Mon-Fri', status: 'Active' },
-    { id: '3', name: 'Maya Tan', dept: 'HR', shift: 'Standard', start: '1 May', end: '31 May', days: 22, dutyDays: 'Mon-Fri', status: 'On leave' },
-    { id: '4', name: 'Ahmad L', dept: 'Operations', shift: 'Night shift', start: '1 May', end: '31 May', days: 22, dutyDays: 'Mon-Fri', status: 'Active' },
-    { id: '5', name: 'Nadia Chen', dept: 'Marketing', shift: 'Standard', start: '1 May', end: '31 May', days: 22, dutyDays: 'Mon-Fri', status: 'Active' },
-    { id: '6', name: 'Zara Nor', dept: 'Operations', shift: 'Standard', start: '1 May', end: '31 May', days: 22, dutyDays: 'Mon-Fri', status: 'Active' },
-  ]);
+  const [timesheets, setTimesheets] = useState<
+    { id: string; name: string; dept: string; shift: string; start: string; end: string; days: number; dutyDays: string; status: string }[]
+  >([]);
 
   // Shift Patterns Data
-  const [shiftPatterns, setShiftPatterns] = useState([
-    {
-      name: 'Standard shift',
-      activeOnly: true,
-      data: {
-        hours: '09:00 - 18:00',
-        breakTime: '13:00 - 14:00 (1h)',
-        nearestIn: '08:00 - 10:00',
-        nearestOut: '17:00 - 19:30',
-        allowInOT: '60 mins',
-        allowOutOT: '60 mins',
-        nightShift: 'No',
-        employees: 892
-      }
-    },
-    {
-      name: 'Night shift',
-      activeOnly: true,
-      data: {
-        hours: '22:00 - 07:00',
-        breakTime: '02:00 - 03:00 (1h)',
-        nearestIn: '21:00 - 23:00',
-        nearestOut: '06:00 - 08:00',
-        allowInOT: '30 mins',
-        allowOutOT: '30 mins',
-        nightShift: 'Yes',
-        employees: 124
-      }
-    },
-    {
-      name: 'Split shift',
-      activeOnly: true,
-      data: {
-        hours: '08:00-13:00 / 14:00-18:00',
-        breakTime: '13:00 - 14:00 (1h)',
-        nearestIn: '07:30 - 09:00',
-        nearestOut: '17:30 - 19:00',
-        allowInOT: '45 mins',
-        allowOutOT: '45 mins',
-        nightShift: 'No',
-        employees: 68
-      }
-    },
-    {
-      name: 'Half day (AM)',
-      activeOnly: true,
-      data: {
-        hours: '09:00 - 13:00',
-        breakTime: '—',
-        nearestIn: '08:30 - 09:30',
-        nearestOut: '12:30 - 14:00',
-        allowInOT: '30 mins',
-        allowOutOT: '30 mins',
-        nightShift: 'No',
-        employees: 'Fri only'
-      }
-    }
-  ]);
+  const [shiftPatterns, setShiftPatterns] = useState<ShiftPatternUi[]>([]);
 
   // Roll Call states
   const [rollCallDate, setRollCallDate] = useState('2026-06-05');
@@ -273,14 +362,50 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
   const [reportMonth, setReportMonth] = useState('May 2026');
   const [reportsFilterDept, setReportsFilterDept] = useState('All departments');
   const [reportsFilterEmp, setReportsFilterEmp] = useState('');
-  const [reportsRows, setReportsRows] = useState([
-    { name: 'Sarah L', initials: 'SL', date: '5 May', shift: 'Standard', in: '08:58', out: '18:05', hrs: '9h 7m', late: '—', ot: '1h 5m', status: 'Completed' },
-    { name: 'Raj K', initials: 'RK', date: '5 May', shift: 'Standard', in: '09:02', out: '20:10', hrs: '11h 8m', late: '—', ot: '2h 8m', status: 'Completed' },
-    { name: 'Maya T', initials: 'MT', date: '5 May', shift: 'Standard', in: '—', out: '—', hrs: '—', late: '—', ot: '—', status: 'Leave' },
-    { name: 'Ahmad L', initials: 'AL', date: '5 May', shift: 'Standard', in: '09:28', out: '18:30', hrs: '9h 2m', late: '28m', ot: '—', status: 'Late' },
-    { name: 'Nadia C', initials: 'NC', date: '5 May', shift: 'Standard', in: '08:54', out: '17:12', hrs: '8h 18m', late: '—', ot: '—', status: 'Completed' },
-    { name: 'Zara N', initials: 'ZN', date: '5 May', shift: 'Standard', in: '—', out: '—', hrs: '—', late: '—', ot: '—', status: 'Absent' },
-  ]);
+  const [reportsRows, setReportsRows] = useState<
+    { name: string; initials: string; date: string; shift: string; in: string; out: string; hrs: string; late: string; ot: string; status: string }[]
+  >([]);
+
+  const loadCatalogAttendance = useCallback(async () => {
+    try {
+      const [patterns, roster, attRoster] = await Promise.all([
+        fetchShiftPatterns().catch(() => [] as ShiftPatternRow[]),
+        fetchRoster().catch(() => [] as RosterEntryRow[]),
+        fetchAttendanceRoster().catch(() => [] as AttendanceRosterLog[]),
+      ])
+      if (patterns.length > 0) {
+        setShiftPatterns(patterns.map(mapShiftPatternRow))
+      }
+      if (roster.length > 0) {
+        setRosterData(mapRosterEntries(roster))
+      }
+      if (attRoster.length > 0) {
+        setTimesheets(attRoster.map(mapAttendanceToTimesheet))
+        setReportsRows(attRoster.map(mapAttendanceToReport))
+        setRollCallRows(
+          attRoster.slice(0, 40).map((log) => ({
+            name: log.employeeId,
+            initials: initialsFromName(log.employeeId),
+            dept: '—',
+            shift: log.status || 'Standard',
+            in: formatRosterPunch(log.checkInTime),
+            out: formatRosterPunch(log.checkOutTime),
+            hrs: log.workHours != null ? `${log.workHours}h` : '—',
+            office: log.checkInTime && !log.checkOutTime ? 'Yes' : '—',
+            status: (log.status || 'PRESENT').replace(/_/g, ' '),
+          })),
+        )
+      }
+    } catch (err) {
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load attendance catalog data.', 'error')
+      }
+    }
+  }, [addToast])
+
+  useEffect(() => {
+    void loadCatalogAttendance()
+  }, [loadCatalogAttendance])
 
   // Modal states
   const [shiftModalOpen, setShiftModalOpen] = useState(false);
@@ -390,44 +515,40 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
     }, 1200);
   };
 
-  const handleCreateShiftPattern = (e: React.FormEvent) => {
+  const handleCreateShiftPattern = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newShift.name) {
       addToast('Please define a valid pattern name', 'error');
       return;
     }
 
-    setShiftPatterns(prev => [
-      ...prev,
-      {
-        name: newShift.name,
-        activeOnly: true,
-        data: {
-          hours: newShift.hours,
-          breakTime: newShift.breakTime,
-          nearestIn: newShift.nearestIn,
-          nearestOut: newShift.nearestOut,
-          allowInOT: newShift.allowInOT,
-          allowOutOT: newShift.allowOutOT,
-          nightShift: newShift.nightShift,
-          employees: 0
-        }
-      }
-    ]);
-
-    addToast(`Constructed and assigned new corporate shift layout: ${newShift.name}`, 'success');
-    setShiftModalOpen(false);
-    setNewShift({
-      name: '',
-      hours: '09:00 - 18:00',
-      breakTime: '13:00 - 14:00 (1h)',
-      nearestIn: '08:00 - 10:00',
-      nearestOut: '17:00 - 19:30',
-      allowInOT: '60 mins',
-      allowOutOT: '60 mins',
-      nightShift: 'No',
-      employees: '0'
-    });
+    const { startTime, endTime } = parseHoursRange(newShift.hours);
+    const breakMins = parseBreakMins(newShift.breakTime);
+    try {
+      const created = await createShiftPattern({
+        name: newShift.name.trim(),
+        startTime,
+        endTime,
+        breakMins,
+        active: true,
+      });
+      setShiftPatterns((prev) => [...prev, mapShiftPatternRow(created)]);
+      addToast(`Constructed and assigned new corporate shift layout: ${created.name}`, 'success');
+      setShiftModalOpen(false);
+      setNewShift({
+        name: '',
+        hours: '09:00 - 18:00',
+        breakTime: '13:00 - 14:00 (1h)',
+        nearestIn: '08:00 - 10:00',
+        nearestOut: '17:00 - 19:30',
+        allowInOT: '60 mins',
+        allowOutOT: '60 mins',
+        nightShift: 'No',
+        employees: '0'
+      });
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create shift pattern.', 'error');
+    }
   };
 
   const handleResolveSwipe = (id: string, name: string) => {
@@ -438,38 +559,32 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
     }, 1000);
   };
 
-  const executeCheckInFlow = () => {
-    if (!checkedIn) {
-      addToast('Syncing biometric authentication...', 'loading');
-      setTimeout(() => {
-        setCheckedIn(true);
-        const now = new Date();
-        const stamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        setCheckInTime(stamp);
-        setCheckOutTime(null);
-        addToast(`Successfully checked in today at ${stamp}! Have a productive day.`, 'success');
-      }, 1100);
-    } else {
-      addToast('Ending active attendance session...', 'loading');
-      setTimeout(() => {
-        setCheckedIn(false);
-        const now = new Date();
-        const stamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        setCheckOutTime(stamp);
-        addToast(`Successfully checked out at ${stamp}. Logs compiled cleanly.`, 'success');
-
-        // Add to recent log
-        const newLog = {
-          date: new Date().toISOString().split('T')[0],
-          in: checkInTime || '09:00 AM',
-          out: stamp,
-          hours: '8.5',
-          status: 'PRESENT'
-        };
-        setRecentChecks(prev => [newLog, ...prev]);
-      }, 1100);
+  const executeCheckInFlow = async () => {
+    if (attendanceBusy) return
+    setAttendanceBusy(true)
+    try {
+      if (!checkedIn) {
+        addToast('Checking in…', 'loading')
+        const log = await checkInAttendance()
+        setCheckedIn(true)
+        setCheckInTime(formatPunchTime(log.checkInTime))
+        setCheckOutTime(null)
+        setRecentChecks((prev) => [mapAttendanceRow(log), ...prev.filter((r) => r.date !== log.workDate)])
+        addToast(`Checked in at ${formatPunchTime(log.checkInTime)}.`, 'success')
+      } else {
+        addToast('Checking out…', 'loading')
+        const log = await checkOutAttendance()
+        setCheckedIn(false)
+        setCheckOutTime(formatPunchTime(log.checkOutTime))
+        setRecentChecks((prev) => [mapAttendanceRow(log), ...prev.filter((r) => r.date !== log.workDate)])
+        addToast(`Checked out at ${formatPunchTime(log.checkOutTime)}.`, 'success')
+      }
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Attendance punch failed.', 'error')
+    } finally {
+      setAttendanceBusy(false)
     }
-  };
+  }
 
   const handleCreateTimesheetSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -582,7 +697,11 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
 
   return (
     <div id="attendance-portal-stage" className="space-y-6">
-      
+      <ModuleHeader
+        title="Attendance"
+        description="Rosters, punches, and timesheet controls."
+      />
+
       {/* Upper Navigation sub-menus completely aligned and capitalized */}
       <div id="attendance-module-navigator" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
         <div id="attendance-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
@@ -856,8 +975,8 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                               cellBg = 'bg-amber-50 text-amber-700 border-amber-200';
                               indicatorColor = 'bg-amber-500';
                             } else if (sched.status === 'Planned') {
-                              cellBg = 'bg-violet-50 text-violet-700 border-violet-200';
-                              indicatorColor = 'bg-violet-500';
+                              cellBg = 'bg-sky-50 text-sky-700 border-sky-200';
+                              indicatorColor = 'bg-sky-500';
                             } else if (sched.status === 'Absent') {
                               cellBg = 'bg-rose-50 text-rose-700 border-rose-250';
                               indicatorColor = 'bg-rose-500';
@@ -890,7 +1009,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                 <div className="flex flex-wrap items-center gap-4">
                   <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600"><span className="h-3 w-3 rounded-md bg-emerald-500 inline-block border border-emerald-100" /> Completed</span>
                   <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600"><span className="h-3 w-3 rounded-md bg-sky-500 inline-block border border-sky-100" /> Clock in / OT Active</span>
-                  <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600"><span className="h-3 w-3 rounded-md bg-violet-400 inline-block border border-violet-100" /> Planned / Off</span>
+                  <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600"><span className="h-3 w-3 rounded-md bg-sky-400 inline-block border border-sky-100" /> Planned / Off</span>
                   <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600"><span className="h-3 w-3 rounded-md bg-amber-400 inline-block border border-amber-100" /> On leave / Sick</span>
                   <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600"><span className="h-3 w-3 rounded-md bg-indigo-500 inline-block border border-indigo-100" /> Night shift</span>
                   <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600"><span className="h-3 w-3 rounded-md bg-rose-500 inline-block border border-rose-100" /> Absent (No swiped badge)</span>
@@ -1069,14 +1188,34 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                         <button
                           type="button"
                           onClick={() => {
-                            setShiftPatterns(prev => prev.map((p, pIdx) => {
-                              if (pIdx === idx) {
-                                const currentCount = typeof p.data.employees === 'number' ? p.data.employees : 0;
-                                return { ...p, data: { ...p.data, employees: currentCount + 1 } };
+                            void (async () => {
+                              const withApi = employees.filter((e) => e.apiId)
+                              if (withApi.length === 0) {
+                                addToast('No employees with API ids available to assign.', 'error')
+                                return
                               }
-                              return p;
-                            }));
-                            addToast(`Assigned 1 new employee to ${pat.name}`, 'success');
+                              if (!pat.id) {
+                                addToast('Save this shift pattern before assigning staff.', 'error')
+                                return
+                              }
+                              const emp = withApi[0]
+                              try {
+                                const today = new Date().toISOString().slice(0, 10)
+                                await createRosterEntry({
+                                  employeeId: emp.apiId!,
+                                  workDate: today,
+                                  shiftPatternId: pat.id,
+                                  status: 'scheduled',
+                                })
+                                await loadCatalogAttendance()
+                                addToast(`Assigned ${emp.name} to ${pat.name} for ${today}.`, 'success')
+                              } catch (err) {
+                                addToast(
+                                  err instanceof ApiError ? err.message : 'Could not assign staff to roster.',
+                                  'error',
+                                )
+                              }
+                            })()
                           }}
                           className="bg-slate-50 border border-slate-200 py-1 px-2.5 rounded-lg text-[9px] font-extrabold hover:bg-novora/10 hover:text-novora hover:border-novora/10 transition-colors"
                         >
@@ -1163,7 +1302,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                         } else if (row.status === 'Completed') {
                           bgStatus = 'bg-emerald-50 text-emerald-600 border-emerald-100';
                         } else if (row.status === 'Late') {
-                          bgStatus = 'bg-violet-50 text-violet-600 border-violet-100';
+                          bgStatus = 'bg-sky-50 text-sky-600 border-sky-100';
                         } else if (row.status === 'Absent') {
                           bgStatus = 'bg-rose-50 text-rose-600 border-rose-100';
                         } else if (row.status === 'On leave') {
@@ -1551,15 +1690,15 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
           <div className="space-y-6">
             
             {/* 1. Statistics KPI Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 nv-stagger">
               <div className="nv-card p-4 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Adherence Rate</span>
                   <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">95.8%</h3>
                   <span className="text-[9px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">&uarr; 1.2% this week</span>
                 </div>
-                <div className="h-10 w-10 rounded-xl bg-indigo-50 border border-indigo-100/60 flex items-center justify-center">
-                  <UserCheck className="h-5 w-5 text-indigo-500" />
+                <div className="h-10 w-10 rounded-xl bg-sky-50 border border-sky-100/60 flex items-center justify-center">
+                  <UserCheck className="h-5 w-5 text-sky-500" />
                 </div>
               </div>
 
@@ -1790,7 +1929,7 @@ export default function AttendanceTab({ addToast }: AttendanceTabProps) {
                         } else if (row.status === 'Leave') {
                           textClass = 'bg-amber-50 text-amber-600 border-amber-100';
                         } else if (row.status === 'Late') {
-                          textClass = 'bg-violet-50 text-violet-600 border-violet-100';
+                          textClass = 'bg-sky-50 text-sky-600 border-sky-100';
                         } else if (row.status === 'Absent') {
                           textClass = 'bg-rose-50 text-rose-600 border-rose-100';
                         }

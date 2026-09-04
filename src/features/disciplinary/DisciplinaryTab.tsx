@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Scale,
   ShieldAlert,
@@ -28,6 +28,13 @@ import {
   Edit2,
 } from 'lucide-react';
 import type { Employee } from '@/types';
+import ModuleHeader from '@/components/ui/ModuleHeader';
+import {
+  ApiError,
+  createDisciplinaryCase,
+  fetchDisciplinaryCases,
+  type DisciplinaryCaseRow,
+} from '@/services';
 
 interface DisciplinaryTabProps {
   employees: Employee[];
@@ -75,6 +82,36 @@ interface DisciplinaryCase {
   repeatedAction: string;
   futureExpectation: string;
   status: 'Pending' | 'Acknowledged' | 'Closed';
+}
+
+function mapCaseStatus(raw: string): DisciplinaryCase['status'] {
+  const v = (raw || '').toLowerCase();
+  if (v.includes('ack')) return 'Acknowledged';
+  if (v.includes('close') || v.includes('resolv')) return 'Closed';
+  return 'Pending';
+}
+
+function mapDisciplinaryCaseRow(row: DisciplinaryCaseRow, emps: Employee[]): DisciplinaryCase {
+  const emp = emps.find((e) => e.apiId === row.employeeId || e.id === row.employeeId);
+  return {
+    id: row.id,
+    employeeId: emp?.id || row.employeeId,
+    employeeName: row.employeeName || emp?.name || 'Unknown',
+    department: emp?.department || '—',
+    reason: row.reason,
+    incidentDate: row.incidentDate || row.createdAt?.slice(0, 10) || '',
+    location: '—',
+    fromTime: '—',
+    toTime: '—',
+    description: row.notes || row.reason,
+    witnesses: [],
+    warningLevel: row.actionType || 'L1',
+    actionIssuedBy: 'HR',
+    actionDate: row.createdAt?.slice(0, 10) || '',
+    repeatedAction: row.actionType || '—',
+    futureExpectation: row.notes || '',
+    status: mapCaseStatus(row.status),
+  };
 }
 
 export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTabProps) {
@@ -185,65 +222,23 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
     },
   ]);
 
-  const [cases, setCases] = useState<DisciplinaryCase[]>([
-    {
-      id: 'DISC-2026-001',
-      employeeId: 'EMP-0285',
-      employeeName: 'Ahmad Luqman',
-      department: 'Operations',
-      reason: 'Unauthorised absence',
-      incidentDate: '2026-05-06',
-      location: 'HQ, Level 3',
-      fromTime: '09:30 AM',
-      toTime: '10:00 AM',
-      description: 'Unauthorised absence from primary station without notice or medical cert.',
-      witnesses: ['Zara Nor'],
-      warningLevel: 'L1',
-      actionIssuedBy: 'Nina Reza (Head of HR)',
-      actionDate: '2026-05-07',
-      repeatedAction: 'First written warning',
-      futureExpectation: 'Caution note and expected attendance improvement.',
-      status: 'Pending',
-    },
-    {
-      id: 'DISC-2026-002',
-      employeeId: 'EMP-0144',
-      employeeName: 'Zara Nor',
-      department: 'Engineering',
-      reason: 'Persistent lateness',
-      incidentDate: '2026-04-25',
-      location: 'HQ, Engineering Lab',
-      fromTime: '10:00 AM',
-      toTime: '11:00 AM',
-      description: 'Arrived after core standup times repeatedly during the sprint weeks.',
-      witnesses: [],
-      warningLevel: 'L2',
-      actionIssuedBy: 'Malik Said (Tech Lead)',
-      actionDate: '2026-04-28',
-      repeatedAction: 'Second written warning',
-      futureExpectation: 'Strict compliance with team core timing of 09:00 AM.',
-      status: 'Acknowledged',
-    },
-    {
-      id: 'DISC-2026-003',
-      employeeId: 'EMP-0925',
-      employeeName: 'Raj Kumar',
-      department: 'Finance',
-      reason: 'Dress code violation',
-      incidentDate: '2026-03-08',
-      location: 'Corporate Suite A',
-      fromTime: '09:00 AM',
-      toTime: '06:00 PM',
-      description: 'Reported to office in beach/casual shorts during board meetings.',
-      witnesses: ['Nadia Chen'],
-      warningLevel: 'L1',
-      actionIssuedBy: 'David Ng (Finance Director)',
-      actionDate: '2026-03-10',
-      repeatedAction: 'First written warning',
-      futureExpectation: 'Dressing must conform strictly to formal corporate standard.',
-      status: 'Closed',
-    },
-  ]);
+  const [cases, setCases] = useState<DisciplinaryCase[]>([]);
+
+  const loadCases = useCallback(async () => {
+    try {
+      const rows = await fetchDisciplinaryCases();
+      setCases(rows.map((row) => mapDisciplinaryCaseRow(row, employees)));
+    } catch (err) {
+      setCases([]);
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load disciplinary cases from the server.', 'error');
+      }
+    }
+  }, [addToast, employees]);
+
+  useEffect(() => {
+    void loadCases();
+  }, [loadCases]);
 
   // Filters state
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('All departments');
@@ -428,7 +423,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
   };
 
   // Save full disciplinary case
-  const handleSaveCase = (e: React.FormEvent) => {
+  const handleSaveCase = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formEmployeeId) {
       addToast('Please select an employee.', 'error');
@@ -444,30 +439,31 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
     }
 
     const empObj = employees.find((x) => x.id === formEmployeeId);
-    const caseIdNum = cases.length + 1;
+    const employeeApiId = empObj?.apiId;
+    if (!employeeApiId) {
+      addToast('Selected employee is missing a server id (apiId).', 'error');
+      return;
+    }
 
-    const newCase: DisciplinaryCase = {
-      id: `DISC-2026-${String(caseIdNum).padStart(3, '0')}`,
-      employeeId: formEmployeeId,
-      employeeName: empObj ? empObj.name : 'Unknown Staff',
-      department: formDepartment,
-      reason: formReason,
-      incidentDate: formDate,
-      location: formLocation || 'HQ Corporate Office',
-      fromTime: formFromTime,
-      toTime: formToTime,
-      description: formDescription,
-      witnesses: formWitnesses,
-      warningLevel: formWarningLevel,
-      actionIssuedBy: formIssuedBy,
-      actionDate: formActionDate,
-      repeatedAction: formRepeatedAction,
-      futureExpectation: formExpectation || 'Continuous behavioral observation',
-      status: 'Pending',
-    };
+    const reasonMeta = reasons.find((r) => r.name === formReason);
+    const actionMeta = actions.find((a) => a.level === formWarningLevel);
 
-    setCases((prev) => [newCase, ...prev]);
-    addToast(`Case folder ${newCase.id} registered. Notification dispatched to employee.`, 'success');
+    try {
+      const created = await createDisciplinaryCase({
+        employeeId: employeeApiId,
+        reason: formReason,
+        actionType: actionMeta?.name || formRepeatedAction || formWarningLevel,
+        severity: reasonMeta?.severity,
+        status: 'Pending',
+        notes: [formDescription, formExpectation].filter(Boolean).join('\n\n') || undefined,
+        incidentDate: formDate || undefined,
+      });
+      setCases((prev) => [mapDisciplinaryCaseRow(created, employees), ...prev]);
+      addToast(`Case folder ${created.id} registered. Notification dispatched to employee.`, 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create disciplinary case.', 'error');
+      return;
+    }
 
     // Reset setup form
     setFormEmployeeId('');
@@ -492,7 +488,11 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
 
   return (
     <div id="disciplinary-module-root" className="space-y-6">
-      
+      <ModuleHeader
+        title="Disciplinary"
+        description="Reasons, actions, cases, and compliance history."
+      />
+
       {/* 1. UPPER NAVIGATION NAV-BAR - styled exactly like Attendance and Leave modules */}
       <div id="disciplinary-module-navigator" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
         

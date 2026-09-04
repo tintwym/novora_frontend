@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createLocalId } from '@/lib/createLocalId'
 import { 
   BookOpen, 
@@ -34,6 +34,14 @@ import {
   ExternalLink
 } from 'lucide-react';
 import type { Employee } from '@/types';
+import ModuleHeader from '@/components/ui/ModuleHeader';
+import {
+  ApiError,
+  enrollInTraining,
+  fetchTrainingEnrollments,
+  fetchTrainings,
+  type TrainingRow,
+} from '@/services';
 
 interface LearningTabProps {
   employees: Employee[];
@@ -59,6 +67,34 @@ interface Course {
   rating: number;
   instructor: string;
   assessmentComplete: boolean;
+  enrollmentCount: number;
+}
+
+function mapLearningCategory(raw: string | null): Course['category'] {
+  const v = (raw || '').toLowerCase();
+  if (v.includes('eng') || v.includes('tech')) return 'Engineering';
+  if (v.includes('fin') || v.includes('account')) return 'Finance';
+  if (v.includes('hr') || v.includes('people')) return 'HR';
+  if (v.includes('market')) return 'Marketing';
+  if (v.includes('ops') || v.includes('oper')) return 'Operations';
+  return 'General';
+}
+
+function mapTrainingToCourse(row: TrainingRow, enrollmentCount = 0): Course {
+  return {
+    id: row.id,
+    title: row.title,
+    category: mapLearningCategory(row.category),
+    duration: row.durationHours != null ? `${row.durationHours}h` : '—',
+    source: 'Internal Academy',
+    format: row.mode?.toLowerCase().includes('video') ? 'Video Sequence' : 'Interactive (SCORM)',
+    enrolled: enrollmentCount > 0,
+    progress: 0,
+    rating: 4.5,
+    instructor: row.trainer || 'Internal Academy',
+    assessmentComplete: false,
+    enrollmentCount,
+  };
 }
 
 interface LearningPath {
@@ -66,7 +102,7 @@ interface LearningPath {
   name: string;
   description: string;
   targetDept: string;
-  courses: string[]; // List of course titles
+  courses: string[];
   totalHours: number;
   enrolledCount: number;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
@@ -102,88 +138,35 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
   const [activeSubTab, setActiveSubTab] = useState<LearningSubTab>('Course Catalog & LMS');
 
   // -------------------------------------------------------------
-  // STATE 1: COURSE CATALOG, FILTERS & LMS IMPORT
+  // STATE 1: COURSE CATALOG (live trainings API)
   // -------------------------------------------------------------
-  const [courses, setCourses] = useState<Course[]>([
-    {
-      id: 'CRS-401',
-      title: 'Advanced AWS Cloud Orchestration & Serverless Architecture',
-      category: 'Engineering',
-      duration: '8h 45m',
-      source: 'LinkedIn Learning',
-      format: 'Video Sequence',
-      enrolled: true,
-      progress: 60,
-      rating: 4.8,
-      instructor: 'Dr. Evelyn Harris',
-      assessmentComplete: false
-    },
-    {
-      id: 'CRS-402',
-      title: 'ISO 27001 Cybersecurity Compliance Awareness Protocol',
-      category: 'General',
-      duration: '2h 15m',
-      source: 'Internal Academy',
-      format: 'Interactive (SCORM)',
-      enrolled: true,
-      progress: 0,
-      rating: 4.5,
-      instructor: 'HR Security Officers',
-      assessmentComplete: false
-    },
-    {
-      id: 'CRS-403',
-      title: 'Global GDPR Privacy Safeguards & Data Retention Standards',
-      category: 'HR',
-      duration: '3h 30m',
-      source: 'Coursera',
-      format: 'Interactive (SCORM)',
-      enrolled: false,
-      progress: 0,
-      rating: 4.6,
-      instructor: 'Legal Compliance Team',
-      assessmentComplete: false
-    },
-    {
-      id: 'CRS-404',
-      title: 'High-Impact Brand Strategy & Modern Social Funnels',
-      category: 'Marketing',
-      duration: '6h 15m',
-      source: 'Udemy',
-      format: 'Video Sequence',
-      enrolled: false,
-      progress: 0,
-      rating: 4.7,
-      instructor: 'Marcus Aurel',
-      assessmentComplete: false
-    },
-    {
-      id: 'CRS-405',
-      title: 'Corporate Treasury Accounting & GAAP Tax Structures',
-      category: 'Finance',
-      duration: '12h 40m',
-      source: 'Internal Academy',
-      format: 'Document & PDF',
-      enrolled: true,
-      progress: 100,
-      rating: 4.9,
-      instructor: 'Chong Wei Min',
-      assessmentComplete: true
-    },
-    {
-      id: 'CRS-406',
-      title: 'Agile Operations: Kanban, Lean, and Six Sigma Frameworks',
-      category: 'Operations',
-      duration: '5h 10m',
-      source: 'LinkedIn Learning',
-      format: 'Video Sequence',
-      enrolled: false,
-      progress: 0,
-      rating: 4.3,
-      instructor: 'Sarah Jenkins',
-      assessmentComplete: false
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  const loadCatalog = useCallback(async () => {
+    try {
+      const rows = await fetchTrainings();
+      const withCounts = await Promise.all(
+        rows.map(async (row) => {
+          try {
+            const enrollments = await fetchTrainingEnrollments(row.id);
+            return mapTrainingToCourse(row, enrollments.length);
+          } catch {
+            return mapTrainingToCourse(row, 0);
+          }
+        }),
+      );
+      setCourses(withCounts);
+    } catch (err) {
+      setCourses([]);
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load learning catalog from the server.', 'error');
+      }
     }
-  ]);
+  }, [addToast]);
+
+  useEffect(() => {
+    void loadCatalog();
+  }, [loadCatalog]);
 
   const [courseSearch, setCourseSearch] = useState('');
   const [courseCategoryFilter, setCourseCategoryFilter] = useState<string>('All');
@@ -384,20 +367,42 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
   // -------------------------------------------------------------
   // HANDLERS
   // -------------------------------------------------------------
-  const handleEnrollCourse = (id: string) => {
-    setCourses(prev => prev.map(c => {
-      if (c.id === id) {
-        const nextEnrolled = !c.enrolled;
-        if (nextEnrolled) {
-          addToast(`Enrolled in "${c.title}" successfully. Track progress via your catalog dashboard.`, 'success');
-          return { ...c, enrolled: true, progress: 5 };
-        } else {
-          addToast(`Withdrew active enrollment from "${c.title}"`, 'info');
-          return { ...c, enrolled: false, progress: 0 };
-        }
-      }
-      return c;
-    }));
+  const handleEnrollCourse = async (id: string) => {
+    const course = courses.find((c) => c.id === id);
+    if (!course) return;
+
+    if (course.enrolled) {
+      setCourses((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, enrolled: false, progress: 0 } : c)),
+      );
+      addToast(`Withdrew active enrollment from "${course.title}"`, 'info');
+      return;
+    }
+
+    const employeeApiId = employees.find((e) => e.apiId)?.apiId || employees[0]?.apiId;
+    if (!employeeApiId) {
+      addToast('No employee with a server id (apiId) available to enroll.', 'error');
+      return;
+    }
+
+    try {
+      await enrollInTraining(id, employeeApiId);
+      setCourses((prev) =>
+        prev.map((c) =>
+          c.id === id
+            ? {
+                ...c,
+                enrolled: true,
+                progress: 5,
+                enrollmentCount: c.enrollmentCount + 1,
+              }
+            : c,
+        ),
+      );
+      addToast(`Enrolled in "${course.title}" successfully. Track progress via your catalog dashboard.`, 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not enroll in training.', 'error');
+    }
   };
 
   const handleUpdateProgressQuizMode = (id: string, nextProgress: number) => {
@@ -428,7 +433,8 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
       progress: 0,
       rating: 4.5,
       instructor: `${scormProvider} curated program`,
-      assessmentComplete: false
+      assessmentComplete: false,
+      enrollmentCount: 0,
     };
 
     setCourses([newCrs, ...courses]);
@@ -561,7 +567,11 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
 
   return (
     <div id="learning-management-module-root" className="space-y-6">
-      
+      <ModuleHeader
+        title="Learning"
+        description="Courses, paths, certifications, and assessments."
+      />
+
       {/* Top Navigation Row - styled exactly matching other modular HRM tabs */}
       <div id="learning-navigator-row" className="flex flex-col lg:flex-row lg:items-center justify-between nv-card px-4 py-1.5 gap-3">
         <div id="learning-nav-tabs" className="flex items-center gap-1.5 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
@@ -634,7 +644,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
             </div>
 
             <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-3xs flex items-center gap-3">
-              <span className="p-2 bg-violet-50 text-violet-600 rounded-lg">
+              <span className="p-2 bg-sky-50 text-sky-600 rounded-lg">
                 <Award className="h-4 w-4" />
               </span>
               <div>
@@ -939,7 +949,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                 {/* Enrollment actions */}
                 <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between gap-2">
                   <span className="text-[10px] text-slate-400 font-bold font-mono uppercase tracking-wide">
-                    ID: {course.id}
+                    ID: {course.id} · {course.enrollmentCount} enrolled
                   </span>
 
                   <div className="flex items-center gap-1.5">
@@ -1655,7 +1665,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                       <span className="text-[10.5px] text-slate-400 font-extrabold uppercase tracking-wide block">Active Certification Certificates</span>
                       <h4 className="text-lg font-black text-slate-800 mt-1">112 Issued Tokens</h4>
                     </div>
-                    <span className="text-xs font-black text-purple-600 bg-purple-50 px-2.5 py-1 rounded-lg">
+                    <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">
                       94% Active
                     </span>
                   </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createLocalId } from '@/lib/createLocalId'
 import {
   FileBarChart,
@@ -45,6 +45,8 @@ import {
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import { SelectMenu } from '@/components/ui';
+import ModuleHeader from '@/components/ui/ModuleHeader';
+import { ApiError, fetchReportSummary, type ReportSummary } from '@/services';
 
 interface ReportsTabProps {
   employees: Employee[];
@@ -610,6 +612,24 @@ export default function ReportsTab({
 
   // Stats Counters
   const [totalCustomSaved, setTotalCustomSaved] = useState<number>(7);
+  const [reportSummary, setReportSummary] = useState<ReportSummary | null>(null);
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const summary = await fetchReportSummary()
+        if (!cancelled) setReportSummary(summary)
+      } catch (err) {
+        if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+          addToast('Could not load report summary.', 'error')
+        }
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [addToast])
 
   // Scheduled Reports List State
   const [schedules, setSchedules] = useState<ReportSchedule[]>([
@@ -1244,6 +1264,10 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
 
   return (
     <div id="reports-hub-main-frame" className="w-full animate-in fade-in duration-150">
+      <ModuleHeader
+        title="Reports"
+        description="Insights and exports across all modules."
+      />
       <div className="nv-card p-1.5 mb-5 flex flex-wrap gap-1">
         {(
           [
@@ -1285,9 +1309,9 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
         {/* Novora Reports Center Header Banner */}
         <div className="bg-white border border-slate-100 p-6 rounded-3xl shadow-xs">
           <div>
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Novora Reports Center</h2>
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Report catalogue</h2>
             <p className="text-xs text-slate-500 font-semibold mt-1">
-              Insights, analytics, and auto-generated data exports across all modules.
+              Browse templates by module and schedule deliveries.
             </p>
           </div>
 
@@ -1368,27 +1392,22 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
         {activeSidebarTab === 'centre' && selectedModule === 'All Overview' && (
           <div id="report-centre-overview" className="space-y-6 animate-in fade-in duration-200">
             
-            {/* Horizontal Metrc Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              
-              <div className="bg-white border border-slate-100 p-6 rounded-3xl shadow-xs relative">
-                <span className="text-5xl font-black text-slate-800 tracking-tight block">48</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mt-2">Total Reports</span>
-                <span className="text-[11px] text-slate-400 font-semibold block mt-1">10 modules activated</span>
-              </div>
-
-              <div className="bg-white border border-slate-100 p-6 rounded-3xl shadow-xs relative">
-                <span className="text-5xl font-black text-novora tracking-tight block">{schedules.length + 9}</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mt-2">Scheduled Reports</span>
-                <span className="text-[11px] text-slate-400 font-semibold block mt-1">Next: tomorrow 06:00</span>
-              </div>
-
-              <div className="bg-white border border-slate-100 p-6 rounded-3xl shadow-xs relative">
-                <span className="text-5xl font-black text-slate-800 tracking-tight block">{totalCustomSaved}</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mt-2">Custom Reports Saved</span>
-                <span className="text-[11px] text-emerald-500 font-semibold block mt-1">By HR operations team</span>
-              </div>
-
+            {/* Horizontal Metric Cards — live report summary */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {[
+                { label: 'Employees', value: reportSummary?.employees ?? employees.length, hint: 'Active headcount' },
+                { label: 'Pending leave', value: reportSummary?.pendingLeave ?? '—', hint: 'Awaiting approval' },
+                { label: 'Open jobs', value: reportSummary?.openJobs ?? '—', hint: 'Live postings' },
+                { label: 'Candidates', value: reportSummary?.candidates ?? '—', hint: 'In pipeline' },
+                { label: 'Claims pending', value: reportSummary?.claimsPending ?? '—', hint: 'Finance queue' },
+                { label: 'Payroll HC', value: reportSummary?.payrollHeadcountThisMonth ?? '—', hint: 'This month' },
+              ].map((kpi) => (
+                <div key={kpi.label} className="bg-white border border-slate-100 p-5 rounded-3xl shadow-xs relative">
+                  <span className="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight block">{kpi.value}</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mt-2">{kpi.label}</span>
+                  <span className="text-[11px] text-slate-400 font-semibold block mt-1">{kpi.hint}</span>
+                </div>
+              ))}
             </div>
 
             {/* Layout Grid Columns */}

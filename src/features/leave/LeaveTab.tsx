@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Search,
   ChevronDown,
@@ -27,10 +27,28 @@ import {
   Network
 } from 'lucide-react';
 import type { Employee } from '@/types';
+import { canManageFullSystem } from '@/lib/roles';
+import ModuleHeader from '@/components/ui/ModuleHeader';
+import {
+  ApiError,
+  cancelMyLeave,
+  createLeaveType,
+  createMyLeave,
+  decideLeave,
+  fetchAdminPendingLeave,
+  fetchLeaveTypes,
+  fetchMyLeave,
+  fetchMyLeaveBalances,
+  updateLeaveType,
+  type LeaveBalance,
+  type LeaveRequest as ApiLeaveRequest,
+  type LeaveTypeRow,
+} from '@/services';
 
 interface LeaveTabProps {
   employees: Employee[];
   addToast: (text: string, type: 'success' | 'loading' | 'error' | 'info') => void;
+  roles?: string[];
 }
 
 type LeaveSubTab =
@@ -94,8 +112,119 @@ interface LeaveRequestRecord {
   toDate: string;
 }
 
-export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
+function mapApiStatus(status: string): LeaveRequestRecord['status'] {
+  const s = status.toUpperCase()
+  if (s === 'APPROVED' || s === 'ACCEPTED') return 'Accepted'
+  if (s === 'REJECTED' || s === 'DENIED') return 'Denied'
+  return 'Pending'
+}
+
+function formatLeaveDateRange(start: string, end: string) {
+  const from = new Date(start)
+  const to = new Date(end)
+  const fmt = (d: Date) =>
+    d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return `${start} – ${end}`
+  const a = fmt(from)
+  const b = fmt(to)
+  return a === b ? a : `${a} – ${b}`
+}
+
+function calcLeaveDays(start: string, end: string) {
+  const s = new Date(start)
+  const e = new Date(end)
+  if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) return 1
+  return Math.max(1, Math.ceil(Math.abs(e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+}
+
+function mapApiLeave(row: ApiLeaveRequest): LeaveRequestRecord {
+  const status = mapApiStatus(row.status)
+  const decisionLabel = row.decidedBy || 'Manager'
+  return {
+    id: row.id,
+    employeeId: row.employeeId,
+    name: row.employeeName,
+    dept: '—',
+    type: row.leaveType,
+    dateStr: formatLeaveDateRange(row.startDate, row.endDate),
+    days: calcLeaveDays(row.startDate, row.endDate),
+    reason: row.reason || '—',
+    approvedBy: [
+      {
+        name: decisionLabel,
+        status: status === 'Accepted' ? 'approved' : status === 'Denied' ? 'rejected' : 'pending',
+        color:
+          status === 'Accepted'
+            ? 'bg-emerald-500'
+            : status === 'Denied'
+              ? 'bg-slate-900'
+              : 'bg-rose-500',
+      },
+    ],
+    status,
+    fromDate: row.startDate,
+    toDate: row.endDate,
+  }
+}
+
+function extractLeaveTypeName(raw: string) {
+  // "Annual Leave (12 days remaining)" → "Annual Leave"
+  return raw.replace(/\s*\(.*\)\s*$/, '').trim() || 'Annual Leave'
+}
+
+function codeFromName(name: string) {
+  return name.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 30) || 'LEAVE'
+}
+
+function mapLeaveTypeRow(row: LeaveTypeRow): LeaveType {
+  return {
+    id: row.id,
+    name: row.name,
+    color: 'bg-blue-500 text-blue-600',
+    paid: row.paid,
+    deductionRate: row.paid ? 'No deduction' : 'Normal rate',
+    hourBased: false,
+    attachmentReq: false,
+    status: row.active ? 'Active' : 'Inactive',
+  }
+}
+
+function mapLeavePolicyFromType(row: LeaveTypeRow): LeavePolicy {
+  return {
+    id: row.id,
+    type: row.name,
+    allowDays: `${row.daysAllowed} days / year`,
+    accrual: 'Monthly prorate',
+    carryForward: row.carryForward
+      ? `${row.maxCarryDays || 0} days max`
+      : 'Not allowed',
+    applicable: 'All active employees',
+    autoAttach: 'On join date',
+    minWorkingDays: 'N/A',
+    serviceBonus: [],
+    holidayRules: row.paid
+      ? [{ key: 'Paid leave', value: 'Yes' }]
+      : [{ key: 'Unpaid - deduction rate', value: 'Normal rate' }],
+  }
+}
+
+const DEMO_LEAVE_REPORT_ROWS = [
+  { id: 'REP01', employeeId: 'EMP-001', name: 'Sarah Lim', dept: 'Engineering', type: 'Annual leave', days: 3, fromDate: '2026-05-12', toDate: '2026-05-14', approvedBy: 'David Ng', status: 'Approved', paid: 'Yes', rate: '100% payout' },
+  { id: 'REP02', employeeId: 'EMP-002', name: 'Raj Kumar', dept: 'Engineering', type: 'Medical leave', days: 1, fromDate: '2026-05-02', toDate: '2026-05-02', approvedBy: 'David Ng', status: 'Approved', paid: 'Yes', rate: 'Medical allowance' },
+  { id: 'REP03', employeeId: 'EMP-003', name: 'Maya Tan', dept: 'HR', type: 'Emergency leave', days: 1, fromDate: '2026-04-28', toDate: '2026-04-28', approvedBy: 'Nina Reza', status: 'Approved', paid: 'Yes', rate: '100% payout' },
+  { id: 'REP04', employeeId: 'EMP-004', name: 'Ahmad L', dept: 'Operations', type: 'Unpaid leave', days: 1, fromDate: '2026-05-09', toDate: '2026-05-09', approvedBy: 'Malik Said', status: 'Approved', paid: 'No', rate: '1.0x day deducted' },
+  { id: 'REP05', employeeId: 'EMP-005', name: 'Nadia Chen', dept: 'Marketing', type: 'Annual leave', days: 6, fromDate: '2026-05-20', toDate: '2026-05-25', approvedBy: 'Kevin Lim', status: 'Approved', paid: 'Yes', rate: '100% payout' },
+  { id: 'REP06', employeeId: 'EMP-006', name: 'Jonathan Goh', dept: 'Finance', type: 'Compassionate leave', days: 3, fromDate: '2026-05-15', toDate: '2026-05-17', approvedBy: 'Shirley Teh', status: 'Approved', paid: 'Yes', rate: 'Compassionate clause' },
+  { id: 'REP07', employeeId: 'EMP-007', name: 'Elena Rostova', dept: 'Operations', type: 'Medical leave', days: 2, fromDate: '2026-05-26', toDate: '2026-05-27', approvedBy: 'Malik Said', status: 'Approved', paid: 'Yes', rate: 'Medical allowance' },
+  { id: 'REP08', employeeId: 'EMP-008', name: 'Tariq Al-Mansoor', dept: 'Engineering', type: 'Replacement leave', days: 1, fromDate: '2026-05-05', toDate: '2026-05-05', approvedBy: 'David Ng', status: 'Approved', paid: 'Yes', rate: 'FOT comp clause' },
+]
+
+export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabProps) {
+  const isAdmin = canManageFullSystem(roles)
   const [activeSubTab, setActiveSubTab] = useState<LeaveSubTab>('Leave type');
+  const [leaveLoading, setLeaveLoading] = useState(true);
+  const [leaveBusy, setLeaveBusy] = useState(false);
+  const [leaveBalances, setLeaveBalances] = useState<LeaveBalance[]>([]);
 
   // Year & Department Header Filter States
   const [selectedYear, setSelectedYear] = useState<string>('2026');
@@ -103,16 +232,10 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
   const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
   const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
 
-  // Leave types state
-  const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([
-    { id: 'LT01', name: 'Annual leave', color: 'bg-blue-500 text-blue-600', paid: true, deductionRate: 'No deduction', hourBased: false, attachmentReq: false, status: 'Active' },
-    { id: 'LT02', name: 'Medical leave', color: 'bg-emerald-500 text-emerald-600', paid: true, deductionRate: 'No deduction', hourBased: false, attachmentReq: true, status: 'Active' },
-    { id: 'LT03', name: 'Emergency leave', color: 'bg-amber-500 text-amber-600', paid: true, deductionRate: 'No deduction', hourBased: false, attachmentReq: false, status: 'Active' },
-    { id: 'LT04', name: 'Unpaid leave', color: 'bg-rose-500 text-rose-600', paid: false, deductionRate: 'Normal rate', hourBased: false, attachmentReq: false, status: 'Active' },
-    { id: 'LT05', name: 'Replacement leave', color: 'bg-violet-500 text-[#8b5cf6]', paid: true, deductionRate: 'No deduction', hourBased: false, attachmentReq: false, status: 'Active' },
-    { id: 'LT06', name: 'Maternity leave', color: 'bg-pink-500 text-pink-600', paid: true, deductionRate: 'No deduction', hourBased: false, attachmentReq: true, status: 'Active' },
-    { id: 'LT07', name: 'Hour leave', color: 'bg-teal-500 text-teal-600', paid: true, deductionRate: 'No deduction', hourBased: true, attachmentReq: false, status: 'Active' }
-  ]);
+  // Leave types — loaded from catalog API
+  const [leaveTypeRows, setLeaveTypeRows] = useState<LeaveTypeRow[]>([]);
+  const leaveTypes = useMemo(() => leaveTypeRows.map(mapLeaveTypeRow), [leaveTypeRows]);
+  const leavePolicies = useMemo(() => leaveTypeRows.map(mapLeavePolicyFromType), [leaveTypeRows]);
 
   // Leave type search & filters
   const [typeSearch, setTypeSearch] = useState('');
@@ -158,18 +281,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
   const [leaveReportsFilterDept, setLeaveReportsFilterDept] = useState('All departments');
   const [leaveReportsFilterEmp, setLeaveReportsFilterEmp] = useState('');
 
-  const [leaveReportsRows, setLeaveReportsRows] = useState([
-    { id: 'REP01', employeeId: 'EMP-001', name: 'Sarah Lim', dept: 'Engineering', type: 'Annual leave', days: 3, fromDate: '2026-05-12', toDate: '2026-05-14', approvedBy: 'David Ng', status: 'Approved', paid: 'Yes', rate: '100% payout' },
-    { id: 'REP02', employeeId: 'EMP-002', name: 'Raj Kumar', dept: 'Engineering', type: 'Medical leave', days: 1, fromDate: '2026-05-02', toDate: '2026-05-02', approvedBy: 'David Ng', status: 'Approved', paid: 'Yes', rate: 'Medical allowance' },
-    { id: 'REP03', employeeId: 'EMP-003', name: 'Maya Tan', dept: 'HR', type: 'Emergency leave', days: 1, fromDate: '2026-04-28', toDate: '2026-04-28', approvedBy: 'Nina Reza', status: 'Approved', paid: 'Yes', rate: '100% payout' },
-    { id: 'REP04', employeeId: 'EMP-004', name: 'Ahmad L', dept: 'Operations', type: 'Unpaid leave', days: 1, fromDate: '2026-05-09', toDate: '2026-05-09', approvedBy: 'Malik Said', status: 'Approved', paid: 'No', rate: '1.0x day deducted' },
-    { id: 'REP05', employeeId: 'EMP-005', name: 'Nadia Chen', dept: 'Marketing', type: 'Annual leave', days: 6, fromDate: '2026-05-20', toDate: '2026-05-25', approvedBy: 'Kevin Lim', status: 'Approved', paid: 'Yes', rate: '100% payout' },
-    { id: 'REP06', employeeId: 'EMP-006', name: 'Jonathan Goh', dept: 'Finance', type: 'Compassionate leave', days: 3, fromDate: '2026-05-15', toDate: '2026-05-17', approvedBy: 'Shirley Teh', status: 'Approved', paid: 'Yes', rate: 'Compassionate clause' },
-    { id: 'REP07', employeeId: 'EMP-007', name: 'Elena Rostova', dept: 'Operations', type: 'Medical leave', days: 2, fromDate: '2026-05-26', toDate: '2026-05-27', approvedBy: 'Malik Said', status: 'Approved', paid: 'Yes', rate: 'Medical allowance' },
-    { id: 'REP08', employeeId: 'EMP-008', name: 'Tariq Al-Mansoor', dept: 'Engineering', type: 'Replacement leave', days: 1, fromDate: '2026-05-05', toDate: '2026-05-05', approvedBy: 'David Ng', status: 'Approved', paid: 'Yes', rate: 'FOT comp clause' },
-  ]);
-
-  const [leaveSummaryRows, setLeaveSummaryRows] = useState([
+  const [leaveSummaryRows] = useState([
     { employeeId: 'EMP-001', name: 'Sarah Lim', dept: 'Engineering', annual: 5, sick: 0, unpaid: 0, total: 5, balance: '11 days' },
     { employeeId: 'EMP-002', name: 'Raj Kumar', dept: 'Engineering', annual: 2, sick: 4, unpaid: 1, total: 7, balance: '14 days' },
     { employeeId: 'EMP-003', name: 'Maya Tan', dept: 'HR', annual: 0, sick: 1, unpaid: 0, total: 1, balance: '16 days' },
@@ -180,89 +292,39 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
     { employeeId: 'EMP-008', name: 'Tariq Al-Mansoor', dept: 'Engineering', annual: 0, sick: 0, unpaid: 0, total: 0, balance: '16 days' },
   ]);
 
-  const handleCreateLeavePolicy = (e: React.FormEvent) => {
+  const handleCreateLeavePolicy = async (e: React.FormEvent) => {
     e.preventDefault();
-    const id = `POL0${leavePolicies.length + 1}`;
-    const newPolicy: LeavePolicy = {
-      id,
-      type: newPolicyData.type,
-      allowDays: newPolicyData.allowDays,
-      accrual: newPolicyData.accrual,
-      carryForward: newPolicyData.carryForward,
-      applicable: newPolicyData.applicable,
-      autoAttach: newPolicyData.autoAttach,
-      minWorkingDays: newPolicyData.minWorkingDays,
-      serviceBonus: newPolicyData.serviceBonusSelected ? [{ range: newPolicyData.serviceBonusRange, bonus: newPolicyData.serviceBonusValue }] : [],
-      holidayRules: [{ key: newPolicyData.ruleKey, value: newPolicyData.ruleVal }]
-    };
-    setLeavePolicies([...leavePolicies, newPolicy]);
-    setNewPolicyModal(false);
-    addToast(`New Leave Policy created successfully for "${newPolicyData.type}"`, 'success');
-  };
-
-  const handleDeletePolicy = (id: string, type: string) => {
-    setLeavePolicies(prev => prev.filter(p => p.id !== id));
-    addToast(`Deleted policy for "${type}"`, 'info');
-  };
-
-  // Leave policies state
-  const [leavePolicies, setLeavePolicies] = useState<LeavePolicy[]>([
-    {
-      id: 'POL01',
-      type: 'Annual leave',
-      allowDays: '16 days / year',
-      accrual: 'Monthly prorate',
-      carryForward: '8 days max',
-      applicable: 'All confirmed employees',
-      autoAttach: '12 months',
-      minWorkingDays: '15 days',
-      serviceBonus: [
-        { range: '3-5 years service', bonus: '+2 days' },
-        { range: '5-10 years service', bonus: '+4 days' },
-        { range: '10+ years service', bonus: '+6 days' }
-      ],
-      holidayRules: [
-        { key: 'Count off / holidays', value: 'Excluded' },
-        { key: 'Leave before public holiday', value: 'Counted' },
-        { key: 'Leave after public holiday', value: 'Counted' },
-        { key: 'Not allow combination with', value: 'Unpaid leave' }
-      ]
-    },
-    {
-      id: 'POL02',
-      type: 'Medical leave',
-      allowDays: '14 days / year',
-      accrual: 'Full upfront',
-      carryForward: 'Not allowed',
-      applicable: 'All active employees',
-      autoAttach: 'On join date',
-      minWorkingDays: 'N/A',
-      serviceBonus: [],
-      holidayRules: [
-        { key: 'Attachment required', value: 'MC / Hospital cert.' },
-        { key: 'Auto attach', value: 'On join date' },
-        { key: 'Compensation allowance', value: 'Based on salary' }
-      ]
-    },
-    {
-      id: 'POL03',
-      type: 'Emergency & unpaid policy',
-      allowDays: '3 days / year',
-      accrual: 'Full upfront',
-      carryForward: 'Not allowed',
-      applicable: 'All employees',
-      autoAttach: 'Immediate',
-      minWorkingDays: 'N/A',
-      serviceBonus: [],
-      holidayRules: [
-        { key: 'Emergency - allow days', value: '3 days / year' },
-        { key: 'Emergency - accrual', value: 'Full upfront' },
-        { key: 'Unpaid - deduction rate', value: 'Normal rate' },
-        { key: 'Probation employees', value: 'Medical only' },
-        { key: 'Contract employees', value: 'Annual + Medical' }
-      ]
+    if (!isAdmin) {
+      addToast('Only admin/HR can create leave policies.', 'error');
+      return;
     }
-  ]);
+    const daysMatch = newPolicyData.allowDays.match(/(\d+)/);
+    const carryMatch = newPolicyData.carryForward.match(/(\d+)/);
+    const carryAllowed = !/not allowed/i.test(newPolicyData.carryForward);
+    setLeaveBusy(true);
+    try {
+      const created = await createLeaveType({
+        name: newPolicyData.type,
+        code: codeFromName(newPolicyData.type),
+        daysAllowed: daysMatch ? Number(daysMatch[1]) : 12,
+        carryForward: carryAllowed,
+        maxCarryDays: carryMatch ? Number(carryMatch[1]) : 0,
+        paid: true,
+        active: true,
+      });
+      setLeaveTypeRows((prev) => [...prev.filter((r) => r.id !== created.id), created]);
+      setNewPolicyModal(false);
+      addToast(`Leave policy synced as leave type "${created.name}".`, 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create leave policy.', 'error');
+    } finally {
+      setLeaveBusy(false);
+    }
+  };
+
+  const handleDeletePolicy = (_id: string, type: string) => {
+    addToast(`Policies sync from leave types. Remove "${type}" from Leave type instead.`, 'info');
+  };
 
   // Leave attachment records state
   const [attachmentRecords, setAttachmentRecords] = useState<LeaveAttachmentRecord[]>([
@@ -275,33 +337,26 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
 
   const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
 
-  // Requests state
-  const [requests, setRequests] = useState<LeaveRequestRecord[]>([
-    { id: 'REQ01', employeeId: 'EMP-001', name: 'Sarah Lim', dept: 'Engineering', type: 'Annual leave', dateStr: '12-14 May', days: 3, reason: 'Family trip', approvedBy: [{ name: 'David Ng', status: 'pending', color: 'bg-rose-500' }, { name: 'Ahmad Wahid', status: 'pending', color: 'bg-slate-400' }], status: 'Pending', fromDate: '2026-05-12', toDate: '2026-05-14' },
-    { id: 'REQ02', employeeId: 'EMP-002', name: 'Raj Kumar', dept: 'Engineering', type: 'Medical leave', dateStr: '2 May', days: 1, reason: 'Fever', approvedBy: [{ name: 'David Ng', status: 'approved', color: 'bg-emerald-500' }], status: 'Accepted', fromDate: '2026-05-02', toDate: '2026-05-02' },
-    { id: 'REQ03', employeeId: 'EMP-003', name: 'Maya Tan', dept: 'HR', type: 'Emergency leave', dateStr: '28 Apr', days: 1, reason: 'Family emergency', approvedBy: [{ name: 'Nina Reza', status: 'pending', color: 'bg-rose-500' }], status: 'Pending', fromDate: '2026-04-28', toDate: '2026-04-28' },
-    { id: 'REQ04', employeeId: 'EMP-005', name: 'Nadia Chen', dept: 'Marketing', type: 'Annual leave', dateStr: '5-6 May', days: 2, reason: 'Personal holiday', approvedBy: [{ name: 'Kevin Lim', status: 'rejected', color: 'bg-slate-900' }], status: 'Denied', fromDate: '2026-05-05', toDate: '2026-05-06' },
-    { id: 'REQ05', employeeId: 'EMP-004', name: 'Ahmad L', dept: 'Operations', type: 'Unpaid leave', dateStr: '9 May', days: 1, reason: 'Extended rest', approvedBy: [{ name: 'Malik Said', status: 'pending', color: 'bg-rose-500' }], status: 'Pending', fromDate: '2026-05-09', toDate: '2026-05-09' },
-    { id: 'REQ06', employeeId: 'EMP-002', name: 'Raj Kumar', dept: 'Engineering', type: 'Medical leave', dateStr: '15 Jun', days: 1, reason: 'Clinic appointment', approvedBy: [], status: 'Waiting for file', fromDate: '2026-06-15', toDate: '2026-06-15' }
-  ]);
+  // Requests state — loaded from API
+  const [requests, setRequests] = useState<LeaveRequestRecord[]>([]);
 
   // Request form state (By Day)
   const [reqFormType, setReqFormType] = useState<'day' | 'hour'>('day');
-  const [reqType, setReqType] = useState('Annual leave (12 days remaining)');
-  const [reqFromDate, setReqFromDate] = useState('2026-05-12');
-  const [reqToDate, setReqToDate] = useState('2026-05-14');
-  const [reqReason, setReqReason] = useState('Reason for leave request...');
+  const [reqType, setReqType] = useState('Annual Leave');
+  const [reqFromDate, setReqFromDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [reqToDate, setReqToDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [reqReason, setReqReason] = useState('');
   const [reqNotify, setReqNotify] = useState(true);
   const [firstDayHalf, setFirstDayHalf] = useState('Full day');
   const [lastDayHalf, setLastDayHalf] = useState('Full day');
 
   // Request for others form state
   const [rfoEmployee, setRfoEmployee] = useState('');
-  const [rfoType, setRfoType] = useState('Annual leave');
-  const [rfoFromDate, setRfoFromDate] = useState('2026-05-03');
-  const [rfoToDate, setRfoToDate] = useState('2026-05-05');
+  const [rfoType, setRfoType] = useState('Annual Leave');
+  const [rfoFromDate, setRfoFromDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [rfoToDate, setRfoToDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [rfoSession, setRfoSession] = useState('Full day');
-  const [rfoReason, setRfoReason] = useState('Reason for leave on behalf...');
+  const [rfoReason, setRfoReason] = useState('');
   const [rfoNotify, setRfoNotify] = useState(true);
 
   // Employee profile view state
@@ -315,6 +370,68 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
   // Tab count
   const pendingCount = requests.filter(r => r.status === 'Pending').length;
 
+  const leaveReportsRows = useMemo(() => {
+    if (requests.length === 0) return DEMO_LEAVE_REPORT_ROWS
+    return requests.map((r) => {
+      const leaveMeta = leaveTypeRows.find(
+        (t) => t.name.toLowerCase() === r.type.toLowerCase() || t.code.toLowerCase() === r.type.toLowerCase(),
+      )
+      return {
+        id: r.id,
+        employeeId: r.employeeId,
+        name: r.name,
+        dept: r.dept,
+        type: r.type,
+        days: r.days,
+        fromDate: r.fromDate,
+        toDate: r.toDate,
+        approvedBy: r.approvedBy[0]?.name || '—',
+        status: r.status === 'Accepted' ? 'Approved' : r.status,
+        paid: leaveMeta ? (leaveMeta.paid ? 'Yes' : 'No') : '—',
+        rate: leaveMeta
+          ? leaveMeta.paid
+            ? '100% payout'
+            : 'Normal rate'
+          : '—',
+      }
+    })
+  }, [requests, leaveTypeRows])
+
+  const loadLeaveRequests = useCallback(async () => {
+    setLeaveLoading(true)
+    try {
+      const [balances, typeRows] = await Promise.all([
+        fetchMyLeaveBalances().catch(() => [] as LeaveBalance[]),
+        fetchLeaveTypes(isAdmin).catch(() => [] as LeaveTypeRow[]),
+      ])
+      setLeaveBalances(balances)
+      setLeaveTypeRows(typeRows)
+
+      if (isAdmin) {
+        const [mine, pending] = await Promise.all([fetchMyLeave(), fetchAdminPendingLeave()])
+        const byId = new Map<string, LeaveRequestRecord>()
+        for (const row of [...mine, ...pending]) {
+          byId.set(row.id, mapApiLeave(row))
+        }
+        setRequests(Array.from(byId.values()))
+      } else {
+        const mine = await fetchMyLeave()
+        setRequests(mine.map(mapApiLeave))
+      }
+    } catch (err) {
+      setRequests([])
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load leave requests from the server.', 'error')
+      }
+    } finally {
+      setLeaveLoading(false)
+    }
+  }, [addToast, isAdmin])
+
+  useEffect(() => {
+    void loadLeaveRequests()
+  }, [loadLeaveRequests])
+
   // Selected employee metadata
   const selectedProfileEmp = employees.find(e => e.id === profileSelectedEmpId) || {
     id: 'EMP-0021',
@@ -326,45 +443,77 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
     joinDate: '12 Jan 2021',
   };
 
-  const handleCreateLeaveType = (e: React.FormEvent) => {
+  const handleCreateLeaveType = async (e: React.FormEvent) => {
     e.preventDefault();
-    const id = `LT0${leaveTypes.length + 1}`;
-    const newType: LeaveType = {
-      id,
-      name: newTypeData.name,
-      color: `${newTypeData.color} text-${newTypeData.color.split('-')[1]}-600`,
-      paid: newTypeData.paid,
-      deductionRate: newTypeData.deductionRate,
-      hourBased: newTypeData.hourBased,
-      attachmentReq: newTypeData.attachmentReq,
-      status: newTypeData.status
-    };
-    setLeaveTypes([...leaveTypes, newType]);
-    setNewTypeModal(false);
-    addToast(`Successfully configured new Leave Type: "${newTypeData.name}"`, 'success');
-    setNewTypeData({
-      name: '',
-      color: 'bg-blue-500',
-      paid: true,
-      deductionRate: 'No deduction',
-      hourBased: false,
-      attachmentReq: false,
-      status: 'Active'
-    });
+    if (!newTypeData.name.trim()) {
+      addToast('Please enter a leave type name.', 'error');
+      return;
+    }
+    if (!isAdmin) {
+      addToast('Only admin/HR can create leave types.', 'error');
+      return;
+    }
+    setLeaveBusy(true);
+    try {
+      const created = await createLeaveType({
+        name: newTypeData.name.trim(),
+        code: codeFromName(newTypeData.name),
+        paid: newTypeData.paid,
+        active: newTypeData.status === 'Active',
+      });
+      setLeaveTypeRows((prev) => [...prev.filter((r) => r.id !== created.id), created]);
+      setNewTypeModal(false);
+      addToast(`Successfully configured new Leave Type: "${created.name}"`, 'success');
+      setNewTypeData({
+        name: '',
+        color: 'bg-blue-500',
+        paid: true,
+        deductionRate: 'No deduction',
+        hourBased: false,
+        attachmentReq: false,
+        status: 'Active'
+      });
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create leave type.', 'error');
+    } finally {
+      setLeaveBusy(false);
+    }
   };
 
-  const handleEditLeaveType = (e: React.FormEvent) => {
+  const handleEditLeaveType = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingType) return;
-    setLeaveTypes(prev => prev.map(t => t.id === editingType.id ? editingType : t));
-    setEditTypeModal(false);
-    addToast(`Leave Type configuration successfully revised for "${editingType.name}"`, 'success');
-    setEditingType(null);
+    if (!isAdmin) {
+      addToast('Only admin/HR can update leave types.', 'error');
+      return;
+    }
+    const existing = leaveTypeRows.find((r) => r.id === editingType.id);
+    setLeaveBusy(true);
+    try {
+      const updated = await updateLeaveType(editingType.id, {
+        name: editingType.name,
+        code: existing?.code || codeFromName(editingType.name),
+        daysAllowed: existing?.daysAllowed,
+        paid: editingType.paid,
+        carryForward: existing?.carryForward,
+        maxCarryDays: existing?.maxCarryDays,
+        description: existing?.description ?? undefined,
+        active: editingType.status === 'Active',
+      });
+      setLeaveTypeRows((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+      setEditTypeModal(false);
+      addToast(`Leave Type configuration successfully revised for "${updated.name}"`, 'success');
+      setEditingType(null);
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not update leave type.', 'error');
+    } finally {
+      setLeaveBusy(false);
+    }
   };
 
   const handleDeleteLeaveType = (id: string, name: string) => {
-    setLeaveTypes(prev => prev.filter(t => t.id !== id));
-    addToast(`Deleted Leave Type: "${name}"`, 'info');
+    addToast(`Leave type delete is not available via API yet ("${name}").`, 'info');
+    void id;
   };
 
   const calculateDays = (start: string, end: string) => {
@@ -376,72 +525,77 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
     return diffDays;
   };
 
-  const handleSelfRequestSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const days = calculateDays(reqFromDate, reqToDate);
-    const formattedFrom = new Date(reqFromDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-    const formattedTo = new Date(reqToDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-    const dateStr = formattedFrom === formattedTo ? formattedFrom : `${formattedFrom}-${formattedTo}`;
-
-    const newReq: LeaveRequestRecord = {
-      id: `REQ${requests.length + 1}`,
-      employeeId: 'EMP-0285', // Self ID or active user profile
-      name: 'Sarah Lim',
-      dept: 'Engineering',
-      type: reqType.split(' ')[0],
-      dateStr,
-      days,
-      reason: reqReason,
-      approvedBy: [{ name: 'David Ng', status: 'pending', color: 'bg-rose-500' }],
-      status: 'Pending',
-      fromDate: reqFromDate,
-      toDate: reqToDate
-    };
-
-    setRequests([newReq, ...requests]);
-    addToast('New leave request submitted for review', 'success');
-  };
+  const handleSelfRequestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!reqFromDate || !reqToDate) {
+      addToast('Please choose start and end dates.', 'error')
+      return
+    }
+    setLeaveBusy(true)
+    try {
+      const created = await createMyLeave({
+        leaveType: extractLeaveTypeName(reqType),
+        startDate: reqFromDate,
+        endDate: reqToDate,
+        reason: reqReason.trim() || undefined,
+      })
+      setRequests((prev) => [mapApiLeave(created), ...prev.filter((r) => r.id !== created.id)])
+      setReqReason('')
+      addToast('Leave request submitted for review.', 'success')
+      setActiveSubTab('Leave history')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not submit leave request.', 'error')
+    } finally {
+      setLeaveBusy(false)
+    }
+  }
 
   const handleRequestForOthersSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!rfoEmployee) {
-      addToast('Please select an employee record first', 'error');
-      return;
+    e.preventDefault()
+    addToast(
+      'On-behalf leave is not available on the API yet. Ask the employee to submit from Leave request.',
+      'info',
+    )
+  }
+
+  const handleApprove = async (id: string, name: string) => {
+    setLeaveBusy(true)
+    try {
+      const updated = await decideLeave(id, { decision: 'APPROVE' })
+      setRequests((prev) => prev.map((r) => (r.id === id ? mapApiLeave(updated) : r)))
+      addToast(`Leave request from ${name} approved.`, 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not approve leave.', 'error')
+    } finally {
+      setLeaveBusy(false)
     }
-    const empObj = employees.find(emp => emp.id === rfoEmployee);
-    const days = calculateDays(rfoFromDate, rfoToDate);
-    const formattedFrom = new Date(rfoFromDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-    const formattedTo = new Date(rfoToDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-    const dateStr = formattedFrom === formattedTo ? formattedFrom : `${formattedFrom}-${formattedTo}`;
+  }
 
-    const newReq: LeaveRequestRecord = {
-      id: `REQ${requests.length + 1}`,
-      employeeId: rfoEmployee,
-      name: empObj ? empObj.name : 'Unknown Employee',
-      dept: empObj ? empObj.department : 'Operations',
-      type: rfoType,
-      dateStr,
-      days,
-      reason: rfoReason,
-      approvedBy: [{ name: 'Corporate Admin', status: 'approved', color: 'bg-emerald-500' }],
-      status: 'Accepted',
-      fromDate: rfoFromDate,
-      toDate: rfoToDate
-    };
+  const handleDeny = async (id: string, name: string) => {
+    setLeaveBusy(true)
+    try {
+      const updated = await decideLeave(id, { decision: 'REJECT', note: 'Denied by admin' })
+      setRequests((prev) => prev.map((r) => (r.id === id ? mapApiLeave(updated) : r)))
+      addToast(`Leave request from ${name} denied.`, 'info')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not deny leave.', 'error')
+    } finally {
+      setLeaveBusy(false)
+    }
+  }
 
-    setRequests([newReq, ...requests]);
-    addToast(`On-behalf Leave request submitted for ${newReq.name}`, 'success');
-  };
-
-  const handleApprove = (id: string, name: string) => {
-    setRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'Accepted', approvedBy: r.approvedBy.map(ap => ap.name === 'David Ng' ? { ...ap, status: 'approved', color: 'bg-emerald-500' } : ap) } : r));
-    addToast(`Leave request from ${name} approved successfully`, 'success');
-  };
-
-  const handleDeny = (id: string, name: string) => {
-    setRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'Denied', approvedBy: r.approvedBy.map(ap => ap.name === 'David Ng' ? { ...ap, status: 'rejected', color: 'bg-slate-900' } : ap) } : r));
-    addToast(`Leave request from ${name} set to: Denied`, 'info');
-  };
+  const handleCancelLeave = async (id: string) => {
+    setLeaveBusy(true)
+    try {
+      await cancelMyLeave(id)
+      setRequests((prev) => prev.filter((r) => r.id !== id))
+      addToast('Leave request cancelled.', 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not cancel leave.', 'error')
+    } finally {
+      setLeaveBusy(false)
+    }
+  }
 
   const toggleAttachmentSelection = (id: string) => {
     setSelectedAttachments(prev =>
@@ -464,6 +618,27 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
 
   return (
     <div id="leave-module-root" className="space-y-6">
+      <ModuleHeader
+        title="Leave management"
+        description="Request, approve, and track time off across the organisation."
+      />
+      {leaveBalances.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 nv-stagger">
+          {leaveBalances.map((b) => (
+            <div key={b.id} className="nv-stat-card">
+              <p className="text-xs font-medium text-slate-500">{b.leaveType}</p>
+              <p className="mt-1 text-xl font-bold text-slate-900">
+                {Number(b.remainingDays)}{' '}
+                <span className="text-sm font-medium text-slate-400">days left</span>
+              </p>
+              <p className="mt-1 text-[10px] text-slate-400">
+                Used {Number(b.usedDays)} · Pending {Number(b.pendingDays)} · of {Number(b.totalDays)}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+      {leaveLoading && <p className="text-xs font-medium text-slate-400">Loading leave data…</p>}
 
       {/* Upper Navigation sub-menus completely aligned with Actions exactly like Attendance Management */}
       <div id="leave-module-navigator" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
@@ -947,10 +1122,10 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   onChange={(e) => setReqType(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white focus:outline-none"
                 >
-                  <option value="Annual leave (12 days remaining)">Annual leave (12 days remaining)</option>
-                  <option value="Medical leave (10 days remaining)">Medical leave (10 days remaining)</option>
-                  <option value="Emergency leave (2 days remaining)">Emergency leave (2 days remaining)</option>
-                  <option value="Replacement leave (1 day remaining)">Replacement leave (1 day remaining)</option>
+                  <option value="Annual Leave">Annual Leave</option>
+                  <option value="Sick Leave">Sick Leave</option>
+                  <option value="Personal Leave">Personal Leave</option>
+                  <option value="Unpaid Leave">Unpaid Leave</option>
                 </select>
               </div>
 
@@ -1091,7 +1266,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     <span>1 / 1 day</span>
                   </div>
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-violet-500 h-full rounded-full" style={{ width: '100%' }} />
+                    <div className="bg-sky-500 h-full rounded-full" style={{ width: '100%' }} />
                   </div>
                 </div>
               </div>
@@ -1172,11 +1347,10 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                   onChange={(e) => setRfoType(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
                 >
-                  <option value="Annual leave">Annual leave</option>
-                  <option value="Medical leave">Medical leave</option>
-                  <option value="Emergency leave">Emergency leave</option>
-                  <option value="Replacement leave">Replacement leave</option>
-                  <option value="Maternity leave">Maternity leave</option>
+                  <option value="Annual Leave">Annual Leave</option>
+                  <option value="Sick Leave">Sick Leave</option>
+                  <option value="Personal Leave">Personal Leave</option>
+                  <option value="Unpaid Leave">Unpaid Leave</option>
                 </select>
               </div>
 
@@ -1637,7 +1811,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                       </tr>
                       <tr>
                         <td className="p-3 pl-4 font-bold text-slate-800 flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full bg-violet-500 items-center shrink-0" />
+                          <span className="h-2 w-2 rounded-full bg-sky-500 items-center shrink-0" />
                           <span>Replacement</span>
                         </td>
                         <td className="p-3 text-center font-bold text-slate-600">1</td>
@@ -1757,7 +1931,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
         <div className="space-y-6">
           
           {/* 1. Statistics KPI Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 nv-stagger">
             <div className="nv-card p-4 shadow-sm flex items-center justify-between">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Absence Outrate</span>
@@ -2164,7 +2338,7 @@ export default function LeaveTab({ employees, addToast }: LeaveTabProps) {
                     { color: 'bg-emerald-500', name: 'Emerald' },
                     { color: 'bg-amber-500', name: 'Amber' },
                     { color: 'bg-rose-500', name: 'Rose' },
-                    { color: 'bg-violet-500', name: 'Violet' },
+                    { color: 'bg-sky-500', name: 'Sky' },
                     { color: 'bg-pink-500', name: 'Pink' },
                     { color: 'bg-teal-500', name: 'Teal' }
                   ].map(c => (

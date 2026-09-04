@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { createLocalId } from '@/lib/createLocalId'
 import {
   Search,
@@ -29,6 +29,20 @@ import {
   Paperclip,
 } from 'lucide-react';
 import type { Employee } from '@/types';
+import ModuleHeader from '@/components/ui/ModuleHeader';
+import {
+  ApiError,
+  createAllowanceType,
+  fetchAdminPayroll,
+  fetchAllowanceTypes,
+  fetchMyPayslips,
+  fetchPayrollRunSummary,
+  generateAdminPayroll,
+  processAdminPayrollMonth,
+  type AllowanceTypeRow,
+  type PayrollRow,
+  type PayrollRunSummary,
+} from '@/services';
 
 // Sub Tabs Definitions
 export type PayrollMainTab =
@@ -98,7 +112,63 @@ interface PayrollTabProps {
   addToast: (text: string, type: 'success' | 'loading' | 'error' | 'info') => void;
 }
 
+function codeFromAllowanceName(name: string) {
+  return name.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 30) || 'ALLOW';
+}
+
+function mapAllowanceTypeRow(row: AllowanceTypeRow): AllowanceType {
+  return {
+    id: row.id,
+    name: row.name,
+    policyType: row.frequency || 'Normal',
+    amount: Number(row.amount).toFixed(2),
+    deductionAmt: '—',
+    taxable: row.taxable ? 'Yes' : 'No',
+    onPayslip: 'Yes',
+    attachEmp: 'No',
+    status: row.active ? 'Active' : 'Inactive',
+  }
+}
+
 export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
+  const now = new Date()
+  const [payYear] = useState(now.getFullYear())
+  const [payMonth] = useState(now.getMonth() + 1)
+  const [payrollRows, setPayrollRows] = useState<PayrollRow[]>([])
+  const [myPayslips, setMyPayslips] = useState<PayrollRow[]>([])
+  const [payrollSummary, setPayrollSummary] = useState<PayrollRunSummary | null>(null)
+  const [payrollBusy, setPayrollBusy] = useState(false)
+
+  const refreshPayroll = useCallback(async () => {
+    try {
+      const [rows, summary] = await Promise.all([
+        fetchAdminPayroll(payYear, payMonth),
+        fetchPayrollRunSummary(payYear, payMonth),
+      ])
+      setPayrollRows(rows)
+      setPayrollSummary(summary)
+    } catch (err) {
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load payroll from the server.', 'error')
+      }
+      // Employees without admin access still see personal payslips
+      try {
+        const slips = await fetchMyPayslips()
+        setMyPayslips(slips)
+        if (slips.length) setPayrollRows(slips)
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [addToast, payMonth, payYear])
+
+  useEffect(() => {
+    void refreshPayroll()
+    void fetchMyPayslips()
+      .then(setMyPayslips)
+      .catch(() => undefined)
+  }, [refreshPayroll])
+
   // Navigation states
   const [activeMainTab, setActiveMainTab] = useState<PayrollMainTab>('Allowance');
 
@@ -271,15 +341,21 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
   const [isEditActiveDurationModalOpen, setIsEditActiveDurationModalOpen] = useState(false);
 
-  // Allowance Master State
-  const [allowanceTypes, setAllowanceTypes] = useState<AllowanceType[]>([
-    { id: '1', name: 'Transport allowance', policyType: 'Transport', amount: '300.00', deductionAmt: '—', taxable: 'No', onPayslip: 'Yes', attachEmp: 'No', status: 'Active' },
-    { id: '2', name: 'Meal allowance', policyType: 'Meal', amount: '200.00', deductionAmt: '10.00/day', taxable: 'No', onPayslip: 'Yes', attachEmp: 'No', status: 'Active' },
-    { id: '3', name: 'Phone allowance', policyType: 'Normal', amount: '150.00', deductionAmt: '—', taxable: 'Yes', onPayslip: 'Yes', attachEmp: 'Yes', status: 'Active' },
-    { id: '4', name: 'On-time allowance', policyType: 'On time', amount: '100.00', deductionAmt: '—', taxable: 'No', onPayslip: 'Yes', attachEmp: 'No', status: 'Active' },
-    { id: '5', name: 'Night shift allowance', policyType: 'Shift', amount: '250.00', deductionAmt: '—', taxable: 'No', onPayslip: 'Yes', attachEmp: 'Yes', status: 'Active' },
-    { id: '6', name: 'Grade G7 allowance', policyType: 'Grade', amount: '400.00', deductionAmt: '—', taxable: 'No', onPayslip: 'Yes', attachEmp: 'Yes', status: 'Active' }
-  ]);
+  // Allowance Master State — loaded from catalog API
+  const [allowanceTypes, setAllowanceTypes] = useState<AllowanceType[]>([]);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const rows = await fetchAllowanceTypes()
+        setAllowanceTypes(rows.map(mapAllowanceTypeRow))
+      } catch (err) {
+        if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+          addToast('Could not load allowance types from the server.', 'error')
+        }
+      }
+    })()
+  }, [addToast])
 
   // Bonus Master State
   const [bonusTypes, setBonusTypes] = useState<BonusType[]>([
@@ -369,28 +445,30 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
   const [reportsPeriod, setReportsPeriod] = useState('All times');
 
   // Dynamic state changes
-  const handleAddNewAllowance = (e: React.FormEvent) => {
+  const handleAddNewAllowance = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAllowanceName) {
       addToast('Please input an allowance name', 'error');
       return;
     }
-    const n: AllowanceType = {
-      id: String(allowanceTypes.length + 1),
-      name: newAllowanceName,
-      policyType: newAllowancePolicy,
-      amount: newAllowanceAmount || '150.00',
-      deductionAmt: '—',
-      taxable: newAllowanceTaxable,
-      onPayslip: 'Yes',
-      attachEmp: 'Yes',
-      status: 'Active'
-    };
-    setAllowanceTypes([...allowanceTypes, n]);
-    setAllowanceModalOpen(false);
-    setNewAllowanceName('');
-    setNewAllowanceAmount('');
-    addToast('Successfully registered new allowance type policy.', 'success');
+    const amount = Number(newAllowanceAmount || '150');
+    try {
+      const created = await createAllowanceType({
+        name: newAllowanceName.trim(),
+        code: codeFromAllowanceName(newAllowanceName),
+        amount: Number.isFinite(amount) ? amount : 150,
+        frequency: newAllowancePolicy || 'Normal',
+        taxable: newAllowanceTaxable === 'Yes',
+        active: true,
+      });
+      setAllowanceTypes((prev) => [...prev.filter((a) => a.id !== created.id), mapAllowanceTypeRow(created)]);
+      setAllowanceModalOpen(false);
+      setNewAllowanceName('');
+      setNewAllowanceAmount('');
+      addToast('Successfully registered new allowance type policy.', 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create allowance type.', 'error');
+    }
   };
 
   const handleAddNewBonus = (e: React.FormEvent) => {
@@ -541,35 +619,37 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
     addToast(`Successfully updated tax category ${editingTax.name}.`, 'success');
   };
 
-  // Run payroll simulation runner
-  const triggerPayrollRun = () => {
-    if (isSimulatingRun) return;
-    setIsSimulatingRun(true);
-    setRunSuccessful(false);
-    setSimStep(1);
-    setSimProgress(15);
-    addToast('Verifying timecard locks and audit stamps...', 'loading');
-
-    // Run progressive steps for beautiful immersive simulation
-    setTimeout(() => {
-      setSimStep(2);
-      setSimProgress(45);
-      addToast('Calculating fractional wage segments, allowances and overtime tallies...', 'loading');
-    }, 1500);
-
-    setTimeout(() => {
-      setSimStep(3);
-      setSimProgress(75);
-      addToast('Applying statutory CPF and IRAS income tax schedules...', 'loading');
-    }, 3000);
-
-    setTimeout(() => {
-      setSimStep(4);
-      setSimProgress(100);
-      setRunSuccessful(true);
-      addToast('Month-end Payroll run compiled successfully! Roster balanced.', 'success');
-    }, 4500);
-  };
+  // Run payroll via API (generate drafts then process)
+  const triggerPayrollRun = async () => {
+    if (isSimulatingRun || payrollBusy) return
+    setPayrollBusy(true)
+    setIsSimulatingRun(true)
+    setRunSuccessful(false)
+    setSimStep(1)
+    setSimProgress(20)
+    addToast('Generating payroll drafts…', 'loading')
+    try {
+      await generateAdminPayroll(payMonth, payYear)
+      setSimStep(2)
+      setSimProgress(55)
+      addToast('Processing payroll month…', 'loading')
+      const summary = await processAdminPayrollMonth(payYear, payMonth)
+      setPayrollSummary(summary)
+      setSimStep(4)
+      setSimProgress(100)
+      setRunSuccessful(true)
+      await refreshPayroll()
+      addToast(
+        `Payroll run complete for ${payMonth}/${payYear}: ${summary.headcount} employees, net $${Number(summary.totalNetPay).toLocaleString()}.`,
+        'success',
+      )
+    } catch (err) {
+      setIsSimulatingRun(false)
+      addToast(err instanceof ApiError ? err.message : 'Payroll run failed.', 'error')
+    } finally {
+      setPayrollBusy(false)
+    }
+  }
 
   const closePayrollRunSim = () => {
     setIsSimulatingRun(false);
@@ -645,7 +725,11 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
   return (
     <div id="payroll-panel-view" className="space-y-6 animate-in fade-in duration-150">
-      
+      <ModuleHeader
+        title="Payroll"
+        description="Allowances, runs, and payroll reporting."
+      />
+
       {/* ===== 1. UPPER NAVIGATION & PRIMARY HORIZONTAL NAV-BAR ===== */}
       <div id="payroll-module-navigator" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
         
@@ -2735,27 +2819,25 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <div className="bg-slate-50 p-4 border border-slate-200 rounded-2xl space-y-3 font-semibold text-slate-700">
                   <div className="flex justify-between border-b border-gutter pb-2">
                     <span>Target Headcount</span>
-                    <strong className="text-slate-850">430 Active Staff</strong>
+                    <strong className="text-slate-850">{payrollSummary?.headcount ?? employees.length} Active Staff</strong>
                   </div>
                   <div className="flex justify-between border-b border-gutter py-2">
-                    <span>Estimated Gross Payroll Release</span>
-                    <strong className="text-slate-900 font-mono">SGD {grandTotalGross.toLocaleString()}</strong>
+                    <span>Estimated Net Payroll</span>
+                    <strong className="text-slate-900 font-mono">SGD {(payrollSummary ? Number(payrollSummary.totalNetPay) : grandTotalGross).toLocaleString()}</strong>
                   </div>
                   <div className="flex justify-between pt-1">
-                    <span>Tax & CPF Withholdings</span>
-                    <strong className="text-red-650 font-mono">- SGD 42,912.44</strong>
+                    <span>Draft / Processed / Paid</span>
+                    <strong className="text-slate-700 font-mono">{payrollSummary ? `${payrollSummary.draftCount}/${payrollSummary.processedCount}/${payrollSummary.paidCount}` : '—'} · rows {payrollRows.length}</strong>
                   </div>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => {
-                    triggerPayrollRun();
-                    addToast('Month-end payroll calculated. Bank ledger posted successfully.', 'success');
-                  }}
-                  className="w-full bg-novora hover:bg-opacity-95 text-white font-extrabold text-xs py-3.5 rounded-2xl shadow-xs transition-transform cursor-pointer"
+                  disabled={payrollBusy}
+                  onClick={() => void triggerPayrollRun()}
+                  className="w-full bg-novora hover:bg-opacity-95 text-white font-extrabold text-xs py-3.5 rounded-2xl shadow-xs transition-transform cursor-pointer disabled:opacity-60"
                 >
-                  Confirm &amp; Execute Payroll Disbursement
+                  {payrollBusy ? 'Running payroll…' : `Confirm & Execute Payroll (${payMonth}/${payYear})`}
                 </button>
               </div>
             )}
@@ -2764,45 +2846,51 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             {payMgmtSubTab === 'Payroll history' && (
               <div className="space-y-4 text-xs font-semibold">
                 <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pl-1">Historic Completed Disbursements</h4>
+                {myPayslips.length > 0 && (
+                  <p className="text-[11px] text-slate-500 pl-1">
+                    Your payslips on file: <strong className="text-slate-700">{myPayslips.length}</strong>
+                  </p>
+                )}
                 <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden text-xs">
                   <table className="w-full text-left font-semibold">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-3 pl-5">Billing Period</th>
-                        <th className="p-3">Disbursed Headcount</th>
-                        <th className="p-3 font-mono">Total Paid Amount</th>
-                        <th className="p-3">Released Date</th>
+                        <th className="p-3">Employee</th>
+                        <th className="p-3 font-mono">Net Pay</th>
+                        <th className="p-3">Status</th>
                         <th className="p-3 pr-5 text-right font-bold">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-slate-700">
-                      <tr className="hover:bg-slate-50/50">
-                        <td className="p-3 pl-5 font-bold text-slate-800">April 2026 Period</td>
-                        <td className="p-3">428 Staff</td>
-                        <td className="p-3 font-mono font-bold text-slate-900">SGD 1,184,330.12</td>
-                        <td className="p-3 font-mono text-slate-400">2026-04-28</td>
-                        <td className="p-3 pr-5 text-right">
-                          <button type="button" onClick={() => addToast('Downloading April payslip bundle...', 'success')} className="text-novora hover:underline cursor-pointer">Download Ledger XLS</button>
-                        </td>
-                      </tr>
-                      <tr className="hover:bg-slate-50/50">
-                        <td className="p-3 pl-5 font-bold text-slate-800">March 2026 Period</td>
-                        <td className="p-3">425 Staff</td>
-                        <td className="p-3 font-mono font-bold text-slate-900">SGD 1,162,109.90</td>
-                        <td className="p-3 font-mono text-slate-400">2026-03-27</td>
-                        <td className="p-3 pr-5 text-right">
-                          <button type="button" onClick={() => addToast('Downloading March payslip bundle...', 'success')} className="text-novora hover:underline cursor-pointer">Download Ledger XLS</button>
-                        </td>
-                      </tr>
-                      <tr className="hover:bg-slate-50/50">
-                        <td className="p-3 pl-5 font-bold text-slate-800">February 2026 Period</td>
-                        <td className="p-3">422 Staff</td>
-                        <td className="p-3 font-mono font-bold text-slate-900">SGD 1,151,902.12</td>
-                        <td className="p-3 font-mono text-slate-400">2026-02-27</td>
-                        <td className="p-3 pr-5 text-right">
-                          <button type="button" onClick={() => addToast('Downloading February payslip bundle...', 'success')} className="text-novora hover:underline cursor-pointer">Download Ledger XLS</button>
-                        </td>
-                      </tr>
+                      {(payrollRows.length ? payrollRows : myPayslips).slice(0, 20).map((row) => (
+                        <tr key={row.id} className="hover:bg-slate-50/50">
+                          <td className="p-3 pl-5 font-bold text-slate-800">
+                            {row.payMonth}/{row.payYear}
+                          </td>
+                          <td className="p-3">{row.employeeName}</td>
+                          <td className="p-3 font-mono font-bold text-slate-900">
+                            SGD {Number(row.netPay).toLocaleString()}
+                          </td>
+                          <td className="p-3 uppercase text-[10px] font-extrabold">{row.status}</td>
+                          <td className="p-3 pr-5 text-right">
+                            <button
+                              type="button"
+                              onClick={() => addToast(`Payslip ${row.payMonth}/${row.payYear} for ${row.employeeName}`, 'info')}
+                              className="text-novora hover:underline cursor-pointer"
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {payrollRows.length === 0 && myPayslips.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="p-6 text-center text-slate-400">
+                            No payroll history yet. Generate a month run to populate this list.
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -2820,7 +2908,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             <div id="payroll-reports-dashboard" className="space-y-6 animate-in fade-in duration-150">
               
               {/* 1. Statistics Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 nv-stagger">
                 
                 <div className="nv-card p-4 shadow-sm flex items-center justify-between">
                   <div className="space-y-1">

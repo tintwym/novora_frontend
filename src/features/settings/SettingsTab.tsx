@@ -1,8 +1,35 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { createLocalNumericId, createLocalId } from '@/lib/createLocalId'
 import { useTheme } from '@/providers/ThemeProvider';
 import type { AccentPreset, DensityPreset, ThemePreset } from '@/lib/theme';
 import SettingsSubNav from '@/components/settings/SettingsSubNav';
+import {
+  ApiError,
+  activateUser,
+  createBranch,
+  createDepartment,
+  createHoliday,
+  createPosition,
+  deactivateUser,
+  fetchAdminRoles,
+  fetchAdminUsers,
+  fetchAuditLogs,
+  fetchBranches,
+  fetchDepartments,
+  fetchHolidays,
+  fetchOrganization,
+  fetchPositions,
+  inviteUser as inviteUserApi,
+  updateBranch,
+  updateOrganization,
+  updateUserRoles,
+  type AdminUserRow,
+  type AuditLogRow,
+  type BranchRow,
+  type DepartmentRow,
+  type HolidayRow,
+  type PositionRow,
+} from '@/services';
 import {
   Building2,
   Blocks,
@@ -40,6 +67,68 @@ import {
 import type { Employee } from '@/types';
 import NovoraLogo from '@/components/brand/NovoraLogo';
 
+type BranchUi = { id: string; name: string; city: string; count: number; isMain: boolean }
+
+type SystemUserRow = {
+  id: string
+  name: string
+  email: string
+  role: string
+  roles: string[]
+  lastActive: string
+  status: string
+}
+
+const ROLE_LABEL: Record<string, string> = {
+  SUPER_ADMIN: 'Super admin',
+  HR_ADMIN: 'HR admin',
+  HR_MANAGER: 'HR manager',
+  EMPLOYEE: 'Employee',
+}
+
+const LABEL_TO_ROLE: Record<string, string> = {
+  'Super admin': 'SUPER_ADMIN',
+  'HR admin': 'HR_ADMIN',
+  'HR manager': 'HR_MANAGER',
+  Employee: 'EMPLOYEE',
+  'Department head': 'HR_MANAGER',
+}
+
+function mapBranchRow(b: BranchRow, index: number): BranchUi {
+  return {
+    id: b.id,
+    name: b.name,
+    city: b.city || '—',
+    count: b.headcount ?? 0,
+    isMain: index === 0,
+  }
+}
+
+function formatSalaryBound(n: number | null | undefined) {
+  return n != null ? `SGD ${Number(n).toLocaleString()}` : '—'
+}
+
+function mapPositionToGrade(p: PositionRow) {
+  return {
+    id: p.level || p.title,
+    min: formatSalaryBound(p.minSalary),
+    max: formatSalaryBound(p.maxSalary),
+  }
+}
+
+function mapAdminUser(u: AdminUserRow): SystemUserRow {
+  const primary = (u.roles && u.roles[0]) || 'EMPLOYEE'
+  return {
+    id: u.userId,
+    name: u.email.split('@')[0],
+    email: u.email,
+    role: ROLE_LABEL[primary] || primary,
+    roles: u.roles || [],
+    lastActive: '—',
+    status: u.active ? 'Active' : 'Inactive',
+  }
+}
+
 interface SettingsTabProps {
   activeSubTab: string;
   setActiveSubTab: (tab: string) => void;
@@ -59,31 +148,55 @@ export default function SettingsTab({
 
   // 1. Company Profile State
   const [profile, setProfile] = useState({
-    companyName: 'Novora Pte Ltd',
-    registrationNo: '202609312-W',
+    companyName: '',
+    registrationNo: '',
     industry: 'Technology & Software',
     companySize: '1,001 - 5,000 employees',
     foundedYear: '2016',
-    website: 'www.novora.com',
-    addr1: 'Level 18, Novora Tower, 1 Raffles Place',
-    city: 'Singapore',
-    state: 'Central Region',
-    postcode: '50250',
-    country: 'Singapore',
-    phone: '+65 3-2100 0000',
-    hrEmail: 'hr@novora.com',
-    payrollEmail: 'payroll@novora.com',
-    epfNo: 'CPF-201234567A',
-    socsoNo: 'UEN-201912345A',
-    incomeTaxNo: 'IRAS-12345678',
+    website: '',
+    addr1: '',
+    city: '',
+    state: '',
+    postcode: '',
+    country: '',
+    phone: '',
+    hrEmail: '',
+    payrollEmail: '',
+    epfNo: '',
+    socsoNo: '',
+    incomeTaxNo: '',
+    legalName: '',
   });
 
-  const handleProfileSave = (e: React.FormEvent) => {
+  const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
     addToast('Updating corporate registry credentials...', 'loading');
-    setTimeout(() => {
-      addToast('Company profile settings saved successfully under "Novora Pte Ltd".', 'success');
-    }, 1200);
+    try {
+      const updated = await updateOrganization({
+        name: profile.companyName.trim() || undefined,
+        legalName: profile.legalName.trim() || profile.companyName.trim() || undefined,
+        registrationNo: profile.registrationNo.trim() || undefined,
+        addressLine1: profile.addr1.trim() || undefined,
+        city: profile.city.trim() || undefined,
+        country: profile.country.trim() || undefined,
+        phone: profile.phone.trim() || undefined,
+        website: profile.website.trim() || undefined,
+      })
+      setProfile((prev) => ({
+        ...prev,
+        companyName: updated.name || prev.companyName,
+        legalName: updated.legalName || prev.legalName,
+        registrationNo: updated.registrationNo || prev.registrationNo,
+        addr1: updated.addressLine1 || prev.addr1,
+        city: updated.city || prev.city,
+        country: updated.country || prev.country,
+        phone: updated.phone || prev.phone,
+        website: updated.website || prev.website,
+      }))
+      addToast(`Company profile settings saved successfully under "${updated.name}".`, 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not save company profile.', 'error')
+    }
   };
 
   // 2. Modules State - Fully Synchronized with Workspace Sidebar Roster
@@ -112,50 +225,63 @@ export default function SettingsTab({
   };
 
   // 3. Branches State
-  const [branches, setBranches] = useState([
-    { id: 1, name: 'Singapore HQ office', city: 'Singapore', count: 1024, isMain: true },
-    { id: 2, name: 'Jurong Innovation Hub', city: 'Jurong East', count: 142, isMain: false },
-    { id: 3, name: 'Changi Logistics Centre', city: 'Changi', count: 118, isMain: false },
-  ]);
+  const [branches, setBranches] = useState<BranchUi[]>([]);
   const [newBranch, setNewBranch] = useState({ name: '', city: '', count: 0 });
-  const [showAddBranch, setShowAddBranch] = useState(false);
-  const [editingBranchId, setEditingBranchId] = useState<number | null>(null);
+  const [editingBranchId, setEditingBranchId] = useState<string | null>(null);
   const [editBranchForm, setEditBranchForm] = useState({ name: '', city: '', count: 0 });
+  const [showAddBranch, setShowAddBranch] = useState(false);
 
-  const addBranch = () => {
+  const addBranch = async () => {
     if (!newBranch.name || !newBranch.city) {
       addToast('Please enter both branch name and city', 'error');
       return;
     }
-    setBranches([
-      ...branches,
-      {
-        id: createLocalNumericId(),
-        name: newBranch.name,
-        city: newBranch.city,
-        count: newBranch.count || 0,
-        isMain: false,
-      },
-    ]);
-    setNewBranch({ name: '', city: '', count: 0 });
-    setShowAddBranch(false);
-    addToast('Brand-new company branch location registered.', 'success');
+    try {
+      const created = await createBranch({
+        name: newBranch.name.trim(),
+        city: newBranch.city.trim(),
+        headcount: newBranch.count || 0,
+        active: true,
+      })
+      setBranches((prev) => [...prev, mapBranchRow(created, prev.length)])
+      setNewBranch({ name: '', city: '', count: 0 });
+      setShowAddBranch(false);
+      addToast('Brand-new company branch location registered.', 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create branch.', 'error')
+    }
   };
 
-  const startEditBranch = (b: { id: number; name: string; city: string; count: number }) => {
+  const startEditBranch = (b: BranchUi) => {
     setEditingBranchId(b.id);
     setEditBranchForm({ name: b.name, city: b.city, count: b.count });
     addToast(`Loaded settings for branch " ${b.name}"`, 'info');
   };
 
-  const saveEditedBranch = () => {
+  const saveEditedBranch = async () => {
+    if (!editingBranchId) return;
     if (!editBranchForm.name || !editBranchForm.city) {
       addToast('Please input both branch name and city', 'error');
       return;
     }
-    setBranches(prev => prev.map(b => b.id === editingBranchId ? { ...b, name: editBranchForm.name, city: editBranchForm.city, count: editBranchForm.count } : b));
-    setEditingBranchId(null);
-    addToast('Branch details updated successfully.', 'success');
+    try {
+      const updated = await updateBranch(editingBranchId, {
+        name: editBranchForm.name.trim(),
+        city: editBranchForm.city.trim(),
+        headcount: editBranchForm.count || 0,
+      });
+      setBranches((prev) =>
+        prev.map((b) =>
+          b.id === editingBranchId
+            ? { ...mapBranchRow(updated, prev.findIndex((x) => x.id === editingBranchId)), isMain: b.isMain }
+            : b,
+        ),
+      );
+      setEditingBranchId(null);
+      addToast('Branch details updated.', 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not update branch.', 'error');
+    }
   };
 
   // 4. Department & Position State
@@ -169,66 +295,208 @@ export default function SettingsTab({
   const [newDept, setNewDept] = useState({ name: '', head: '', count: 0 });
   const [showAddDept, setShowAddDept] = useState(false);
 
-  const addDept = () => {
-    if (!newDept.name || !newDept.head) {
-      addToast('Please input department name and head', 'error');
+  const addDept = async () => {
+    if (!newDept.name) {
+      addToast('Please input department name', 'error');
       return;
     }
-    setDepartments([...departments, { ...newDept }]);
-    setNewDept({ name: '', head: '', count: 0 });
-    setShowAddDept(false);
-    addToast('Department added successfully.', 'success');
+    try {
+      const code = newDept.name.replace(/[^A-Za-z0-9]/g, '').slice(0, 8).toUpperCase() || 'DEPT';
+      const created = await createDepartment({
+        name: newDept.name.trim(),
+        code,
+        description: newDept.head?.trim() || undefined,
+      });
+      setDepartments((prev) => [
+        ...prev,
+        { name: created.name, head: newDept.head || '—', count: 0 },
+      ]);
+      setLiveDepartments((prev) => [...prev, created]);
+      setNewDept({ name: '', head: '', count: 0 });
+      setShowAddDept(false);
+      addToast('Department added successfully.', 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create department.', 'error');
+    }
   };
 
-  const [grades, setGrades] = useState([
-    { id: 'G-3', min: 'SGD 2,500', max: 'SGD 4,000' },
-    { id: 'G-5', min: 'SGD 4,500', max: 'SGD 6,000' },
-    { id: 'G-7', min: 'SGD 6,550', max: 'SGD 9,000' },
-    { id: 'G-9', min: 'SGD 9,550', max: 'SGD 15,000' },
-  ]);
+  const [grades, setGrades] = useState<{ id: string; min: string; max: string }[]>([]);
   const [newGrade, setNewGrade] = useState({ id: '', min: '', max: '' });
   const [showAddGrade, setShowAddGrade] = useState(false);
 
-  const addGrade = () => {
+  const addGrade = async () => {
     if (!newGrade.id || !newGrade.min || !newGrade.max) {
       addToast('Please fill in grade code and salary bounds', 'error');
       return;
     }
-    setGrades([...grades, { ...newGrade }]);
-    setNewGrade({ id: '', min: '', max: '' });
-    setShowAddGrade(false);
-    addToast('New salary Grade bracket established.', 'success');
-  };
-
-  // 5. Users & Accounts State (with updated emails)
-  const [systemUsers, setSystemUsers] = useState([
-    { id: 1, name: 'HR Admin', email: 'hr@novora.com', role: 'Super admin', lastActive: 'Just now', status: 'Active' },
-    { id: 2, name: 'Nina Reza', email: 'nina@novora.com', role: 'HR manager', lastActive: '6 May 09:15', status: 'Active' },
-    { id: 3, name: 'David Ng', email: 'david@novora.com', role: 'Department head', lastActive: '5 May 18:42', status: 'Active' },
-  ]);
-  const [showAddUser, setShowAddUser] = useState(false);
-  const [newUser, setNewUser] = useState({ name: '', email: '', role: 'Department head' });
-
-  const inviteUser = () => {
-    if (!newUser.name || !newUser.email) {
-      addToast('Please specify user name and invitation email', 'error');
-      return;
+    const minN = Number(String(newGrade.min).replace(/[^0-9.]/g, ''))
+    const maxN = Number(String(newGrade.max).replace(/[^0-9.]/g, ''))
+    try {
+      const created = await createPosition({
+        title: newGrade.id.trim(),
+        level: newGrade.id.trim(),
+        minSalary: Number.isFinite(minN) ? minN : undefined,
+        maxSalary: Number.isFinite(maxN) ? maxN : undefined,
+        active: true,
+      })
+      setGrades((prev) => [...prev, mapPositionToGrade(created)])
+      setNewGrade({ id: '', min: '', max: '' });
+      setShowAddGrade(false);
+      addToast('New salary Grade bracket established.', 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create position/grade.', 'error')
     }
-    setSystemUsers([
-      ...systemUsers,
-      {
-        id: createLocalNumericId(),
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        lastActive: 'Pending invite',
-        status: 'Active',
-      },
-    ]);
-    setNewUser({ name: '', email: '', role: 'Department head' });
-    setShowAddUser(false);
-    addToast(`Security invite email dispatched to ${newUser.email}`, 'success');
   };
+
+  // 5. Users & Accounts — loaded from /api/admin/users
+  const [systemUsers, setSystemUsers] = useState<SystemUserRow[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [showAddUser, setShowAddUser] = useState(false);
+  const [newUser, setNewUser] = useState({ name: '', email: '', role: 'HR manager' });
+  const [availableRoleCodes, setAvailableRoleCodes] = useState<string[]>([]);
+  const [liveDepartments, setLiveDepartments] = useState<DepartmentRow[]>([]);
+
+  const loadAdminUsers = useCallback(async () => {
+    setUsersLoading(true)
+    try {
+      const [users, roleCodes, depts, org, branchRows, positionRows, logs] = await Promise.all([
+        fetchAdminUsers(),
+        fetchAdminRoles().catch(() => [] as string[]),
+        fetchDepartments().catch(() => [] as DepartmentRow[]),
+        fetchOrganization().catch(() => null),
+        fetchBranches().catch(() => [] as BranchRow[]),
+        fetchPositions().catch(() => [] as PositionRow[]),
+        fetchAuditLogs().catch(() => [] as AuditLogRow[]),
+      ])
+      setSystemUsers(users.map(mapAdminUser))
+      setAvailableRoleCodes(roleCodes.length ? roleCodes : ['SUPER_ADMIN', 'HR_ADMIN', 'HR_MANAGER', 'EMPLOYEE'])
+      setLiveDepartments(depts)
+      if (org) {
+        setProfile((prev) => ({
+          ...prev,
+          companyName: org.name || prev.companyName,
+          legalName: org.legalName || prev.legalName,
+          registrationNo: org.registrationNo || prev.registrationNo,
+          addr1: org.addressLine1 || prev.addr1,
+          city: org.city || prev.city,
+          country: org.country || prev.country,
+          phone: org.phone || prev.phone,
+          website: org.website || prev.website,
+        }))
+      }
+      setBranches(branchRows.map(mapBranchRow))
+      setGrades(positionRows.map(mapPositionToGrade))
+      setAuditLogs(
+        logs.map((log) => ({
+          time: log.createdAt ? new Date(log.createdAt).toLocaleString() : '—',
+          user: log.userEmail || 'System',
+          action: log.action,
+          module: log.tableName || '—',
+          ip: log.recordId || '—',
+        })),
+      )
+    } catch (err) {
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load admin users.', 'error')
+      }
+    } finally {
+      setUsersLoading(false)
+    }
+  }, [addToast])
+
+  useEffect(() => {
+    void loadAdminUsers()
+  }, [loadAdminUsers])
+
+  useEffect(() => {
+    if (liveDepartments.length === 0) return
+    setDepartments(
+      liveDepartments.map((d) => ({
+        name: d.name,
+        head: d.description || '—',
+        count: 0,
+      })),
+    )
+  }, [liveDepartments])
+
+  useEffect(() => {
+    if (availableRoleCodes.length === 0) return
+    setRoles(
+      availableRoleCodes.map((code) => ({
+        name: ROLE_LABEL[code] || code,
+        type: code === 'SUPER_ADMIN' ? 'System default' : 'Workspace role',
+        desc:
+          code === 'SUPER_ADMIN'
+            ? 'Unrestricted read/write credentials across every module'
+            : code === 'HR_ADMIN' || code === 'HR_MANAGER'
+              ? 'Can administer people, leave, payroll and claims'
+              : 'Self-service access for personal work modules',
+      })),
+    )
+  }, [availableRoleCodes])
+
+  const inviteUser = async () => {
+    const email =
+      window.prompt('Email for the new user:', newUser.email.trim())?.trim() || ''
+    if (!email) {
+      addToast('Email is required to invite a user.', 'error')
+      return
+    }
+    const temporaryPassword = window.prompt(
+      `Temporary password for ${email} (8+ chars, upper, lower, number, symbol):`,
+    )
+    if (!temporaryPassword) return
+    try {
+      await inviteUserApi({
+        email,
+        temporaryPassword,
+        roles: [LABEL_TO_ROLE[newUser.role] || 'EMPLOYEE'],
+      })
+      setNewUser({ name: '', email: '', role: 'HR manager' })
+      setShowAddUser(false)
+      await loadAdminUsers()
+      addToast(`Invited ${email}.`, 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not invite user.', 'error')
+    }
+  }
+
+  const handleRevokeAccess = async (userId: string, email: string) => {
+    try {
+      await deactivateUser(userId)
+      await loadAdminUsers()
+      addToast(`Revoked access for ${email}.`, 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not revoke access.', 'error')
+    }
+  }
+
+  const changeUserRole = async (userId: string, label: string) => {
+    const code = LABEL_TO_ROLE[label] || label.toUpperCase().replace(/\s+/g, '_')
+    try {
+      const updated = await updateUserRoles(userId, [code])
+      setSystemUsers((prev) => prev.map((u) => (u.id === userId ? mapAdminUser(updated) : u)))
+      addToast(`Role updated to ${ROLE_LABEL[code] || code}.`, 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not update role.', 'error')
+    }
+  }
+
+  const handleActivateUser = async (userId: string, email: string) => {
+    const password = window.prompt(
+      `Set initial password for ${email} (8+ chars, upper, lower, number, symbol):`,
+    )
+    if (!password) return
+    try {
+      await activateUser(userId, { password })
+      setSystemUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, status: 'Active' } : u)),
+      )
+      addToast(`Activated ${email}.`, 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not activate user.', 'error')
+    }
+  }
 
   // 6. Security Roles Configuration State
   const [roles, setRoles] = useState([
@@ -477,14 +745,9 @@ export default function SettingsTab({
 
   // 11. Audit Log Filter
   const [logFilter, setLogFilter] = useState('');
-  const auditLogs = [
-    { time: '6 May 10:42', user: 'David Ng', action: 'Approved claim SGD 120.00', module: 'Claims', ip: '192.168.1.24' },
-    { time: '6 May 09:15', user: 'HR Admin', action: 'Updated payroll - May 2026', module: 'Payroll', ip: '192.168.1.10' },
-    { time: '5 May 18:30', user: 'Nina Reza', action: 'Added disciplinary case EMP-0187', module: 'Disciplinary', ip: '192.168.1.14' },
-    { time: '5 May 16:00', user: 'HR Admin', action: 'Deleted user account (EMP-0199)', module: 'Users', ip: '192.168.1.10' },
-    { time: '4 May 11:00', user: 'HR Admin', action: 'Exported payroll report Apr 2026', module: 'Payroll', ip: '192.168.1.10' },
-    { time: '3 May 15:15', user: 'Nina Reza', action: 'Updated compensation benefits policies', module: 'Benefits', ip: '192.168.1.14' },
-  ];
+  const [auditLogs, setAuditLogs] = useState<
+    { time: string; user: string; action: string; module: string; ip: string }[]
+  >([]);
 
   const filteredLogs = auditLogs.filter(
     log =>
@@ -503,6 +766,43 @@ export default function SettingsTab({
     currency: 'SGD — Singapore Dollar',
     weekStart: 'Monday',
   });
+  const [holidays, setHolidays] = useState<HolidayRow[]>([]);
+  const [newHoliday, setNewHoliday] = useState({ name: '', holidayDate: '' });
+
+  const loadHolidays = useCallback(async () => {
+    try {
+      const rows = await fetchHolidays(true)
+      setHolidays(rows)
+    } catch (err) {
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load holidays.', 'error')
+      }
+    }
+  }, [addToast])
+
+  useEffect(() => {
+    if (activeSubTab === 'Language') {
+      void loadHolidays()
+    }
+  }, [activeSubTab, loadHolidays])
+
+  const handleAddHoliday = async () => {
+    if (!newHoliday.name.trim() || !newHoliday.holidayDate) {
+      addToast('Holiday name and date are required.', 'error')
+      return
+    }
+    try {
+      await createHoliday({
+        name: newHoliday.name.trim(),
+        holidayDate: newHoliday.holidayDate,
+      })
+      setNewHoliday({ name: '', holidayDate: '' })
+      await loadHolidays()
+      addToast('Holiday added.', 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create holiday.', 'error')
+    }
+  }
 
   const saveRegional = () => {
     addToast('Updating system localisation arrays...', 'loading');
@@ -1161,7 +1461,7 @@ export default function SettingsTab({
                   </select>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={inviteUser} className="px-3 py-1.5 bg-novora text-white font-bold text-xs rounded-lg cursor-pointer">
+                  <button onClick={() => void inviteUser()} className="px-3 py-1.5 bg-novora text-white font-bold text-xs rounded-lg cursor-pointer">
                     Dispatch invite
                   </button>
                   <button onClick={() => setShowAddUser(false)} className="px-3 py-1.5 bg-slate-200 text-slate-700 font-bold text-xs rounded-lg cursor-pointer">
@@ -1184,6 +1484,20 @@ export default function SettingsTab({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-semibold text-slate-600">
+                  {usersLoading && (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-4 text-slate-400">
+                        Loading users…
+                      </td>
+                    </tr>
+                  )}
+                  {!usersLoading && systemUsers.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-4 text-slate-400">
+                        No users found for this workspace.
+                      </td>
+                    </tr>
+                  )}
                   {systemUsers.map((su) => (
                     <tr key={su.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-5 py-3.5">
@@ -1191,36 +1505,49 @@ export default function SettingsTab({
                         <div className="text-[10px] text-slate-400 font-bold mt-0.5">{su.email}</div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={`px-2 py-0.5 text-[9.5px] font-extrabold rounded-md uppercase tracking-wide border border-slate-100 ${
-                          su.role === 'Super admin'
-                            ? 'bg-blue-50 text-blue-650 border-blue-100'
-                            : su.role === 'HR manager'
-                            ? 'bg-purple-50 text-purple-650 border-purple-100'
-                            : 'bg-amber-50 text-amber-650 border-amber-100'
-                        }`}>
-                          {su.role}
-                        </span>
+                        <select
+                          value={su.role}
+                          onChange={(e) => void changeUserRole(su.id, e.target.value)}
+                          className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-extrabold uppercase tracking-wide outline-none cursor-pointer"
+                        >
+                          {(availableRoleCodes.length
+                            ? availableRoleCodes
+                            : ['SUPER_ADMIN', 'HR_ADMIN', 'HR_MANAGER', 'EMPLOYEE']
+                          ).map((code) => (
+                            <option key={code} value={ROLE_LABEL[code] || code}>
+                              {ROLE_LABEL[code] || code}
+                            </option>
+                          ))}
+                        </select>
                       </td>
                       <td className="px-5 py-3.5 text-slate-500 font-medium">{su.lastActive}</td>
                       <td className="px-5 py-3.5">
-                        <span className="bg-emerald-50 text-emerald-650 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase">
-                          Active State
+                        <span
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase border ${
+                            su.status === 'Active'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                              : 'bg-slate-50 text-slate-500 border-slate-100'
+                          }`}
+                        >
+                          {su.status}
                         </span>
                       </td>
                       <td className="px-5 py-3.5 text-right">
-                        <button
-                          onClick={() => {
-                            if (su.id === 1) {
-                              addToast('Protection: cannot purge primary root admin.', 'error');
-                              return;
-                            }
-                            setSystemUsers(systemUsers.filter((u) => u.id !== su.id));
-                            addToast('Operator access revoked successfully.', 'success');
-                          }}
-                          className="text-red-500 hover:text-red-750 hover:underline cursor-pointer"
-                        >
-                          Revoke Access
-                        </button>
+                        {su.status !== 'Active' ? (
+                          <button
+                            onClick={() => void handleActivateUser(su.id, su.email)}
+                            className="text-novora hover:text-blue-800 hover:underline cursor-pointer"
+                          >
+                            Activate
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => void handleRevokeAccess(su.id, su.email)}
+                            className="text-red-500 hover:text-red-750 hover:underline cursor-pointer"
+                          >
+                            Revoke Access
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -2364,26 +2691,61 @@ export default function SettingsTab({
 
             {/* Public holidays subpanel */}
             <div className="border-t border-slate-100 pt-5 space-y-4">
-              <h3 className="text-xs font-bold text-slate-800">Public Holidays Schedule</h3>
-              <p className="text-[10.5px] font-semibold text-slate-400 leading-normal">Selected country: **Singapore**. Public holidays mapped to Singapore calendar. 4 custom holiday override guidelines added.</p>
-              
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-xs font-bold text-slate-800">Public Holidays Schedule</h3>
+                  <p className="text-[10.5px] font-semibold text-slate-400 leading-normal mt-1">
+                    Company holidays loaded from the admin calendar.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  placeholder="Holiday name"
+                  value={newHoliday.name}
+                  onChange={(e) => setNewHoliday({ ...newHoliday, name: e.target.value })}
+                  className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-novora"
+                />
+                <input
+                  type="date"
+                  value={newHoliday.holidayDate}
+                  onChange={(e) => setNewHoliday({ ...newHoliday, holidayDate: e.target.value })}
+                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-novora"
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleAddHoliday()}
+                  className="px-3 py-2 bg-novora text-white font-bold text-xs rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add
+                </button>
+              </div>
+
               <div className="bg-slate-50/55 rounded-2xl border border-slate-100 p-4 divide-y divide-slate-100 font-semibold text-slate-600 text-xs">
-                <div className="py-2.5 flex justify-between items-center">
-                  <span>Hari Raya Aidilfitri</span>
-                  <span className="font-bold text-slate-800">31 March</span>
-                </div>
-                <div className="py-2.5 flex justify-between items-center">
-                  <span>Labour Day</span>
-                  <span className="font-bold text-slate-800">1 May</span>
-                </div>
-                <div className="py-2.5 flex justify-between items-center">
-                  <span>Wesak Day</span>
-                  <span className="font-bold text-slate-800">12 May</span>
-                </div>
-                <div className="py-2.5 flex justify-between items-center">
-                  <span>National Day</span>
-                  <span className="font-bold text-slate-800">9 August</span>
-                </div>
+                {holidays.length === 0 ? (
+                  <div className="py-2.5 text-slate-400">No holidays configured yet.</div>
+                ) : (
+                  holidays.map((h) => {
+                    let dateLabel = h.holidayDate
+                    try {
+                      dateLabel = new Date(h.holidayDate).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'long',
+                      })
+                    } catch {
+                      /* keep raw */
+                    }
+                    return (
+                      <div key={h.id} className="py-2.5 flex justify-between items-center">
+                        <span>{h.name}</span>
+                        <span className="font-bold text-slate-800">{dateLabel}</span>
+                      </div>
+                    )
+                  })
+                )}
               </div>
             </div>
 

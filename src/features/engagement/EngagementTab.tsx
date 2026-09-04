@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { createLocalId } from '@/lib/createLocalId'
 import { 
   Smile, 
@@ -33,6 +33,8 @@ import {
   Briefcase
 } from 'lucide-react';
 import type { Employee } from '@/types';
+import ModuleHeader from '@/components/ui/ModuleHeader';
+import { ApiError, createFeedPost, fetchFeed, type FeedPost } from '@/services';
 
 interface EngagementTabProps {
   employees: Employee[];
@@ -78,6 +80,14 @@ interface ShoutOut {
   message: string;
   timestamp: string;
   clapsCount: number;
+}
+
+interface FeedAnnouncement {
+  id: string;
+  title: string;
+  body: string;
+  authorName: string;
+  createdAt: string;
 }
 
 interface ActionPlan {
@@ -246,7 +256,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
   const badgePresets = [
     { text: 'Collaborative Hero', icon: '🤝', colorClass: 'text-emerald-600 bg-emerald-50 border-emerald-100', description: 'Excellent assistance across project verticals' },
     { text: 'Innovation Spark', icon: '💡', colorClass: 'text-blue-600 bg-blue-50 border-blue-100', description: 'Invented or customized clever workflow operations' },
-    { text: 'Super Speed Deliverer', icon: '🚀', colorClass: 'text-purple-600 bg-purple-50 border-purple-100', description: 'Demonstrated rapid execution in times of crunch' },
+    { text: 'Super Speed Deliverer', icon: '🚀', colorClass: 'text-sky-600 bg-sky-50 border-sky-100', description: 'Demonstrated rapid execution in times of crunch' },
     { text: 'Welfare Champion', icon: '💖', colorClass: 'text-rose-600 bg-rose-50 border-rose-100', description: 'Showed empathy, guidance, or extreme support' },
     { text: 'Pristine Deliverer', icon: '🌟', colorClass: 'text-amber-600 bg-amber-50 border-amber-100', description: 'Demonstrated deep expertise and faultless design' }
   ];
@@ -255,32 +265,57 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
   const [selectedBadgeIndex, setSelectedBadgeIndex] = useState(0);
   const [shoutOutMessage, setShoutOutMessage] = useState('');
 
-  const [shoutOuts, setShoutOuts] = useState<ShoutOut[]>([
-    {
-      id: 'SO-001',
-      senderName: 'Anonymous • Product Lead',
-      receiverId: 'EMP-001',
-      receiverName: 'Sarah Lim',
-      receiverPosition: 'Lead Software Architect',
-      receiverDept: 'Engineering',
-      badge: { icon: '🌟', text: 'Pristine Deliverer', colorClass: 'text-amber-600', bgClass: 'bg-amber-50 border-amber-150' },
-      message: 'Massive high-fives to Sarah for single-handedly managing the continuous integration server database upgrades. Everything ran with perfect uptime on deployment!',
-      timestamp: '2 hours ago',
-      clapsCount: 14
-    },
-    {
-      id: 'SO-002',
-      senderName: 'Pinky Sharma',
-      receiverId: 'EMP-0285',
-      receiverName: 'Raj Kumar',
-      receiverPosition: 'Senior Operations Executive',
-      receiverDept: 'Operations',
-      badge: { icon: '🤝', text: 'Collaborative Hero', colorClass: 'text-emerald-600', bgClass: 'bg-emerald-50 border-emerald-150' },
-      message: 'Raj helped me clear several pending transit insurance claims with alliance representatives under tight time boxes. Truly cooperative teammate!',
-      timestamp: 'Yesterday',
-      clapsCount: 9
+  const [shoutOuts, setShoutOuts] = useState<ShoutOut[]>([]);
+  const [announcements, setAnnouncements] = useState<FeedAnnouncement[]>([]);
+
+  const mapFeedPost = (post: FeedPost): FeedAnnouncement => ({
+    id: post.id,
+    title: post.title,
+    body: post.body,
+    authorName: post.authorName || 'HR',
+    createdAt: post.createdAt ? new Date(post.createdAt).toLocaleString() : '—',
+  })
+
+  const loadFeed = useCallback(async () => {
+    try {
+      const posts = await fetchFeed()
+      setAnnouncements(posts.map(mapFeedPost))
+      // Surface feed posts as shout-out style cards when they look like shout-outs
+      setShoutOuts(
+        posts
+          .filter((p) => p.title.toLowerCase().startsWith('shout-out'))
+          .map((p) => {
+            const forMatch = p.title.match(/shout-out for (.+)/i)
+            const receiverName = forMatch?.[1]?.trim() || 'Team'
+            return {
+              id: p.id,
+              senderName: p.authorName || 'HR',
+              receiverId: '',
+              receiverName,
+              receiverPosition: '—',
+              receiverDept: '—',
+              badge: {
+                icon: '🌟',
+                text: 'Announcement',
+                colorClass: 'text-amber-600',
+                bgClass: 'bg-amber-50 border-amber-150',
+              },
+              message: p.body,
+              timestamp: p.createdAt ? new Date(p.createdAt).toLocaleString() : '—',
+              clapsCount: 0,
+            } satisfies ShoutOut
+          }),
+      )
+    } catch (err) {
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load engagement feed.', 'error')
+      }
     }
-  ]);
+  }, [addToast])
+
+  useEffect(() => {
+    void loadFeed()
+  }, [loadFeed])
 
   // -------------------------------------------------------------
   // STATE 4: MANAGER SENTIMENT DESK & ACTIONS PLANS
@@ -401,7 +436,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
     }));
   };
 
-  const handleShoutOutSubmit = (e: React.FormEvent) => {
+  const handleShoutOutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!shoutOutMessage.trim() || shoutOutMessage.length < 15) {
       addToast('Please type an authentic appreciation token containing real context.', 'error');
@@ -415,28 +450,41 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
     }
 
     const badgePreset = badgePresets[selectedBadgeIndex];
+    const title = `Shout-out for ${selectedEmployee.name}`
+    const body = shoutOutMessage.trim()
 
-    const newShoutOut: ShoutOut = {
-      id: `SO-0${shoutOuts.length + 1}`,
-      senderName: 'You (Authenticated)',
-      receiverId: selectedEmployee.id,
-      receiverName: selectedEmployee.name,
-      receiverPosition: selectedEmployee.position,
-      receiverDept: selectedEmployee.department,
-      badge: {
-        icon: badgePreset.icon,
-        text: badgePreset.text,
-        colorClass: badgePreset.colorClass.split(' ')[0],
-        bgClass: badgePreset.colorClass.split(' ').slice(1).join(' ') + ' border border-slate-100'
-      },
-      message: shoutOutMessage,
-      timestamp: 'Just now',
-      clapsCount: 1
-    };
+    try {
+      const created = await createFeedPost({ title, body })
+      setAnnouncements((prev) => [mapFeedPost(created), ...prev])
 
-    setShoutOuts([newShoutOut, ...shoutOuts]);
-    setShoutOutMessage('');
-    addToast(`Welfare High-Five published! Recipient notified at ${selectedEmployee.email}`, 'success');
+      const newShoutOut: ShoutOut = {
+        id: created.id,
+        senderName: created.authorName || 'You (Authenticated)',
+        receiverId: selectedEmployee.id,
+        receiverName: selectedEmployee.name,
+        receiverPosition: selectedEmployee.position,
+        receiverDept: selectedEmployee.department,
+        badge: {
+          icon: badgePreset.icon,
+          text: badgePreset.text,
+          colorClass: badgePreset.colorClass.split(' ')[0],
+          bgClass: badgePreset.colorClass.split(' ').slice(1).join(' ') + ' border border-slate-100'
+        },
+        message: body,
+        timestamp: 'Just now',
+        clapsCount: 1
+      };
+
+      setShoutOuts((prev) => [newShoutOut, ...prev]);
+      setShoutOutMessage('');
+      addToast(`Welfare High-Five published! Recipient notified at ${selectedEmployee.email}`, 'success');
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 403) {
+        addToast('You do not have permission to post announcements.', 'error')
+        return
+      }
+      addToast(err instanceof ApiError ? err.message : 'Could not publish shout-out.', 'error')
+    }
   };
 
   const handleClapShoutOut = (id: string) => {
@@ -491,7 +539,11 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
 
   return (
     <div id="engagement-management-component-root" className="space-y-6">
-      
+      <ModuleHeader
+        title="Engagement"
+        description="Pulse surveys, shout-outs, and sentiment."
+      />
+
       {/* Upper Module Navigation Bar */}
       <div id="engagement-navigator-row" className="flex flex-col lg:flex-row lg:items-center justify-between nv-card px-4 py-1.5 gap-3">
         <div id="engagement-nav-tabs" className="flex items-center gap-1 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
@@ -536,7 +588,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
 
 
           {/* eNPS Gauge & Voting Card Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 nv-stagger">
             
             {/* Real-time calculated score indicator */}
             <div className="bg-white border border-slate-100 p-6 rounded-2xl shadow-xs flex flex-col justify-between">
@@ -940,6 +992,22 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                 <span className="text-[9.5px] font-extrabold text-slate-400">Values in Action</span>
               </div>
 
+              {announcements.length > 0 && (
+                <div className="space-y-2">
+                  <h6 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Announcements</h6>
+                  {announcements.slice(0, 5).map((a) => (
+                    <div key={a.id} className="bg-white border border-slate-100 p-4 rounded-xl">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-[11.5px] font-black text-slate-800">{a.title}</span>
+                        <span className="text-[9px] font-bold text-slate-400 shrink-0">{a.createdAt}</span>
+                      </div>
+                      <p className="text-xs text-slate-600 font-semibold leading-relaxed">{a.body}</p>
+                      <span className="text-[9.5px] text-slate-400 font-bold mt-1.5 block">By {a.authorName}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Feed lists */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {shoutOuts.map((card) => (
@@ -1036,7 +1104,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
             </div>
 
             <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs flex items-center gap-4.5">
-              <span className="p-3 bg-purple-50 text-purple-650 rounded-xl">
+              <span className="p-3 bg-sky-50 text-sky-650 rounded-xl">
                 <ClipboardList className="h-5.5 w-5.5" />
               </span>
               <div>
@@ -1271,7 +1339,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
             <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Peer Appreciation</span>
-                <MessageSquare className="h-4 w-4 text-purple-500" />
+                <MessageSquare className="h-4 w-4 text-sky-500" />
               </div>
               <div className="mt-2.5">
                 <span className="text-2xl font-black text-slate-800">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { createLocalId } from '@/lib/createLocalId'
 import {
   Briefcase,
@@ -39,10 +39,6 @@ import {
 } from 'lucide-react';
 import {
   initialRequisitions,
-  initialPostings,
-  initialCandidates,
-  initialInterviews,
-  initialOffers,
   initialPreOnboarding,
 } from '@/mocks/mockRecruitment'
 import type {
@@ -53,6 +49,171 @@ import type {
   Offer,
   PreOnboarding,
 } from '@/mocks/mockRecruitment'
+import {
+  ApiError,
+  createRecruitmentCandidate,
+  createRecruitmentInterview,
+  createRecruitmentJob,
+  createRecruitmentOffer,
+  fetchRecruitmentCandidates,
+  fetchRecruitmentInterviews,
+  fetchRecruitmentJobs,
+  fetchRecruitmentOffers,
+  type RecruitmentCandidateRow,
+  type RecruitmentInterviewRow,
+  type RecruitmentJobRow,
+  type RecruitmentOfferRow,
+} from '@/services'
+import ModuleHeader from '@/components/ui/ModuleHeader'
+
+function mapJobStatus(status: string): JobPosting['status'] {
+  const s = status.toLowerCase()
+  if (s === 'closed' || s === 'filled') return 'Closed'
+  if (s === 'on_hold') return 'On hold'
+  return 'Live'
+}
+
+function mapJobRow(j: RecruitmentJobRow): JobPosting {
+  return {
+    id: j.id,
+    position: j.title,
+    channel: j.published ? 'Careers portal' : 'Draft',
+    views: 0,
+    applicants: Number(j.applicantCount || 0),
+    status: mapJobStatus(j.status),
+    department: j.departmentName || '—',
+  }
+}
+
+function mapCandidateStage(stage: string): Candidate['stage'] {
+  const s = stage.toLowerCase()
+  if (s === 'screening') return 'Screening'
+  if (s === 'interview') return 'Phone interview'
+  if (s === 'technical' || s === 'hr_interview') return 'Panel interview'
+  if (s === 'offer') return 'Offer'
+  if (s === 'hired') return 'Hired'
+  return 'Applied'
+}
+
+function mapCandidateRow(c: RecruitmentCandidateRow): Candidate {
+  const applied = c.appliedAt ? new Date(c.appliedAt).toLocaleDateString() : '—'
+  return {
+    id: c.id,
+    name: c.fullName,
+    experience: '—',
+    education: '—',
+    source: c.source || 'other',
+    matchScore: '—',
+    stage: mapCandidateStage(c.stage),
+    appliedDate: applied,
+    positionApplied: c.jobTitle || '—',
+  }
+}
+
+function mapInterviewMode(mode: string | null): Interview['format'] {
+  const m = (mode || '').toLowerCase()
+  if (m === 'phone') return 'Phone'
+  if (m === 'in_person' || m === 'in-person' || m === 'in person') return 'In person'
+  return 'Video'
+}
+
+function mapInterviewStatus(status: string): Interview['status'] {
+  const s = status.toLowerCase()
+  if (s === 'completed') return 'Completed'
+  if (s === 'pending' || s === 'scheduled') return 'Pending'
+  if (s === 'no_show' || s === 'no-show') return 'No show'
+  return 'Confirmed'
+}
+
+function mapInterviewRow(
+  row: RecruitmentInterviewRow,
+  candidatesById: Map<string, Candidate>,
+): Interview {
+  const scheduled = row.scheduledAt ? new Date(row.scheduledAt) : null
+  const candidate = candidatesById.get(row.candidateId)
+  return {
+    id: row.id,
+    candidateName: row.candidateName || candidate?.name || '—',
+    position: candidate?.positionApplied || '—',
+    stage: row.round || 'Interview',
+    date: scheduled ? scheduled.toLocaleDateString() : '—',
+    time: scheduled
+      ? scheduled.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : '—',
+    format: mapInterviewMode(row.mode),
+    status: mapInterviewStatus(row.status),
+  }
+}
+
+function mapOfferStatus(status: string): Offer['status'] {
+  const s = status.toLowerCase()
+  if (s === 'accepted') return 'Accepted'
+  if (s === 'declined') return 'Declined'
+  if (s === 'draft') return 'Draft'
+  return 'Sent'
+}
+
+function mapOfferRow(row: RecruitmentOfferRow): Offer {
+  return {
+    id: row.id,
+    candidateName: row.candidateName || '—',
+    position: '—',
+    salary: row.salary != null ? Number(row.salary).toLocaleString() : '—',
+    sentDate: row.sentAt ? new Date(row.sentAt).toLocaleDateString() : '—',
+    expiryDate: row.expiryDate ? new Date(row.expiryDate).toLocaleDateString() : '—',
+    status: mapOfferStatus(row.status),
+    allowance: row.allowance != null ? String(row.allowance) : '—',
+    grade: row.grade || '—',
+    probation: row.probation || '—',
+  }
+}
+
+function formatToApiMode(format: Interview['format']): string {
+  if (format === 'Phone') return 'phone'
+  if (format === 'In person') return 'in_person'
+  return 'video'
+}
+
+function buildScheduledAtIso(date: string, time: string): string {
+  const datePart = date?.trim() || new Date().toISOString().slice(0, 10)
+  const raw = (time || '09:00').trim()
+  const ampm = raw.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i)
+  let hours = 9
+  let minutes = 0
+  if (ampm) {
+    hours = Number(ampm[1]) % 12
+    if (/pm/i.test(ampm[3])) hours += 12
+    minutes = Number(ampm[2])
+  } else {
+    const parts = raw.match(/(\d{1,2}):(\d{2})/)
+    if (parts) {
+      hours = Number(parts[1])
+      minutes = Number(parts[2])
+    }
+  }
+  const hh = String(hours).padStart(2, '0')
+  const mm = String(minutes).padStart(2, '0')
+  const local = new Date(`${datePart}T${hh}:${mm}:00`)
+  if (Number.isNaN(local.getTime())) return new Date().toISOString()
+  return local.toISOString()
+}
+
+function parseSalary(raw: string): number | undefined {
+  const n = Number(String(raw).replace(/[^0-9.]/g, ''))
+  return Number.isFinite(n) && n > 0 ? n : undefined
+}
+
+function sourceToApi(source: string): string {
+  const s = source.toLowerCase()
+  if (s.includes('linkedin')) return 'linkedin'
+  if (s.includes('refer')) return 'referral'
+  if (s.includes('agency')) return 'agency'
+  if (s.includes('walk')) return 'walk_in'
+  if (s.includes('web') || s.includes('career') || s.includes('jobstreet') || s.includes('indeed')) {
+    return 'website'
+  }
+  return 'other'
+}
 
 interface RecruitmentTabProps {
   addToast: (text: string, type: 'success' | 'loading' | 'error' | 'info') => void;
@@ -73,17 +234,76 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
 
   // Core Data states
   const [requisitions, setRequisitions] = useState<JobRequisition[]>(initialRequisitions);
-  const [postings, setPostings] = useState<JobPosting[]>(initialPostings);
-  const [candidates, setCandidates] = useState<Candidate[]>(initialCandidates);
-  const [interviews, setInterviews] = useState<Interview[]>(initialInterviews);
-  const [offers, setOffers] = useState<Offer[]>(initialOffers);
+  const [postings, setPostings] = useState<JobPosting[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [interviews, setInterviews] = useState<Interview[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [preOnboardings, setPreOnboardings] = useState<PreOnboarding[]>(initialPreOnboarding);
+  const [recruitmentLoading, setRecruitmentLoading] = useState(true);
 
   // Selection states
-  const [selectedCandidateId, setSelectedCandidateId] = useState<string>('CAND-004');
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string>('');
   const [selectedInterviewId, setSelectedInterviewId] = useState<string>('INT-01');
   const [selectedOfferId, setSelectedOfferId] = useState<string>('OFFER-001');
   const [selectedPreOnboardId, setSelectedPreOnboardId] = useState<string>('PRE-01');
+
+  const loadRecruitment = useCallback(async () => {
+    setRecruitmentLoading(true)
+    try {
+      const [jobs, cands, ints, offs] = await Promise.all([
+        fetchRecruitmentJobs(),
+        fetchRecruitmentCandidates(),
+        fetchRecruitmentInterviews(),
+        fetchRecruitmentOffers(),
+      ])
+      const mappedCandidates = cands.map(mapCandidateRow)
+      const byId = new Map(mappedCandidates.map((c) => [c.id, c]))
+      setPostings(jobs.map(mapJobRow))
+      setCandidates(mappedCandidates)
+      setInterviews(ints.map((row) => mapInterviewRow(row, byId)))
+      setOffers(offs.map(mapOfferRow))
+      if (cands.length > 0) {
+        setSelectedCandidateId(cands[0].id)
+      }
+      if (ints.length > 0) {
+        setSelectedInterviewId(ints[0].id)
+      }
+      if (offs.length > 0) {
+        setSelectedOfferId(offs[0].id)
+      }
+      // Map open jobs into requisitions when API data is present
+      if (jobs.length > 0) {
+        setRequisitions(
+          jobs.map((j) => ({
+            id: j.id,
+            positionTitle: j.title,
+            department: j.departmentName || '—',
+            type: j.employmentType || 'Permanent',
+            requestedBy: '—',
+            openDate: j.openDate ? new Date(j.openDate).toLocaleDateString() : '—',
+            targetFill: j.closeDate ? new Date(j.closeDate).toLocaleDateString() : '—',
+            applicants: Number(j.applicantCount || 0),
+            status:
+              j.status.toLowerCase() === 'closed' || j.status.toLowerCase() === 'filled'
+                ? 'Filled'
+                : j.status.toLowerCase() === 'on_hold'
+                  ? 'On hold'
+                  : 'Open',
+          })),
+        )
+      }
+    } catch (err) {
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load recruitment data.', 'error')
+      }
+    } finally {
+      setRecruitmentLoading(false)
+    }
+  }, [addToast])
+
+  useEffect(() => {
+    void loadRecruitment()
+  }, [loadRecruitment])
 
   // Modal open states
   const [requisitionModalOpen, setRequisitionModalOpen] = useState(false);
@@ -202,12 +422,12 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
   });
 
   // Handle addition callbacks
-  const handleCreateRequisition = (e: React.FormEvent) => {
+  const handleCreateRequisition = async (e: React.FormEvent) => {
     e.preventDefault();
     const resolvedTitle = reqForm.positionTitle.trim() || 'HR Business Partner';
     const reqId = `REQ-2026-0${13 + requisitions.length}`;
 
-    // Create the new Job Requisition record
+    // Create the new Job Requisition record (local until requisition API exists)
     const req: JobRequisition = {
       id: reqId,
       positionTitle: resolvedTitle,
@@ -222,34 +442,27 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
 
     setRequisitions([req, ...requisitions]);
 
-    // Handle Auto-Publish Action!
-    // If autoPublish is checked, create live active job postings for each checked channel!
     if (reqForm.autoPublish) {
-      const activeChannels: string[] = [];
-      if (reqForm.channels.internal) activeChannels.push('Internal');
-      if (reqForm.channels.jobstreet) activeChannels.push('JobStreet');
-      if (reqForm.channels.linkedin) activeChannels.push('LinkedIn');
-      if (reqForm.channels.indeed) activeChannels.push('Indeed');
-      if (reqForm.channels.agency) activeChannels.push('Agency');
-
-      if (activeChannels.length > 0) {
-        const newPostings: JobPosting[] = activeChannels.map((channel, idx) => ({
-          id: `POST-0${postings.length + idx + 10}`,
-          position: resolvedTitle,
-          channel: channel === 'internal' ? 'Internal' : channel,
-          views: 0,
-          applicants: 0,
-          status: 'Live',
-          department: reqForm.department,
-        }));
-
-        setPostings((prev) => [...newPostings, ...prev]);
+      try {
+        const created = await createRecruitmentJob({
+          title: resolvedTitle,
+          departmentName: reqForm.department,
+          employmentType: reqForm.employmentType,
+          salaryMin: parseSalary(reqForm.salaryMin),
+          salaryMax: parseSalary(reqForm.salaryMax),
+          description: reqForm.responsibilities || undefined,
+          openings: Number(reqForm.vacancies) || 1,
+          publish: true,
+        })
+        setPostings((prev) => [mapJobRow(created), ...prev])
+        addToast(`Requisition logged and job posting published for ${resolvedTitle}.`, 'success')
+      } catch (err) {
         addToast(
-          `Requisition approved: Job ads automatically published to ${activeChannels.join(', ')}!`,
-          'success'
-        );
-      } else {
-        addToast(`Successfully log job requisition for ${resolvedTitle}. No active channels selected.`, 'success');
+          err instanceof ApiError
+            ? `Requisition saved locally, but publish failed: ${err.message}`
+            : 'Requisition saved locally, but publish failed.',
+          'error',
+        )
       }
     } else {
       addToast(
@@ -300,93 +513,130 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
     });
   };
 
-  const handleCreatePosting = (e: React.FormEvent) => {
+  const handleCreatePosting = async (e: React.FormEvent) => {
     e.preventDefault();
     const posTitle = newPost.position || 'New Position';
-    const post: JobPosting = {
-      id: `POST-00${postings.length + 1}`,
-      position: posTitle,
-      channel: newPost.channel,
-      views: 120,
-      applicants: 0,
-      status: 'Live',
-      department: 'HR',
-    };
-
-    setPostings([post, ...postings]);
-    setPostingModalOpen(false);
-    addToast(`Job posting active on ${newPost.channel} for ${posTitle}!`, 'success');
+    try {
+      const created = await createRecruitmentJob({
+        title: posTitle,
+        departmentName: 'HR',
+        employmentType: newPost.employmentType || 'Full-time',
+        salaryMin: parseSalary(newPost.salaryMin),
+        salaryMax: parseSalary(newPost.salaryMax),
+        description: newPost.description || undefined,
+        publish: true,
+      })
+      setPostings((prev) => [mapJobRow(created), ...prev])
+      setPostingModalOpen(false)
+      addToast(`Job posting active for ${posTitle}.`, 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create job posting.', 'error')
+    }
   };
 
-  const handleCreateCandidate = (e: React.FormEvent) => {
+  const handleCreateCandidate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCand.name) return;
 
-    const cand: Candidate = {
-      id: `CAND-0${10 + candidates.length}`,
-      name: newCand.name,
-      experience: newCand.experience,
-      education: newCand.education,
-      source: newCand.source,
-      matchScore: `${80 + (candidates.length % 20)}%`,
-      stage: 'Applied',
-      appliedDate: 'Today',
-      positionApplied: newCand.positionApplied,
-    };
+    const openJob =
+      postings.find((p) => p.position === newCand.positionApplied) ||
+      postings.find((p) => p.status === 'Live') ||
+      postings[0]
+    if (!openJob) {
+      addToast('Create a job posting first, then add candidates.', 'error')
+      return
+    }
 
-    setCandidates([cand, ...candidates]);
-    setCandidateModalOpen(false);
-    addToast(`${cand.name} entered as applicant for ${cand.positionApplied}`, 'success');
-    setNewCand({
-      name: '',
-      experience: '3 yrs',
-      education: 'Bachelor Degree',
-      source: 'LinkedIn',
-      matchScore: '89%',
-      stage: 'Applied',
-      positionApplied: 'HR Business Partner',
-    });
+    const emailLocal = newCand.name.toLowerCase().replace(/[^a-z0-9]+/g, '.') || 'candidate'
+    try {
+      const created = await createRecruitmentCandidate({
+        jobPostingId: openJob.id,
+        fullName: newCand.name,
+        email: `${emailLocal}@applicant.novora.local`,
+        source: sourceToApi(newCand.source),
+        notes: `${newCand.experience}; ${newCand.education}`,
+      })
+      setCandidates((prev) => [mapCandidateRow(created), ...prev])
+      setCandidateModalOpen(false)
+      addToast(`${created.fullName} entered as applicant for ${created.jobTitle || openJob.position}`, 'success')
+      setNewCand({
+        name: '',
+        experience: '3 yrs',
+        education: 'Bachelor Degree',
+        source: 'LinkedIn',
+        matchScore: '89%',
+        stage: 'Applied',
+        positionApplied: openJob.position,
+      })
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not add candidate.', 'error')
+    }
   };
 
-  const handleScheduleInterview = (e: React.FormEvent) => {
+  const handleScheduleInterview = async (e: React.FormEvent) => {
     e.preventDefault();
     const cand = candidates.find(c => c.id === newInt.candidateId) || candidates[0];
-    const item: Interview = {
-      id: `INT-0${interviews.length + 1}`,
-      candidateName: cand.name,
-      position: cand.positionApplied,
-      stage: newInt.stage.replace(' interview', '').replace(' screening', ''),
-      date: newInt.date,
-      time: newInt.time,
-      format: newInt.format,
-      status: 'Confirmed',
-    };
-
-    setInterviews([item, ...interviews]);
-    setInterviewModalOpen(false);
-    addToast(`Interview booked for ${cand.name} (${item.time})`, 'success');
+    if (!cand?.id) {
+      addToast('Select a candidate before scheduling.', 'error')
+      return
+    }
+    try {
+      const durationMatch = newInt.duration.match(/(\d+)/)
+      const created = await createRecruitmentInterview({
+        candidateId: cand.id,
+        scheduledAt: buildScheduledAtIso(newInt.date, newInt.time),
+        durationMins: durationMatch ? Number(durationMatch[1]) : 30,
+        mode: formatToApiMode(newInt.format),
+        location: newInt.location || undefined,
+        round: newInt.stage.replace(' interview', '').replace(' screening', '') || undefined,
+      })
+      const byId = new Map(candidates.map((c) => [c.id, c]))
+      const item = mapInterviewRow(created, byId)
+      setInterviews((prev) => [item, ...prev])
+      setSelectedInterviewId(item.id)
+      setInterviewModalOpen(false)
+      addToast(`Interview booked for ${cand.name} (${item.time})`, 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not schedule interview.', 'error')
+    }
   };
 
-  const handleSendOfferForm = (e: React.FormEvent) => {
+  const handleSendOfferForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newOffer.candidateName) return;
 
-    const item: Offer = {
-      id: `OFFER-00${offers.length + 1}`,
-      candidateName: newOffer.candidateName,
-      position: newOffer.position || 'Recruitment Officer',
-      salary: Number(newOffer.salary).toLocaleString(),
-      sentDate: 'Today',
-      expiryDate: '14 Days From Now',
-      status: 'Sent',
-      allowance: newOffer.allowance,
-      grade: newOffer.grade,
-      probation: newOffer.probation,
-    };
+    const cand = candidates.find(
+      (c) => c.name.toLowerCase() === newOffer.candidateName.trim().toLowerCase(),
+    )
+    if (!cand?.id) {
+      addToast('Could not find that candidate. Pick a name from the list.', 'error')
+      return
+    }
 
-    setOffers([item, ...offers]);
-    setOfferModalOpen(false);
-    addToast(`Offer draft delivered to ${newOffer.candidateName}`, 'success');
+    const expiryDays = Number(newOffer.expiryDays || '14')
+    const expiry = new Date()
+    expiry.setDate(expiry.getDate() + (Number.isFinite(expiryDays) ? expiryDays : 14))
+
+    try {
+      const created = await createRecruitmentOffer({
+        candidateId: cand.id,
+        salary: parseSalary(newOffer.salary),
+        allowance: parseSalary(newOffer.allowance),
+        grade: newOffer.grade || undefined,
+        probation: newOffer.probation || undefined,
+        status: 'sent',
+        expiryDate: expiry.toISOString().slice(0, 10),
+      })
+      const item = mapOfferRow(created)
+      // Prefer form position when API does not return one
+      if (newOffer.position) item.position = newOffer.position
+      setOffers((prev) => [item, ...prev])
+      setSelectedOfferId(item.id)
+      setOfferModalOpen(false)
+      addToast(`Offer draft delivered to ${newOffer.candidateName}`, 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not send offer.', 'error')
+    }
   };
 
   const handleChecklistToggle = (itemId: string, field: string) => {
@@ -464,7 +714,11 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
 
   return (
     <div id="recruitment-module-stage" className="space-y-6">
-      
+      <ModuleHeader
+        title="Recruitment"
+        description="Requisitions, candidates, interviews, and offers."
+      />
+
       {/* 2nd Navigation menu - tabs scroll; action buttons stay fixed */}
       <div id="recruitment-unified-navigator" className="flex items-center gap-3 border-b border-slate-200 pb-4 min-w-0">
         
@@ -723,7 +977,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                             req.department === 'Engineering' ? 'bg-blue-50 text-blue-600' :
                             req.department === 'HR' ? 'bg-pink-50 text-pink-600' :
                             req.department === 'Finance' ? 'bg-emerald-50 text-emerald-600' :
-                            req.department === 'Marketing' ? 'bg-purple-50 text-purple-600' :
+                            req.department === 'Marketing' ? 'bg-sky-50 text-sky-600' :
                             'bg-orange-50 text-orange-600'
                           }`}>
                             {req.department}
@@ -790,11 +1044,20 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   </div>
                   <span className="bg-emerald-50 border border-emerald-100 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shrink-0">
                     <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse items-center shrink-0" />
-                    <span>8 Live</span>
+                    <span>
+                      {recruitmentLoading
+                        ? 'Loading…'
+                        : `${postings.filter((p) => p.status === 'Live').length} Live`}
+                    </span>
                   </span>
                 </div>
 
                 <div className="space-y-3.5">
+                  {!recruitmentLoading && postings.length === 0 && (
+                    <p className="text-xs text-slate-400 py-4 text-center">
+                      No job postings yet. Publish from a requisition or create one here.
+                    </p>
+                  )}
                   {postings.map(post => (
                     <div key={post.id} className="flex items-center justify-between bg-slate-50/60 hover:bg-slate-50 border border-slate-100 rounded-2xl p-4 transition-all">
                       <div className="flex items-center gap-3">
@@ -1024,7 +1287,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                           <td className="py-3 px-1">
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                               item.format === 'In person' ? 'bg-orange-50 text-orange-600' :
-                              item.format === 'Phone' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'
+                              item.format === 'Phone' ? 'bg-blue-50 text-blue-600' : 'bg-sky-50 text-sky-600'
                             }`}>
                               {item.format}
                             </span>
@@ -1092,7 +1355,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span>92%</span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-purple-500 h-full rounded-full" style={{ width: '92%' }} />
+                      <div className="bg-sky-500 h-full rounded-full" style={{ width: '92%' }} />
                     </div>
                   </div>
                   <div>
@@ -1787,10 +2050,10 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <div>
                         <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
                           <span>Phone scheduled &rarr; Board Panel Interview</span>
-                          <span className="text-purple-600 font-bold">40% approved</span>
+                          <span className="text-sky-600 font-bold">40% approved</span>
                         </div>
                         <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className="bg-purple-500 h-full" style={{ width: '40%' }} />
+                          <div className="bg-sky-500 h-full" style={{ width: '40%' }} />
                         </div>
                       </div>
                       <div>
@@ -1933,7 +2196,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                           <span className="text-slate-800 font-bold">25 days</span>
                         </div>
                         <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className={`h-full ${reportFilterDept === 'HR' ? 'bg-purple-600' : 'bg-slate-450'}`} style={{ width: '55%', backgroundColor: reportFilterDept === 'HR' ? '#9333ea' : '#94a3b8' }} />
+                          <div className={`h-full ${reportFilterDept === 'HR' ? 'bg-sky-600' : 'bg-slate-450'}`} style={{ width: '55%', backgroundColor: reportFilterDept === 'HR' ? '#0284c7' : '#94a3b8' }} />
                         </div>
                       </div>
                       <div>
@@ -2038,8 +2301,8 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                                   {row.funnel.screened} <span className="text-[9px] font-medium text-blue-300">S</span>
                                 </span>
                                 <span className="text-slate-200 font-normal">&rarr;</span>
-                                <span className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded-md font-extrabold" title="Interview panels or cognitive sessions run">
-                                  {row.funnel.interview} <span className="text-[9px] font-medium text-purple-300">I</span>
+                                <span className="bg-sky-50 text-sky-600 px-2 py-0.5 rounded-md font-extrabold" title="Interview panels or cognitive sessions run">
+                                  {row.funnel.interview} <span className="text-[9px] font-medium text-sky-300">I</span>
                                 </span>
                                 <span className="text-slate-200 font-normal">&rarr;</span>
                                 <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md font-extrabold" title="Formal contract packets extended">

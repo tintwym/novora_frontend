@@ -50,8 +50,23 @@ export async function checkOutAttendance(): Promise<AttendanceLog> {
   return apiRequest<AttendanceLog>('/api/my/attendance/check-out', { method: 'POST' })
 }
 
+export type LeaveBalance = {
+  id: string
+  leaveType: string
+  leaveTypeCode: string
+  balanceYear: number
+  totalDays: number
+  usedDays: number
+  pendingDays: number
+  remainingDays: number
+}
+
 export async function fetchMyLeave(): Promise<LeaveRequest[]> {
   return apiRequest<LeaveRequest[]>('/api/my/leave', { method: 'GET', skipCsrf: true })
+}
+
+export async function fetchMyLeaveBalances(): Promise<LeaveBalance[]> {
+  return apiRequest<LeaveBalance[]>('/api/my/leave/balances', { method: 'GET', skipCsrf: true })
 }
 
 export async function createMyLeave(payload: CreateLeavePayload): Promise<LeaveRequest> {

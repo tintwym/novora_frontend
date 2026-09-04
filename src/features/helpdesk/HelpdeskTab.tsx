@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createLocalId, createLocalNumericId } from '@/lib/createLocalId'
 import {
   LifeBuoy,
@@ -41,6 +41,16 @@ import {
   Activity
 } from 'lucide-react';
 import type { Employee } from '@/types';
+import ModuleHeader from '@/components/ui/ModuleHeader';
+import {
+  ApiError,
+  createHelpdeskTicket,
+  createMyHelpdeskTicket,
+  fetchAdminHelpdeskTickets,
+  fetchMyHelpdeskTickets,
+  replyHelpdeskTicket,
+  type HelpdeskTicketRow,
+} from '@/services';
 
 interface HelpdeskTabProps {
   employees: Employee[];
@@ -102,167 +112,113 @@ interface GeneratedDoc {
   verificationCode: string;
 }
 
+const TICKET_CATEGORIES = [
+  'Payroll Discrepancy',
+  'Document Request',
+  'Tax Form Issue',
+  'Benefits Inquiry',
+  'General Policy',
+] as const;
+
+const TICKET_PRIORITIES = ['Low', 'Medium', 'High', 'Critical'] as const;
+
+function mapTicketCategory(raw: string | null): Ticket['category'] {
+  if (raw && (TICKET_CATEGORIES as readonly string[]).includes(raw)) {
+    return raw as Ticket['category'];
+  }
+  return 'General Policy';
+}
+
+function mapTicketPriority(raw: string | null): Ticket['priority'] {
+  if (!raw) return 'Medium';
+  const match = TICKET_PRIORITIES.find((p) => p.toLowerCase() === raw.toLowerCase());
+  return match || 'Medium';
+}
+
+function mapTicketStatus(raw: string): Ticket['status'] {
+  const v = (raw || '').toLowerCase();
+  if (v.includes('progress') || v === 'in_progress') return 'In Progress';
+  if (v.includes('resolv') || v.includes('close') || v.includes('done')) return 'Resolved';
+  return 'Open';
+}
+
+function mapHelpdeskTicketRow(row: HelpdeskTicketRow): Ticket {
+  const slaHours =
+    row.priority?.toLowerCase() === 'critical'
+      ? 4
+      : row.priority?.toLowerCase() === 'high'
+        ? 12
+        : row.priority?.toLowerCase() === 'low'
+          ? 48
+          : 24;
+  return {
+    id: row.id,
+    subject: row.subject,
+    description: row.description || '',
+    category: mapTicketCategory(row.category),
+    priority: mapTicketPriority(row.priority),
+    status: mapTicketStatus(row.status),
+    createdBy: row.requesterName || 'Unknown',
+    creatorId: row.requesterEmployeeId || '',
+    createdAt: row.createdAt?.replace('T', ' ').slice(0, 16) || '',
+    assignedTo: row.assigneeName || 'Unassigned',
+    assignedAgentId: row.assigneeEmployeeId || '',
+    slaLimitHours: slaHours,
+    slaMinutesRemaining: row.status.toLowerCase().includes('resolv') ? 0 : slaHours * 60,
+    isEscalated: false,
+    confidentialChat: false,
+    attachments: [],
+    replies: (row.replies || []).map((r) => ({
+      sender: (r.authorName || '').toLowerCase().includes('system')
+        ? ('System' as const)
+        : ('Support Representative' as const),
+      senderName: r.authorName || 'Agent',
+      text: r.body,
+      timestamp: r.createdAt?.replace('T', ' ').slice(0, 16) || '',
+    })),
+  };
+}
+
 export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
   // 1. Current Subtab Selector
   const [activeSubTab, setActiveSubTab] = useState<HelpdeskSubTab>('Tickets Center & Live Chat');
 
-  // 2. Initial State of Tickets (With real-world details, SLA targets and auto assignments)
-  const [tickets, setTickets] = useState<Ticket[]>([
-    {
-      id: 'TKT-9201',
-      subject: 'Urgent: Discrepancy in May OT-claims calculation multiplier',
-      description: 'My overtime hours for the weekend platform migration deployment on May 16th were calculated at 1.5x. According to team rules, standard deployment during holidays should be 2.0x base wage. Please reconcile.',
-      category: 'Payroll Discrepancy',
-      priority: 'High',
-      status: 'In Progress',
-      createdBy: 'Sarah Lim',
-      creatorId: 'EMP-001',
-      createdAt: '2026-06-15 09:12',
-      assignedTo: 'Chong Wei Min (Compensation Leads)',
-      assignedAgentId: 'EMP-002',
-      slaLimitHours: 12,
-      slaMinutesRemaining: 180, // 3 hours left
-      isEscalated: false,
-      confidentialChat: false,
-      attachments: ['OT_Roster_May_16.pdf'],
-      replies: [
-        {
-          sender: 'System',
-          senderName: 'ServiceDesk Router',
-          text: 'Ticket registered. Category identified as "Payroll Discrepancy". Automatic 12-hour response SLA bounds assigned.',
-          timestamp: '2026-06-15 09:12'
-        },
-        {
-          sender: 'Support Representative',
-          senderName: 'Chong Wei Min',
-          text: 'Hi Sarah, I am running a check on the May roster database. Indeed, the system flagged standard overtime instead of public holiday holiday rates. Will update this loop soon.',
-          timestamp: '2026-06-15 11:30'
-        },
-        {
-          sender: 'Employee',
-          senderName: 'Sarah Lim',
-          text: 'Thank you Chong, appreciate the swift checks. Here is the calendar sheet if required.',
-          timestamp: '2026-06-15 13:00'
+  // 2. Tickets (live ops API)
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [useMyHelpdeskApi, setUseMyHelpdeskApi] = useState(false);
+  const [selectedTicketId, setSelectedTicketId] = useState<string>('');
+
+  const loadTickets = useCallback(async () => {
+    try {
+      let rows: HelpdeskTicketRow[];
+      try {
+        rows = await fetchAdminHelpdeskTickets();
+        setUseMyHelpdeskApi(false);
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 403) {
+          rows = await fetchMyHelpdeskTickets();
+          setUseMyHelpdeskApi(true);
+        } else {
+          throw err;
         }
-      ]
-    },
-    {
-      id: 'TKT-9202',
-      subject: 'Inquiry regarding Optical limits & progressive lenses coverage terms',
-      description: 'Does our health benefits package cover progressive and polarized medical prescription lenses? I see a general $400 allowance block but the manual has no detailed coverage matrix.',
-      category: 'Benefits Inquiry',
-      priority: 'Low',
-      status: 'Open',
-      createdBy: 'John Doe',
-      creatorId: 'EMP-004',
-      createdAt: '2026-06-15 14:03',
-      assignedTo: 'Sarah Lim Wei Ling (Benefits Coordinator)',
-      assignedAgentId: 'EMP-021',
-      slaLimitHours: 48,
-      slaMinutesRemaining: 2160, // 36 hours left
-      isEscalated: false,
-      confidentialChat: false,
-      attachments: [],
-      replies: [
-        {
-          sender: 'System',
-          senderName: 'ServiceDesk Router',
-          text: 'Ticket registered. Assigned to Benefits Office. standard 48-hour SLA bounds set.',
-          timestamp: '2026-06-15 14:03'
-        }
-      ]
-    },
-    {
-      id: 'TKT-9203',
-      subject: 'Digital Certificate of Employment Request for home mortgage application',
-      description: 'Requesting an official salary certificate with join details to facilitate a personal home loan application at HSBC bank.',
-      category: 'Document Request',
-      priority: 'Medium',
-      status: 'Resolved',
-      createdBy: 'Pinky Sharma',
-      creatorId: 'EMP-0312',
-      createdAt: '2026-06-12 10:00',
-      assignedTo: 'HR Operations Group',
-      assignedAgentId: 'EMP-001',
-      slaLimitHours: 24,
-      slaMinutesRemaining: 0,
-      isEscalated: false,
-      confidentialChat: false,
-      attachments: ['Employment_Verification_HSBC.pdf'],
-      replies: [
-        {
-          sender: 'Support Representative',
-          senderName: 'HR Systems Hub',
-          text: 'Hello Pinky! Standard verification generated successfully. Please check the Self-Service Document tab under ID DOC-1092. You can download the certified digital PDF directly there.',
-          timestamp: '2026-06-12 15:45'
-        },
-        {
-          sender: 'Employee',
-          senderName: 'Pinky Sharma',
-          text: 'Wow, this was incredibly quick! Standard verify done. Ticket closed.',
-          timestamp: '2026-06-12 16:30'
-        }
-      ]
-    },
-    {
-      id: 'TKT-9204',
-      subject: 'Discrepancy in Year-to-Date tax statement deduction rate',
-      description: 'The taxable medical benefits sum listed on my YTD tax deduction report seems incorrect. It double-counts the specialized health screening invoice filed back in March.',
-      category: 'Tax Form Issue',
-      priority: 'Critical',
-      status: 'Open',
-      createdBy: 'Michael Chang',
-      creatorId: 'EMP-003',
-      createdAt: '2026-06-15 16:22',
-      assignedTo: 'Chong Wei Min (Tax Specialist)',
-      assignedAgentId: 'EMP-002',
-      slaLimitHours: 4,
-      slaMinutesRemaining: -15, // Breached / overdue!
-      isEscalated: true,
-      confidentialChat: true,
-      attachments: [],
-      replies: [
-        {
-          sender: 'System',
-          senderName: 'ServiceDesk Router',
-          text: 'Ticket marked Critical. Target SLA 4 hours. Automated routing assigned matching Tax Form specialization.',
-          timestamp: '2026-06-15 16:22'
-        },
-        {
-          sender: 'System',
-          senderName: 'SLA Escalation Engine',
-          text: '🚨 ALERT: Milestone response target of 4 hours missed. Ticket status auto-escalated to Chief HR Officer for direct resolution.',
-          timestamp: '2026-06-15 20:23'
-        }
-      ]
-    },
-    {
-      id: 'TKT-9205',
-      subject: 'Inquiry: Unpaid leave extended buffer limits protocol',
-      description: 'Could you clarify the maximum duration allow-limit for an extended sabbatical leave block? I was unable to verify this on the remote intranet policy page.',
-      category: 'General Policy',
-      priority: 'Medium',
-      status: 'Resolved',
-      createdBy: 'Amina Al-Mansour',
-      creatorId: 'EMP-008',
-      createdAt: '2026-06-10 11:15',
-      assignedTo: 'HR Support Analyst',
-      assignedAgentId: 'EMP-015',
-      slaLimitHours: 24,
-      slaMinutesRemaining: 0,
-      isEscalated: false,
-      confidentialChat: false,
-      attachments: [],
-      replies: [
-        {
-          sender: 'Support Representative',
-          senderName: 'HR Specialist',
-          text: 'Hello Amina, according to section 6.4 of the corporate policy, unpaid sabbatical leaves are capped at a maximum of 6 calendar months per cycle. Re-approvals require department head routing.',
-          timestamp: '2026-06-11 09:30'
-        }
-      ]
+      }
+      const mapped = rows.map(mapHelpdeskTicketRow);
+      setTickets(mapped);
+      setSelectedTicketId((prev) => {
+        if (prev && mapped.some((t) => t.id === prev)) return prev;
+        return mapped[0]?.id || '';
+      });
+    } catch (err) {
+      setTickets([]);
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load helpdesk tickets from the server.', 'error');
+      }
     }
-  ]);
+  }, [addToast]);
+
+  useEffect(() => {
+    void loadTickets();
+  }, [loadTickets]);
 
   // 3. Knowledge Base FAQs State (Expanding details and topics)
   const [faqs, setFaqs] = useState<FaqItem[]>([
@@ -362,7 +318,6 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
   const [autoAssignmentEnabled, setAutoAssignmentEnabled] = useState(true);
 
   // Selected Active ticket & chat state
-  const [selectedTicketId, setSelectedTicketId] = useState<string>('TKT-9201');
   const [chatInputText, setChatInputText] = useState('');
   const [chatInternalNote, setChatInternalNote] = useState(false);
   const [simulatedFileToUpload, setSimulatedFileToUpload] = useState<string>('');
@@ -463,17 +418,35 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
   };
 
   // Send a message inside chat thread
-  const handleSendChatMessage = (e: React.FormEvent) => {
+  const handleSendChatMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInputText.trim()) return;
 
     const currentTicket = tickets.find(t => t.id === selectedTicketId);
     if (!currentTicket) return;
 
+    const bodyText = chatInputText + (simulatedFileToUpload ? ` [Attachment: ${simulatedFileToUpload}]` : '');
+
+    if (!chatInternalNote && !useMyHelpdeskApi) {
+      try {
+        const updated = await replyHelpdeskTicket(selectedTicketId, bodyText);
+        setTickets((prev) =>
+          prev.map((t) => (t.id === selectedTicketId ? mapHelpdeskTicketRow(updated) : t)),
+        );
+        setChatInputText('');
+        setSimulatedFileToUpload('');
+        addToast('Message sent over secure ticket channel.', 'success');
+        return;
+      } catch (err) {
+        addToast(err instanceof ApiError ? err.message : 'Could not send reply.', 'error');
+        return;
+      }
+    }
+
     const newReply = {
       sender: (chatInternalNote ? 'System' as const : 'Support Representative' as const),
       senderName: chatInternalNote ? 'INTERNAL SECURE NOTE' : 'HR Specialist ServiceDesk',
-      text: chatInputText + (simulatedFileToUpload ? ` [Attachment: ${simulatedFileToUpload}]` : ''),
+      text: bodyText,
       timestamp: new Date().toISOString().slice(0, 16).replace('T', ' ')
     };
 
@@ -482,7 +455,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
         if (t.id === selectedTicketId) {
           return {
             ...t,
-            status: t.status === 'Open' ? 'In Progress' : t.status, // auto move to in progress on reply
+            status: t.status === 'Open' ? 'In Progress' : t.status,
             replies: [...t.replies, newReply]
           };
         }
@@ -562,7 +535,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
   };
 
   // Submit helpdesk ticket request
-  const handleCreateTicketSubmit = (e: React.FormEvent) => {
+  const handleCreateTicketSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSubject.trim() || !newDescription.trim() || !newCreatorId) {
       addToast('Please designate the reporter and outline the subject description.', 'error');
@@ -572,63 +545,53 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
     const employeeReporter = employees.find(emp => emp.id === newCreatorId);
     if (!employeeReporter) return;
 
-    // Resolve Auto Assignment Lead based on workload configuration
-    const defaultSlaHours = SLA_RULES[newCategory]?.hours || 24;
-    
-    // Choose dynamic assignee representing correct specialized support representative
-    let defaultAssignee = 'HR Support Pool Analyst';
-    let defaultAssigneeId = 'EMP-015';
-
-    if (autoAssignmentEnabled) {
-      if (newCategory === 'Payroll Discrepancy' || newCategory === 'Tax Form Issue') {
-        defaultAssignee = 'Chong Wei Min (Compensation Leads)';
-        defaultAssigneeId = 'EMP-002'; // existing comp expert ID
-      } else if (newCategory === 'Benefits Inquiry') {
-        defaultAssignee = 'Sarah Lim Wei Ling (Benefits Coordinator)';
-        defaultAssigneeId = 'EMP-021';
-      } else if (newCategory === 'Document Request') {
-        defaultAssignee = 'HR Systems Hub';
-        defaultAssigneeId = 'EMP-001';
-      }
-    }
-
-    const newTicket: Ticket = {
-      id: createLocalId('TKT'),
-      subject: newSubject,
-      description: newDescription,
+    const payload = {
+      subject: newSubject.trim(),
+      description: newDescription.trim(),
       category: newCategory,
       priority: newPriority,
+      requesterEmployeeId: employeeReporter.apiId || undefined,
       status: 'Open',
-      createdBy: employeeReporter.name,
-      creatorId: employeeReporter.id,
-      createdAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
-      assignedTo: defaultAssignee,
-      assignedAgentId: defaultAssigneeId,
-      slaLimitHours: defaultSlaHours,
-      slaMinutesRemaining: defaultSlaHours * 60,
-      isEscalated: false,
-      confidentialChat: confidentialToggle,
-      attachments: [],
-      replies: [
-        {
-          sender: 'System',
-          senderName: 'Intelligent Router',
-          text: `Ticket generated. Category "${newCategory}" matched. Target service SLA limits set to ${defaultSlaHours} hours. Routed specifically to ${defaultAssignee}.`,
-          timestamp: new Date().toISOString().slice(0, 16).replace('T', ' ')
-        }
-      ]
     };
 
-    setTickets([newTicket, ...tickets]);
-    setSelectedTicketId(newTicket.id);
-    setIsNewTicketModalOpen(false);
+    try {
+      let created: HelpdeskTicketRow;
+      if (useMyHelpdeskApi || !employeeReporter.apiId) {
+        created = await createMyHelpdeskTicket({
+          subject: payload.subject,
+          description: payload.description,
+          category: payload.category,
+          priority: payload.priority,
+        });
+      } else {
+        try {
+          created = await createHelpdeskTicket(payload);
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 403) {
+            created = await createMyHelpdeskTicket({
+              subject: payload.subject,
+              description: payload.description,
+              category: payload.category,
+              priority: payload.priority,
+            });
+            setUseMyHelpdeskApi(true);
+          } else {
+            throw err;
+          }
+        }
+      }
 
-    // Clear variables
-    setNewSubject('');
-    setNewDescription('');
-    setConfidentialToggle(false);
-
-    addToast(`Ticket ${newTicket.id} launched successfully. Team notified!`, 'success');
+      const mapped = mapHelpdeskTicketRow(created);
+      setTickets((prev) => [mapped, ...prev]);
+      setSelectedTicketId(mapped.id);
+      setIsNewTicketModalOpen(false);
+      setNewSubject('');
+      setNewDescription('');
+      setConfidentialToggle(false);
+      addToast(`Ticket ${mapped.id} launched successfully. Team notified!`, 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create helpdesk ticket.', 'error');
+    }
   };
 
   // Real-time FAQ matching helper as user is typing a subject
@@ -707,8 +670,10 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
 
   return (
     <div id="helpdesk-inquiries-overall-root" className="space-y-6">
-
-
+      <ModuleHeader
+        title="Helpdesk"
+        description="Tickets, self-service docs, and knowledge base."
+      />
 
       {/* Sub-NavigationBar: Aligned exactly like leave management/ employee management */}
       <div id="helpdesk-sub-navbar-parent" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">

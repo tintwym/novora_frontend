@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ModuleToolbar } from '@/components/ui';
+import ModuleHeader from '@/components/ui/ModuleHeader';
 import { Search, UserPlus, ArrowUpRight, Filter, ClipboardList } from 'lucide-react';
 import type { Employee } from '@/types';
 import { formatPersonDisplayName } from '@/lib/personName';
@@ -49,6 +50,11 @@ export default function EmployeeDirectoryTab({
 
   return (
     <div id="employee-directory-tab-container" className="space-y-5">
+      <ModuleHeader
+        title="Employees"
+        description="Search, filter, and open employee profiles."
+      />
+
       {/* Search & Bulk Action Filters Row */}
       <ModuleToolbar className="flex-col md:flex-row md:items-center">
         <div className="flex items-center gap-3.5 flex-1 w-full">

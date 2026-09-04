@@ -70,6 +70,33 @@ export async function updateUserRoles(userId: string, roles: string[]): Promise<
   })
 }
 
+export async function activateUser(
+  userId: string,
+  payload: { password: string },
+): Promise<{ userId: string; email: string; active: boolean }> {
+  return apiRequest(`/api/admin/users/${userId}/activate`, {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function inviteUser(payload: {
+  email: string
+  temporaryPassword: string
+  roles?: string[]
+}): Promise<AdminUserRow> {
+  return apiRequest<AdminUserRow>('/api/admin/users/invite', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function deactivateUser(userId: string): Promise<AdminUserRow> {
+  return apiRequest<AdminUserRow>(`/api/admin/users/${userId}/deactivate`, {
+    method: 'POST',
+  })
+}
+
 export async function fetchOrgChart(): Promise<OrgChartResponse> {
   return apiRequest<OrgChartResponse>('/api/org-chart', { method: 'GET', skipCsrf: true })
 }

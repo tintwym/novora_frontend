@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { createLocalNumericId } from '@/lib/createLocalId'
 import {
   Award,
@@ -31,6 +31,49 @@ import {
   Download,
   Settings
 } from 'lucide-react';
+import {
+  ApiError,
+  createPerformanceReview,
+  fetchPerformanceReviews,
+  listEmployees,
+  type PerformanceReviewRow,
+} from '@/services';
+import ModuleHeader from '@/components/ui/ModuleHeader';
+
+type UiEvaluation = {
+  name: string;
+  reviewType: string;
+  date: string;
+  period: string;
+  status: string;
+};
+
+function mapReviewRow(row: PerformanceReviewRow): UiEvaluation {
+  const status = /complet|approv|done/i.test(row.status) ? 'Completed' : 'Pending';
+  const period =
+    row.reviewQuarter != null
+      ? `Q${row.reviewQuarter} ${row.reviewYear}`
+      : String(row.reviewYear);
+  let date = period;
+  if (row.createdAt) {
+    try {
+      date = new Date(row.createdAt).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    } catch {
+      /* keep period */
+    }
+  }
+  return {
+    name: row.employeeName || '—',
+    reviewType: row.reviewType || 'Review',
+    date,
+    period,
+    status,
+  };
+}
 
 interface PerformanceTabProps {
   employees: any[];
@@ -100,7 +143,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
   const [evalCategories, setEvalCategories] = useState([
     { name: 'Technical skills', type: 'Attribute', weightage: 25, scoring: '1–5 rating scale', measurement: 'Measurement index', levels: '4 levels', color: 'bg-blue-100 text-blue-800' },
     { name: 'Communication', type: 'Attribute', weightage: 15, scoring: '1–5 rating scale', measurement: 'Measurement index', levels: '4 levels', color: 'bg-blue-100 text-blue-800' },
-    { name: 'Leadership', type: 'Competency', weightage: 20, scoring: '1–5 rating scale', measurement: 'Measurement index', levels: '4 levels', color: 'bg-purple-100 text-purple-800' },
+    { name: 'Leadership', type: 'Competency', weightage: 20, scoring: '1–5 rating scale', measurement: 'Measurement index', levels: '4 levels', color: 'bg-sky-100 text-sky-800' },
     { name: 'Project delivery', type: 'KPI category', weightage: 30, scoring: '% achievement', measurement: 'Target %', levels: 'Auto-calc', color: 'bg-amber-100 text-amber-800' },
     { name: 'Attendance', type: 'Attendance KPI', weightage: 10, scoring: '% attendance', measurement: 'Attendance %', levels: 'Auto-calc', color: 'bg-teal-100 text-teal-800' }
   ]);
@@ -129,12 +172,23 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
     }
   });
 
-  const [evaluationsList, setEvaluationsList] = useState([
-    { name: 'Sarah Lim', reviewType: 'Year-end appraisal', date: '15 Jan 2026', period: 'Jan–Dec 2025', status: 'Pending' },
-    { name: 'Raj Kumar', reviewType: 'Year-end appraisal', date: '15 Jan 2026', period: 'Jan–Dec 2025', status: 'Pending' },
-    { name: 'Ahmad L', reviewType: 'Probation review', date: '10 Jan 2026', period: 'Oct–Dec 2025', status: 'Pending' },
-    { name: 'Nadia Chen', reviewType: 'Mid-year appraisal', date: '30 Jun 2025', period: 'Jan–Jun 2025', status: 'Completed' }
-  ]);
+  const [evaluationsList, setEvaluationsList] = useState<UiEvaluation[]>([]);
+
+  const loadReviews = useCallback(async () => {
+    try {
+      const rows = await fetchPerformanceReviews();
+      setEvaluationsList(rows.map(mapReviewRow));
+    } catch (err) {
+      setEvaluationsList([]);
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load performance reviews from the server.', 'error');
+      }
+    }
+  }, [addToast]);
+
+  useEffect(() => {
+    void loadReviews();
+  }, [loadReviews]);
 
   const [perfResults, setPerfResults] = useState([
     { name: 'Sarah Lim', attr: 86.7, kpi: 90.0, comp: 82.0, attend: 97.0, total: 91.7, grade: 'A', gradeColor: 'bg-blue-100 text-blue-800 border-blue-200' },
@@ -145,12 +199,12 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
   ]);
 
   const [competencies, setCompetencies] = useState([
-    { name: 'Leadership', type: 'Competency', parent: '—', definition: 'Ability to guide, inspire and influence a team', color: 'bg-purple-100 text-purple-800' },
+    { name: 'Leadership', type: 'Competency', parent: '—', definition: 'Ability to guide, inspire and influence a team', color: 'bg-sky-100 text-sky-800' },
     { name: '↳ Team motivation', type: 'Sub-comp.', parent: 'Leadership', definition: 'Keeping team morale and engagement high', color: 'bg-blue-100 text-blue-800' },
     { name: '↳ Conflict resolution', type: 'Sub-comp.', parent: 'Leadership', definition: 'Handling disagreements constructively', color: 'bg-blue-100 text-blue-800' },
-    { name: 'Problem solving', type: 'Competency', parent: '—', definition: 'Analytical thinking and solution design', color: 'bg-purple-100 text-purple-800' },
+    { name: 'Problem solving', type: 'Competency', parent: '—', definition: 'Analytical thinking and solution design', color: 'bg-sky-100 text-sky-800' },
     { name: '↳ Root cause analysis', type: 'Sub-comp.', parent: 'Problem solving', definition: 'Identifying underlying causes of issues', color: 'bg-blue-100 text-blue-800' },
-    { name: 'Adaptability', type: 'Competency', parent: '—', definition: 'Ability to adjust to change effectively', color: 'bg-purple-100 text-purple-800' }
+    { name: 'Adaptability', type: 'Competency', parent: '—', definition: 'Ability to adjust to change effectively', color: 'bg-sky-100 text-sky-800' }
   ]);
 
   // Modals Core State
@@ -277,7 +331,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
     return dateStr;
   };
 
-  const handleCreateEvaluation = () => {
+  const handleCreateEvaluation = async () => {
     const employeeOptions = employees && employees.length > 0 ? employees : [
       { id: 'EMP-0021', name: 'Sarah Lim', department: 'Engineering' },
       { id: 'EMP-0022', name: 'Raj Kumar', department: 'Engineering' },
@@ -285,43 +339,74 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
       { id: 'EMP-0024', name: 'Nadia Chen', department: 'Marketing' },
     ];
 
-    const selectedEmp = employeeOptions.find(emp => emp.id === evalEmpId) || employeeOptions[0];
+    const selectedEmp = employeeOptions.find((emp: { id?: string }) => emp.id === evalEmpId) || employeeOptions[0];
     if (!selectedEmp) {
       addToast('Please select an employee for evaluation', 'error');
       return;
     }
 
-    const formattedDate = formatDateString(evalReviewDate);
+    let employeeId: string | undefined =
+      (selectedEmp as { apiId?: string }).apiId ||
+      (/^[0-9a-f-]{36}$/i.test(String(selectedEmp.id)) ? String(selectedEmp.id) : undefined);
 
-    const newEvalItem = {
-      name: selectedEmp.name,
-      reviewType: evalReviewType,
-      date: formattedDate,
-      period: evalReviewPeriod,
-      status: 'Pending' as const
-    };
-
-    setEvaluationsList([newEvalItem, ...evaluationsList]);
-
-    setActiveEval({
-      employeeName: selectedEmp.name,
-      empId: selectedEmp.id,
-      reviewType: evalReviewType,
-      reviewDate: formattedDate,
-      reviewPeriod: evalReviewPeriod,
-      status: 'Pending (Grade calculation)',
-      scores: {
-        codeQuality: evalCodeQuality,
-        problemSolving: evalProblemSolving,
-        systemDesign: evalSystemDesign,
-        sprintsCompleted: evalSprintsCompleted,
-        bugsSLA: evalBugsSLA,
-        attendance: evalAttendance
+    if (!employeeId) {
+      try {
+        const listed = await listEmployees();
+        const match =
+          listed.find(
+            (e) =>
+              e.apiId === (selectedEmp as { apiId?: string }).apiId ||
+              e.id === selectedEmp.id ||
+              e.name === selectedEmp.name
+          ) || listed[0];
+        employeeId = match?.apiId;
+      } catch {
+        /* fall through */
       }
-    });
+    }
 
-    addToast(`New evaluation record established for ${selectedEmp.name}`, 'success');
-    setActiveModal(null);
+    if (!employeeId) {
+      addToast('No employee UUID available for performance review.', 'error');
+      return;
+    }
+
+    const reviewYear = evalReviewDate
+      ? parseInt(evalReviewDate.split('-')[0] || '', 10) || new Date().getFullYear()
+      : new Date().getFullYear();
+
+    try {
+      const created = await createPerformanceReview({
+        employeeId,
+        reviewYear,
+        reviewType: evalReviewType || undefined,
+        status: 'Pending',
+      });
+      const mapped = mapReviewRow(created);
+      setEvaluationsList((prev) => [mapped, ...prev]);
+
+      const formattedDate = formatDateString(evalReviewDate);
+      setActiveEval({
+        employeeName: selectedEmp.name,
+        empId: selectedEmp.id,
+        reviewType: evalReviewType,
+        reviewDate: formattedDate,
+        reviewPeriod: evalReviewPeriod,
+        status: 'Pending (Grade calculation)',
+        scores: {
+          codeQuality: evalCodeQuality,
+          problemSolving: evalProblemSolving,
+          systemDesign: evalSystemDesign,
+          sprintsCompleted: evalSprintsCompleted,
+          bugsSLA: evalBugsSLA,
+          attendance: evalAttendance
+        }
+      });
+
+      addToast(`New evaluation record established for ${selectedEmp.name}`, 'success');
+      setActiveModal(null);
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create performance review.', 'error');
+    }
   };
 
   // Save Operations
@@ -464,7 +549,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
     }
     const typeColorMap: Record<string, string> = {
       'Attribute': 'bg-blue-100 text-blue-800',
-      'Competency': 'bg-purple-100 text-purple-800',
+      'Competency': 'bg-sky-100 text-sky-800',
       'KPI category': 'bg-amber-100 text-amber-800',
       'Attendance KPI': 'bg-teal-100 text-teal-800'
     };
@@ -524,7 +609,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
       type: compType,
       parent: compType === 'Sub-comp.' ? compParent : '—',
       definition: compDef || 'Core capability specification requirement details',
-      color: compType === 'Competency' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+      color: compType === 'Competency' ? 'bg-sky-100 text-sky-800' : 'bg-blue-100 text-blue-800'
     };
 
     if (activeModal === 'competency_new') {
@@ -559,6 +644,10 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
 
   return (
     <div id="performance-module-wrapper" className="space-y-6 animate-in fade-in duration-200">
+      <ModuleHeader
+        title="Performance"
+        description="Goals, KPIs, and appraisal cycles."
+      />
       {/* 1. Header/Navigation ribbon styled exactly like Claims/Benefits */}
       <div id="performance-module-navigator" className="flex flex-col xl:flex-row xl:items-center justify-between nv-card px-4 py-1.5 gap-3">
         {/* Navigation Tabs Pillbox Grid */}
@@ -922,7 +1011,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
               <div className="border border-slate-100 rounded-2xl p-4.5 bg-slate-50/30">
                 <div className="flex items-center justify-between mb-3 pb-2 border-b border-dashed border-slate-100">
                   <h4 className="text-sm font-extrabold text-slate-800">Achievement KPI</h4>
-                  <span className="bg-purple-50 text-purple-700 border border-purple-150 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-lg">
+                  <span className="bg-sky-50 text-sky-700 border border-sky-150 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-lg">
                     Achievement
                   </span>
                 </div>
@@ -1908,7 +1997,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                 {[
                   { label: 'Technical skills (attr.)', value: 86.7, color: 'bg-blue-500' },
                   { label: 'Project delivery (KPI)', value: 90.0, color: 'bg-teal-500' },
-                  { label: 'Leadership (comp.)', value: 82.0, color: 'bg-purple-500' },
+                  { label: 'Leadership (comp.)', value: 82.0, color: 'bg-sky-500' },
                   { label: 'Communication (attr.)', value: 88.0, color: 'bg-amber-500' },
                   { label: 'Attendance KPI', value: 97.0, color: 'bg-green-600' }
                 ].map((item, idx) => (

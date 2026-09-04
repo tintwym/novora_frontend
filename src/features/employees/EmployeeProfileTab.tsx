@@ -30,6 +30,118 @@ import {
 } from 'lucide-react';
 import type { Employee, EmploymentStatus } from '@/types';
 import { formatPersonDisplayName } from '@/lib/personName'
+import {
+  ApiError,
+  addMyDocument,
+  createMyEducation,
+  createMyFamily,
+  deleteMyDocument,
+  fetchEmployeeDocuments,
+  fetchMyDocuments,
+  fetchMyEducation,
+  fetchMyFamily,
+  type DocumentRow,
+  type EducationRow,
+  type FamilyMemberRow,
+} from '@/services';
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+type ProfileDoc = { id: string; name: string; type: string; uploaded: string; expiry: string };
+
+function mapDocumentRow(row: DocumentRow): ProfileDoc {
+  let uploaded = '—';
+  if (row.uploadedAt) {
+    try {
+      uploaded = new Date(row.uploadedAt).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    } catch {
+      uploaded = row.uploadedAt;
+    }
+  }
+  return {
+    id: row.id,
+    name: row.name,
+    type: row.docType || 'Document',
+    uploaded,
+    expiry: '—',
+  };
+}
+
+type ProfileFamily = {
+  id: string;
+  name: string;
+  relationship: string;
+  dob: string;
+  nric: string;
+  taxExempt: boolean;
+  passport: string;
+};
+
+type ProfileEducation = {
+  id: string;
+  institution: string;
+  qualification: string;
+  fieldOfStudy: string;
+  year: string;
+  grade: string;
+};
+
+function formatDobForUi(iso: string | null): string {
+  if (!iso) return '';
+  // Keep YYYY-MM-DD for date inputs when possible
+  if (/^\d{4}-\d{2}-\d{2}/.test(iso)) return iso.slice(0, 10);
+  try {
+    return new Date(iso).toISOString().slice(0, 10);
+  } catch {
+    return iso;
+  }
+}
+
+function mapFamilyRow(row: FamilyMemberRow): ProfileFamily {
+  return {
+    id: row.id,
+    name: row.name,
+    relationship: row.relationship || 'Spouse',
+    dob: formatDobForUi(row.dateOfBirth),
+    nric: row.phone || '—',
+    taxExempt: false,
+    passport: 'N/A',
+  };
+}
+
+function mapEducationRow(row: EducationRow): ProfileEducation {
+  let year = '';
+  if (row.endDate) {
+    year = String(new Date(row.endDate).getFullYear());
+  } else if (row.startDate) {
+    year = String(new Date(row.startDate).getFullYear());
+  }
+  return {
+    id: row.id,
+    institution: row.institution,
+    qualification: row.degree || '',
+    fieldOfStudy: row.fieldOfStudy || '',
+    year,
+    grade: row.grade || '',
+  };
+}
+
+function readFileAsBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result || '');
+      const comma = result.indexOf(',');
+      resolve(comma >= 0 ? result.slice(comma + 1) : result);
+    };
+    reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+}
 
 interface EmployeeProfileTabProps {
   employee: Employee | null;
@@ -69,11 +181,70 @@ export default function EmployeeProfileTab({
   const [generatedPassword, setGeneratedPassword] = useState('');
 
   // Persisted dictionary to separate and save custom documents for each employee
-  const [employeeDocsMap, setEmployeeDocsMap] = useState<Record<string, Array<{id: string, name: string, type: string, uploaded: string, expiry: string}>>>({});
+  const [employeeDocsMap, setEmployeeDocsMap] = useState<Record<string, Array<ProfileDoc>>>({});
   const employeeDocsMapRef = useRef(employeeDocsMap);
   useEffect(() => {
     employeeDocsMapRef.current = employeeDocsMap;
   }, [employeeDocsMap]);
+
+  // Load documents from API when employee changes
+  const empId = employee?.id
+  const empApiId = employee?.apiId
+  useEffect(() => {
+    if (!empId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const rows = empApiId
+          ? await fetchEmployeeDocuments(empApiId)
+          : await fetchMyDocuments();
+        if (cancelled) return;
+        const mapped = rows.map(mapDocumentRow);
+        setProfileData((prev) => ({
+          ...prev,
+          documentsList: mapped.length ? mapped : prev.documentsList,
+        }));
+        setEmployeeDocsMap((prev) => ({
+          ...prev,
+          [empId]: mapped.length ? mapped : prev[empId] || [],
+        }));
+      } catch (err) {
+        if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+          // Keep local defaults; soft-fail so profile still opens
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [empId, empApiId]);
+
+  // Load family & education from API (prefer for everyone via /api/my/*)
+  useEffect(() => {
+    if (!empId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const [familyRows, educationRows] = await Promise.all([
+          fetchMyFamily().catch(() => [] as FamilyMemberRow[]),
+          fetchMyEducation().catch(() => [] as EducationRow[]),
+        ]);
+        if (cancelled) return;
+        setProfileData((prev) => ({
+          ...prev,
+          familyMembers: familyRows.length ? familyRows.map(mapFamilyRow) : prev.familyMembers,
+          educationList: educationRows.length
+            ? educationRows.map(mapEducationRow)
+            : prev.educationList,
+        }));
+      } catch {
+        // soft-fail — keep demo defaults
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [empId]);
 
   // Document Upload Form local state
   const [docType, setDocType] = useState('Contract');
@@ -457,25 +628,41 @@ export default function EmployeeProfileTab({
     e.target.value = '';
   };
 
-  const handleUploadSubmit = (e: React.FormEvent) => {
+  const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile) {
       addToast('Please select or drag a file to upload first.', 'error');
       return;
     }
 
-    const todayStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
     const formattedExpiry = hasExpiry && docExpiryDate 
       ? new Date(docExpiryDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) 
       : '—';
 
-    const newDoc = {
-      id: createLocalId('doc'),
-      name: docCustomName.trim() || selectedFile.name,
-      type: docType,
-      uploaded: todayStr,
-      expiry: formattedExpiry
-    };
+    const name = docCustomName.trim() || selectedFile.name;
+
+    let contentBase64: string;
+    try {
+      contentBase64 = await readFileAsBase64(selectedFile);
+    } catch {
+      addToast('Could not read the selected file.', 'error');
+      return;
+    }
+
+    let newDoc: ProfileDoc;
+    try {
+      const created = await addMyDocument({
+        name,
+        docType,
+        contentBase64,
+        url: contentBase64 ? undefined : 'novora://documents/pending',
+      });
+      newDoc = { ...mapDocumentRow(created), expiry: formattedExpiry };
+      addToast(`Document "${name}" uploaded successfully.`, 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not save document.', 'error');
+      return;
+    }
 
     const updatedList = [...profileData.documentsList, newDoc];
     
@@ -491,7 +678,6 @@ export default function EmployeeProfileTab({
       [employee.id]: updatedList
     }));
 
-    addToast(`Document "${newDoc.name}" uploaded successfully.`, 'success');
     setShowUploadModal(false);
     
     // Clear state
@@ -531,7 +717,7 @@ export default function EmployeeProfileTab({
   };
 
   // Save family member changes
-  const handleSaveFamilyMember = (e: React.FormEvent) => {
+  const handleSaveFamilyMember = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!familyForm.name.trim()) {
       addToast('Name is required.', 'error');
@@ -540,20 +726,30 @@ export default function EmployeeProfileTab({
 
     let updatedList;
     if (editingFamilyMember) {
-      // Edit
+      // Edit (local only — no update API)
       updatedList = profileData.familyMembers.map(item => 
         item.id === editingFamilyMember.id ? { ...item, ...familyForm, name: familyForm.name.trim() } : item
       );
       addToast(`Family member "${familyForm.name}" updated successfully.`, 'success');
     } else {
-      // Add
-      const newMember = {
-        id: createLocalId('fam'),
-        ...familyForm,
-        name: familyForm.name.trim()
-      };
-      updatedList = [...profileData.familyMembers, newMember];
-      addToast(`Family member "${familyForm.name}" added successfully.`, 'success');
+      try {
+        const created = await createMyFamily({
+          name: familyForm.name.trim(),
+          relationship: familyForm.relationship,
+          dateOfBirth: familyForm.dob || undefined,
+        });
+        const mapped = {
+          ...mapFamilyRow(created),
+          nric: familyForm.nric || mapFamilyRow(created).nric,
+          taxExempt: familyForm.taxExempt,
+          passport: familyForm.passport || 'N/A',
+        };
+        updatedList = [...profileData.familyMembers, mapped];
+        addToast(`Family member "${familyForm.name}" added successfully.`, 'success');
+      } catch (err) {
+        addToast(err instanceof ApiError ? err.message : 'Could not add family member.', 'error');
+        return;
+      }
     }
 
     setProfileData(prev => ({
@@ -956,7 +1152,7 @@ export default function EmployeeProfileTab({
     setShowEducationModal(true);
   };
 
-  const handleSaveEducation = (e: React.FormEvent) => {
+  const handleSaveEducation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!educationForm.institution.trim()) {
       addToast('Institution is required.', 'error');
@@ -974,13 +1170,27 @@ export default function EmployeeProfileTab({
       );
       addToast(`Education at "${educationForm.institution}" updated successfully.`, 'success');
     } else {
-      const newEdu = {
-        ...educationForm,
-        institution: educationForm.institution.trim(),
-        qualification: educationForm.qualification.trim()
-      };
-      updatedList = [...profileData.educationList, newEdu];
-      addToast(`Education at "${educationForm.institution}" added successfully.`, 'success');
+      const yearNum = educationForm.year.trim() ? parseInt(educationForm.year.trim(), 10) : undefined;
+      try {
+        const created = await createMyEducation({
+          institution: educationForm.institution.trim(),
+          degree: educationForm.qualification.trim(),
+          fieldOfStudy: educationForm.fieldOfStudy.trim() || undefined,
+          endYear: yearNum && !Number.isNaN(yearNum) ? yearNum : undefined,
+        });
+        const mapped = {
+          ...mapEducationRow(created),
+          qualification: educationForm.qualification.trim() || mapEducationRow(created).qualification,
+          fieldOfStudy: educationForm.fieldOfStudy.trim() || mapEducationRow(created).fieldOfStudy,
+          year: educationForm.year.trim() || mapEducationRow(created).year,
+          grade: educationForm.grade.trim() || mapEducationRow(created).grade,
+        };
+        updatedList = [...profileData.educationList, mapped];
+        addToast(`Education at "${educationForm.institution}" added successfully.`, 'success');
+      } catch (err) {
+        addToast(err instanceof ApiError ? err.message : 'Could not add education.', 'error');
+        return;
+      }
     }
 
     setProfileData(prev => ({
@@ -2485,7 +2695,18 @@ export default function EmployeeProfileTab({
                                     View
                                   </button>
                                   <button 
-                                    onClick={() => {
+                                    onClick={async () => {
+                                      if (UUID_RE.test(doc.id)) {
+                                        try {
+                                          await deleteMyDocument(doc.id);
+                                        } catch (err) {
+                                          addToast(
+                                            err instanceof ApiError ? err.message : 'Could not delete document.',
+                                            'error'
+                                          );
+                                          return;
+                                        }
+                                      }
                                       const updated = profileData.documentsList.filter(item => item.id !== doc.id);
                                       setProfileData(prev => ({
                                         ...prev,

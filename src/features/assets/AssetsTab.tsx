@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Package,
   Plus,
@@ -33,6 +33,50 @@ import {
   DollarSign
 } from 'lucide-react';
 import { createLocalId } from '@/lib/createLocalId';
+import ModuleHeader from '@/components/ui/ModuleHeader';
+import { ApiError, createAsset, fetchAssets, type AssetRow } from '@/services';
+
+type UiAsset = {
+  id: string;
+  name: string;
+  serialNum: string;
+  category: string;
+  custodianId: string;
+  custodianName: string;
+  status: string;
+  purchaseDate: string;
+  cost: number;
+  location: string;
+  notes: string;
+  assetCode?: string;
+  condition?: string;
+};
+
+function mapAssetRow(row: AssetRow): UiAsset {
+  const condition = row.assetCondition || '';
+  const assigned = Boolean(row.assignedToId);
+  let status = 'Available';
+  if (assigned) status = 'In Use';
+  else if (/maint/i.test(condition)) status = 'Maintenance';
+  else if (/retir|scrap/i.test(condition)) status = 'Retired';
+  else if (condition) status = condition;
+
+  return {
+    id: row.id,
+    name: row.name,
+    serialNum: row.serialNumber || row.assetCode,
+    category: row.category || '—',
+    custodianId: row.assignedToId || 'Unassigned',
+    custodianName: row.assignedToName || '—',
+    status,
+    purchaseDate: row.purchaseDate || '—',
+    cost: row.purchasePrice ?? 0,
+    location: row.location || '—',
+    notes: row.notes || '',
+    assetCode: row.assetCode,
+    condition: row.assetCondition || undefined,
+  };
+}
 
 interface AssetsTabProps {
   employees: any[];
@@ -61,112 +105,24 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
     { id: 'CAT-6', name: 'Corporate Vehicles', code: 'VEH', description: 'Company cars and executive transport fleets', count: 2 },
   ]);
 
-  const [assets, setAssets] = useState([
-    {
-      id: 'AST-1001',
-      name: 'MacBook Pro 16" (M3 Max / 64GB / 1TB)',
-      serialNum: 'F92DK8XLM3D6',
-      category: 'Laptops',
-      custodianId: 'EMP-001',
-      custodianName: 'Sarah Lim',
-      status: 'In Use',
-      purchaseDate: '2025-06-12',
-      cost: 14899.00,
-      location: 'Singapore HQ (Level 12)',
-      notes: 'Developer primary workspace machine. High priority support warranty active.'
-    },
-    {
-      id: 'AST-1002',
-      name: 'MacBook Air 13" (M2 / 16GB / 512GB)',
-      serialNum: 'F40YK480K1DA',
-      category: 'Laptops',
-      custodianId: 'EMP-002',
-      custodianName: 'Raj Kumar',
-      status: 'In Use',
-      purchaseDate: '2025-02-18',
-      cost: 5499.00,
-      location: 'Singapore HQ (Level 10)',
-      notes: 'Operations deployment machine. Clean condition.'
-    },
-    {
-      id: 'AST-1003',
-      name: 'Dell UltraSharp 32" 4K USB-C Hub Monitor',
-      serialNum: 'CN0DJ18-72891-B',
-      category: 'Monitors & Displays',
-      custodianId: 'EMP-001',
-      custodianName: 'Sarah Lim',
-      status: 'In Use',
-      purchaseDate: '2024-11-05',
-      cost: 3200.00,
-      location: 'Singapore HQ (Level 12)',
-      notes: 'Calibrated color gamut specs.'
-    },
-    {
-      id: 'AST-1004',
-      name: 'iPhone 15 Pro (128GB, Space Black)',
-      serialNum: 'DX1G67H9FLW0',
-      category: 'Mobile Devices',
-      custodianId: 'EMP-003',
-      custodianName: 'Maya Tan',
-      status: 'In Use',
-      purchaseDate: '2024-09-30',
-      cost: 4899.00,
-      location: 'Singapore HQ (Level 11)',
-      notes: 'Testing rig and emergency contact device.'
-    },
-    {
-      id: 'AST-1005',
-      name: 'ThinkPad T14s Gen 4 (AMD Ryzen 7 pro)',
-      serialNum: 'PF-49DKW1',
-      category: 'Laptops',
-      custodianId: 'Unassigned',
-      custodianName: '—',
-      status: 'Available',
-      purchaseDate: '2025-07-02',
-      cost: 6200.00,
-      location: 'Warehouse Closet B',
-      notes: 'Freshly provisioned standard finance staff machine.'
-    },
-    {
-      id: 'AST-1006',
-      name: 'Keychron K8 Pro Mechanical Keyboard',
-      serialNum: 'KC8-892182',
-      category: 'Peripherals & Accessories',
-      custodianId: 'Unassigned',
-      custodianName: '—',
-      status: 'Available',
-      purchaseDate: '2025-01-15',
-      cost: 450.00,
-      location: 'Warehouse Closet A',
-      notes: 'Gateron Brown switches. Hot-swappable layout.'
-    },
-    {
-      id: 'AST-1007',
-      name: 'Figma Organization Annual Seat',
-      serialNum: 'LIC-FIG-082',
-      category: 'Software Licenses',
-      custodianId: 'EMP-005',
-      custodianName: 'Nadia Chen',
-      status: 'In Use',
-      purchaseDate: '2025-03-01',
-      cost: 3312.00,
-      location: 'Cloud / Remote',
-      notes: 'Marketing and visual production team seat. Renewable.'
-    },
-    {
-      id: 'AST-1008',
-      name: 'Mazda CX-5 2.0L (WQA 8928)',
-      serialNum: 'MZD5-891280918-B',
-      category: 'Corporate Vehicles',
-      custodianId: 'Unassigned',
-      custodianName: '—',
-      status: 'Maintenance',
-      purchaseDate: '2024-04-10',
-      cost: 138000.00,
-      location: 'External Panel Workshop',
-      notes: 'Scheduled minor engine overhaul and suspension tuning diagnostics.'
+  // Assets list — loaded from API (mock seed cleared)
+  const [assets, setAssets] = useState<UiAsset[]>([]);
+
+  const loadAssets = useCallback(async () => {
+    try {
+      const rows = await fetchAssets();
+      setAssets(rows.map(mapAssetRow));
+    } catch (err) {
+      setAssets([]);
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load assets from the server.', 'error');
+      }
     }
-  ]);
+  }, [addToast]);
+
+  useEffect(() => {
+    void loadAssets();
+  }, [loadAssets]);
 
   const [allocations, setAllocations] = useState([
     {
@@ -390,14 +346,17 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
   };
 
   // HANDLERS
-  const handleSaveAsset = (e: React.FormEvent) => {
+  const handleSaveAsset = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formAssetName.trim() || !formAssetSerial.trim()) {
       addToast('Please fill out the name and serial number fields.', 'error');
       return;
     }
 
-    const matchedEmp = employees.find(emp => emp.id === formAssetCustodian);
+    const matchedEmp = employees.find(
+      (emp: { id?: string; apiId?: string; name?: string }) =>
+        emp.id === formAssetCustodian || emp.apiId === formAssetCustodian
+    );
     const custName = matchedEmp ? matchedEmp.name : '—';
     const finalCost = parseFloat(formAssetCost) || 0.00;
 
@@ -466,46 +425,54 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
 
       addToast(`Asset ${editingItem.id} updated successfully`, 'success');
     } else {
-      // Add Brand New Asset
-      const newId = `AST-${1000 + assets.length + 1}`;
-      const newAsset = {
-        id: newId,
-        name: formAssetName,
-        serialNum: formAssetSerial,
-        category: formAssetCategory,
-        custodianId: formAssetCustodian,
-        custodianName: custName,
-        status: (formAssetCustodian !== 'Unassigned' ? 'In Use' : formAssetStatus) as any,
-        purchaseDate: formAssetPurchaseDate,
-        cost: finalCost,
-        location: formAssetLocation,
-        notes: formAssetNotes
-      };
+      try {
+        const created = await createAsset({
+          name: formAssetName.trim(),
+          assetCode: formAssetSerial.trim(),
+          category: formAssetCategory || undefined,
+          serialNumber: formAssetSerial.trim(),
+          purchaseDate: formAssetPurchaseDate || undefined,
+          purchasePrice: finalCost || undefined,
+          assignedToId:
+            formAssetCustodian !== 'Unassigned'
+              ? matchedEmp?.apiId || undefined
+              : undefined,
+          assetCondition:
+            formAssetCustodian !== 'Unassigned' ? 'In Use' : formAssetStatus,
+          location: formAssetLocation || undefined,
+          notes: formAssetNotes || undefined,
+        });
+        const mapped = mapAssetRow(created);
+        setAssets(prev => [...prev, mapped]);
 
-      setAssets(prev => [...prev, newAsset]);
+        if (formAssetCustodian !== 'Unassigned') {
+          setAllocations(prev => [
+            ...prev,
+            {
+              id: createLocalId('alc'),
+              assetId: mapped.id,
+              assetName: mapped.name,
+              employeeId: formAssetCustodian,
+              employeeName: custName,
+              checkoutDate: formAssetPurchaseDate || new Date().toISOString().split('T')[0],
+              dueDate: '2028-06-01',
+              condition: 'New Draft Intake',
+              status: 'Active' as const,
+            },
+          ]);
+        }
 
-      // If assigned directly on creation, make an allocation log
-      if (formAssetCustodian !== 'Unassigned') {
-        const newAlloc = {
-          id: createLocalId('alc'),
-          assetId: newId,
-          assetName: formAssetName,
-          employeeId: formAssetCustodian,
-          employeeName: custName,
-          checkoutDate: formAssetPurchaseDate || new Date().toISOString().split('T')[0],
-          dueDate: '2028-06-01',
-          condition: 'New Draft Intake',
-          status: 'Active' as const
-        };
-        setAllocations(prev => [...prev, newAlloc]);
+        setCategories(prev =>
+          prev.map(cat =>
+            cat.name === formAssetCategory ? { ...cat, count: cat.count + 1 } : cat
+          )
+        );
+
+        addToast(`Registered new asset: ${formAssetName}`, 'success');
+      } catch (err) {
+        addToast(err instanceof ApiError ? err.message : 'Could not create asset.', 'error');
+        return;
       }
-
-      // Increment category count
-      setCategories(prev =>
-        prev.map(cat => (cat.name === formAssetCategory ? { ...cat, count: cat.count + 1 } : cat))
-      );
-
-      addToast(`Registered new asset: ${formAssetName}`, 'success');
     }
 
     resetForms();
@@ -954,8 +921,12 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
 
   return (
     <div id="assets-management-view" className="space-y-6">
+      <ModuleHeader
+        title="Assets"
+        description="Inventory, allocations, and maintenance."
+      />
       {/* Upper Metrics Grid */}
-      <div id="assets-metrics-dashboard" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div id="assets-metrics-dashboard" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 nv-stagger">
         <div id="metric-assets-total" className="bg-white border border-slate-100 p-5 rounded-2xl flex items-center justify-between shadow-xs">
           <div className="space-y-2">
             <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">Total Portfolio Value</span>
@@ -983,10 +954,10 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
         <div id="metric-assets-stock" className="bg-white border border-slate-100 p-5 rounded-2xl flex items-center justify-between shadow-xs">
           <div className="space-y-2">
             <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">Warehouse Stock</span>
-            <h3 className="text-2xl font-extrabold text-indigo-600 leading-none">{availableCount} <span className="text-xs text-slate-400 font-medium">available</span></h3>
+            <h3 className="text-2xl font-extrabold text-sky-600 leading-none">{availableCount} <span className="text-xs text-slate-400 font-medium">available</span></h3>
             <p className="text-[10px] font-semibold text-slate-400">Ready for instant assignment</p>
           </div>
-          <div className="h-12 w-12 bg-indigo-500/5 text-indigo-500 rounded-2xl flex items-center justify-center">
+          <div className="h-12 w-12 bg-sky-500/5 text-sky-500 rounded-2xl flex items-center justify-center">
             <Layers className="h-6 w-6" />
           </div>
         </div>

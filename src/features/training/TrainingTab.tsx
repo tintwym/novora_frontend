@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { createLocalNumericId } from '@/lib/createLocalId';
 import {
   Search,
@@ -27,6 +27,32 @@ import {
   GraduationCap,
   ShieldAlert,
 } from 'lucide-react';
+import { ApiError, createTraining, enrollInTraining, fetchTrainingEnrollments, fetchTrainings, type TrainingEnrollmentRow, type TrainingRow } from '@/services';
+import ModuleHeader from '@/components/ui/ModuleHeader';
+
+type UiCourse = {
+  id: string | number;
+  title: string;
+  type: string;
+  delivery: string;
+  frequency: string;
+  mandatory: string;
+  dueWithin: string;
+  status: string;
+};
+
+function mapTrainingRow(row: TrainingRow): UiCourse {
+  return {
+    id: row.id,
+    title: row.title,
+    type: row.category || '—',
+    delivery: row.mode || 'Internal',
+    frequency: '—',
+    mandatory: '—',
+    dueWithin: row.durationHours != null ? `${row.durationHours}h` : '—',
+    status: row.status || 'Active',
+  };
+}
 
 interface TrainingTabProps {
   employees: any[];
@@ -77,13 +103,63 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
     { id: 5, name: 'Project management', type: 'Management', description: 'Agile, Scrum & PMO', subjectsCount: 5 },
   ]);
 
-  const [courses, setCourses] = useState([
-    { id: 1, title: 'Leadership essentials', type: 'Management', delivery: 'Internal', frequency: 'One time', mandatory: 'Yes', dueWithin: '7 days', status: 'Active' },
-    { id: 2, title: 'Excel advanced', type: 'Technical', delivery: 'Internal', frequency: 'Renewing', mandatory: 'No', dueWithin: '30 days', status: 'Active' },
-    { id: 3, title: 'ISO 9001 awareness', type: 'Compliance', delivery: 'External', frequency: 'Annual', mandatory: 'Yes', dueWithin: '1 day', status: 'Active' },
-    { id: 4, title: 'Agile & Scrum', type: 'Management', delivery: 'Overseas', frequency: 'One time', mandatory: 'No', dueWithin: '—', status: 'Active' },
-    { id: 5, title: 'Public speaking', type: 'Soft skills', delivery: 'Internal', frequency: 'Repeat', mandatory: 'No', dueWithin: '14 days', status: 'Active' },
-  ]);
+  const [courses, setCourses] = useState<UiCourse[]>([]);
+  const [selectedTrainingId, setSelectedTrainingId] = useState<string>('');
+  const [trainingEnrollments, setTrainingEnrollments] = useState<TrainingEnrollmentRow[]>([]);
+
+  const loadTrainings = useCallback(async () => {
+    try {
+      const rows = await fetchTrainings();
+      const mapped = rows.map(mapTrainingRow);
+      setCourses(mapped);
+      const firstId = mapped[0] ? String(mapped[0].id) : '';
+      setSelectedTrainingId((prev) => {
+        if (prev && mapped.some((c) => String(c.id) === prev)) return prev;
+        return firstId;
+      });
+      if (firstId) {
+        try {
+          const enrollments = await fetchTrainingEnrollments(firstId);
+          setTrainingEnrollments(enrollments);
+        } catch {
+          setTrainingEnrollments([]);
+        }
+      } else {
+        setTrainingEnrollments([]);
+      }
+    } catch (err) {
+      setCourses([]);
+      setTrainingEnrollments([]);
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load trainings from the server.', 'error');
+      }
+    }
+  }, [addToast]);
+
+  useEffect(() => {
+    void loadTrainings();
+  }, [loadTrainings]);
+
+  const loadEnrollmentsForTraining = useCallback(async (trainingId: string) => {
+    if (!trainingId) {
+      setTrainingEnrollments([]);
+      return;
+    }
+    try {
+      const enrollments = await fetchTrainingEnrollments(trainingId);
+      setTrainingEnrollments(enrollments);
+    } catch (err) {
+      setTrainingEnrollments([]);
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load training enrollments.', 'error');
+      }
+    }
+  }, [addToast]);
+
+  useEffect(() => {
+    if (!selectedTrainingId) return;
+    void loadEnrollmentsForTraining(selectedTrainingId);
+  }, [selectedTrainingId, loadEnrollmentsForTraining]);
 
   const [subjects, setSubjects] = useState([
     { id: 1, title: 'Team leadership', course: 'Leadership essentials', internalTrainer: 'David Ng', externalTrainer: '—', skill: 'People mgmt' },
@@ -228,7 +304,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
     resetForm();
   };
 
-  const handleAddCourse = (e: React.FormEvent) => {
+  const handleAddCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCourseTitle.trim()) return;
 
@@ -250,18 +326,19 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
       );
       addToast(`Updated course: ${newCourseTitle}`, 'success');
     } else {
-      const newItem = {
-        id: createLocalNumericId(),
-        title: newCourseTitle,
-        type: newCourseType,
-        delivery: newCourseDelivery,
-        frequency: newCourseFreq,
-        mandatory: newCourseMandatory,
-        dueWithin: newCourseDue,
-        status: 'Active',
-      };
-      setCourses(prev => [...prev, newItem]);
-      addToast(`Added new course: ${newCourseTitle}`, 'success');
+      try {
+        const created = await createTraining({
+          title: newCourseTitle.trim(),
+          category: newCourseType || undefined,
+          mode: newCourseDelivery || undefined,
+          status: 'Active',
+        });
+        setCourses(prev => [...prev, mapTrainingRow(created)]);
+        addToast(`Added new course: ${newCourseTitle}`, 'success');
+      } catch (err) {
+        addToast(err instanceof ApiError ? err.message : 'Could not create training.', 'error');
+        return;
+      }
     }
     resetForm();
   };
@@ -388,23 +465,58 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
     setFormReason('');
   };
 
-  const handleBehalfRequest = (e: React.FormEvent) => {
+  const handleBehalfRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (behalfSelectedEmps.length === 0) {
       addToast('Please select at least one employee', 'error');
       return;
     }
-    behalfSelectedEmps.forEach(emp => {
-      const newReq = {
-        id: createLocalNumericId(),
-        employee: emp,
-        course: behalfCourse,
-        date: '12 May',
-        status: 'Pending',
-      };
-      setSubmittedBehalf(prev => [newReq, ...prev]);
-    });
-    addToast(`Successfully batch submitted requests on behalf of ${behalfSelectedEmps.length} employees`, 'success');
+
+    const training =
+      courses.find((c) => c.title === behalfCourse) ||
+      courses.find((c) => String(c.id) === selectedTrainingId) ||
+      courses[0];
+    if (!training) {
+      addToast('No training course available to enroll into.', 'error');
+      return;
+    }
+
+    const trainingId = String(training.id);
+    let successCount = 0;
+
+    for (const empName of behalfSelectedEmps) {
+      const emp = employees.find((x: { name?: string; id?: string; apiId?: string }) => x.name === empName);
+      const employeeApiId = emp?.apiId;
+      if (!employeeApiId) {
+        addToast(`Could not enroll ${empName}: missing server id (apiId).`, 'error');
+        continue;
+      }
+      try {
+        await enrollInTraining(trainingId, employeeApiId);
+        successCount += 1;
+        setSubmittedBehalf((prev) => [
+          {
+            id: createLocalNumericId(),
+            employee: empName,
+            course: training.title,
+            date: '12 May',
+            status: 'Pending',
+          },
+          ...prev,
+        ]);
+      } catch (err) {
+        addToast(
+          err instanceof ApiError ? err.message : `Could not enroll ${empName}.`,
+          'error',
+        );
+      }
+    }
+
+    if (successCount > 0) {
+      setSelectedTrainingId(trainingId);
+      await loadEnrollmentsForTraining(trainingId);
+      addToast(`Successfully enrolled ${successCount} employee(s) in ${training.title}`, 'success');
+    }
   };
 
   const handleApprovalAction = (id: string, action: 'Approved' | 'Denied', comment?: string) => {
@@ -495,6 +607,10 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
 
   return (
     <div id="training-management-container" className="space-y-6">
+      <ModuleHeader
+        title="Training"
+        description="Courses, enrolments, and learning records."
+      />
       {/* Tab bar header */}
       <div className="flex items-center justify-between border-b border-slate-100 bg-white px-6 py-1.5 rounded-2xl">
         <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-1">
@@ -660,7 +776,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                       <td className="py-3.5 px-4">
                         <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold ${
                           c.type === 'Management' ? 'bg-blue-50 text-blue-700' :
-                          c.type === 'Technical' ? 'bg-purple-50 text-purple-700' :
+                          c.type === 'Technical' ? 'bg-sky-50 text-sky-700' :
                           c.type === 'Compliance' ? 'bg-amber-50 text-amber-700' :
                           'bg-emerald-50 text-emerald-700'
                         }`}>
@@ -742,12 +858,18 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   .filter(c => c.title.toLowerCase().includes(searchQuery.toLowerCase()))
                   .filter(c => departmentFilter === 'All types' || departmentFilter === 'All departments' || c.type === departmentFilter)
                   .map((c) => (
-                    <tr key={c.id} className="hover:bg-slate-50/40 transition-colors">
+                    <tr
+                      key={c.id}
+                      onClick={() => setSelectedTrainingId(String(c.id))}
+                      className={`hover:bg-slate-50/40 transition-colors cursor-pointer ${
+                        selectedTrainingId === String(c.id) ? 'bg-blue-50/40' : ''
+                      }`}
+                    >
                       <td className="py-3.5 px-4 font-black text-slate-900">{c.title}</td>
                       <td className="py-3.5 px-4">
                         <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold ${
                           c.type === 'Management' ? 'bg-blue-50 text-blue-700' :
-                          c.type === 'Technical' ? 'bg-purple-50 text-purple-700' :
+                          c.type === 'Technical' ? 'bg-sky-50 text-sky-700' :
                           c.type === 'Compliance' ? 'bg-amber-50 text-amber-700' :
                           'bg-emerald-50 text-emerald-700'
                         }`}>
@@ -781,6 +903,32 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
               </tbody>
             </table>
           </div>
+
+          {selectedTrainingId && (
+            <div className="border border-slate-100 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h6 className="text-xs font-black text-slate-800 uppercase tracking-wide">
+                  Enrollments ({trainingEnrollments.length})
+                </h6>
+                <span className="text-[10px] text-slate-400 font-mono">{selectedTrainingId}</span>
+              </div>
+              {trainingEnrollments.length === 0 ? (
+                <p className="text-[11px] text-slate-400 font-semibold">No enrollments yet for this course.</p>
+              ) : (
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {trainingEnrollments.map((enr) => (
+                    <div
+                      key={enr.id}
+                      className="flex items-center justify-between text-xs border border-slate-50 rounded-xl px-3 py-2 bg-slate-50/50"
+                    >
+                      <span className="font-bold text-slate-700">{enr.employeeName}</span>
+                      <span className="text-[10px] font-black uppercase text-novora">{enr.status}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -1130,8 +1278,13 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 <div className="space-y-1">
                   <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Course title <span className="text-rose-500">*</span></label>
                   <select value={behalfCourse} onChange={e => setBehalfCourse(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
-                    <option value="Leadership essentials">Leadership essentials (12–14 May)</option>
-                    <option value="Excel advanced">Excel advanced (6–7– May)</option>
+                    {courses.length === 0 ? (
+                      <option value="">No courses loaded</option>
+                    ) : (
+                      courses.map((c) => (
+                        <option key={c.id} value={c.title}>{c.title}</option>
+                      ))
+                    )}
                   </select>
                 </div>
 

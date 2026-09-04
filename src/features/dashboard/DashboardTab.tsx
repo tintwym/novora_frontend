@@ -17,6 +17,16 @@ import {
 } from 'lucide-react'
 import type { Employee, SidebarTab } from '@/types'
 import { canManageFullSystem } from '@/lib/roles'
+import {
+  fetchAdminAttendanceOverview,
+  fetchAdminDashboardSummary,
+  fetchAdminLeaveRequests,
+  fetchAdminRecentHires,
+  fetchMyDashboard,
+  type DashboardAttendanceOverview,
+  type DashboardEmployeeRow,
+  type DashboardLeaveRequestRow,
+} from '@/services'
 
 interface DashboardTabProps {
   employees: Employee[]
@@ -346,34 +356,147 @@ export default function DashboardTab({
   const [now, setNow] = useState(() => new Date())
   const [timelineFilter, setTimelineFilter] = useState<TimelineFilter>('Last 12 months')
   const isAdmin = canManageFullSystem(roles)
-  const headcount = employees.length > 0 ? employees.length.toLocaleString() : '1,284'
+  const headcount = employees.length > 0 ? employees.length.toLocaleString() : '—'
+
+  const [kpiMap, setKpiMap] = useState<Record<string, { value: string; delta: string }>>({})
+  const [liveHires, setLiveHires] = useState<DashboardEmployeeRow[] | null>(null)
+  const [liveLeave, setLiveLeave] = useState<DashboardLeaveRequestRow[] | null>(null)
+  const [liveAttendance, setLiveAttendance] = useState<DashboardAttendanceOverview | null>(null)
+  const [pendingLeaveCount, setPendingLeaveCount] = useState(0)
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 60_000)
     return () => window.clearInterval(id)
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        if (isAdmin) {
+          const [summary, hires, leave, attendance] = await Promise.all([
+            fetchAdminDashboardSummary(),
+            fetchAdminRecentHires(5),
+            fetchAdminLeaveRequests(6),
+            fetchAdminAttendanceOverview(),
+          ])
+          if (cancelled) return
+          const next: Record<string, { value: string; delta: string }> = {}
+          for (const k of summary.kpis ?? []) {
+            next[k.label.toLowerCase()] = { value: k.value, delta: k.delta }
+          }
+          setKpiMap(next)
+          setLiveHires(hires)
+          setLiveLeave(leave)
+          setLiveAttendance(attendance)
+          setPendingLeaveCount(leave.filter((r) => /pending/i.test(r.status)).length)
+        } else {
+          const mine = await fetchMyDashboard()
+          if (cancelled) return
+          const next: Record<string, { value: string; delta: string }> = {}
+          for (const k of mine.kpis ?? []) {
+            next[k.label.toLowerCase()] = { value: k.value, delta: k.delta }
+          }
+          setKpiMap(next)
+          setLiveAttendance(mine.attendanceOverview ?? null)
+          setLiveLeave(mine.leaveRequests ?? null)
+        }
+      } catch {
+        // Keep mock/fallback UI if dashboard APIs are empty or unavailable.
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [isAdmin])
+
+  const findKpi = (needle: string) => {
+    const key = Object.keys(kpiMap).find((k) => k.includes(needle))
+    return key ? kpiMap[key] : undefined
+  }
+
   const goTo = (tab: SidebarTab, message?: string) => {
     setActiveSidebarTab(tab)
     if (message) addToast(message, 'info')
   }
 
+  const attentionItems = useMemo(() => {
+    if (pendingLeaveCount > 0) {
+      return [
+        {
+          id: 'leave-live',
+          title: `${pendingLeaveCount} leave request${pendingLeaveCount === 1 ? '' : 's'} pending`,
+          detail: 'Review and approve in Leave Management',
+          tab: 'Leave Management' as SidebarTab,
+          tone: 'amber' as const,
+        },
+        ...ATTENTION_ITEMS.slice(1),
+      ]
+    }
+    return ATTENTION_ITEMS
+  }, [pendingLeaveCount])
+
+  const hireRows =
+    liveHires && liveHires.length > 0
+      ? liveHires.slice(0, 3).map((h, i) => ({
+          name: h.name,
+          role: h.role,
+          date: h.date,
+          initials: h.name
+            .split(/\s+/)
+            .map((p) => p[0])
+            .join('')
+            .slice(0, 2)
+            .toUpperCase(),
+          color: ['bg-indigo-100 text-indigo-700', 'bg-emerald-100 text-emerald-700', 'bg-sky-100 text-sky-700'][
+            i % 3
+          ],
+        }))
+      : NEW_HIRES
+
+  const leaveRows =
+    liveLeave && liveLeave.length > 0
+      ? liveLeave.slice(0, 3).map((r) => ({
+          name: r.name,
+          type: r.leaveType,
+          dates: r.dateRange,
+          status: (/approv/i.test(r.status)
+            ? 'Approved'
+            : /reject|den/i.test(r.status)
+              ? 'Rejected'
+              : 'Pending') as 'Pending' | 'Approved' | 'Rejected',
+        }))
+      : LEAVE_QUEUE
+
+  const attendanceRate = liveAttendance
+    ? `${liveAttendance.attendanceRate.toFixed(0)}%`
+    : '89%'
+  const attendanceBuckets = liveAttendance?.buckets?.length
+    ? liveAttendance.buckets
+    : [
+        { label: 'Present', count: 0 },
+        { label: 'On leave', count: 0 },
+        { label: 'Absent / late', count: 0 },
+      ]
+
   if (!isAdmin) {
     return (
       <div className="space-y-6 animate-in fade-in duration-300">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <header className="nv-dash-hero flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-500">{formatHeaderDate(now)}</p>
-            <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-slate-900">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/45">
+              {formatHeaderDate(now)}
+            </p>
+            <h1 className="mt-2 font-display text-2xl md:text-3xl font-bold tracking-tight text-white">
               {getGreeting(now.getHours())}, {firstName(userName)}
             </h1>
-            <p className="mt-1 text-sm text-slate-500">Here&apos;s your workspace at a glance.</p>
+            <p className="mt-1.5 text-sm text-white/60">Here&apos;s your workspace at a glance.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => goTo('Attendance Management')}
-              className="nv-btn-primary cursor-pointer px-4 py-2 text-xs"
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-slate-900 shadow-sm hover:bg-white/95 cursor-pointer"
             >
               <LogIn className="h-3.5 w-3.5" />
               Go to attendance
@@ -381,17 +504,30 @@ export default function DashboardTab({
             <button
               type="button"
               onClick={() => goTo('Leave Management')}
-              className="nv-btn-secondary cursor-pointer px-4 py-2 text-xs"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/15 cursor-pointer"
             >
               Apply for leave
             </button>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <KpiCard label="Leave balance" value="14 days" icon={Umbrella} iconClass="!bg-violet-50 !text-violet-600" />
-          <KpiCard label="Attendance this month" value="96%" trend="+2%" trendUp icon={CheckCircle2} iconClass="" />
-          <KpiCard label="Pending claims" value="1" icon={FileText} iconClass="!bg-amber-50 !text-amber-600" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 nv-stagger">
+          <KpiCard
+            label="Leave balance"
+            value={findKpi('leave')?.value || '—'}
+            icon={Umbrella}
+            iconClass="!bg-sky-50 !text-sky-600"
+          />
+          <KpiCard
+            label="Attendance this month"
+            value={
+              findKpi('attendance')?.value ||
+              (liveAttendance ? `${liveAttendance.attendanceRate.toFixed(0)}%` : '—')
+            }
+            icon={CheckCircle2}
+            iconClass=""
+          />
+          <KpiCard label="Pending claims" value={findKpi('claim')?.value || '—'} icon={FileText} iconClass="!bg-amber-50 !text-amber-600" />
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
@@ -477,21 +613,23 @@ export default function DashboardTab({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <header className="nv-dash-hero flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-500">{formatHeaderDate(now)}</p>
-          <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-slate-900">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/45">
+            {formatHeaderDate(now)}
+          </p>
+          <h1 className="mt-2 font-display text-2xl md:text-3xl font-bold tracking-tight text-white">
             {getGreeting(now.getHours())}, {firstName(userName)}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {ATTENTION_ITEMS.length} items need your attention today.
+          <p className="mt-1.5 text-sm text-white/60">
+            {attentionItems.length} items need your attention today.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => goTo('Employees Management', 'Opening employee directory…')}
-            className="nv-btn-secondary cursor-pointer px-4 py-2 text-xs"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/15 cursor-pointer"
           >
             <UserPlus className="h-3.5 w-3.5" />
             Add employee
@@ -499,14 +637,14 @@ export default function DashboardTab({
           <button
             type="button"
             onClick={() => goTo('Leave Management')}
-            className="nv-btn-secondary cursor-pointer px-4 py-2 text-xs"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/15 cursor-pointer"
           >
             Review leave
           </button>
           <button
             type="button"
             onClick={() => goTo('Payroll Management')}
-            className="nv-btn-primary cursor-pointer px-4 py-2 text-xs"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-slate-900 shadow-sm hover:bg-white/95 cursor-pointer"
           >
             <DollarSign className="h-3.5 w-3.5" />
             Payroll
@@ -514,18 +652,39 @@ export default function DashboardTab({
         </div>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 nv-stagger">
         <KpiCard
           label="Total employees"
-          value={headcount}
-          trend="+8.5%"
-          trendUp
+          value={findKpi('employee')?.value || headcount}
+          trend={findKpi('employee')?.delta || undefined}
+          trendUp={!findKpi('employee')?.delta?.trim().startsWith('-')}
           icon={Users}
           iconClass=""
         />
-        <KpiCard label="On leave today" value="87" trend="-3.2%" trendUp={false} icon={Umbrella} iconClass="!bg-violet-50 !text-violet-600" />
-        <KpiCard label="Attendance rate" value="96.8%" trend="+2.4%" trendUp icon={CheckCircle2} iconClass="!bg-emerald-50 !text-emerald-600" />
-        <KpiCard label="Open positions" value="23" trend="-8%" trendUp={false} icon={Briefcase} iconClass="!bg-orange-50 !text-orange-600" />
+        <KpiCard
+          label="On leave today"
+          value={findKpi('leave')?.value || String(pendingLeaveCount || '—')}
+          trend={findKpi('leave')?.delta || undefined}
+          trendUp={!findKpi('leave')?.delta?.trim().startsWith('-')}
+          icon={Umbrella}
+          iconClass="!bg-sky-50 !text-sky-600"
+        />
+        <KpiCard
+          label="Attendance rate"
+          value={findKpi('attendance')?.value || attendanceRate}
+          trend={findKpi('attendance')?.delta || undefined}
+          trendUp={!findKpi('attendance')?.delta?.trim().startsWith('-')}
+          icon={CheckCircle2}
+          iconClass="!bg-emerald-50 !text-emerald-600"
+        />
+        <KpiCard
+          label="Open positions"
+          value={findKpi('position')?.value || findKpi('open')?.value || '—'}
+          trend={findKpi('position')?.delta || findKpi('open')?.delta || undefined}
+          trendUp={!(findKpi('position')?.delta || findKpi('open')?.delta || '').trim().startsWith('-')}
+          icon={Briefcase}
+          iconClass="!bg-orange-50 !text-orange-600"
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
@@ -535,13 +694,13 @@ export default function DashboardTab({
           title="Needs attention"
           action={
             <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-              {ATTENTION_ITEMS.length} open
+              {attentionItems.length} open
             </span>
           }
           className="lg:col-span-4"
         >
           <ul className="space-y-2">
-            {ATTENTION_ITEMS.map((item) => (
+            {attentionItems.map((item) => (
               <li key={item.id}>
                 <button
                   type="button"
@@ -599,20 +758,16 @@ export default function DashboardTab({
                   strokeLinecap="round"
                 />
               </svg>
-              <span className="absolute text-lg font-bold text-slate-800">89%</span>
+              <span className="absolute text-lg font-bold text-slate-800">{attendanceRate}</span>
             </div>
             <ul className="flex-1 space-y-2 text-xs">
-              {[
-                { label: 'Present', value: '1,148', color: 'bg-novora' },
-                { label: 'On leave', value: '87', color: 'bg-violet-400' },
-                { label: 'Absent / late', value: '49', color: 'bg-amber-400' },
-              ].map((row) => (
+              {attendanceBuckets.slice(0, 3).map((row) => (
                 <li key={row.label} className="flex items-center justify-between gap-2">
                   <span className="flex items-center gap-2 text-slate-600">
-                    <span className={`h-2 w-2 rounded-full ${row.color}`} />
+                    <span className="h-2 w-2 rounded-full bg-novora" />
                     {row.label}
                   </span>
-                  <span className="font-semibold text-slate-800">{row.value}</span>
+                  <span className="font-semibold text-slate-800">{row.count}</span>
                 </li>
               ))}
             </ul>
@@ -632,7 +787,7 @@ export default function DashboardTab({
           }
         >
           <ul className="divide-y divide-slate-100">
-            {NEW_HIRES.map((person) => (
+            {hireRows.map((person) => (
               <li key={person.name} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
                 <div className="flex items-center gap-3">
                   <span className={`flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold ${person.color}`}>
@@ -696,7 +851,7 @@ export default function DashboardTab({
         }
       >
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          {LEAVE_QUEUE.map((item) => (
+          {leaveRows.map((item) => (
             <div
               key={item.name}
               className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-3 py-3"

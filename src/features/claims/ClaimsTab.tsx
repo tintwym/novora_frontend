@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Receipt,
   CheckCircle,
@@ -27,10 +27,21 @@ import {
   Edit2,
 } from 'lucide-react';
 import { SelectMenu } from '@/components/ui';
+import ModuleHeader from '@/components/ui/ModuleHeader';
+import { canManageFullSystem } from '@/lib/roles';
+import {
+  ApiError,
+  createMyClaim,
+  decideClaim,
+  fetchAdminClaims,
+  fetchMyClaims,
+  type ClaimRow,
+} from '@/services';
 
 interface ClaimsTabProps {
   employees: any[];
   addToast: (text: string, type: 'success' | 'loading' | 'error' | 'info') => void;
+  roles?: string[];
 }
 
 interface Claim {
@@ -53,9 +64,11 @@ interface Claim {
   hasAttachment: boolean;
 }
 
-export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
+export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTabProps) {
+  const isAdmin = canManageFullSystem(roles)
   // Navigation sub-tabs
   const [activeSubTab, setActiveSubTab] = useState<'Submit Claim' | 'Approval' | 'Policy & Compliance' | 'Payroll Integration' | 'Analytics & Reports' | 'Claim History'>('Submit Claim');
+  const [claimsBusy, setClaimsBusy] = useState(false);
 
   // Interactive filters (global / header scoped)
   const [headerMonth, setHeaderMonth] = useState<string>('May 2026');
@@ -65,161 +78,51 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
   const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
   const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
 
-  // Core Database of Claims
-  const [claims, setClaims] = useState<Claim[]>([
-    {
-      id: 'CLM-001',
-      empId: 'EMP-001',
-      empName: 'Sarah Lim',
-      department: 'Engineering',
-      category: 'Meal allowance',
-      date: '2026-05-05',
-      amount: 38.50,
-      currency: 'SGD',
-      myrEquivalent: 38.50,
-      vendor: 'Nando\'s',
-      approvalChain: 'David Ng',
+  const mapClaim = (row: ClaimRow): Claim => {
+    const status = /approv/i.test(row.status)
+      ? 'Approved'
+      : /reject/i.test(row.status)
+        ? 'Rejected'
+        : 'Pending'
+    return {
+      id: row.id,
+      empId: row.employeeId,
+      empName: row.employeeName,
+      department: row.departmentName || '—',
+      category: row.category,
+      date: row.claimDate,
+      amount: Number(row.amount),
+      currency: row.currency || 'SGD',
+      myrEquivalent: Number(row.amount),
+      vendor: row.vendor || '—',
+      approvalChain: row.decidedBy || 'Manager',
       policyFlag: 'Clear',
-      status: 'Pending',
-      payrollMonth: 'May 2026',
-      pushStatus: '—',
-      description: 'Project wrap-up dinner with front-end development lead.',
-      hasAttachment: true
-    },
-    {
-      id: 'CLM-002',
-      empId: 'EMP-002',
-      empName: 'Raj Kumar',
-      department: 'Operations',
-      category: 'Hotel / stay',
-      date: '2026-04-28',
-      amount: 450.00,
-      currency: 'SGD',
-      myrEquivalent: 450.00,
-      vendor: 'Marriott KL',
-      approvalChain: 'David \u2192 Ahmad W',
-      policyFlag: 'Clear',
-      status: 'Pending',
-      payrollMonth: 'May 2026',
-      pushStatus: '—',
-      description: 'Stakeholder workshop overnight accommodation.',
-      hasAttachment: true
-    },
-    {
-      id: 'CLM-003',
-      empId: 'EMP-003',
-      empName: 'Maya Tan',
-      department: 'Finance',
-      category: 'Air ticket',
-      date: '2026-04-25',
-      amount: 280.00,
-      currency: 'USD',
-      myrEquivalent: 1310.40, // 280 * 4.68
-      vendor: 'AirAsia',
-      approvalChain: 'Nina \u2192 Ahmad W | Finance',
-      policyFlag: 'Flagged',
-      status: 'Pending',
-      payrollMonth: 'May 2026',
-      pushStatus: '—',
-      description: 'SaaS audit assembly flights to head office.',
-      hasAttachment: true
-    },
-    {
-      id: 'CLM-004',
-      empId: 'EMP-004',
-      empName: 'Ahmad L',
-      department: 'HR',
-      category: 'Meal allowance',
-      date: '2026-05-06',
-      amount: 42.00,
-      currency: 'SGD',
-      myrEquivalent: 42.00,
-      vendor: 'Subway Pte. Ltd.',
-      approvalChain: 'Malik Said',
-      policyFlag: 'Over limit',
-      status: 'Pending',
-      payrollMonth: 'May 2026',
-      pushStatus: '—',
-      description: 'Candidate screening lunches.',
-      hasAttachment: false
-    },
-    {
-      id: 'CLM-005',
-      empId: 'EMP-005',
-      empName: 'Nadia Chen',
-      department: 'Marketing',
-      category: 'Transport',
-      date: '2026-05-03',
-      amount: 120.00,
-      currency: 'SGD',
-      myrEquivalent: 120.00,
-      vendor: 'Grab',
-      approvalChain: 'Kevin Lim',
-      policyFlag: 'Clear',
-      status: 'Approved',
-      payrollMonth: 'May 2026',
-      pushStatus: 'Pushed',
-      description: 'Client roadshow transport.',
-      hasAttachment: true
-    },
-    {
-      id: 'CLM-006',
-      empId: 'EMP-001',
-      empName: 'Sarah Lim',
-      department: 'Engineering',
-      category: 'Wellness',
-      date: '2026-05-01',
-      amount: 180.00,
-      currency: 'SGD',
-      myrEquivalent: 180.00,
-      vendor: 'Fitness First',
-      approvalChain: 'David Ng',
-      policyFlag: 'Clear',
-      status: 'Approved',
-      payrollMonth: 'May 2026',
-      pushStatus: 'Pushed',
-      description: 'Corporate gym membership monthly reimbursement.',
-      hasAttachment: true
-    },
-    {
-      id: 'CLM-007',
-      empId: 'EMP-005',
-      empName: 'Nadia Chen',
-      department: 'Marketing',
-      category: 'Mileage',
-      date: '2026-04-15',
-      amount: 78.40,
-      currency: 'SGD',
-      myrEquivalent: 78.40,
-      vendor: '—',
-      approvalChain: 'Kevin Lim',
-      policyFlag: 'Clear',
-      status: 'Approved',
-      payrollMonth: 'Apr 2026',
-      pushStatus: 'Pushed',
-      description: 'Travel to warehouse support operations (142km).',
-      hasAttachment: false
-    },
-    {
-      id: 'CLM-008',
-      empId: 'EMP-001',
-      empName: 'Sarah Lim',
-      department: 'Engineering',
-      category: 'Meal allowance',
-      date: '2026-04-20',
-      amount: 55.00,
-      currency: 'SGD',
-      myrEquivalent: 55.00,
-      vendor: 'Nando\'s',
-      approvalChain: 'Kevin Lim',
-      policyFlag: 'Clear',
-      status: 'Rejected',
-      payrollMonth: 'May 2026',
-      pushStatus: '—',
-      description: 'Late submission claim without receipt proof.',
-      hasAttachment: false
+      status,
+      payrollMonth: '—',
+      pushStatus: status === 'Approved' ? 'Queued' : '—',
+      description: row.description || '—',
+      hasAttachment: false,
     }
-  ]);
+  }
+
+  // Core Database of Claims — loaded from API
+  const [claims, setClaims] = useState<Claim[]>([]);
+
+  const loadClaims = useCallback(async () => {
+    try {
+      const rows = isAdmin ? await fetchAdminClaims() : await fetchMyClaims()
+      setClaims(rows.map(mapClaim))
+    } catch (err) {
+      setClaims([])
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load claims from the server.', 'error')
+      }
+    }
+  }, [addToast, isAdmin])
+
+  useEffect(() => {
+    void loadClaims()
+  }, [loadClaims])
 
   // Submit Claim tab states
   const [claimCategory, setClaimCategory] = useState<string>('-- Select category --');
@@ -345,81 +248,66 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
   const [pushProgressPct, setPushProgressPct] = useState(0);
 
   // Handle submit claim
-  const handleSubmitClaim = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (claimCategory.includes('--Select') || claimCategory === '') {
-      addToast('Please select a valid claim category.', 'error');
-      return;
+  const handleSubmitClaim = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (claimCategory.includes('--Select') || claimCategory === '-- Select category --' || !claimCategory) {
+      addToast('Please select a valid claim category.', 'error')
+      return
     }
-    if (parseFloat(claimAmount) <= 0) {
-      addToast('Please input an amount greater than 0.', 'error');
-      return;
+    const amount = parseFloat(claimAmount)
+    if (!(amount > 0)) {
+      addToast('Please input an amount greater than 0.', 'error')
+      return
     }
+    setClaimsBusy(true)
+    try {
+      const created = await createMyClaim({
+        category: claimCategory,
+        claimDate,
+        amount,
+        currency: claimCurrency || 'SGD',
+        vendor: claimVendor || undefined,
+        description: claimDesc || undefined,
+      })
+      setClaims((prev) => [mapClaim(created), ...prev.filter((c) => c.id !== created.id)])
+      addToast(`Claim for ${claimCurrency} ${amount.toFixed(2)} submitted.`, 'success')
+      setClaimCategory('-- Select category --')
+      setClaimVendor('')
+      setClaimAmount('0.00')
+      setClaimDesc('')
+      setHasReceiptFile(false)
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not submit claim.', 'error')
+    } finally {
+      setClaimsBusy(false)
+    }
+  }
 
-    const matchedStaff = employees[claims.length % Math.max(employees.length, 1)] || { name: 'Ahmad L', department: 'HR' };
-    const nameToUse = selectedStaffName || matchedStaff.name;
-    const deptToUse = employees.find(e => e.name === nameToUse)?.department || 'Finance';
+  const handleApprove = async (id: string) => {
+    setClaimsBusy(true)
+    try {
+      const updated = await decideClaim(id, { decision: 'APPROVE' })
+      setClaims((prev) => prev.map((c) => (c.id === id ? mapClaim(updated) : c)))
+      addToast('Claim approved.', 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not approve claim.', 'error')
+    } finally {
+      setClaimsBusy(false)
+    }
+  }
 
-    let badgeFlg: 'Clear' | 'Over limit' = 'Clear';
-    if (claimCategory === 'Meal allowance' && myrEquiv > 30.00) badgeFlg = 'Over limit';
-    if (claimCategory === 'Transport' && myrEquiv > 200.00) badgeFlg = 'Over limit';
-
-    const newClaimObj: Claim = {
-      id: `CLM-${300 + claims.length + 1}`,
-      empId: `EMP-${100 + claims.length + 1}`,
-      empName: nameToUse,
-      department: deptToUse,
-      category: claimCategory,
-      date: claimDate,
-      amount: parseFloat(claimAmount),
-      currency: claimCurrency,
-      myrEquivalent: myrEquiv,
-      vendor: claimVendor || 'Direct Submission',
-      approvalChain: claimCategory === 'Air ticket' || myrEquiv > 1000 
-        ? 'David \u2192 Ahmad W \u2192 Finance' 
-        : myrEquiv > 200 
-          ? 'David \u2192 Ahmad W' 
-          : 'David Ng',
-      policyFlag: badgeFlg,
-      status: 'Pending',
-      payrollMonth: 'May 2026',
-      pushStatus: '—',
-      description: claimDesc || 'Business reimbursement submission.',
-      hasAttachment: hasReceiptFile
-    };
-
-    setClaims([newClaimObj, ...claims]);
-    addToast(`Claim for SGD ${myrEquiv} submitted to approval workflow.`, 'success');
-
-    // Reset Form
-    setClaimCategory('-- Select category --');
-    setClaimVendor('');
-    setClaimAmount('0.00');
-    setClaimDesc('');
-    setHasReceiptFile(false);
-  };
-
-  // Action: Approve claim
-  const handleApprove = (id: string) => {
-    setClaims(claims.map(c => {
-      if (c.id === id) {
-        return { ...c, status: 'Approved', pushStatus: 'Queued' };
-      }
-      return c;
-    }));
-    addToast('Claim approved successfully. Added to next payroll queue.', 'success');
-  };
-
-  // Action: Reject claim
-  const handleReject = (id: string) => {
-    setClaims(claims.map(c => {
-      if (c.id === id) {
-        return { ...c, status: 'Rejected' };
-      }
-      return c;
-    }));
-    addToast('Claim rejected.', 'error');
-  };
+  const handleReject = async (id: string) => {
+    setClaimsBusy(true)
+    try {
+      const updated = await decideClaim(id, { decision: 'REJECT', note: 'Rejected by admin' })
+      setClaims((prev) => prev.map((c) => (c.id === id ? mapClaim(updated) : c)))
+      addToast('Claim rejected.', 'info')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not reject claim.', 'error')
+    } finally {
+      setClaimsBusy(false)
+    }
+  }
 
   // Action: Push queued to payroll
   const handlePushToPayroll = () => {
@@ -461,7 +349,11 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
 
   return (
     <div id="claims-tab-stage" className="space-y-6 animate-in fade-in duration-200">
-      
+      <ModuleHeader
+        title="Claims"
+        description="Submit, approve, and reconcile expense claims."
+      />
+
       {/* 1. UPPER NAVIGATION & PRIMARY HORIZONTAL NAV-BAR - styled exactly like Payroll and Disciplinary */}
       <div id="claims-module-navigator" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
         
@@ -979,7 +871,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       <h4 className="font-bold text-slate-800">{rule.range}</h4>
                       <p className="text-[11px] text-slate-505 mt-1 leading-normal">{rule.desc}</p>
                       <span className={`inline-block mt-2 text-[9px] font-bold px-1.5 py-0.5 rounded-sm ${
-                        rule.type.includes('Parallel') ? 'bg-purple-50 text-purple-700' : 'bg-emerald-50 text-emerald-700'
+                        rule.type.includes('Parallel') ? 'bg-sky-50 text-sky-700' : 'bg-emerald-50 text-emerald-700'
                       }`}>{rule.type}</span>
                     </div>
                   </div>
@@ -1029,7 +921,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                             claim.category === 'Meal allowance' ? 'bg-amber-50 text-amber-700' :
                             claim.category === 'Transport' ? 'bg-indigo-50 text-indigo-700' :
                             claim.category === 'Hotel / stay' ? 'bg-blue-50 text-blue-700' :
-                            claim.category === 'Air ticket' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'
+                            claim.category === 'Air ticket' ? 'bg-sky-100 text-sky-700' : 'bg-slate-100 text-slate-700'
                           }`}>
                             {claim.category}
                           </span>
@@ -1242,12 +1134,12 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   </div>
 
                   <div className="flex items-start gap-3 p-3 bg-indigo-50/10 border border-indigo-100 rounded-xl">
-                    <div className="h-2 w-2 rounded-full bg-purple-500 mt-1 shrink-0 items-center" />
+                    <div className="h-2 w-2 rounded-full bg-amber-500 mt-1 shrink-0 items-center" />
                     <div className="flex-1">
                       <p className="text-slate-850 font-bold">Over category cap</p>
                       <p className="text-[11px] text-slate-500 mt-0.5">Maya T &bull; Air ticket SGD 1,280 needs Finance review</p>
                     </div>
-                    <span className="bg-purple-100 text-purple-800 text-[9px] font-black px-2 py-0.5 rounded uppercase">Escalated</span>
+                    <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-2 py-0.5 rounded uppercase">Escalated</span>
                   </div>
                 </div>
               </div>
@@ -1522,7 +1414,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                 <div className="space-y-3.5">
                   {[
                     { label: 'Air ticket', amount: 'SGD 5,840', pct: 85, color: 'bg-blue-600' },
-                    { label: 'Hotel / stay', amount: 'SGD 4,320', pct: 65, color: 'bg-purple-500' },
+                    { label: 'Hotel / stay', amount: 'SGD 4,320', pct: 65, color: 'bg-sky-500' },
                     { label: 'Transport', amount: 'SGD 2,240', pct: 40, color: 'bg-emerald-500' },
                     { label: 'Meal', amount: 'SGD 1,820', pct: 30, color: 'bg-amber-500' },
                     { label: 'Mileage', amount: 'SGD 720', pct: 15, color: 'bg-pink-500' },
@@ -1549,7 +1441,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                   {[
                     { label: 'Engineering', amount: 'SGD 6,480', pct: 90, color: 'bg-blue-600' },
                     { label: 'Operations', amount: 'SGD 4,950', pct: 75, color: 'bg-emerald-500' },
-                    { label: 'Finance', amount: 'SGD 2,700', pct: 45, color: 'bg-purple-500' },
+                    { label: 'Finance', amount: 'SGD 2,700', pct: 45, color: 'bg-sky-500' },
                     { label: 'Marketing', amount: 'SGD 1,800', pct: 30, color: 'bg-amber-500' },
                     { label: 'HR', amount: 'SGD 890', pct: 15, color: 'bg-pink-500' }
                   ].map((dept, i) => (
@@ -1603,7 +1495,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       <span className="font-extrabold">SGD 2,700 / SGD 4,000</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-purple-600 h-2 rounded-full items-center shrink-0" style={{ width: '68%' }}></div>
+                      <div className="bg-sky-600 h-2 rounded-full items-center shrink-0" style={{ width: '68%' }}></div>
                     </div>
                     <span className="block text-[10px] text-slate-400 mt-1">68% used &bull; SGD 1,300 remaining</span>
                   </div>
@@ -1672,7 +1564,7 @@ export default function ClaimsTab({ employees, addToast }: ClaimsTabProps) {
                       <tr>
                         <td className="py-2.5">
                           <div className="flex items-center gap-2">
-                            <span className="bg-purple-100 text-purple-705 h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center shrink-0">NC</span>
+                            <span className="bg-sky-100 text-sky-700 h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center shrink-0">NC</span>
                             <span className="font-bold text-slate-800">Nadia Chen</span>
                           </div>
                         </td>

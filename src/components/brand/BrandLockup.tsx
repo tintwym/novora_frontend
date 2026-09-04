@@ -26,7 +26,7 @@ export default function BrandLockup({
     <div className={`flex items-center gap-2.5 select-none ${className}`}>
       <NovoraLogo className={`${s.mark} shrink-0`} />
       <div className="min-w-0">
-        <div className={`${s.word} font-extrabold tracking-tight leading-none ${wordColor}`}>
+        <div className={`${s.word} font-display font-extrabold tracking-tight leading-none ${wordColor}`}>
           Novora
         </div>
         <div
