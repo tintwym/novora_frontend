@@ -22,14 +22,18 @@ import {
   fetchAdminDashboardSummary,
   fetchAdminGrowth,
   fetchAdminLeaveRequests,
+  fetchAdminPayrollSummary,
   fetchAdminRecentHires,
   fetchAdminTasks,
   fetchMyDashboard,
+  fetchPayrollRunSummary,
   type DashboardAttendanceOverview,
   type DashboardEmployeeRow,
   type DashboardGrowthPoint,
   type DashboardLeaveRequestRow,
   type DashboardTaskRow,
+  type PayrollRunSummary,
+  type PayrollSlice,
 } from '@/services'
 
 interface DashboardTabProps {
@@ -328,6 +332,8 @@ export default function DashboardTab({
   const [liveGrowth, setLiveGrowth] = useState<DashboardGrowthPoint[]>([])
   const [liveTasks, setLiveTasks] = useState<DashboardTaskRow[]>([])
   const [pendingLeaveCount, setPendingLeaveCount] = useState(0)
+  const [payrollRun, setPayrollRun] = useState<PayrollRunSummary | null>(null)
+  const [payrollSlices, setPayrollSlices] = useState<PayrollSlice[]>([])
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 60_000)
@@ -339,13 +345,15 @@ export default function DashboardTab({
     ;(async () => {
       try {
         if (isAdmin) {
-          const [summary, hires, leave, attendance, growth, tasks] = await Promise.all([
+          const [summary, hires, leave, attendance, growth, tasks, run, slices] = await Promise.all([
             fetchAdminDashboardSummary(),
             fetchAdminRecentHires(5),
             fetchAdminLeaveRequests(6),
             fetchAdminAttendanceOverview(),
             fetchAdminGrowth(12).catch(() => [] as DashboardGrowthPoint[]),
             fetchAdminTasks(12).catch(() => [] as DashboardTaskRow[]),
+            fetchPayrollRunSummary().catch(() => null),
+            fetchAdminPayrollSummary().catch(() => [] as PayrollSlice[]),
           ])
           if (cancelled) return
           const next: Record<string, { value: string; delta: string }> = {}
@@ -359,6 +367,8 @@ export default function DashboardTab({
           setLiveGrowth(growth)
           setLiveTasks(tasks)
           setPendingLeaveCount(leave.filter((r) => /pending/i.test(r.status)).length)
+          setPayrollRun(run)
+          setPayrollSlices(slices)
         } else {
           const mine = await fetchMyDashboard()
           if (cancelled) return
@@ -373,6 +383,8 @@ export default function DashboardTab({
           setPendingLeaveCount(
             (mine.leaveRequests ?? []).filter((r) => /pending/i.test(r.status)).length,
           )
+          setPayrollRun(null)
+          setPayrollSlices([])
         }
       } catch {
         // Leave panels empty when APIs fail — never seed demo people.
@@ -463,16 +475,50 @@ export default function DashboardTab({
         }))
       : []
 
-  const attendanceRate = liveAttendance
-    ? `${liveAttendance.attendanceRate.toFixed(0)}%`
-    : '—'
+  const attendanceRateValue = liveAttendance?.attendanceRate ?? 0
+  const attendanceRate = liveAttendance ? `${attendanceRateValue.toFixed(0)}%` : '—'
   const attendanceBuckets = liveAttendance?.buckets?.length
     ? liveAttendance.buckets
     : [
         { label: 'Present', count: 0 },
-        { label: 'On leave', count: 0 },
-        { label: 'Absent / late', count: 0 },
+        { label: 'Absent', count: 0 },
+        { label: 'Late', count: 0 },
       ]
+  const attendanceDonut = (() => {
+    const radius = 38
+    const circumference = 2 * Math.PI * radius
+    const pct = Math.max(0, Math.min(100, attendanceRateValue)) / 100
+    return {
+      radius,
+      circumference,
+      dash: `${circumference * pct} ${circumference}`,
+    }
+  })()
+
+  const monthNames = [
+    '',
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ]
+  const payrollPeriodLabel = payrollRun
+    ? `${monthNames[payrollRun.payMonth] || payrollRun.payMonth} ${payrollRun.payYear}`
+    : 'Current cycle'
+  const payrollSliceTotal = payrollSlices.reduce((sum, s) => sum + Math.max(0, s.value), 0)
+  const money = (n: number) =>
+    n.toLocaleString(undefined, { style: 'currency', currency: 'SGD', maximumFractionDigits: 0 })
+  const sliceDollars = (cents: number) => cents / 100
+  const deductionsSlice = payrollSlices.find((s) => /deduct/i.test(s.name))
+  const deductionsDisplay = deductionsSlice ? money(sliceDollars(deductionsSlice.value)) : null
 
   if (!isAdmin) {
     return (
@@ -731,7 +777,7 @@ export default function DashboardTab({
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Panel
-          title="Attendance today"
+          title="Attendance this month"
           action={
             <button
               type="button"
@@ -745,16 +791,17 @@ export default function DashboardTab({
           <div className="flex items-center gap-5">
             <div className="relative flex h-24 w-24 shrink-0 items-center justify-center">
               <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
-                <circle cx="50" cy="50" r="38" fill="none" stroke="#f1f5f9" strokeWidth="8" />
+                <circle cx="50" cy="50" r={attendanceDonut.radius} fill="none" stroke="#f1f5f9" strokeWidth="8" />
                 <circle
                   cx="50"
                   cy="50"
-                  r="38"
+                  r={attendanceDonut.radius}
                   fill="none"
-                  stroke="#2563eb"
+                  stroke="#4F46E5"
                   strokeWidth="8"
-                  strokeDasharray="214 251"
+                  strokeDasharray={attendanceDonut.dash}
                   strokeLinecap="round"
+                  className="transition-[stroke-dasharray] duration-500"
                 />
               </svg>
               <span className="absolute text-lg font-bold text-slate-800">{attendanceRate}</span>
@@ -786,7 +833,10 @@ export default function DashboardTab({
           }
         >
           <ul className="divide-y divide-slate-100">
-            {hireRows.map((person) => (
+            {hireRows.length === 0 ? (
+              <li className="py-6 text-center text-xs text-slate-400">No recent hires from the API yet.</li>
+            ) : (
+              hireRows.map((person) => (
               <li key={person.name} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
                 <div className="flex items-center gap-3">
                   <span className={`flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold ${person.color}`}>
@@ -799,7 +849,8 @@ export default function DashboardTab({
                 </div>
                 <span className="text-xs font-medium text-slate-400">{person.date}</span>
               </li>
-            ))}
+              ))
+            )}
           </ul>
         </Panel>
 
@@ -815,25 +866,70 @@ export default function DashboardTab({
             </button>
           }
         >
-          <p className="text-2xl font-bold tracking-tight text-slate-900">$1,248,320</p>
-          <p className="mt-1 text-xs text-slate-500">Total operational payroll · June cycle</p>
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
-            <div className="flex h-full">
-              <div className="h-full bg-novora" style={{ width: '71%' }} />
-              <div className="h-full bg-teal-500" style={{ width: '16%' }} />
-              <div className="h-full bg-violet-400" style={{ width: '13%' }} />
-            </div>
-          </div>
-          <ul className="mt-3 space-y-1.5 text-xs">
-            <li className="flex justify-between text-slate-600">
-              <span>Net pay</span>
-              <span className="font-semibold text-slate-800">$896,450</span>
-            </li>
-            <li className="flex justify-between text-slate-600">
-              <span>Deductions</span>
-              <span className="font-semibold text-slate-800">$195,870</span>
-            </li>
-          </ul>
+          {payrollRun && payrollRun.headcount > 0 ? (
+            <>
+              <p className="text-2xl font-bold tracking-tight text-slate-900">
+                {money(payrollRun.totalNetPay)}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Net pay · {payrollPeriodLabel} · {payrollRun.headcount} employee
+                {payrollRun.headcount === 1 ? '' : 's'}
+              </p>
+              {payrollSliceTotal > 0 && (
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div className="flex h-full">
+                    {payrollSlices.map((slice) => {
+                      const width = Math.max(2, Math.round((slice.value / payrollSliceTotal) * 100))
+                      return (
+                        <div
+                          key={slice.name}
+                          className="h-full"
+                          style={{
+                            width: `${width}%`,
+                            backgroundColor: slice.fill || '#4F46E5',
+                          }}
+                          title={slice.name}
+                        />
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+              <ul className="mt-3 space-y-1.5 text-xs">
+                <li className="flex justify-between text-slate-600">
+                  <span>Net pay</span>
+                  <span className="font-semibold text-slate-800">{money(payrollRun.totalNetPay)}</span>
+                </li>
+                {deductionsDisplay && (
+                  <li className="flex justify-between text-slate-600">
+                    <span>Deductions</span>
+                    <span className="font-semibold text-slate-800">{deductionsDisplay}</span>
+                  </li>
+                )}
+                <li className="flex justify-between text-slate-600">
+                  <span>Status</span>
+                  <span className="font-semibold text-slate-800">
+                    {payrollRun.paidCount} paid · {payrollRun.processedCount} processed ·{' '}
+                    {payrollRun.draftCount} draft
+                  </span>
+                </li>
+              </ul>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-slate-500">
+                No payroll run for this month yet. Generate or process payslips in Pay management.
+              </p>
+              <button
+                type="button"
+                onClick={() => goTo('Payroll Management')}
+                className="mt-4 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-novora/30 hover:text-novora cursor-pointer"
+              >
+                Go to payroll
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </>
+          )}
         </Panel>
       </div>
 
@@ -850,7 +946,12 @@ export default function DashboardTab({
         }
       >
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          {leaveRows.map((item) => (
+          {leaveRows.length === 0 ? (
+            <p className="col-span-full py-6 text-center text-xs text-slate-400">
+              No leave requests in the queue.
+            </p>
+          ) : (
+            leaveRows.map((item) => (
             <div
               key={item.name}
               className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-3 py-3"
@@ -863,7 +964,8 @@ export default function DashboardTab({
               </div>
               <StatusBadge status={item.status} />
             </div>
-          ))}
+            ))
+          )}
         </div>
       </Panel>
     </div>

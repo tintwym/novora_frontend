@@ -102,7 +102,7 @@ interface ActionPlan {
 }
 
 export default function EngagementTab({ employees, addToast }: EngagementTabProps) {
-  const [activeSubTab, setActiveSubTab] = useState<EngagementSubTab>('Pulse & eNPS Surveys');
+  const [activeSubTab, setActiveSubTab] = useState<EngagementSubTab>('Peer Shout-Out Wall');
 
   // -------------------------------------------------------------
   // STATE 1: eNPS & PULSE SURVEYS WORKFLOWS
@@ -110,49 +110,12 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
   const [userEnpsVote, setUserEnpsVote] = useState<number>(8);
   const [hasVotedEnps, setHasVotedEnps] = useState<boolean>(false);
   const [enpsTallies, setEnpsTallies] = useState({
-    detractors: 6,  // 0-6 score (needs improvement)
-    passives: 15,   // 7-8 score
-    promoters: 38   // 9-10 score
+    detractors: 0,
+    passives: 0,
+    promoters: 0,
   });
 
-  const [polls, setPolls] = useState<PulsePoll[]>([
-    {
-      id: 'poll-01',
-      question: 'How do you rate the physical comfort and design setup of your designated workstation space?',
-      category: 'Workplace Environment',
-      options: [
-        { key: 'A', label: 'Highly Ergonomic & Premium', votes: 24 },
-        { key: 'B', label: 'Decent, but lacks sit-stand assets', votes: 14 },
-        { key: 'C', label: 'Inadequate comfort features', votes: 5 }
-      ],
-      isLocked: false,
-      totalVoted: 43
-    },
-    {
-      id: 'poll-02',
-      question: 'Do you feel our wellness program matches your mental resilience or family coverage requirements?',
-      category: 'Wellness & Benefits',
-      options: [
-        { key: 'A', label: 'Exceeds expectation completely', votes: 18 },
-        { key: 'B', label: 'Decent support, but dental cover is thin', votes: 22 },
-        { key: 'C', label: 'No significant benefit was perceived', votes: 4 }
-      ],
-      isLocked: false,
-      totalVoted: 44
-    },
-    {
-      id: 'poll-03',
-      question: 'Are quiet-cohesion hour intervals (2:00 PM to 4:00 PM) helpful for distraction-free coding?',
-      category: 'Focus & Cohesion',
-      options: [
-        { key: 'A', label: 'Extremely helpful, absolute concentration', votes: 31 },
-        { key: 'B', label: 'Neutral, still receive Slack ping notifications', votes: 9 },
-        { key: 'C', label: 'Disrupts general collaborative calls', votes: 6 }
-      ],
-      isLocked: false,
-      totalVoted: 46
-    }
-  ]);
+  const [polls, setPolls] = useState<PulsePoll[]>([]);
 
   const [hasVotedPollIds, setHasVotedPollIds] = useState<Record<string, boolean>>({});
 
@@ -162,41 +125,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
   const [newOpinionText, setNewOpinionText] = useState('');
   const [newOpinionCategory, setNewOpinionCategory] = useState('Office Amenities');
   
-  const [suggestions, setSuggestions] = useState<SuggestionItem[]>([
-    { 
-      id: 'SUG-651', 
-      category: 'Workload & Pace', 
-      text: 'Our team is putting in late night deployments consistently due to overlapping milestones. We need better buffer estimates on sprint planning to avoid cumulative exhaustion.', 
-      timestamp: '2026-06-14',
-      vibe: 'Burnout Alert',
-      safetyVerified: true,
-      engagementHearts: 18,
-      aiInsights: 'Detected high fatigue pattern. Overlap noted in Engineering metrics.',
-      topics: ['Sprint Buffer', 'Overtime Weary', 'Planning Guardrails']
-    },
-    { 
-      id: 'SUG-652', 
-      category: 'In-office Perks', 
-      text: 'Can we install free premium single-origin coffee beans in the kitchen? This is a very minor adjustment that would instantly lift morning team bonding sessions!', 
-      timestamp: '2026-06-12',
-      vibe: 'Positive',
-      safetyVerified: true,
-      engagementHearts: 35,
-      aiInsights: 'High affinity cultural item. Positive enhancement request.',
-      topics: ['Pantry Perks', 'Morning Routine', 'Morale Boost']
-    },
-    { 
-      id: 'SUG-653', 
-      category: 'Policy Clarity', 
-      text: 'We require a formal policy framework covering electric vehicle (EV) charging reimbursements under commuting budgets. Several colleagues own EVs now.', 
-      timestamp: '2026-06-10',
-      vibe: 'Constructive',
-      safetyVerified: true,
-      engagementHearts: 11,
-      aiInsights: 'Proactive policy feedback. High alignment with sustainability goals.',
-      topics: ['Car Commuting', 'Green Initiatives', 'Deduction Guidelines']
-    }
-  ]);
+  const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
 
   // Real-time AI Sentiment Analyzer computed variable
   const simulatedAiVibe = useMemo(() => {
@@ -320,11 +249,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
   // -------------------------------------------------------------
   // STATE 4: MANAGER SENTIMENT DESK & ACTIONS PLANS
   // -------------------------------------------------------------
-  const [actionPlans, setActionPlans] = useState<ActionPlan[]>([
-    { id: 'ACT-201', title: 'Workload & Buffer reallocation audits', targetDepartment: 'Engineering', priority: 'Critical', dueDate: '2026-06-25', status: 'In Progress', notes: 'HR to sit in Sprint Estimation rounds and ensure developers are not double-booked on projects.', owner: 'HR Operations Group' },
-    { id: 'ACT-202', title: 'Equip ergonomic workstation sit-stand accessories', targetDepartment: 'Operations', priority: 'High', dueDate: '2026-07-02', status: 'Pending', notes: 'Procurement team preparing sample units for third floor testing groups.', owner: 'Facilities Admin' },
-    { id: 'ACT-203', title: 'Publish clean mental resilience app program link', targetDepartment: 'All Departments', priority: 'Normal', dueDate: '2026-06-20', status: 'Completed', notes: 'Calm app enterprise invitations delivered to corporate email accounts.', owner: 'Welfare benefits team' }
-  ]);
+  const [actionPlans, setActionPlans] = useState<ActionPlan[]>([]);
 
   const [newActTitle, setNewActTitle] = useState('');
   const [newActDept, setNewActDept] = useState('Engineering');
@@ -549,11 +474,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
         <div id="engagement-nav-tabs" className="flex items-center gap-1 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
           {(
             [
-              'Pulse & eNPS Surveys',
-              'AI Sentiment & suggestions',
               'Peer Shout-Out Wall',
-              'Manager Sentiment Desk',
-              'Engagement Reports & Analytics'
             ] as EngagementSubTab[]
           ).map((tab) => {
             const isActive = activeSubTab === tab;

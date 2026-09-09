@@ -95,7 +95,7 @@ type SubTab =
   | 'Employee Profile';
 
 export default function PerformanceTab({ employees, addToast }: PerformanceTabProps) {
-  const [activeSubTab, setActiveSubTab] = useState<SubTab>('Perf. Level');
+  const [activeSubTab, setActiveSubTab] = useState<SubTab>('Evaluation');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState('All departments');
   const [selectedYear, setSelectedYear] = useState('2026');
@@ -628,18 +628,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
   const inactiveTabClass = 'text-slate-600 hover:text-slate-950 hover:bg-slate-50';
 
   const subTabsList: { id: SubTab; label: string; icon: any; countBadge?: number }[] = [
-    { id: 'Perf. Level', label: 'Perf. Level', icon: Layers },
-    { id: 'Perf. Grade', label: 'Perf. Grade', icon: Percent },
-    { id: 'KPI Setting', label: 'KPI Setting', icon: Target },
-    { id: 'Eval. Type', label: 'Eval. Type', icon: Calendar },
-    { id: 'Eval. Category', label: 'Eval. Category', icon: Sliders },
-    { id: 'Eval. Setup', label: 'Eval. Setup', icon: Settings },
-    { id: 'Grant Permissions', label: 'Grant Permissions', icon: ShieldCheck },
-    { id: 'Evaluation', label: 'Evaluation', icon: ClipboardCheck, countBadge: 3 },
-    { id: 'Perf. Result', label: 'Perf. Result', icon: BarChart3 },
-    { id: 'Competency List', label: 'Competency List', icon: Bookmark },
-    { id: 'Review Report', label: 'Review Report', icon: FileBarChart },
-    { id: 'Employee Profile', label: 'Employee Profile', icon: User },
+    { id: 'Evaluation', label: 'Evaluation', icon: ClipboardCheck },
   ];
 
   return (

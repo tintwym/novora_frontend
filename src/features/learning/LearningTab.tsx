@@ -183,35 +183,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
   // -------------------------------------------------------------
   // STATE 2: STRUCTURED LEARNING PATHS (Bundles)
   // -------------------------------------------------------------
-  const [learningPaths, setLearningPaths] = useState<LearningPath[]>([
-    {
-      id: 'PTH-01',
-      name: 'Executive Leadership Readiness Milestone Path',
-      description: 'Strategic grooming curriculum designed to prepare high-potential seniors for VP or Director roles.',
-      targetDept: 'HR',
-      courses: [
-        'High-Impact Brand Strategy & Modern Social Funnels',
-        'Global GDPR Privacy Safeguards & Data Retention Standards',
-        'ISO 27001 Cybersecurity Compliance Awareness Protocol'
-      ],
-      totalHours: 12,
-      enrolledCount: 14,
-      difficulty: 'Advanced'
-    },
-    {
-      id: 'PTH-02',
-      name: 'Advanced Software Engineer Onboarding & Architecture',
-      description: 'Essential systems path mapping multi-tenant deployments, performance monitoring, and container security.',
-      targetDept: 'Engineering',
-      courses: [
-        'Advanced AWS Cloud Orchestration & Serverless Architecture',
-        'ISO 27001 Cybersecurity Compliance Awareness Protocol'
-      ],
-      totalHours: 11,
-      enrolledCount: 38,
-      difficulty: 'Intermediate'
-    }
-  ]);
+  const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
 
   const [isPathCreatorOpen, setIsPathCreatorOpen] = useState(false);
   const [newPathName, setNewPathName] = useState('');
@@ -224,102 +196,12 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
   // -------------------------------------------------------------
   // STATE 3: COMPLIANCE & CERTIFICATES (Alerts & Renewals)
   // -------------------------------------------------------------
-  const [complianceRecords, setComplianceRecords] = useState<ComplianceCert[]>([
-    {
-      id: 'CRT-981',
-      employeeId: 'EMP-001',
-      employeeName: 'Sarah Lim',
-      department: 'Engineering',
-      certName: 'ISO 27001 InfoSec Master Certificate',
-      issuedDate: '2025-06-15',
-      expiryDate: '2026-06-15', // Expired recently
-      status: 'Expired',
-      daysRemaining: -1
-    },
-    {
-      id: 'CRT-982',
-      employeeId: 'EMP-0285',
-      employeeName: 'Raj Kumar',
-      department: 'Operations',
-      certName: 'Global GDPR Compliance Representative Cert',
-      issuedDate: '2025-10-10',
-      expiryDate: '2026-07-10', // Expiring is ~24 days
-      status: 'Expiring Soon',
-      daysRemaining: 24
-    },
-    {
-      id: 'CRT-983',
-      employeeId: 'EMP-0312',
-      employeeName: 'Pinky Sharma',
-      department: 'Finance',
-      certName: 'GAAP Advanced Corporate Accounting',
-      issuedDate: '2025-01-12',
-      expiryDate: '2027-01-12',
-      status: 'Active',
-      daysRemaining: 210
-    },
-    {
-      id: 'CRT-984',
-      employeeId: 'EMP-004',
-      employeeName: 'John Doe',
-      department: 'Marketing',
-      certName: 'Advanced Social Brand Funneling Certificate',
-      issuedDate: '2025-04-12',
-      expiryDate: '2026-09-12',
-      status: 'Active',
-      daysRemaining: 88
-    }
-  ]);
+  const [complianceRecords, setComplianceRecords] = useState<ComplianceCert[]>([]);
 
   // -------------------------------------------------------------
   // STATE 4: ASSESSMENT & INTERACTIVE QUIZ ENGINE
   // -------------------------------------------------------------
-  const quizRepository: ActiveQuiz[] = [
-    {
-      id: 'QZ-201',
-      title: 'AWS Serverless Solutions and Optimization Quiz',
-      timeLimit: '10 Mins',
-      questions: [
-        {
-          id: 1,
-          questionText: 'Which AWS service fits a event-driven, serverless execution layout with multi-language runtimes?',
-          options: ['EC2 Dedicated Hosts', 'Amazon Lambda Functions', 'ECS on Ec2 Instances', 'S3 Glacier Standard'],
-          correctAnswerIndex: 1
-        },
-        {
-          id: 2,
-          questionText: 'What parameter primarily controls the horizontal scale throttling limit for Lambda executions?',
-          options: ['Memory allocation limit', 'Concurrency setting buffer', 'VPC endpoint routing configurations', 'IAM security policy bounds'],
-          correctAnswerIndex: 1
-        },
-        {
-          id: 3,
-          questionText: 'To achieve extreme sub-millisecond response caches for repetitive database queries, what serverless overlay is recommended?',
-          options: ['VPC NAT Gateway', 'Amazon DynamoDB Accelerator (DAX)', 'Redshift Analytical Cluster', 'Kinesis Firehose buffers'],
-          correctAnswerIndex: 1
-        }
-      ]
-    },
-    {
-      id: 'QZ-202',
-      title: 'GDPR / Personal Data Protection Compliance Test',
-      timeLimit: '5 Mins',
-      questions: [
-        {
-          id: 1,
-          questionText: 'What constitutes a prompt "Data Breach Notice notification response window" under official GDPR guidelines?',
-          options: ['Immediately within 72 hours', 'Within 30 calendar days', 'When the quarterly financial report is delivered', 'No explicit deadline exists'],
-          correctAnswerIndex: 0
-        },
-        {
-          id: 2,
-          questionText: 'Which principle governs that employee datasets or customer entries must NOT be kept indefinitely if they no longer fulfill business uses?',
-          options: ['Data Minimization & Storage Limitation', 'The territorial sovereignty boundary', 'Encrypted TLS communication tunnels', 'Algorithmic efficiency targets'],
-          correctAnswerIndex: 0
-        }
-      ]
-    }
-  ];
+  const quizRepository: ActiveQuiz[] = [];
 
   const [activeQuizToTake, setActiveQuizToTake] = useState<ActiveQuiz | null>(null);
   const [userQuizAnswers, setUserQuizAnswers] = useState<Record<number, number>>({});
@@ -578,10 +460,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
           {(
             [
               'Course Catalog & LMS',
-              'Structured Learning Paths',
-              'Compliance & Certifications',
-              'Assessments & Quiz Engine',
-              'Learning Analytics'
+              // Hidden until APIs exist: Structured Learning Paths, Compliance, Quiz Engine, Analytics
             ] as LearningSubTab[]
           ).map((tab) => {
             const isActive = activeSubTab === tab;

@@ -270,16 +270,16 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
   const [leaveReportsFilterDept, setLeaveReportsFilterDept] = useState('All departments');
   const [leaveReportsFilterEmp, setLeaveReportsFilterEmp] = useState('');
 
-  const [leaveSummaryRows] = useState([
-    { employeeId: 'EMP-001', name: 'Sarah Lim', dept: 'Engineering', annual: 5, sick: 0, unpaid: 0, total: 5, balance: '11 days' },
-    { employeeId: 'EMP-002', name: 'Raj Kumar', dept: 'Engineering', annual: 2, sick: 4, unpaid: 1, total: 7, balance: '14 days' },
-    { employeeId: 'EMP-003', name: 'Maya Tan', dept: 'HR', annual: 0, sick: 1, unpaid: 0, total: 1, balance: '16 days' },
-    { employeeId: 'EMP-004', name: 'Ahmad L', dept: 'Operations', annual: 4, sick: 2, unpaid: 2, total: 8, balance: '12 days' },
-    { employeeId: 'EMP-005', name: 'Nadia Chen', dept: 'Marketing', annual: 6, sick: 0, unpaid: 0, total: 6, balance: '10 days' },
-    { employeeId: 'EMP-006', name: 'Jonathan Goh', dept: 'Finance', annual: 1, sick: 0, unpaid: 0, total: 1, balance: '15 days' },
-    { employeeId: 'EMP-007', name: 'Elena Rostova', dept: 'Operations', annual: 3, sick: 2, unpaid: 0, total: 5, balance: '13 days' },
-    { employeeId: 'EMP-008', name: 'Tariq Al-Mansoor', dept: 'Engineering', annual: 0, sick: 0, unpaid: 0, total: 0, balance: '16 days' },
-  ]);
+  const [leaveSummaryRows] = useState<{
+    employeeId: string;
+    name: string;
+    dept: string;
+    annual: number;
+    sick: number;
+    unpaid: number;
+    total: number;
+    balance: string;
+  }[]>([]);
 
   const handleCreateLeavePolicy = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -316,13 +316,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
   };
 
   // Leave attachment records state
-  const [attachmentRecords, setAttachmentRecords] = useState<LeaveAttachmentRecord[]>([
-    { id: 'ATT01', employeeId: 'EMP-001', name: 'Sarah Lim', dept: 'Engineering', type: 'Maternity leave', entitlement: '60 days', attached: false, activation: 'Manual' },
-    { id: 'ATT02', employeeId: 'EMP-002', name: 'Raj Kumar', dept: 'Engineering', type: 'Annual leave', entitlement: '16 days', attached: true, activation: 'Auto' },
-    { id: 'ATT03', employeeId: 'EMP-003', name: 'Maya Tan', dept: 'HR', type: 'Replacement leave', entitlement: '2 days', attached: false, activation: 'Manual' },
-    { id: 'ATT04', employeeId: 'EMP-004', name: 'Ahmad L', dept: 'Operations', type: 'Medical leave', entitlement: '14 days', attached: true, activation: 'Auto' },
-    { id: 'ATT05', employeeId: 'EMP-005', name: 'Nadia Chen', dept: 'Marketing', type: 'Maternity leave', entitlement: '60 days', attached: false, activation: 'Manual' }
-  ]);
+  const [attachmentRecords, setAttachmentRecords] = useState<LeaveAttachmentRecord[]>([]);
 
   const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
 
@@ -635,13 +629,10 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             [
               'Leave type',
               'Leave policy',
-              'Leave attachment',
               'Leave request',
-              'Request for others',
               'Leave approval',
               'Leave history',
-              'Employee leave profile',
-              'Leave reports'
+              'Leave reports',
             ] as LeaveSubTab[]
           ).map((tab) => {
             const isActive = activeSubTab === tab;

@@ -27,16 +27,25 @@ import {
 } from 'lucide-react';
 import {
   ApiError,
+  adminAttendancePunch,
   checkInAttendance,
   checkOutAttendance,
+  createOvertimeRecord,
   createRosterEntry,
   createShiftPattern,
+  decideOvertimeRecord,
   fetchAttendanceRoster,
+  fetchAttendanceToday,
   fetchMyAttendance,
+  fetchOtPolicies,
+  fetchOvertimeRecords,
   fetchRoster,
   fetchShiftPatterns,
   type AttendanceLog,
   type AttendanceRosterLog,
+  type AttendanceTodayRow,
+  type OtPolicyRow,
+  type OvertimeRecordRow,
   type RosterEntryRow,
   type ShiftPatternRow,
 } from '@/services'
@@ -187,6 +196,93 @@ function mapAttendanceToTimesheet(log: AttendanceRosterLog) {
   }
 }
 
+function formatClockTime(raw: string | null | undefined) {
+  if (!raw) return '—'
+  const m = String(raw).match(/(\d{1,2}):(\d{2})/)
+  if (m) return `${m[1].padStart(2, '0')}:${m[2]}`
+  return formatRosterPunch(raw)
+}
+
+function toHhMm(raw: string): string | undefined {
+  const trimmed = raw.trim()
+  if (!trimmed) return undefined
+  const ampm = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i)
+  if (ampm) {
+    let h = Number(ampm[1])
+    const mins = ampm[2]
+    const period = ampm[3].toUpperCase()
+    if (period === 'PM' && h < 12) h += 12
+    if (period === 'AM' && h === 12) h = 0
+    return `${String(h).padStart(2, '0')}:${mins}`
+  }
+  const plain = trimmed.match(/^(\d{1,2}):(\d{2})/)
+  if (plain) return `${plain[1].padStart(2, '0')}:${plain[2]}`
+  return undefined
+}
+
+function todayIsoDate() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function mapAttendanceTodayRow(row: AttendanceTodayRow) {
+  const name = row.employeeName || row.employeeId
+  return {
+    employeeId: row.employeeId,
+    name,
+    initials: initialsFromName(name),
+    dept: row.departmentName || '—',
+    shift: row.shiftName || '—',
+    in: formatClockTime(row.checkIn),
+    out: formatClockTime(row.checkOut),
+    hrs: row.hours != null ? `${row.hours}h` : '—',
+    office: row.officeFlag ? 'Yes' : 'No',
+    status: (row.status || 'PRESENT').replace(/_/g, ' '),
+  }
+}
+
+function formatOtHours(hours: number) {
+  const wholeHours = Math.floor(hours)
+  const mins = Math.round((hours - wholeHours) * 60)
+  return `${wholeHours}h ${mins > 0 ? `${mins}m` : '00m'}`
+}
+
+function mapOvertimeRecord(row: OvertimeRecordRow) {
+  const name = row.employeeName || row.employeeId
+  return {
+    id: row.id,
+    employeeId: row.employeeId,
+    name,
+    initials: initialsFromName(name),
+    date: row.workDate,
+    start: formatClockTime(row.startTime),
+    end: formatClockTime(row.endTime),
+    hrs: formatOtHours(Number(row.hours) || 0),
+    status: (row.status || 'PENDING').toUpperCase(),
+    reason: row.reason || '',
+  }
+}
+
+function mapOtPolicyToUi(policies: OtPolicyRow[]) {
+  const p = policies[0]
+  if (!p) return [] as { label: string; value: string; isGreen?: boolean; policyId?: string }[]
+  return [
+    { label: 'Policy name', value: p.name, policyId: p.id },
+    { label: 'Weekday OT rate', value: `${p.weekdayMultiplier}×`, policyId: p.id },
+    { label: 'Weekend OT rate', value: `${p.weekendMultiplier}×`, policyId: p.id },
+    { label: 'Public holiday OT', value: `${p.holidayMultiplier}×`, policyId: p.id },
+    { label: 'Min OT threshold', value: `${p.dailyThresholdHours} hrs`, policyId: p.id },
+    {
+      label: 'Requires approval',
+      value: p.requiresApproval ? 'Yes' : 'No',
+      isGreen: p.requiresApproval,
+      policyId: p.id,
+    },
+    { label: 'Active', value: p.active ? 'Yes' : 'No', isGreen: p.active, policyId: p.id },
+    ...(p.notes ? [{ label: 'Notes', value: p.notes, policyId: p.id }] : []),
+  ]
+}
+
 function mapAttendanceToReport(log: AttendanceRosterLog) {
   const name = log.employeeId
   return {
@@ -305,57 +401,33 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
   const [shiftPatterns, setShiftPatterns] = useState<ShiftPatternUi[]>([]);
 
   // Roll Call states
-  const [rollCallDate, setRollCallDate] = useState('2026-06-05');
-  const [rollCallRows, setRollCallRows] = useState([
-    { name: 'Sarah Lim', initials: 'SL', dept: 'Engineering', shift: 'Standard', in: '08:58', out: '—', hrs: '—', office: 'Yes', status: 'In office' },
-    { name: 'Raj Kumar', initials: 'RK', dept: 'Engineering', shift: 'Standard', in: '09:02', out: '—', hrs: '—', office: 'Yes', status: 'In office' },
-    { name: 'Maya Tan', initials: 'MT', dept: 'HR', shift: 'Standard', in: '—', out: '—', hrs: '—', office: '—', status: 'On leave' },
-    { name: 'Ahmad L', initials: 'AL', dept: 'Operations', shift: 'Standard', in: '09:28', out: '—', hrs: '—', office: 'Yes', status: 'Late' },
-    { name: 'Nadia Chen', initials: 'NC', dept: 'Marketing', shift: 'Standard', in: '08:54', out: '17:12', hrs: '8h 18m', office: 'No', status: 'Completed' },
-    { name: 'Zara Nor', initials: 'ZN', dept: 'Operations', shift: 'Standard', in: '—', out: '—', hrs: '—', office: '—', status: 'Absent' },
-  ]);
+  const [rollCallDate, setRollCallDate] = useState(todayIsoDate());
+  const [rollCallRows, setRollCallRows] = useState<
+    { employeeId?: string; name: string; initials: string; dept: string; shift: string; in: string; out: string; hrs: string; office: string; status: string }[]
+  >([]);
 
   // Manual Punch Form states
   const [punchEmployee, setPunchEmployee] = useState('');
-  const [punchDate, setPunchDate] = useState('2026-06-05');
+  const [punchDate, setPunchDate] = useState(todayIsoDate());
   const [punchType, setPunchType] = useState('Clock In');
-  const [punchTime, setPunchTime] = useState('09:00 AM');
+  const [punchTime, setPunchTime] = useState('09:00');
   const [punchReason, setPunchReason] = useState('Fingerprint device offline');
   const [punchRemark, setPunchRemark] = useState('');
-  const [todayManualPunches, setTodayManualPunches] = useState([
-    { id: '1', name: 'Sarah Lim', code: 'EMP-0021', type: 'Clock In', time: '08:55', reason: 'Device offline', badge: 'In' },
-    { id: '2', name: 'Ahmad Luqman', code: 'EMP-0187', type: 'Clock In', time: '09:10', reason: 'Forgot to swipe', badge: 'In' },
-    { id: '3', name: 'Nadia Chen', code: 'EMP-0092', type: 'Clock Out', time: '17:30', reason: 'Remote work', badge: 'Out' },
-    { id: '4', name: 'Raj Kumar', code: 'EMP-0048', type: 'Clock Out', time: '18:05', reason: 'Biometric', badge: 'Auto' },
-  ]);
+  const [todayManualPunches, setTodayManualPunches] = useState<
+    { id: string; name: string; code: string; type: string; time: string; reason: string; badge: string }[]
+  >([]);
 
   // Unknown Swipes Data
-  const [unresolvedSwipes, setUnresolvedSwipes] = useState([
-    { id: 'TA-00451', name: 'Sarah Lim', initials: 'SL', time: '07:44 AM', terminal: 'Main lobby', issue: 'Outside nearest time (in)', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-    { id: 'Unknown', name: '—', initials: '?', time: '08:12 AM', terminal: 'Level 3', issue: 'No TA match', color: 'bg-red-50 text-red-700 border-red-200' },
-    { id: 'TA-00452', name: 'Ahmad L', initials: 'AL', time: '06:58 PM', terminal: 'Level 3', issue: 'Outside nearest time (out)', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-    { id: 'TA-00389', name: 'Nadia C', initials: 'NC', time: '05:42 PM', terminal: 'Main lobby', issue: 'Multi swipe', color: 'bg-[#faf0e6] text-[#b45309] border-[#fed7aa]' },
-  ]);
+  const [unresolvedSwipes, setUnresolvedSwipes] = useState<
+    { id: string; name: string; initials: string; time: string; terminal: string; issue: string; color: string }[]
+  >([]);
 
   // Overtime states
-  const [otRecords, setOtRecords] = useState([
-    { name: 'Raj K', initials: 'RK', date: '6 May', start: '18:00', end: '20:00', hrs: '2h 00m' },
-    { name: 'Sarah L', initials: 'SL', date: '5 May', start: '18:00', end: '19:30', hrs: '1h 30m' },
-    { name: 'Nadia C', initials: 'NC', date: '4 May', start: '18:30', end: '20:00', hrs: '1h 30m' },
-    { name: 'Zara N', initials: 'ZN', date: '3 May', start: '22:00', end: '23:30', hrs: '1h 30m' },
-  ]);
+  const [otRecords, setOtRecords] = useState<
+    { id: string; employeeId: string; name: string; initials: string; date: string; start: string; end: string; hrs: string; status: string; reason: string }[]
+  >([]);
 
-  const [otPolicy, setOtPolicy] = useState([
-    { label: 'Allow in OT (pre-shift)', value: '60 mins' },
-    { label: 'Allow out OT (post-shift)', value: '60 mins' },
-    { label: 'OT rounding block', value: '30 min' },
-    { label: 'Min OT threshold', value: '30 mins' },
-    { label: 'Weekday OT rate', value: '1.0×' },
-    { label: 'Weekend OT rate', value: '1.5×' },
-    { label: 'Public holiday OT', value: '2.0×' },
-    { label: 'Shift allowance on OT', value: 'Yes', isGreen: true },
-    { label: 'Supper allowance on OT', value: 'Yes', isGreen: true },
-  ]);
+  const [otPolicy, setOtPolicy] = useState<{ label: string; value: string; isGreen?: boolean; policyId?: string }[]>([]);
 
   // Reports states
   const [reportType, setReportType] = useState<'detail' | 'summary'>('detail');
@@ -382,19 +454,6 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
       if (attRoster.length > 0) {
         setTimesheets(attRoster.map(mapAttendanceToTimesheet))
         setReportsRows(attRoster.map(mapAttendanceToReport))
-        setRollCallRows(
-          attRoster.slice(0, 40).map((log) => ({
-            name: log.employeeId,
-            initials: initialsFromName(log.employeeId),
-            dept: '—',
-            shift: log.status || 'Standard',
-            in: formatRosterPunch(log.checkInTime),
-            out: formatRosterPunch(log.checkOutTime),
-            hrs: log.workHours != null ? `${log.workHours}h` : '—',
-            office: log.checkInTime && !log.checkOutTime ? 'Yes' : '—',
-            status: (log.status || 'PRESENT').replace(/_/g, ' '),
-          })),
-        )
       }
     } catch (err) {
       if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
@@ -403,9 +462,65 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
     }
   }, [addToast])
 
+  const loadAttendanceToday = useCallback(async (date?: string) => {
+    try {
+      const rows = await fetchAttendanceToday(date)
+      setRollCallRows(rows.map(mapAttendanceTodayRow))
+      setTodayManualPunches(
+        rows
+          .filter((r) => r.checkIn || r.checkOut)
+          .map((r) => {
+            const name = r.employeeName || r.employeeId
+            const isOut = Boolean(r.checkOut)
+            return {
+              id: `${r.employeeId}-${r.checkOut || r.checkIn || 'punch'}`,
+              name,
+              code: r.employeeId,
+              type: isOut ? 'Clock Out' : 'Clock In',
+              time: formatClockTime(isOut ? r.checkOut : r.checkIn),
+              reason: 'Attendance log',
+              badge: isOut ? 'Out' : 'In',
+            }
+          }),
+      )
+    } catch (err) {
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load today attendance.', 'error')
+      }
+    }
+  }, [addToast])
+
+  const loadOvertimeData = useCallback(async () => {
+    try {
+      const [records, policies] = await Promise.all([
+        fetchOvertimeRecords().catch(() => [] as OvertimeRecordRow[]),
+        fetchOtPolicies().catch(() => [] as OtPolicyRow[]),
+      ])
+      setOtRecords(records.map(mapOvertimeRecord))
+      setOtPolicy(mapOtPolicyToUi(policies))
+    } catch (err) {
+      if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
+        addToast('Could not load overtime data.', 'error')
+      }
+    }
+  }, [addToast])
+
   useEffect(() => {
     void loadCatalogAttendance()
   }, [loadCatalogAttendance])
+
+  useEffect(() => {
+    if (activeSubTab === 'Roll Call' || activeSubTab === 'Manual Punch') {
+      const date = activeSubTab === 'Manual Punch' ? punchDate : rollCallDate
+      void loadAttendanceToday(date || todayIsoDate())
+    }
+  }, [activeSubTab, rollCallDate, punchDate, loadAttendanceToday])
+
+  useEffect(() => {
+    if (activeSubTab === 'Overtime') {
+      void loadOvertimeData()
+    }
+  }, [activeSubTab, loadOvertimeData])
 
   // Modal states
   const [shiftModalOpen, setShiftModalOpen] = useState(false);
@@ -447,7 +562,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
   const [otSetupModalOpen, setOtSetupModalOpen] = useState(false);
   const [newOtSetup, setNewOtSetup] = useState({
     employeeId: '',
-    date: '2026-06-13',
+    date: todayIsoDate(),
     start: '18:00',
     end: '20:00',
     hrs: '2.0'
@@ -457,6 +572,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
   const [selectedPolicyIndex, setSelectedPolicyIndex] = useState<number | null>(null);
   const [policyEditValue, setPolicyEditValue] = useState('');
 
+  // Manual Punch / Unknown Swipes hidden — Unknown Swipes has no API yet.
   const subTabs = [
     'Check-In',
     'Duty Roster',
@@ -464,55 +580,64 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
     'Shift Pattern',
     'Roll Call',
     'Manual Punch',
-    'Unknown Swipes',
     'Overtime',
     'Reports',
   ];
+
+  const employeeOptions = (employees && employees.length > 0)
+    ? employees.map((e) => ({
+        id: e.apiId || e.id,
+        name: e.name,
+        initials: initialsFromName(e.name),
+        dept: String(e.department || '—'),
+      }))
+    : rosterData.map((r) => ({ id: r.id, name: r.name, initials: r.initials, dept: r.dept }))
 
   const handleSubTabChange = (tab: string) => {
     setActiveSubTab(tab);
     addToast(`Switched view directory to ${tab}`, 'info');
   };
 
-  const handleAddManualPunchSubmit = (e: React.FormEvent) => {
+  const handleAddManualPunchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!punchEmployee) {
       addToast('Please select a valid employee record', 'error');
       return;
     }
 
-    addToast('Verifying fingerprint reader log alignments...', 'loading');
+    const selected = employeeOptions.find((r) => r.id === punchEmployee)
+    const apiPunchType = punchType === 'Clock Out' ? 'CHECK_OUT' as const : 'CHECK_IN' as const
+    const time = toHhMm(punchTime)
+    const reason = [punchReason, punchRemark].filter(Boolean).join(' — ') || undefined
 
-    setTimeout(() => {
-      const selected = rosterData.find(r => r.id === punchEmployee) || { name: 'Custom Name', id: punchEmployee };
-      const newRec = {
-        id: createLocalId('att'),
-        name: selected.name,
-        code: selected.id,
-        type: punchType,
-        time: punchTime,
-        reason: punchReason,
-        badge: punchType === 'Clock In' ? 'In' : 'Out'
-      };
-
-      setTodayManualPunches(prev => [newRec, ...prev]);
-      addToast(`Successfully manually processed ${punchType} for ${selected.name}`, 'success');
-
-      // Update Roster / Roll Call representation
-      if (punchType === 'Clock In') {
-        // Adjust Sarah Lim, Raj Kumar etc
-        setRollCallRows(prev =>
-          prev.map(row => row.name === selected.name ? { ...row, in: punchTime, status: 'In office', office: 'Yes' } : row)
-        );
-      } else {
-        setRollCallRows(prev =>
-          prev.map(row => row.name === selected.name ? { ...row, out: punchTime, status: 'Completed', office: 'No' } : row)
-        );
-      }
-
-      setPunchEmployee('');
-      setPunchRemark('');
-    }, 1200);
+    try {
+      await adminAttendancePunch({
+        employeeId: punchEmployee,
+        punchType: apiPunchType,
+        workDate: punchDate || todayIsoDate(),
+        time,
+        reason,
+      })
+      const name = selected?.name || punchEmployee
+      setTodayManualPunches((prev) => [
+        {
+          id: createLocalId('att'),
+          name,
+          code: punchEmployee,
+          type: punchType,
+          time: time || punchTime,
+          reason: punchReason,
+          badge: apiPunchType === 'CHECK_IN' ? 'In' : 'Out',
+        },
+        ...prev,
+      ])
+      addToast(`Successfully manually processed ${punchType} for ${name}`, 'success')
+      await loadAttendanceToday(punchDate || rollCallDate || todayIsoDate())
+      setPunchEmployee('')
+      setPunchRemark('')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not submit manual punch.', 'error')
+    }
   };
 
   const handleCreateShiftPattern = async (e: React.FormEvent) => {
@@ -633,41 +758,44 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
     setSelectedTimesheet(null);
   };
 
-  const handleCreateOtSetupSubmit = (e: React.FormEvent) => {
+  const handleCreateOtSetupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newOtSetup.employeeId) {
       addToast('Please select a valid employee record for Overtime alignment', 'error');
       return;
     }
-    const emp = rosterData.find(r => r.id === newOtSetup.employeeId);
-    const empName = emp ? emp.name : 'Unknown';
-    const empInitials = emp ? emp.initials : 'UN';
-
     const hoursNum = Number(newOtSetup.hrs) || 2.0;
-    const wholeHours = Math.floor(hoursNum);
-    const decimalRemainder = hoursNum - wholeHours;
-    const mins = Math.round(decimalRemainder * 60);
-    const formatHrs = `${wholeHours}h ${mins > 0 ? mins + 'm' : '00m'}`;
+    try {
+      const created = await createOvertimeRecord({
+        employeeId: newOtSetup.employeeId,
+        workDate: newOtSetup.date,
+        startTime: newOtSetup.start,
+        endTime: newOtSetup.end,
+        hours: hoursNum,
+      })
+      setOtRecords((prev) => [mapOvertimeRecord(created), ...prev])
+      addToast(`Overtime request created for ${created.employeeName || newOtSetup.employeeId}`, 'success')
+      setOtSetupModalOpen(false)
+      setNewOtSetup({
+        employeeId: '',
+        date: todayIsoDate(),
+        start: '18:00',
+        end: '20:00',
+        hrs: '2.0',
+      })
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create overtime record.', 'error')
+    }
+  };
 
-    const createdRec = {
-      name: empName,
-      initials: empInitials,
-      date: newOtSetup.date,
-      start: newOtSetup.start,
-      end: newOtSetup.end,
-      hrs: formatHrs
-    };
-
-    setOtRecords(prev => [createdRec, ...prev]);
-    addToast(`Overtime Alignment approved & configured for ${empName}`, 'success');
-    setOtSetupModalOpen(false);
-    setNewOtSetup({
-      employeeId: '',
-      date: '2026-06-13',
-      start: '18:00',
-      end: '20:00',
-      hrs: '2.0'
-    });
+  const handleDecideOt = async (id: string, decision: 'APPROVE' | 'REJECT') => {
+    try {
+      const updated = await decideOvertimeRecord(id, { decision })
+      setOtRecords((prev) => prev.map((r) => (r.id === id ? mapOvertimeRecord(updated) : r)))
+      addToast(`Overtime ${decision === 'APPROVE' ? 'approved' : 'rejected'}.`, 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not update overtime decision.', 'error')
+    }
   };
 
   const handleSaveOtPolicySubmit = (e: React.FormEvent) => {
@@ -1368,7 +1496,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                     className="w-full bg-slate-50 border border-slate-200 focus:border-novora p-2.5 rounded-xl text-xs font-bold text-slate-700"
                   >
                     <option value="">-- Select employee --</option>
-                    {rosterData.map(emp => (
+                    {employeeOptions.map(emp => (
                       <option key={emp.id} value={emp.id}>{emp.name} ({emp.id})</option>
                     ))}
                   </select>
@@ -1617,20 +1745,62 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                       <th className="p-3">Date</th>
                       <th className="p-3">OT Start</th>
                       <th className="p-3">OT End</th>
-                      <th className="p-3 pr-4 text-right">Hours</th>
+                      <th className="p-3">Hours</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3 pr-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-                    {otRecords.map((r, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/40">
-                        <td className="p-3 pl-4 font-bold text-slate-800 flex items-center gap-2">
-                          <span className="h-6 w-6 rounded bg-novora/10 text-novora font-extrabold flex items-center justify-center text-[10px]">{r.initials}</span>
-                          {r.name}
+                    {otRecords.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="p-4 text-center text-slate-400 font-semibold">
+                          No overtime records yet
+                        </td>
+                      </tr>
+                    )}
+                    {otRecords.map((r) => (
+                      <tr key={r.id} className="hover:bg-slate-50/40">
+                        <td className="p-3 pl-4 font-bold text-slate-800">
+                          <span className="inline-flex items-center gap-2">
+                            <span className="h-6 w-6 rounded bg-novora/10 text-novora font-extrabold flex items-center justify-center text-[10px]">{r.initials}</span>
+                            {r.name}
+                          </span>
                         </td>
                         <td className="p-3 font-semibold text-slate-500">{r.date}</td>
                         <td className="p-3 font-mono font-bold text-slate-600">{r.start}</td>
                         <td className="p-3 font-mono font-bold text-slate-600">{r.end}</td>
-                        <td className="p-3 pr-4 font-extrabold text-novora font-mono text-right">{r.hrs}</td>
+                        <td className="p-3 font-extrabold text-novora font-mono">{r.hrs}</td>
+                        <td className="p-3">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            r.status === 'APPROVED' || r.status === 'APPROVE'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                              : r.status === 'REJECTED' || r.status === 'REJECT'
+                              ? 'bg-rose-50 text-rose-700 border border-rose-100'
+                              : 'bg-amber-50 text-amber-700 border border-amber-100'
+                          }`}>
+                            {r.status}
+                          </span>
+                        </td>
+                        <td className="p-3 pr-4 text-right space-x-1">
+                          {(r.status === 'PENDING' || r.status === 'SUBMITTED') && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => void handleDecideOt(r.id, 'APPROVE')}
+                                className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2 py-1 rounded-lg border border-emerald-150 text-[10px] cursor-pointer font-bold"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => void handleDecideOt(r.id, 'REJECT')}
+                                className="bg-rose-50 text-rose-700 hover:bg-rose-100 px-2 py-1 rounded-lg border border-rose-150 text-[10px] cursor-pointer font-bold"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -1647,6 +1817,10 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                 </div>
                 <button
                   onClick={() => {
+                    if (!otPolicy[0]) {
+                      addToast('No OT policies loaded from the server yet.', 'info')
+                      return
+                    }
                     setSelectedPolicyIndex(0);
                     setPolicyEditValue(otPolicy[0].value);
                     setOtPolicyModalOpen(true);
@@ -1658,6 +1832,9 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
               </div>
 
               <div className="divide-y divide-slate-100 text-xs leading-relaxed">
+                {otPolicy.length === 0 && (
+                  <p className="text-xs font-semibold text-slate-400 py-2">No OT policies configured yet</p>
+                )}
                 {otPolicy.map((p, index) => (
                   <div
                     key={index}
@@ -2318,7 +2495,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                   className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
                 >
                   <option value="">-- Choose employee --</option>
-                  {rosterData.map(r => (
+                  {employeeOptions.map(r => (
                     <option key={r.id} value={r.id}>
                       {r.name} &bull; {r.dept}
                     </option>

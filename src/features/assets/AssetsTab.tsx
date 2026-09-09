@@ -96,14 +96,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
   const [detailDrawerItem, setDetailDrawerItem] = useState<any | null>(null);
 
   // DATA STATES
-  const [categories, setCategories] = useState([
-    { id: 'CAT-1', name: 'Laptops', code: 'LAP', description: 'Development and business machines', count: 18 },
-    { id: 'CAT-2', name: 'Mobile Devices', code: 'MOB', description: 'Smartphones and communications tablets', count: 8 },
-    { id: 'CAT-3', name: 'Monitors & Displays', code: 'MON', description: '4K monitors, ultra-wide screens, docking panels', count: 12 },
-    { id: 'CAT-4', name: 'Peripherals & Accessories', code: 'PER', description: 'Keyboards, mouse, standing desk mats, webcams', count: 15 },
-    { id: 'CAT-5', name: 'Software Licenses', code: 'SF', description: 'Enterprise SaaS access and cloud resources', count: 6 },
-    { id: 'CAT-6', name: 'Corporate Vehicles', code: 'VEH', description: 'Company cars and executive transport fleets', count: 2 },
-  ]);
+  const [categories, setCategories] = useState<{ id: string; name: string; code: string; description: string; count: number }[]>([]);
 
   // Assets list — loaded from API (mock seed cleared)
   const [assets, setAssets] = useState<UiAsset[]>([]);
@@ -124,141 +117,43 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
     void loadAssets();
   }, [loadAssets]);
 
-  const [allocations, setAllocations] = useState([
-    {
-      id: 'ALC-301',
-      assetId: 'AST-1001',
-      assetName: 'MacBook Pro 16" (M3 Max / 64GB / 1TB)',
-      employeeId: 'EMP-001',
-      employeeName: 'Sarah Lim',
-      checkoutDate: '2025-06-12',
-      dueDate: '2028-06-12',
-      condition: 'Brand New / Sealed',
-      status: 'Active'
-    },
-    {
-      id: 'ALC-302',
-      assetId: 'AST-1002',
-      assetName: 'MacBook Air 13" (M2 / 16GB / 512GB)',
-      employeeId: 'EMP-002',
-      employeeName: 'Raj Kumar',
-      checkoutDate: '2025-02-18',
-      dueDate: '2027-02-18',
-      condition: 'Excellent / Like-New',
-      status: 'Active'
-    },
-    {
-      id: 'ALC-303',
-      assetId: 'AST-1004',
-      assetName: 'iPhone 15 Pro (128GB, Space Black)',
-      employeeId: 'EMP-003',
-      employeeName: 'Maya Tan',
-      checkoutDate: '2024-09-30',
-      dueDate: '2026-09-30',
-      condition: 'Sealed Box',
-      status: 'Active'
-    },
-    {
-      id: 'ALC-304',
-      assetId: 'AST-1007',
-      assetName: 'Figma Organization Annual Seat',
-      employeeId: 'EMP-005',
-      employeeName: 'Nadia Chen',
-      checkoutDate: '2025-03-01',
-      dueDate: '2026-03-01',
-      condition: 'Not Applicable (SaaS)',
-      status: 'Active'
-    }
-  ]);
+  const [allocations, setAllocations] = useState<{
+    id: string;
+    assetId: string;
+    assetName: string;
+    employeeId: string;
+    employeeName: string;
+    checkoutDate: string;
+    dueDate: string;
+    condition: string;
+    status: string;
+  }[]>([]);
 
-  const [requests, setRequests] = useState([
-    {
-      id: 'REQ-401',
-      employeeId: 'EMP-001',
-      employeeName: 'Sarah Lim',
-      category: 'Peripherals & Accessories',
-      assetRequested: 'Logitech MX Master 3S Wireless Mouse',
-      reason: 'Standard office mouse side grip is failing and causing wrist strain.',
-      priority: 'Medium',
-      requestDate: '2026-05-10',
-      status: 'Pending'
-    },
-    {
-      id: 'REQ-402',
-      employeeId: 'EMP-003',
-      employeeName: 'Maya Tan',
-      category: 'Monitors & Displays',
-      assetRequested: 'Dell 27" USB-C Monitor P2723DE',
-      reason: 'Requested dual monitor setup for easier tax accounting ledgers auditing.',
-      priority: 'Low',
-      requestDate: '2026-05-08',
-      status: 'Approved'
-    },
-    {
-      id: 'REQ-403',
-      employeeId: 'EMP-002',
-      employeeName: 'Raj Kumar',
-      category: 'Laptops',
-      assetRequested: 'Laptop Travel Charger Replacement (96W USB-C)',
-      reason: 'Lost original charger during client site survey visitation in Jurong.',
-      priority: 'High',
-      requestDate: '2026-05-12',
-      status: 'Pending'
-    },
-    {
-      id: 'REQ-404',
-      employeeId: 'EMP-004',
-      employeeName: 'Ahmad Luqman',
-      category: 'Laptops',
-      assetRequested: 'Upgrade to Carbon X1 Gen 11',
-      reason: 'Compiling core training engines takes more than an hour on dual-core machine.',
-      priority: 'Critical',
-      requestDate: '2026-04-20',
-      status: 'Rejected'
-    }
-  ]);
+  const [requests, setRequests] = useState<{
+    id: string;
+    employeeId: string;
+    employeeName: string;
+    category: string;
+    assetRequested: string;
+    reason: string;
+    priority: string;
+    requestDate: string;
+    status: string;
+  }[]>([]);
 
-  const [incidents, setIncidents] = useState([
-    {
-      id: 'INC-501',
-      assetId: 'AST-1004',
-      assetName: 'iPhone 15 Pro (128GB, Space Black)',
-      employeeId: 'EMP-003',
-      employeeName: 'Maya Tan',
-      incidentType: 'Water Damage',
-      reportedDate: '2026-04-12',
-      costToRepair: 1450.00,
-      payrollDeduction: true,
-      status: 'Resolved',
-      description: 'Accidentally spilled office latte coffee on physical handset. Repaired main charging flex ribbon assembly.'
-    },
-    {
-      id: 'INC-502',
-      assetId: 'AST-1003',
-      assetName: 'Dell UltraSharp 32" 4K USB-C Hub Monitor',
-      employeeId: 'EMP-001',
-      employeeName: 'Sarah Lim',
-      incidentType: 'Dead Pixels / Panel Failure',
-      reportedDate: '2026-05-02',
-      costToRepair: 0.00,
-      payrollDeduction: false,
-      status: 'Under Repair',
-      description: 'Vertical lines at coordinate right. Sent to Dell supplier warranty cluster. Estimated turnaround 8 days.'
-    },
-    {
-      id: 'INC-503',
-      assetId: 'AST-1002',
-      assetName: 'MacBook Air 13" (M2 / 16GB / 512GB)',
-      employeeId: 'EMP-002',
-      employeeName: 'Raj Kumar',
-      incidentType: 'Outer Enclosure Scratches',
-      reportedDate: '2026-05-10',
-      costToRepair: 0.00,
-      payrollDeduction: false,
-      status: 'Log Only',
-      description: 'Minor superficial corner dents received during travel, keyboard functional.'
-    }
-  ]);
+  const [incidents, setIncidents] = useState<{
+    id: string;
+    assetId: string;
+    assetName: string;
+    employeeId: string;
+    employeeName: string;
+    incidentType: string;
+    reportedDate: string;
+    costToRepair: number;
+    payrollDeduction: boolean;
+    status: string;
+    description: string;
+  }[]>([]);
 
   // FORM CONTROLLERS
   // Assets
@@ -979,7 +874,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
       {/* Primary Sub-Navigation Bar */}
       <div id="assets-management-subtabs" className="border border-slate-100 bg-white rounded-2xl px-4 py-1.5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-2.5 overflow-x-auto pb-px">
-          {(['Registry', 'Categories', 'Allocations', 'Requests', 'Damages & Repair'] as const).map(tab => {
+          {(['Registry'] as const).map(tab => {
             const isActive = activeSubTab === tab;
             return (
               <button
@@ -995,11 +890,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                     : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
                 }`}
               >
-                {tab === 'Registry' && 'Asset Registry'}
-                {tab === 'Categories' && 'Asset Categories'}
-                {tab === 'Allocations' && 'Deployments & Sign-off'}
-                {tab === 'Requests' && 'Awaiting Requests'}
-                {tab === 'Damages & Repair' && 'Incident & Damages'}
+                {tab === 'Registry' ? 'Asset Registry' : tab}
               </button>
             );
           })}

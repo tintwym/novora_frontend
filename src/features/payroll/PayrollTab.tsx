@@ -33,15 +33,33 @@ import ModuleHeader from '@/components/ui/ModuleHeader';
 import {
   ApiError,
   createAllowanceType,
+  createBonusType,
+  createDeductionType,
+  createDepositType,
+  createTaxCategory,
   fetchAdminPayroll,
   fetchAllowanceTypes,
+  fetchBonusTypes,
+  fetchDeductionTypes,
+  fetchDepositTypes,
   fetchMyPayslips,
+  fetchOtPolicies,
+  fetchOvertimeRecords,
   fetchPayrollRunSummary,
+  fetchTaxCategories,
+  createOvertimeRecord,
+  decideOvertimeRecord,
   generateAdminPayroll,
   processAdminPayrollMonth,
   type AllowanceTypeRow,
+  type BonusTypeRow,
+  type DeductionTypeRow,
+  type DepositTypeRow,
+  type OtPolicyRow,
+  type OvertimeRecordRow,
   type PayrollRow,
   type PayrollRunSummary,
+  type TaxCategoryRow,
 } from '@/services';
 
 // Sub Tabs Definitions
@@ -116,6 +134,10 @@ function codeFromAllowanceName(name: string) {
   return name.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 30) || 'ALLOW';
 }
 
+function codeFromName(name: string, fallback: string) {
+  return name.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 30) || fallback
+}
+
 function mapAllowanceTypeRow(row: AllowanceTypeRow): AllowanceType {
   return {
     id: row.id,
@@ -127,6 +149,100 @@ function mapAllowanceTypeRow(row: AllowanceTypeRow): AllowanceType {
     onPayslip: 'Yes',
     attachEmp: 'No',
     status: row.active ? 'Active' : 'Inactive',
+  }
+}
+
+function mapBonusTypeRow(row: BonusTypeRow): BonusType {
+  return {
+    id: row.id,
+    name: row.name,
+    policyType: row.description || 'Normal',
+    payMonth: '—',
+    basedOn: `Fixed ${Number(row.amount).toFixed(2)}`,
+    onPayslip: 'Yes',
+    status: row.active ? 'Active' : 'Inactive',
+  }
+}
+
+function mapDeductionTypeRow(row: DeductionTypeRow): DeductionType {
+  return {
+    id: row.id,
+    name: row.name,
+    type: row.frequency || 'Custom',
+    deductionRule: row.description || 'Catalog deduction',
+    amountRate: Number(row.amount).toFixed(2),
+    onPayslip: 'Yes',
+    status: row.active ? 'Active' : 'Inactive',
+  }
+}
+
+function mapDepositTypeRow(row: DepositTypeRow): DepositType {
+  return {
+    id: row.id,
+    name: row.name,
+    code: row.code,
+    employmentStatus: 'All staff',
+    frequency: row.refundable ? 'Refundable' : 'One-time',
+    amountBasis: `Fixed ${Number(row.amount).toFixed(2)}`,
+    reimburseMonth: row.refundable ? 'On resign' : '—',
+    status: row.active ? 'Active' : 'Inactive',
+  }
+}
+
+function mapTaxCategoryRow(row: TaxCategoryRow): TaxCategory {
+  return {
+    id: row.id,
+    name: row.name,
+    code: row.code,
+    calculateOn: `Rate ${Number(row.rate).toFixed(2)}%`,
+    calcOverallIncome: 'Yes',
+    status: row.active ? 'Active' : 'Inactive',
+  }
+}
+
+function mapOtStatus(status: string): 'Approved' | 'Pending' | 'Rejected' {
+  const s = (status || '').toLowerCase()
+  if (s === 'approved' || s === 'approve') return 'Approved'
+  if (s === 'rejected' || s === 'reject') return 'Rejected'
+  return 'Pending'
+}
+
+function mapOvertimeToRequest(row: OvertimeRecordRow) {
+  return {
+    id: row.id,
+    empName: row.employeeName || row.employeeId,
+    hrs: Number(row.hours) || 0,
+    reason: row.reason || '—',
+    date: row.workDate,
+    status: mapOtStatus(row.status),
+  }
+}
+
+function mapOtPolicySettings(policies: OtPolicyRow[]) {
+  const p = policies[0]
+  if (!p) {
+    return {
+      weekdayOtRate: '—',
+      weekendOtRate: '—',
+      holidayOtRate: '—',
+      calculateBy: 'Hourly',
+      roundingBlock: '—',
+      minOtThreshold: '—',
+      maxOtPerDay: '—',
+      policyId: undefined as string | undefined,
+      policyName: '',
+    }
+  }
+  return {
+    weekdayOtRate: `${p.weekdayMultiplier}×`,
+    weekendOtRate: `${p.weekendMultiplier}×`,
+    holidayOtRate: `${p.holidayMultiplier}×`,
+    calculateBy: 'Hourly',
+    roundingBlock: '—',
+    minOtThreshold: `${p.dailyThresholdHours} hrs`,
+    maxOtPerDay: '—',
+    policyId: p.id,
+    policyName: p.name,
   }
 }
 
@@ -172,7 +288,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
   // Navigation states
   const [activeMainTab, setActiveMainTab] = useState<PayrollMainTab>('Allowance');
 
-  // Main tabs configuration styled with icons matching Disciplinary Management subtabs
+  // Main tabs — catalogs wired to backend admin APIs (Payroll reports stays hidden).
   const mainTabs = [
     { label: 'Allowance' as PayrollMainTab, icon: Coins, displayLabel: 'Allowance' },
     { label: 'Bonus' as PayrollMainTab, icon: TrendingUp, displayLabel: 'Bonus' },
@@ -181,7 +297,6 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
     { label: 'Deduction' as PayrollMainTab, icon: Percent, displayLabel: 'Deduction' },
     { label: 'Tax' as PayrollMainTab, icon: FileText, displayLabel: 'Tax' },
     { label: 'Pay management' as PayrollMainTab, icon: CreditCard, displayLabel: 'Pay management' },
-    { label: 'Payroll reports' as PayrollMainTab, icon: BarChart3, displayLabel: 'Payroll Reports' },
   ];
   
   // Dynamic subtabs depending on MainTab
@@ -191,7 +306,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
   const [depositSubTab, setDepositSubTab] = useState<'Deposit type' | 'Deposit attachment'>('Deposit type');
   const [deductionSubTab, setDeductionSubTab] = useState<'Deduction type' | 'Deduction attachment' | 'Manual deduction'>('Deduction type');
   const [taxSubTab, setTaxSubTab] = useState<'Tax category' | 'Tax attachment' | 'Income tax policy' | 'Taxable pays'>('Tax category');
-  const [payMgmtSubTab, setPayMgmtSubTab] = useState<'Payment duration' | 'Payroll preparation' | 'Payroll run' | 'Payroll history'>('Payment duration');
+  const [payMgmtSubTab, setPayMgmtSubTab] = useState<'Payment duration' | 'Payroll preparation' | 'Payroll run' | 'Payroll history'>('Payroll run');
 
   // Unified Editing states for Modals
   const [editingAllowance, setEditingAllowance] = useState<AllowanceType | null>(null);
@@ -203,91 +318,120 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
   // New interactive states for Sub Tabs
   // Under Allowance - Travel Claims
   interface TravelClaim { id: string; employeeName: string; amount: string; purpose: string; date: string; status: 'Approved' | 'Pending' | 'Rejected' }
-  const [travelClaims, setTravelClaims] = useState<TravelClaim[]>([
-    { id: 'TRV-101', employeeName: 'Sarah Lim', amount: '120.00', purpose: 'Client Onsite Support', date: '2026-05-12', status: 'Approved' },
-    { id: 'TRV-102', employeeName: 'Raj Kumar', amount: '85.50', purpose: 'Hardware Procurement Run', date: '2026-05-14', status: 'Approved' },
-    { id: 'TRV-103', employeeName: 'Ahmad L', amount: '210.00', purpose: 'Regional Offsite Meeting', date: '2026-05-21', status: 'Pending' }
-  ]);
+  const [travelClaims, setTravelClaims] = useState<TravelClaim[]>([]);
   const [newTravelStaffName, setNewTravelStaffName] = useState('');
   const [newTravelAmt, setNewTravelAmt] = useState('');
   const [newTravelPurpose, setNewTravelPurpose] = useState('');
 
   // Under Allowance - Allowance Attachments
-  const [allowanceAttachments, setAllowanceAttachments] = useState([
-    { id: 'ATT-A01', label: 'Fuel_Receipt_May.pdf', staffName: 'Sarah Lim', size: '1.4 MB', date: '2026-05-14', type: 'Transport', status: 'Verified' },
-    { id: 'ATT-A02', label: 'Dinner_With_Client.jpg', staffName: 'Ahmad L', size: '2.1 MB', date: '2026-05-20', type: 'Meal', status: 'Pending Verification' },
-  ]);
+  const [allowanceAttachments, setAllowanceAttachments] = useState<{
+    id: string;
+    label: string;
+    staffName: string;
+    size: string;
+    date: string;
+    type: string;
+    status: string;
+  }[]>([]);
 
   // Under Bonus - Bonus attachments, payments, and policy
-  const [bonusAttachments, setBonusAttachments] = useState([
-    { id: 'ATT-B01', label: 'Q1_KPI_Board_Signoff.pdf', date: '2026-04-12', size: '4.8 MB', uploader: 'Grace Chen' }
-  ]);
-  const [bonusPayments, setBonusPayments] = useState([
-    { empId: 'SL-001', empName: 'Sarah Lim', dept: 'Engineering', amount: '2500.00', scale: '100% target met', status: 'Paid' },
-    { empId: 'RK-002', empName: 'Raj Kumar', dept: 'Engineering', amount: '3100.00', scale: '120% target met', status: 'Pending Cycle' },
-    { empId: 'AL-003', empName: 'Ahmad L', dept: 'Operations', amount: '1500.00', scale: '90% target met', status: 'Paid' }
-  ]);
-  const [bonusPolicies, setBonusPolicies] = useState([
-    { id: 'POL-10', ruleName: 'Performance Multiplier G7', weight: 'Basic × 1.25', active: true },
-    { id: 'POL-11', ruleName: 'Tenure loyalty (3+ Years)', weight: 'One-time bonus of 1,000', active: true },
-    { id: 'POL-12', ruleName: 'Referral bounty program', weight: 'Fixed SGD 500 per head', active: false }
-  ]);
+  const [bonusAttachments, setBonusAttachments] = useState<{
+    id: string;
+    label: string;
+    date: string;
+    size: string;
+    uploader: string;
+  }[]>([]);
+  const [bonusPayments, setBonusPayments] = useState<{
+    empId: string;
+    empName: string;
+    dept: string;
+    amount: string;
+    scale: string;
+    status: string;
+  }[]>([]);
+  const [bonusPolicies, setBonusPolicies] = useState<{
+    id: string;
+    ruleName: string;
+    weight: string;
+    active: boolean;
+  }[]>([]);
 
   // Under Overtime - setup & requests
-  const [manualOtEntries, setManualOtEntries] = useState([
-    { id: 'MN-01', empName: 'Sarah Lim', hrs: 4.5, rate: 'SGD 25.00/hr', total: 112.50, date: '2026-05-15' }
-  ]);
+  const [manualOtEntries, setManualOtEntries] = useState<{
+    id: string;
+    empName: string;
+    hrs: number;
+    rate: string;
+    total: number;
+    date: string;
+  }[]>([]);
   const [newManualOtStaff, setNewManualOtStaff] = useState('');
   const [newManualOtHrs, setNewManualOtHrs] = useState('');
   const [newManualOtRate, setNewManualOtRate] = useState('25.00');
 
-  const [otRequests, setOtRequests] = useState([
-    { id: 'REQ-301', empName: 'Sarah Lim', hrs: 3.5, reason: 'Production server release', date: '2026-05-12', status: 'Approved' },
-    { id: 'REQ-302', empName: 'Raj Kumar', hrs: 4.0, reason: 'Emergency database patch', date: '2026-05-13', status: 'Pending' },
-    { id: 'REQ-303', empName: 'Ahmad L', hrs: 2.0, reason: 'Warehouse stock auditing', date: '2026-05-14', status: 'Pending' },
-    { id: 'REQ-304', empName: 'Emily Tan', hrs: 6.0, reason: 'E-commerce launch support', date: '2026-05-15', status: 'Pending' }
-  ]);
+  const [otRequests, setOtRequests] = useState<{
+    id: string;
+    empName: string;
+    hrs: number;
+    reason: string;
+    date: string;
+    status: 'Approved' | 'Pending' | 'Rejected';
+  }[]>([]);
   const [newOtReqStaff, setNewOtReqStaff] = useState('');
   const [newOtReqHrs, setNewOtReqHrs] = useState('');
   const [newOtReqReason, setNewOtReqReason] = useState('');
 
   // Under Deposit Attachments
-  const [depositAttachments, setDepositAttachments] = useState([
-    { id: 'DEP-ATT-01', label: 'Laptop_Custody_Agreement.pdf', date: '2026-03-01', size: '1.2 MB', uploader: 'System Admin' }
-  ]);
+  const [depositAttachments, setDepositAttachments] = useState<{
+    id: string;
+    label: string;
+    date: string;
+    size: string;
+    uploader: string;
+  }[]>([]);
 
   // Under Deduction Attachments & Manual Deductions
-  const [deductionAttachments, setDeductionAttachments] = useState([
-    { id: 'DED-ATT-01', label: 'Court_Order_Garnishment.pdf', date: '2026-05-10', size: '980 KB', uploader: 'Audit Lead' }
-  ]);
-  const [manualDeductions, setManualDeductions] = useState([
-    { id: 'MD-01', empName: 'Raj Kumar', amount: '50.00', reason: 'Office access card replace', date: '2026-05-18' }
-  ]);
+  const [deductionAttachments, setDeductionAttachments] = useState<{
+    id: string;
+    label: string;
+    date: string;
+    size: string;
+    uploader: string;
+  }[]>([]);
+  const [manualDeductions, setManualDeductions] = useState<{
+    id: string;
+    empName: string;
+    amount: string;
+    reason: string;
+    date: string;
+  }[]>([]);
   const [newDedStaff, setNewDedStaff] = useState('');
   const [newDedAmt, setNewDedAmt] = useState('');
   const [newDedReason, setNewDedReason] = useState('Salary advance');
 
   // Under Tax Attachments & Taxable Emoluments list
-  const [taxAttachments, setTaxAttachments] = useState([
-    { id: 'TAX-ATT-01', label: 'Monthly_IRAS_Return_CP39.pdf', date: '2026-05-10', size: '1.4 MB', uploader: 'Corporate HR' }
-  ]);
-  const [taxableEmoluments, setTaxableEmoluments] = useState([
-    { id: 'EMOL-01', componentName: 'Basic Salary', taxable: true, exemptAllowanceLimit: 'Fully Taxable' },
-    { id: 'EMOL-02', componentName: 'Transport Allowance', taxable: false, exemptAllowanceLimit: 'Exempt up to SGD 6,000 / year' },
-    { id: 'EMOL-03', componentName: 'Meal Allowance', taxable: false, exemptAllowanceLimit: 'Exempt if under SGD 30 / day' },
-    { id: 'EMOL-04', componentName: 'Phone Allowance', taxable: true, exemptAllowanceLimit: 'Exempt up to SGD 300 / year' },
-    { id: 'EMOL-05', componentName: 'Performance Bonus', taxable: true, exemptAllowanceLimit: 'Fully Taxable' },
-    { id: 'EMOL-06', componentName: 'Overtime Payment', taxable: true, exemptAllowanceLimit: 'Fully Taxable' }
-  ]);
+  const [taxAttachments, setTaxAttachments] = useState<{
+    id: string;
+    label: string;
+    date: string;
+    size: string;
+    uploader: string;
+  }[]>([]);
+  const [taxableEmoluments, setTaxableEmoluments] = useState<{
+    id: string;
+    componentName: string;
+    taxable: boolean;
+    exemptAllowanceLimit: string;
+  }[]>([]);
 
   // Under Payment Prep checklist
-  const [prepSteps, setPrepSteps] = useState([
-    { id: 'STEP1', label: 'Synchronise Employee Shifts & Rotas', desc: 'Lock roster profiles for May 2026', done: true },
-    { id: 'STEP2', label: 'Verify Approved Attendances & Timecards', desc: 'Sync biometric punch timestamps', done: true },
-    { id: 'STEP3', label: 'Approve Pending Overtime claims', desc: 'Ensure active sign-offs for OT rosters', done: false },
-    { id: 'STEP4', label: 'Apply Custom Mid-month Salary Deductions', desc: 'Calculate advances or card replaces', done: false },
-    { id: 'STEP5', label: 'Validate Government Statutory Schedules', desc: 'Check CPF and IRAS tax scales', done: false }
-  ]);
+  const [prepSteps, setPrepSteps] = useState<{
+    id: string;
+    label: string;
+    desc: string;
+    done: boolean;
+  }[]>([]);
 
   // Universal Filter States
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('All departments');
@@ -305,13 +449,15 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
   const [isCommitAllowancesModalOpen, setIsCommitAllowancesModalOpen] = useState(false);
 
   const [otPolicySettings, setOtPolicySettings] = useState({
-    weekdayOtRate: 'Based on salary (per hour)',
-    weekendOtRate: '1.5× per hour',
-    holidayOtRate: '2.0× per hour',
-    calculateBy: 'Per minute rate',
-    roundingBlock: '30 minutes',
-    minOtThreshold: '30 minutes',
-    maxOtPerDay: '4 hours'
+    weekdayOtRate: '—',
+    weekendOtRate: '—',
+    holidayOtRate: '—',
+    calculateBy: 'Hourly',
+    roundingBlock: '—',
+    minOtThreshold: '—',
+    maxOtPerDay: '—',
+    policyId: undefined as string | undefined,
+    policyName: '',
   });
   const [isEditOtPolicyModalOpen, setIsEditOtPolicyModalOpen] = useState(false);
 
@@ -344,55 +490,55 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
   // Allowance Master State — loaded from catalog API
   const [allowanceTypes, setAllowanceTypes] = useState<AllowanceType[]>([]);
 
+  // Bonus / Deposit / Deduction / Tax Master State
+  const [bonusTypes, setBonusTypes] = useState<BonusType[]>([]);
+  const [depositTypes, setDepositTypes] = useState<DepositType[]>([]);
+  const [deductions, setDeductions] = useState<DeductionType[]>([]);
+  const [taxes, setTaxes] = useState<TaxCategory[]>([]);
+
   useEffect(() => {
     void (async () => {
       try {
-        const rows = await fetchAllowanceTypes()
-        setAllowanceTypes(rows.map(mapAllowanceTypeRow))
+        const [
+          allowanceRows,
+          bonusRows,
+          deductionRows,
+          depositRows,
+          taxRows,
+          otPolicies,
+          otRecords,
+        ] = await Promise.all([
+          fetchAllowanceTypes().catch(() => [] as AllowanceTypeRow[]),
+          fetchBonusTypes().catch(() => [] as BonusTypeRow[]),
+          fetchDeductionTypes().catch(() => [] as DeductionTypeRow[]),
+          fetchDepositTypes().catch(() => [] as DepositTypeRow[]),
+          fetchTaxCategories().catch(() => [] as TaxCategoryRow[]),
+          fetchOtPolicies().catch(() => [] as OtPolicyRow[]),
+          fetchOvertimeRecords().catch(() => [] as OvertimeRecordRow[]),
+        ])
+        setAllowanceTypes(allowanceRows.map(mapAllowanceTypeRow))
+        setBonusTypes(bonusRows.map(mapBonusTypeRow))
+        setDeductions(deductionRows.map(mapDeductionTypeRow))
+        setDepositTypes(depositRows.map(mapDepositTypeRow))
+        setTaxes(taxRows.map(mapTaxCategoryRow))
+        setOtPolicySettings(mapOtPolicySettings(otPolicies))
+        setOtRequests(otRecords.map(mapOvertimeToRequest))
       } catch (err) {
         if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
-          addToast('Could not load allowance types from the server.', 'error')
+          addToast('Could not load payroll catalog data from the server.', 'error')
         }
       }
     })()
   }, [addToast])
 
-  // Bonus Master State
-  const [bonusTypes, setBonusTypes] = useState<BonusType[]>([
-    { id: '1', name: 'Annual performance bonus', policyType: 'Normal', payMonth: 'December', basedOn: 'Fixed amount', onPayslip: 'Yes', status: 'Active' },
-    { id: '2', name: 'Service bonus (3 yrs)', policyType: 'Working service', payMonth: 'On anniversary', basedOn: 'Salary × factor', onPayslip: 'Yes', status: 'Active' },
-    { id: '3', name: 'LTIP — Grade G7+', policyType: 'LTIP', payMonth: 'March (FY end)', basedOn: 'Performance eval', onPayslip: 'Yes', status: 'Active' }
-  ]);
-
-  // Deposit Master State
-  const [depositTypes, setDepositTypes] = useState<DepositType[]>([
-    { id: '1', name: 'Uniform deposit', code: 'UNI', employmentStatus: 'All staff', frequency: 'One-time', amountBasis: 'Fixed SGD 100', reimburseMonth: 'On resign', status: 'Active' },
-    { id: '2', name: 'Saving deposit', code: 'SAV', employmentStatus: 'Permanent', frequency: 'Monthly', amountBasis: '2% of basic', reimburseMonth: 'On resign', status: 'Active' },
-    { id: '3', name: 'Laptop deposit', code: 'LAP', employmentStatus: 'Engineering', frequency: 'One-time', amountBasis: 'Fixed SGD 500', reimburseMonth: 'On resign', status: 'Active' }
-  ]);
-
-  // Deduction Master State
-  const [deductions, setDeductions] = useState<DeductionType[]>([
-    { id: '1', name: 'CPF (Employee)', type: 'Statutory', deductionRule: 'Based on salary', amountRate: '11%', onPayslip: 'Yes', status: 'Active' },
-    { id: '2', name: 'CPF MediSave', type: 'Statutory', deductionRule: 'Statutory table', amountRate: '0.5%', onPayslip: 'Yes', status: 'Active' },
-    { id: '3', name: 'Income tax (IRAS)', type: 'Tax', deductionRule: 'IRAS schedule', amountRate: 'Varied', onPayslip: 'Yes', status: 'Active' },
-    { id: '4', name: 'Late deduction', type: 'Rota rule', deductionRule: 'Per minute late', amountRate: 'SGD 0.50/min', onPayslip: 'Yes', status: 'Active' },
-    { id: '5', name: 'Missing swipe', type: 'Attendance', deductionRule: 'Per occurrence', amountRate: 'SGD 20.00', onPayslip: 'Yes', status: 'Active' },
-    { id: '6', name: 'Unpaid leave', type: 'Leave', deductionRule: 'Normal rate/day', amountRate: 'Salary ÷ work days', onPayslip: 'Yes', status: 'Active' }
-  ]);
-
-  // Tax Master State
-  const [taxes, setTaxes] = useState<TaxCategory[]>([
-    { id: '1', name: 'Personal income tax', code: 'IRAS', calculateOn: 'Monthly salary', calcOverallIncome: 'Yes', status: 'Active' },
-    { id: '2', name: 'CPF MediSave', code: 'SSB', calculateOn: 'Basic salary', calcOverallIncome: 'No', status: 'Active' }
-  ]);
-
-  // OT policy attached employees mock
-  const [otAttachedStaff, setOtAttachedStaff] = useState([
-    { id: 'SL-001', name: 'Sarah Lim', department: 'Engineering', policyType: 'Salary-based', status: 'Active' },
-    { id: 'RK-002', name: 'Raj Kumar', department: 'Engineering', policyType: 'Salary-based', status: 'Active' },
-    { id: 'AL-003', name: 'Ahmad L', department: 'Operations', policyType: 'Fixed amt', status: 'Active' },
-  ]);
+  // OT policy attached employees
+  const [otAttachedStaff, setOtAttachedStaff] = useState<{
+    id: string;
+    name: string;
+    department: string;
+    policyType: string;
+    status: string;
+  }[]>([]);
 
   // Payment Active duration setup state
   const [paymentDuration, setPaymentDuration] = useState({
@@ -404,11 +550,12 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
     status: 'Current period'
   });
 
-  const [pastDurations, setPastDurations] = useState([
-    { name: 'May 2026', start: '1 May', end: '31 May', status: 'Current' },
-    { name: 'Apr 2026', start: '1 Apr', end: '30 Apr', status: 'Confirmed' },
-    { name: 'Mar 2026', start: '1 Mar', end: '31 Mar', status: 'Confirmed' }
-  ]);
+  const [pastDurations, setPastDurations] = useState<{
+    name: string;
+    start: string;
+    end: string;
+    status: string;
+  }[]>([]);
 
   // Run Payroll Simulation States
   const [isSimulatingRun, setIsSimulatingRun] = useState(false);
@@ -471,91 +618,104 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
     }
   };
 
-  const handleAddNewBonus = (e: React.FormEvent) => {
+  const handleAddNewBonus = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newBonusName) {
       addToast('Please specify bonus category', 'error');
       return;
     }
-    const n: BonusType = {
-      id: String(bonusTypes.length + 1),
-      name: newBonusName,
-      policyType: newBonusPolicy,
-      payMonth: newBonusPayMonth,
-      basedOn: newBonusBasedOn,
-      onPayslip: 'Yes',
-      status: 'Active'
-    };
-    setBonusTypes([...bonusTypes, n]);
-    setBonusModalOpen(false);
-    setNewBonusName('');
-    addToast('Successfully added new bonus compensation policy', 'success');
+    try {
+      const created = await createBonusType({
+        name: newBonusName.trim(),
+        code: codeFromName(newBonusName, 'BONUS'),
+        amount: 0,
+        taxable: true,
+        active: true,
+        description: newBonusPolicy || 'Normal',
+      })
+      setBonusTypes((prev) => [...prev.filter((b) => b.id !== created.id), mapBonusTypeRow(created)])
+      setBonusModalOpen(false)
+      setNewBonusName('')
+      addToast('Successfully added new bonus compensation policy', 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create bonus type.', 'error')
+    }
   };
 
-  const handleAddNewDeposit = (e: React.FormEvent) => {
+  const handleAddNewDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDepositName || !newDepositCode) {
       addToast('Missing vital fields for security bond catalogging.', 'error');
       return;
     }
-    const n: DepositType = {
-      id: String(depositTypes.length + 1),
-      name: newDepositName,
-      code: newDepositCode.toUpperCase(),
-      employmentStatus: 'All staff',
-      frequency: 'One-time',
-      amountBasis: newDepositBasis,
-      reimburseMonth: 'On resign',
-      status: 'Active'
-    };
-    setDepositTypes([...depositTypes, n]);
-    setDepositModalOpen(false);
-    setNewDepositName('');
-    setNewDepositCode('');
-    addToast('New security deposit/reimbursement model archived.', 'success');
+    const amountMatch = newDepositBasis.match(/[\d.]+/)
+    const amount = amountMatch ? Number(amountMatch[0]) : 0
+    try {
+      const created = await createDepositType({
+        name: newDepositName.trim(),
+        code: newDepositCode.trim().toUpperCase(),
+        amount: Number.isFinite(amount) ? amount : 0,
+        refundable: true,
+        active: true,
+      })
+      setDepositTypes((prev) => [...prev.filter((d) => d.id !== created.id), mapDepositTypeRow(created)])
+      setDepositModalOpen(false)
+      setNewDepositName('')
+      setNewDepositCode('')
+      addToast('New security deposit/reimbursement model archived.', 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create deposit type.', 'error')
+    }
   };
 
-  const handleAddNewDeduction = (e: React.FormEvent) => {
+  const handleAddNewDeduction = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDeductionName || !newDeductionRate) {
       addToast('Deduction schema requires name and tariff.', 'error');
       return;
     }
-    const n: DeductionType = {
-      id: String(deductions.length + 1),
-      name: newDeductionName,
-      type: newDeductionType,
-      deductionRule: 'Custom formula policy',
-      amountRate: newDeductionRate,
-      onPayslip: 'Yes',
-      status: 'Active'
-    };
-    setDeductions([...deductions, n]);
-    setDeductionModalOpen(false);
-    setNewDeductionName('');
-    setNewDeductionRate('');
-    addToast('Alternative custom deduction logic loaded successfully.', 'success');
+    const amount = Number(String(newDeductionRate).replace(/[^0-9.]/g, '')) || 0
+    try {
+      const created = await createDeductionType({
+        name: newDeductionName.trim(),
+        code: codeFromName(newDeductionName, 'DED'),
+        amount,
+        frequency: 'monthly',
+        active: true,
+        description: newDeductionType || 'Custom',
+      })
+      setDeductions((prev) => [...prev.filter((d) => d.id !== created.id), mapDeductionTypeRow(created)])
+      setDeductionModalOpen(false)
+      setNewDeductionName('')
+      setNewDeductionRate('')
+      addToast('Alternative custom deduction logic loaded successfully.', 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create deduction type.', 'error')
+    }
   };
 
-  const handleAddNewTax = (e: React.FormEvent) => {
+  const handleAddNewTax = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaxName || !newTaxCode) {
       addToast('Income tax category must provide a standardized statutory identifier code.', 'error');
       return;
     }
-    const n: TaxCategory = {
-      id: String(taxes.length + 1),
-      name: newTaxName,
-      code: newTaxCode.toUpperCase(),
-      calculateOn: newTaxOn,
-      calcOverallIncome: 'Yes',
-      status: 'Active'
-    };
-    setTaxes([...taxes, n]);
-    setTaxModalOpen(false);
-    setNewTaxName('');
-    setNewTaxCode('');
-    addToast('New localized taxation withholding profile registered.', 'success');
+    try {
+      const created = await createTaxCategory({
+        name: newTaxName.trim(),
+        code: newTaxCode.trim().toUpperCase(),
+        rate: 0,
+        active: true,
+        description: newTaxOn || undefined,
+      })
+      setTaxes((prev) => [...prev.filter((t) => t.id !== created.id), mapTaxCategoryRow(created)])
+      setTaxModalOpen(false)
+      setNewTaxName('')
+      setNewTaxCode('')
+      addToast('New localized taxation withholding profile registered.', 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not create tax category.', 'error')
+    }
   };
 
   // Editing state submission handlers
@@ -825,7 +985,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
       <div id="payroll-secondary-capsules" className="flex items-center gap-2 select-none overflow-x-auto scrollbar-none py-1">
         
         {/* Render secondary navigation pill elements according to activeMainTab */}
-        {activeMainTab === 'Allowance' && (['Allowance type', 'Travel allowance', 'Allowance attachment', 'Allowance payment'] as const).map((sub) => (
+        {activeMainTab === 'Allowance' && (['Allowance type'] as const).map((sub) => (
           <button
             key={sub}
             onClick={() => setAllowanceSubTab(sub)}
@@ -839,7 +999,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
           </button>
         ))}
 
-        {activeMainTab === 'Bonus' && (['Bonus type', 'Bonus attachment', 'Bonus payment'] as const).map((sub) => (
+        {activeMainTab === 'Bonus' && (['Bonus type'] as const).map((sub) => (
           <button
             key={sub}
             onClick={() => setBonusSubTab(sub)}
@@ -853,7 +1013,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
           </button>
         ))}
 
-        {activeMainTab === 'Overtime' && (['OT policy attachment', 'Manual OT setup', 'Specific OT setup', 'OT request', 'Request for others', 'OT approval', 'OT history'] as const).map((sub) => {
+        {activeMainTab === 'Overtime' && (['OT policy attachment', 'OT request', 'OT approval', 'OT history'] as const).map((sub) => {
           const isApproval = sub === 'OT approval';
           return (
             <button
@@ -868,14 +1028,14 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <span>{sub}</span>
               {isApproval && (
                 <span className="h-4.5 w-4.5 bg-amber-100 text-amber-700 text-[10px] font-black rounded-full flex items-center justify-center border border-amber-200 shrink-0">
-                  4
+                  {otRequests.filter((r) => r.status === 'Pending').length}
                 </span>
               )}
             </button>
           );
         })}
 
-        {activeMainTab === 'Deposit' && (['Deposit type', 'Deposit attachment'] as const).map((sub) => (
+        {activeMainTab === 'Deposit' && (['Deposit type'] as const).map((sub) => (
           <button
             key={sub}
             onClick={() => setDepositSubTab(sub)}
@@ -889,7 +1049,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
           </button>
         ))}
 
-        {activeMainTab === 'Deduction' && (['Deduction type', 'Deduction attachment', 'Manual deduction'] as const).map((sub) => (
+        {activeMainTab === 'Deduction' && (['Deduction type'] as const).map((sub) => (
           <button
             key={sub}
             onClick={() => setDeductionSubTab(sub)}
@@ -903,7 +1063,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
           </button>
         ))}
 
-        {activeMainTab === 'Tax' && (['Tax category', 'Tax attachment', 'Income tax policy', 'Taxable pays'] as const).map((sub) => (
+        {activeMainTab === 'Tax' && (['Tax category'] as const).map((sub) => (
           <button
             key={sub}
             onClick={() => setTaxSubTab(sub)}
@@ -917,7 +1077,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
           </button>
         ))}
 
-        {activeMainTab === 'Pay management' && (['Payment duration', 'Payroll preparation', 'Payroll run', 'Payroll history'] as const).map((sub) => (
+        {activeMainTab === 'Pay management' && (['Payroll run', 'Payroll history'] as const).map((sub) => (
           <button
             key={sub}
             onClick={() => setPayMgmtSubTab(sub)}
@@ -1581,7 +1741,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 {/* Left Side: OT policy settings */}
                 <div className="lg:col-span-2 bg-slate-50/50 border border-slate-100 p-5 rounded-2xl space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">OT policy settings</h4>
+                    <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">
+                      OT policy settings{otPolicySettings.policyName ? ` — ${otPolicySettings.policyName}` : ''}
+                    </h4>
                     <button
                       onClick={() => setIsEditOtPolicyModalOpen(true)}
                       className="text-novora hover:underline text-xs font-bold"
@@ -1838,24 +2000,32 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 {overtimeSubTab === 'OT request' && (
                   <div className="max-w-md mx-auto bg-slate-50 border border-slate-200 p-6 rounded-2xl space-y-4">
                     <h4 className="text-xs font-bold text-slate-850 uppercase tracking-widest text-center">My Overtime Request</h4>
-                    <form onSubmit={(e) => {
+                    <form onSubmit={async (e) => {
                       e.preventDefault();
                       if (!newOtReqHrs || !newOtReqReason) {
                         addToast('Describe the reason and specifying estimated duration.', 'error');
                         return;
                       }
-                      const req = {
-                        id: createLocalId('REQ'),
-                        empName: 'Ahmad L', // Current active user role mockup
-                        hrs: parseFloat(newOtReqHrs),
-                        reason: newOtReqReason,
-                        date: new Date().toISOString().split('T')[0],
-                        status: 'Pending'
-                      };
-                      setOtRequests([req, ...otRequests]);
-                      setNewOtReqHrs('');
-                      setNewOtReqReason('');
-                      addToast('Overtime request successfully posted, waiting for manager sign off.', 'success');
+                      const emp = employees[0]
+                      const employeeId = emp?.apiId || emp?.id
+                      if (!employeeId) {
+                        addToast('No employee profile available to file overtime.', 'error')
+                        return
+                      }
+                      try {
+                        const created = await createOvertimeRecord({
+                          employeeId,
+                          workDate: new Date().toISOString().split('T')[0],
+                          hours: parseFloat(newOtReqHrs),
+                          reason: newOtReqReason,
+                        })
+                        setOtRequests((prev) => [mapOvertimeToRequest(created), ...prev])
+                        setNewOtReqHrs('')
+                        setNewOtReqReason('')
+                        addToast('Overtime request successfully posted, waiting for manager sign off.', 'success')
+                      } catch (err) {
+                        addToast(err instanceof ApiError ? err.message : 'Could not create overtime request.', 'error')
+                      }
                     }} className="space-y-3">
                       <div>
                         <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Requested Overtime Hours</label>
@@ -1886,25 +2056,33 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 {overtimeSubTab === 'Request for others' && (
                   <div className="max-w-md mx-auto bg-slate-50 border border-slate-200 p-6 rounded-2xl space-y-4">
                     <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest text-center">Filing OT Request for Team Member</h4>
-                    <form onSubmit={(e) => {
+                    <form onSubmit={async (e) => {
                       e.preventDefault();
                       if (!newOtReqStaff || !newOtReqHrs || !newOtReqReason) {
                         addToast('Describe staff, reason and specifying estimated duration.', 'error');
                         return;
                       }
-                      const req = {
-                        id: createLocalId('REQ'),
-                        empName: newOtReqStaff,
-                        hrs: parseFloat(newOtReqHrs),
-                        reason: newOtReqReason,
-                        date: new Date().toISOString().split('T')[0],
-                        status: 'Pending'
-                      };
-                      setOtRequests([req, ...otRequests]);
-                      setNewOtReqStaff('');
-                      setNewOtReqHrs('');
-                      setNewOtReqReason('');
-                      addToast(`Overtime request filed for ${newOtReqStaff} waiting for sign-off.`, 'success');
+                      const emp = employees.find((x) => x.name === newOtReqStaff)
+                      const employeeId = emp?.apiId || emp?.id
+                      if (!employeeId) {
+                        addToast('Select a valid employee for overtime filing.', 'error')
+                        return
+                      }
+                      try {
+                        const created = await createOvertimeRecord({
+                          employeeId,
+                          workDate: new Date().toISOString().split('T')[0],
+                          hours: parseFloat(newOtReqHrs),
+                          reason: newOtReqReason,
+                        })
+                        setOtRequests((prev) => [mapOvertimeToRequest(created), ...prev])
+                        setNewOtReqStaff('')
+                        setNewOtReqHrs('')
+                        setNewOtReqReason('')
+                        addToast(`Overtime request filed for ${newOtReqStaff} waiting for sign-off.`, 'success')
+                      } catch (err) {
+                        addToast(err instanceof ApiError ? err.message : 'Could not create overtime request.', 'error')
+                      }
                     }} className="space-y-3">
                       <div>
                         <label className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider mb-1">Target Employee</label>
@@ -1975,9 +2153,14 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                               <td className="p-3 pr-5 text-right space-x-2">
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    setOtRequests(otRequests.map(r => r.id === req.id ? { ...r, status: 'Approved' } : r));
-                                    addToast(`Approved ${req.hrs} overtime hours for ${req.empName}`, 'success');
+                                  onClick={async () => {
+                                    try {
+                                      const updated = await decideOvertimeRecord(req.id, { decision: 'APPROVE' })
+                                      setOtRequests((prev) => prev.map((r) => (r.id === req.id ? mapOvertimeToRequest(updated) : r)))
+                                      addToast(`Approved ${req.hrs} overtime hours for ${req.empName}`, 'success')
+                                    } catch (err) {
+                                      addToast(err instanceof ApiError ? err.message : 'Could not approve overtime.', 'error')
+                                    }
                                   }}
                                   className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-150 text-[11px] cursor-pointer font-bold"
                                 >
@@ -1985,9 +2168,14 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    setOtRequests(otRequests.map(r => r.id === req.id ? { ...r, status: 'Rejected' } : r));
-                                    addToast(`Rejected overtime request from ${req.empName}`, 'error');
+                                  onClick={async () => {
+                                    try {
+                                      const updated = await decideOvertimeRecord(req.id, { decision: 'REJECT' })
+                                      setOtRequests((prev) => prev.map((r) => (r.id === req.id ? mapOvertimeToRequest(updated) : r)))
+                                      addToast(`Rejected overtime request from ${req.empName}`, 'error')
+                                    } catch (err) {
+                                      addToast(err instanceof ApiError ? err.message : 'Could not reject overtime.', 'error')
+                                    }
                                   }}
                                   className="bg-rose-50 text-rose-700 hover:bg-rose-100 px-2.5 py-1 rounded-lg border border-rose-150 text-[11px] cursor-pointer font-bold"
                                 >

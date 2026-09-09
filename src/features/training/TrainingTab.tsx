@@ -73,7 +73,7 @@ type TrainingSubTab =
   | 'Reports';
 
 export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
-  const [activeTab, setActiveTab] = useState<TrainingSubTab>('Training Type');
+  const [activeTab, setActiveTab] = useState<TrainingSubTab>('Course');
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('All departments');
 
@@ -592,17 +592,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
   };
 
   const subTabsList: { label: TrainingSubTab; badge?: number }[] = [
-    { label: 'Training Type' },
-    { label: 'Category' },
     { label: 'Course' },
-    { label: 'Subject' },
-    { label: 'Schedule' },
-    { label: 'Training Request' },
-    { label: 'Request On Behalf' },
-    { label: 'Approval', badge: approvals.filter(a => a.status === 'Pending').length },
-    { label: 'Attendance' },
-    { label: 'Training History' },
-    { label: 'Reports' },
   ];
 
   return (

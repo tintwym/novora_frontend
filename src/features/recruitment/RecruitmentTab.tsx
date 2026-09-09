@@ -704,8 +704,6 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
     'Candidate Pipeline',
     'Interviews',
     'Offer Management',
-    'Pre-Onboarding',
-    'Reports',
   ];
 
   return (

@@ -457,11 +457,6 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
           {(
             [
               'Enrollment & Selection',
-              'Wellness Wallets & FSA',
-              'Dependents & Beneficiaries',
-              'Payroll Integration',
-              'Vendor Management',
-              'Benefits Reports & Analytics'
             ] as BenefitsSubTab[]
           ).map((tab) => {
             const isActive = activeSubTab === tab;

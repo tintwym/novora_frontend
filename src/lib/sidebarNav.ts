@@ -19,19 +19,13 @@ import {
   FileBarChart,
   Settings,
   Building2,
-  Blocks,
   MapPin,
   GitBranch,
   ShieldCheck,
-  CheckSquare,
-  Bell,
-  Puzzle,
   Shield,
   FileText,
   Contrast,
   Globe,
-  Mail,
-  Database,
 } from 'lucide-react'
 import type { SidebarTab } from '@/types'
 
@@ -94,12 +88,12 @@ export type SettingsNavSection = {
   items: SettingsNavItem[]
 }
 
+/** Only API-backed settings surfaces. Demo-only panels stay in code but are hidden until backends exist. */
 export const SETTINGS_NAV_SECTIONS: SettingsNavSection[] = [
   {
     group: 'Organisation',
     items: [
       { name: 'Company profile', icon: Building2 },
-      { name: 'Modules', icon: Blocks },
       { name: 'Branch & location', icon: MapPin },
       { name: 'Department & position', icon: GitBranch },
     ],
@@ -109,14 +103,11 @@ export const SETTINGS_NAV_SECTIONS: SettingsNavSection[] = [
     items: [
       { name: 'Users & accounts', icon: Users },
       { name: 'Roles & permissions', icon: ShieldCheck },
-      { name: 'Approval workflow', icon: CheckSquare },
     ],
   },
   {
     group: 'System',
     items: [
-      { name: 'Notifications', icon: Bell },
-      { name: 'Integrations', icon: Puzzle },
       { name: 'Security', icon: Shield },
       { name: 'Audit log', icon: FileText },
     ],
@@ -126,14 +117,11 @@ export const SETTINGS_NAV_SECTIONS: SettingsNavSection[] = [
     items: [
       { name: 'Appearance', icon: Contrast },
       { name: 'Language', icon: Globe },
-      { name: 'Email templates', icon: Mail },
-      { name: 'Backup & data', icon: Database },
     ],
   },
 ]
 
+/** Custom builder / scheduled reports are client-only demos — hide until export APIs exist. */
 export const REPORTS_SUB_NAV = [
   { id: 'centre' as const, label: 'Report centre' },
-  { id: 'scheduled' as const, label: 'Scheduled reports', badge: '3' },
-  { id: 'builder' as const, label: 'Custom builder' },
 ]

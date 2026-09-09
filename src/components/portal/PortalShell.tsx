@@ -42,6 +42,11 @@ import {
   slugToTab,
 } from '@/lib/roles'
 import { BookOpen, ChevronDown, Download, FileSpreadsheet, FileText } from 'lucide-react'
+import { SETTINGS_NAV_SECTIONS } from '@/lib/sidebarNav'
+
+const ALLOWED_SETTINGS_TABS = new Set(
+  SETTINGS_NAV_SECTIONS.flatMap((section) => section.items.map((item) => item.name)),
+)
 
 export default function PortalShell() {
   const params = useParams<{ portal: string; module?: string }>()
@@ -78,6 +83,18 @@ export default function PortalShell() {
       : session
         ? defaultTabFor(session.roles)
         : 'Dashboard'
+
+  useEffect(() => {
+    if (!ALLOWED_SETTINGS_TABS.has(settingsSubTab)) {
+      setSettingsSubTab('Company profile')
+    }
+  }, [settingsSubTab])
+
+  useEffect(() => {
+    if (reportsSubTab !== 'centre') {
+      setReportsSubTab('centre')
+    }
+  }, [reportsSubTab])
 
   useEffect(() => {
     if (!authReady) return

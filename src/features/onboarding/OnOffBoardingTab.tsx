@@ -123,7 +123,7 @@ function mapOnboardingTaskRow(row: OnboardingTaskRow, emps: Employee[]): Checkli
 }
 
 export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingTabProps) {
-  const [activeSubTab, setActiveSubTab] = useState<OnOffSubTab>('Pre-Onboarding Portal');
+  const [activeSubTab, setActiveSubTab] = useState<OnOffSubTab>('Tasks & Checklists');
 
   // Selected employee target context
   const [selectedSubEmployee, setSelectedSubEmployee] = useState<string>(employees[0]?.id || 'EMP-001');
@@ -404,12 +404,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
         <div id="onboarding-nav-tabs" className="flex items-center gap-1.5 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
           {(
             [
-              'Pre-Onboarding Portal',
               'Tasks & Checklists',
-              'Knowledge Base',
-              'Offboarding & Clearance',
-              'Exit Interviews',
-              'Reports & Analytics'
             ] as OnOffSubTab[]
           ).map((tab) => {
             const isActive = activeSubTab === tab;

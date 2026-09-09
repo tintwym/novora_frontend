@@ -180,6 +180,89 @@ export type AttendanceRosterLog = {
   notes: string | null
 }
 
+export type BonusTypeRow = {
+  id: string
+  name: string
+  code: string
+  amount: number
+  taxable: boolean
+  active: boolean
+  description: string | null
+  createdAt: string | null
+}
+
+export type DeductionTypeRow = {
+  id: string
+  name: string
+  code: string
+  amount: number
+  frequency: string
+  active: boolean
+  description: string | null
+  createdAt: string | null
+}
+
+export type DepositTypeRow = {
+  id: string
+  name: string
+  code: string
+  amount: number
+  refundable: boolean
+  active: boolean
+  description: string | null
+  createdAt: string | null
+}
+
+export type TaxCategoryRow = {
+  id: string
+  name: string
+  code: string
+  rate: number
+  active: boolean
+  description: string | null
+  createdAt: string | null
+}
+
+export type OtPolicyRow = {
+  id: string
+  name: string
+  weekdayMultiplier: number
+  weekendMultiplier: number
+  holidayMultiplier: number
+  dailyThresholdHours: number
+  requiresApproval: boolean
+  active: boolean
+  notes: string | null
+  createdAt: string | null
+}
+
+export type OvertimeRecordRow = {
+  id: string
+  employeeId: string
+  employeeName: string
+  workDate: string
+  startTime: string | null
+  endTime: string | null
+  hours: number
+  reason: string | null
+  status: string
+  decidedBy: string | null
+  decisionNote: string | null
+  createdAt: string | null
+}
+
+export type AttendanceTodayRow = {
+  employeeId: string
+  employeeName: string
+  departmentName: string | null
+  shiftName: string | null
+  checkIn: string | null
+  checkOut: string | null
+  hours: number | null
+  status: string
+  officeFlag: boolean
+}
+
 export async function fetchLeaveTypes(admin = false): Promise<LeaveTypeRow[]> {
   const path = admin ? '/api/admin/leave-types' : '/api/leave-types'
   return apiRequest<LeaveTypeRow[]>(path, { method: 'GET', skipCsrf: true })
@@ -280,10 +363,168 @@ export async function createRosterEntry(payload: {
   return apiRequest<RosterEntryRow>('/api/admin/roster', { method: 'POST', body: payload })
 }
 
-export async function fetchAttendanceRoster(): Promise<AttendanceRosterLog[]> {
-  return apiRequest<AttendanceRosterLog[]>('/api/admin/attendance/roster', {
+export async function fetchAttendanceRoster(date?: string): Promise<AttendanceRosterLog[]> {
+  const q = new URLSearchParams()
+  if (date) q.set('date', date)
+  const qs = q.toString()
+  return apiRequest<AttendanceRosterLog[]>(`/api/admin/attendance/roster${qs ? `?${qs}` : ''}`, {
     method: 'GET',
     skipCsrf: true,
+  })
+}
+
+export async function fetchAttendanceToday(date?: string): Promise<AttendanceTodayRow[]> {
+  const q = new URLSearchParams()
+  if (date) q.set('date', date)
+  const qs = q.toString()
+  return apiRequest<AttendanceTodayRow[]>(`/api/admin/attendance/today${qs ? `?${qs}` : ''}`, {
+    method: 'GET',
+    skipCsrf: true,
+  })
+}
+
+export async function adminAttendancePunch(payload: {
+  employeeId: string
+  punchType: 'CHECK_IN' | 'CHECK_OUT'
+  workDate?: string
+  time?: string
+  reason?: string
+}): Promise<AttendanceRosterLog> {
+  return apiRequest<AttendanceRosterLog>('/api/admin/attendance/punch', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function fetchBonusTypes(): Promise<BonusTypeRow[]> {
+  return apiRequest<BonusTypeRow[]>('/api/admin/bonus-types', { method: 'GET', skipCsrf: true })
+}
+
+export async function createBonusType(payload: {
+  name: string
+  code: string
+  amount: number
+  taxable?: boolean
+  active?: boolean
+  description?: string
+}): Promise<BonusTypeRow> {
+  return apiRequest<BonusTypeRow>('/api/admin/bonus-types', { method: 'POST', body: payload })
+}
+
+export async function fetchDeductionTypes(): Promise<DeductionTypeRow[]> {
+  return apiRequest<DeductionTypeRow[]>('/api/admin/deduction-types', { method: 'GET', skipCsrf: true })
+}
+
+export async function createDeductionType(payload: {
+  name: string
+  code: string
+  amount: number
+  frequency?: string
+  active?: boolean
+  description?: string
+}): Promise<DeductionTypeRow> {
+  return apiRequest<DeductionTypeRow>('/api/admin/deduction-types', { method: 'POST', body: payload })
+}
+
+export async function fetchDepositTypes(): Promise<DepositTypeRow[]> {
+  return apiRequest<DepositTypeRow[]>('/api/admin/deposit-types', { method: 'GET', skipCsrf: true })
+}
+
+export async function createDepositType(payload: {
+  name: string
+  code: string
+  amount: number
+  refundable?: boolean
+  active?: boolean
+  description?: string
+}): Promise<DepositTypeRow> {
+  return apiRequest<DepositTypeRow>('/api/admin/deposit-types', { method: 'POST', body: payload })
+}
+
+export async function fetchTaxCategories(): Promise<TaxCategoryRow[]> {
+  return apiRequest<TaxCategoryRow[]>('/api/admin/tax-categories', { method: 'GET', skipCsrf: true })
+}
+
+export async function createTaxCategory(payload: {
+  name: string
+  code: string
+  rate?: number
+  active?: boolean
+  description?: string
+}): Promise<TaxCategoryRow> {
+  return apiRequest<TaxCategoryRow>('/api/admin/tax-categories', { method: 'POST', body: payload })
+}
+
+export async function fetchOtPolicies(): Promise<OtPolicyRow[]> {
+  return apiRequest<OtPolicyRow[]>('/api/admin/ot-policies', { method: 'GET', skipCsrf: true })
+}
+
+export async function createOtPolicy(payload: {
+  name: string
+  weekdayMultiplier?: number
+  weekendMultiplier?: number
+  holidayMultiplier?: number
+  dailyThresholdHours?: number
+  requiresApproval?: boolean
+  active?: boolean
+  notes?: string
+}): Promise<OtPolicyRow> {
+  return apiRequest<OtPolicyRow>('/api/admin/ot-policies', { method: 'POST', body: payload })
+}
+
+export async function updateOtPolicy(
+  id: string,
+  payload: {
+    name?: string
+    weekdayMultiplier?: number
+    weekendMultiplier?: number
+    holidayMultiplier?: number
+    dailyThresholdHours?: number
+    requiresApproval?: boolean
+    active?: boolean
+    notes?: string
+  },
+): Promise<OtPolicyRow> {
+  return apiRequest<OtPolicyRow>(`/api/admin/ot-policies/${id}`, { method: 'PUT', body: payload })
+}
+
+export async function fetchOvertimeRecords(params?: {
+  from?: string
+  to?: string
+  status?: string
+}): Promise<OvertimeRecordRow[]> {
+  const q = new URLSearchParams()
+  if (params?.from) q.set('from', params.from)
+  if (params?.to) q.set('to', params.to)
+  if (params?.status) q.set('status', params.status)
+  const qs = q.toString()
+  return apiRequest<OvertimeRecordRow[]>(`/api/admin/overtime-records${qs ? `?${qs}` : ''}`, {
+    method: 'GET',
+    skipCsrf: true,
+  })
+}
+
+export async function createOvertimeRecord(payload: {
+  employeeId: string
+  workDate: string
+  startTime?: string
+  endTime?: string
+  hours: number
+  reason?: string
+}): Promise<OvertimeRecordRow> {
+  return apiRequest<OvertimeRecordRow>('/api/admin/overtime-records', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function decideOvertimeRecord(
+  id: string,
+  payload: { decision: 'APPROVE' | 'REJECT'; note?: string },
+): Promise<OvertimeRecordRow> {
+  return apiRequest<OvertimeRecordRow>(`/api/admin/overtime-records/${id}/decide`, {
+    method: 'POST',
+    body: payload,
   })
 }
 

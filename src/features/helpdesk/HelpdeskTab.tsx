@@ -681,9 +681,6 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
           {(
             [
               'Tickets Center & Live Chat',
-              'Self-Service Document Generator',
-              'Desk Performance Analytics',
-              'Operational Knowledge Base'
             ] as HelpdeskSubTab[]
           ).map((tab) => {
             const isActive = activeSubTab === tab;

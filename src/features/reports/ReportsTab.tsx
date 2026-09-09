@@ -632,38 +632,7 @@ export default function ReportsTab({
   }, [addToast])
 
   // Scheduled Reports List State
-  const [schedules, setSchedules] = useState<ReportSchedule[]>([
-    {
-      id: 'sch-1',
-      name: 'Monthly payroll summary',
-      frequency: 'Monthly',
-      nextRun: '1 Jun 06:00',
-      type: 'Monthly payroll summary',
-      format: 'Excel (.xlsx)',
-      time: '06:00 AM',
-      recipients: 'hr@novora.com, cfo@novora.com'
-    },
-    {
-      id: 'sch-2',
-      name: 'Attendance summary',
-      frequency: 'Monthly',
-      nextRun: '1 Jun 06:00',
-      type: 'Attendance summary — Apr',
-      format: 'Excel (.xlsx)',
-      time: '06:00 AM',
-      recipients: 'hr@novora.com, cfo@novora.com'
-    },
-    {
-      id: 'sch-3',
-      name: 'Leave balance report',
-      frequency: 'Monthly',
-      nextRun: '1 Jun 06:00',
-      type: 'Leave balance summary',
-      format: 'Excel (.xlsx)',
-      time: '06:00 AM',
-      recipients: 'hr@novora.com, cfo@novora.com'
-    }
-  ]);
+  const [schedules, setSchedules] = useState<ReportSchedule[]>([]);
 
   // Scheduled Report Editor State
   const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
@@ -676,11 +645,7 @@ export default function ReportsTab({
   });
 
   // Recent Action Activity Stack
-  const [recentActivities, setRecentActivities] = useState([
-    { id: 'act-1', name: 'Monthly payroll summary', user: 'HR Admin', timestamp: '6 May 10:30', success: true },
-    { id: 'act-2', name: 'Leave balance report', user: 'Auto-scheduled', timestamp: '1 May 06:00', success: true },
-    { id: 'act-3', name: 'Attendance summary — Apr', user: 'Nina Reza', timestamp: '30 Apr 18:00', success: true }
-  ]);
+  const [recentActivities, setRecentActivities] = useState<{ id: string; name: string; user: string; timestamp: string; success: boolean }[]>([]);
 
   // Custom Builder Form Configuration State
   const [builderModule, setBuilderModule] = useState<string>('Employee management');
@@ -1272,8 +1237,6 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
         {(
           [
             { id: 'centre' as const, label: 'Report centre' },
-            { id: 'scheduled' as const, label: 'Scheduled reports', badge: '3' },
-            { id: 'builder' as const, label: 'Custom builder' },
           ] as const
         ).map((tab) => {
           const isActive = activeSidebarTab === tab.id
@@ -1289,15 +1252,6 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
               }`}
             >
               <span>{tab.label}</span>
-              {'badge' in tab && tab.badge && (
-                <span
-                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                  }`}
-                >
-                  {tab.badge}
-                </span>
-              )}
             </button>
           )
         })}
@@ -1488,54 +1442,44 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
               {/* Right Aspect: BOARD BRIEFING, RECENT ACTIVITY & EXPORT FORMATS */}
               <div className="lg:col-span-5 space-y-6">
                 
-                {/* BOARD-LEVEL EXECUTIVE BRIEFING QUICK SUMMARY */}
+                {/* LIVE SUMMARY FROM API */}
                 <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 text-white shadow-xl space-y-5">
                   <div className="flex items-center justify-between border-b border-slate-800/85 pb-3">
                     <div className="flex items-center gap-2">
                       <div className="bg-novora/15 p-1.5 rounded-xl">
                         <Sparkles className="h-4 w-4 text-novora" />
                       </div>
-                      <h3 className="text-xs font-black text-slate-200 uppercase tracking-wider block font-sans">Q2 Executive Summary Desk</h3>
+                      <h3 className="text-xs font-black text-slate-200 uppercase tracking-wider block font-sans">Live summary</h3>
                     </div>
                     <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
-                      Low Risk
+                      API
                     </span>
                   </div>
 
                   <div className="space-y-4 font-sans">
                     <div className="space-y-1">
-                      <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest block">strategic health index</span>
+                      <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest block">organisation pulse</span>
                       <p className="text-[11.5px] font-medium text-slate-300 leading-relaxed">
-                        The overall organizational compliance and operations score is currently at <strong className="text-white">94.8% Excellent</strong> status. Critical human capital KPIs are balanced, and budget trajectories align with general fiscal board plans.
+                        {reportSummary
+                          ? `${reportSummary.employees} employees · ${reportSummary.pendingLeave} pending leave · ${reportSummary.claimsPending} claims pending · ${reportSummary.payrollHeadcountThisMonth} on this month’s payroll.`
+                          : 'Loading live report counters from the server…'}
                       </p>
                     </div>
 
                     <div className="border-t border-slate-800 pt-4 space-y-3">
-                      <span className="text-[9px] font-extrabold text-novora uppercase tracking-widest block">Core Executive Targets</span>
+                      <span className="text-[9px] font-extrabold text-novora uppercase tracking-widest block">Focus areas</span>
                       <ul className="space-y-2.5">
-                        <li className="flex gap-2.5 items-start text-[11px] text-slate-350 leading-normal font-medium">
-                          <span className="bg-emerald-500/10 text-emerald-450 text-[10px] font-black h-4.5 w-4.5 shrink-0 rounded-full flex items-center justify-center font-mono border border-emerald-500/10">
-                            ✓
-                          </span>
-                          <span className="flex-1">
-                            <strong className="text-slate-200 font-bold">Talent Retention Outperforms:</strong> Core personnel turnover is mitigated at 3.6% annual variance, with recruitment onboarding times optimized by 3.2 days.
-                          </span>
+                        <li className="flex gap-2.5 items-start text-[11px] text-slate-300 leading-normal font-medium">
+                          <span className="bg-novora/20 text-[#3b82f6] text-[10px] font-black h-4.5 w-4.5 shrink-0 rounded-full flex items-center justify-center font-mono border border-blue-500/10">1</span>
+                          <span className="flex-1 mt-0.5">Clear pending leave and claims queues before month close.</span>
                         </li>
-                        <li className="flex gap-2.5 items-start text-[11px] text-slate-350 leading-normal font-medium">
-                          <span className="bg-emerald-500/10 text-emerald-450 text-[10px] font-black h-4.5 w-4.5 shrink-0 rounded-full flex items-center justify-center font-mono border border-emerald-500/10">
-                            ✓
-                          </span>
-                          <span className="flex-1">
-                            <strong className="text-slate-200 font-bold">Payroll & Claims Accuracy:</strong> Strict ±0.85% variance maintained across global ledger allocations with 100% active internal audits.
-                          </span>
+                        <li className="flex gap-2.5 items-start text-[11px] text-slate-300 leading-normal font-medium">
+                          <span className="bg-novora/20 text-[#3b82f6] text-[10px] font-black h-4.5 w-4.5 shrink-0 rounded-full flex items-center justify-center font-mono border border-blue-500/10">2</span>
+                          <span className="flex-1 mt-0.5">Review open jobs ({reportSummary?.openJobs ?? '—'}) and candidates ({reportSummary?.candidates ?? '—'}) in Recruitment.</span>
                         </li>
-                        <li className="flex gap-2.5 items-start text-[11px] text-slate-350 leading-normal font-medium">
-                          <span className="bg-emerald-500/10 text-emerald-450 text-[10px] font-black h-4.5 w-4.5 shrink-0 rounded-full flex items-center justify-center font-mono border border-emerald-500/10">
-                            ✓
-                          </span>
-                          <span className="flex-1">
-                            <strong className="text-slate-200 font-bold">Support Optimization:</strong> Attendance records and general legal compliance requirements are audited, and inquiries have decreased by 14.5% MoM due to structured service desks.
-                          </span>
+                        <li className="flex gap-2.5 items-start text-[11px] text-slate-300 leading-normal font-medium">
+                          <span className="bg-novora/20 text-[#3b82f6] text-[10px] font-black h-4.5 w-4.5 shrink-0 rounded-full flex items-center justify-center font-mono border border-blue-500/10">3</span>
+                          <span className="flex-1 mt-0.5">Confirm payroll headcount matches active employee roster.</span>
                         </li>
                       </ul>
                     </div>
@@ -1615,205 +1559,57 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
         )}
 
         {/* ==================== VIEW 2: INDIVIDUAL MODULE REPORTS ==================== */}
-        {activeSidebarTab === 'centre' && selectedModule !== 'All Overview' && (() => {
-          const moduleInfo = MODULE_REPORTS_DATA[selectedModule] || {
-            totalRecords: '1,284 Records',
-            lastUpdated: 'Today 12:00',
-            autoRun: 'Active',
-            stats: [
-              { label: 'Total Records', value: '1,284', trend: 'Stable', positive: true },
-              { label: 'Completeness', value: '99.2%', trend: 'Matches targets', positive: true },
-              { label: 'Status', value: 'Operational', trend: 'Healthy audit checks', positive: true }
-            ],
-            reports: [
-              { title: `${selectedModule} Summary Report`, description: `Aggregated data visualization and summaries for ${selectedModule.toLowerCase()}.`, tag: 'SUMMARY' },
-              { title: `${selectedModule} Detail Log Register`, description: `Detailed transactions and activity listings for auditing ${selectedModule.toLowerCase()}.`, tag: 'DETAIL' },
-              { title: `${selectedModule} Annual Trend Outlook`, description: `Year-on-year growth curves, milestones, and statistical trend comparison logs.`, tag: 'TREND' }
-            ],
-            distribution: {
-              title: 'Department Wise Participation',
-              items: [
-                { label: 'Engineering Team', value: String(engineeringCount), percent: Math.round((engineeringCount / employees.length) * 100), colorClass: 'bg-novora' },
-                { label: 'Operations Team', value: String(operationsCount), percent: Math.round((operationsCount / employees.length) * 100), colorClass: 'bg-emerald-500' },
-                { label: 'Finance Team', value: String(financeCount), percent: Math.round((financeCount / employees.length) * 100), colorClass: 'bg-novora' }
-              ]
-            },
-            managementBrief: {
-              strategicFocus: 'Performance tracking & operational alignment.',
-              riskIndex: 'Low' as const,
-              costImpact: 'Resource utilization matches standard target variance.',
-              actionableDirectives: [
-                'Review departmental KPIs quarterly to detect performance bottlenecks early.',
-                'Compare team metrics against baseline goals to maintain consistent delivery standards.'
-              ]
-            }
-          };
-
-          return (
-            <div id="report-individual-module" className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-in fade-in duration-250 font-sans">
-              
-              {/* Left side: AVAILABLE REPORTS LIST */}
-              <div className="lg:col-span-7 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-6">
-                
-                {/* Dynamic Stats Grid */}
-                <div>
-                  <h3 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Live Insights Snapshot</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {moduleInfo.stats.map((stat, i) => (
-                      <div key={i} className="bg-slate-50/55 p-3.5 rounded-2xl border border-slate-100">
-                        <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block">{stat.label}</span>
-                        <div className="flex items-baseline gap-1 mt-0.5">
-                          <span className="text-[15px] font-black text-slate-800 tracking-tight">{stat.value}</span>
-                        </div>
-                        <span className={`text-[9px] font-bold block mt-1 ${stat.positive ? 'text-emerald-600' : 'text-slate-500'}`}>
-                          {stat.trend}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-slate-50">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-                    {selectedModule.toUpperCase()} Reports Available
-                  </h3>
-                  
-                  <div className="space-y-3">
-                    {moduleInfo.reports.map((report, i) => (
-                      <div 
-                        key={i}
-                        onClick={() => triggerDownloadLog(report.title)}
-                        className="p-4 border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 rounded-2xl flex items-center justify-between cursor-pointer transition-all group"
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-slate-800 group-hover:text-novora transition-colors">{report.title}</span>
-                            <span className="bg-slate-105 text-[8.5px] font-black text-slate-600 px-1.5 py-0.5 rounded uppercase font-mono">
-                              {report.tag}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-slate-400 font-medium">{report.description}</p>
-                        </div>
-                        <div className="bg-slate-50 group-hover:bg-blue-50 p-2 rounded-xl transition-all border border-slate-100 group-hover:border-blue-100">
-                          <Download className="h-3.5 w-3.5 text-slate-400 group-hover:text-novora transition-colors" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Right side: QUICK SNAPSHOT & EXECUTIVE BRIEFING */}
-              <div className="lg:col-span-5 space-y-6">
-                
-                {/* QUICK SNAPSHOT */}
-                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-5">
-                  <div className="border-b border-slate-50 pb-3">
-                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Quick Snapshot</h3>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500 font-semibold">Total Records</span>
-                      <span className="text-slate-800 font-extrabold text-sm">{moduleInfo.totalRecords}</span>
-                    </div>
-
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500 font-semibold">Last Updated</span>
-                      <span className="text-emerald-600 font-extrabold">{moduleInfo.lastUpdated}</span>
-                    </div>
-
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500 font-semibold">Auto-Run Status</span>
-                      <span className="bg-emerald-50 text-emerald-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-full border border-emerald-100/50 inline-flex items-center whitespace-nowrap shrink-0">
-                        {moduleInfo.autoRun}
-                      </span>
-                    </div>
-
-                    <div className="border-t border-slate-50 pt-4 space-y-3">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                        {moduleInfo.distribution.title}
-                      </span>
-                      
-                      {/* Progress bars for Departments representation */}
-                      <div className="space-y-2.5 text-xs">
-                        {moduleInfo.distribution.items.map((item, idx) => (
-                          <div key={idx}>
-                            <div className="flex justify-between text-slate-600 font-semibold text-[11px] mb-1">
-                              <span>{item.label}</span>
-                              <span className="font-extrabold text-slate-800">{item.value} ({item.percent}%)</span>
-                            </div>
-                            <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                              <div className={`${item.colorClass} h-full`} style={{ width: `${item.percent}%` }} />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-
-                {/* EXECUTIVE BRIEFING CARD */}
-                <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 text-white shadow-xl space-y-5">
-                  <div className="flex items-center justify-between border-b border-slate-800/85 pb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="bg-novora/15 p-1.5 rounded-xl">
-                        <Sparkles className="h-4 w-4 text-novora" />
-                      </div>
-                      <h3 className="text-xs font-black text-slate-200 uppercase tracking-wider block">Executive Briefing</h3>
-                    </div>
-                    
-                    {/* Risk Badge with adaptive styles */}
-                    <span className={`text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full border ${
-                      moduleInfo.managementBrief.riskIndex === 'Critical'
-                        ? 'bg-red-500/15 text-red-400 border-red-500/30'
-                        : moduleInfo.managementBrief.riskIndex === 'High'
-                        ? 'bg-orange-500/15 text-orange-400 border-orange-500/30'
-                        : moduleInfo.managementBrief.riskIndex === 'Medium'
-                        ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                        : 'bg-emerald-500/15 text-emerald-450 border-emerald-500/30'
-                    }`}>
-                      {moduleInfo.managementBrief.riskIndex} Risk
-                    </span>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="space-y-1">
-                      <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest block">strategic focus desk</span>
-                      <p className="text-[11.5px] font-medium text-slate-300 leading-relaxed">
-                        {moduleInfo.managementBrief.strategicFocus}
-                      </p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest block">financial budget impact</span>
-                      <p className="text-[11.5px] font-medium text-slate-300 leading-relaxed">
-                        {moduleInfo.managementBrief.costImpact}
-                      </p>
-                    </div>
-
-                    <div className="border-t border-slate-800 pt-4 space-y-3">
-                      <span className="text-[9px] font-extrabold text-novora uppercase tracking-widest block">board-level core directives</span>
-                      <ul className="space-y-2.5">
-                        {moduleInfo.managementBrief.actionableDirectives.map((action, ai) => (
-                          <li key={ai} className="flex gap-2.5 items-start text-[11px] text-slate-350 leading-normal font-medium">
-                            <span className="bg-novora/20 text-[#3b82f6] text-[10px] font-black h-4.5 w-4.5 shrink-0 rounded-full flex items-center justify-center font-mono border border-blue-500/10">
-                              {ai + 1}
-                            </span>
-                            <span className="flex-1 mt-0.5">{action}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
+        {activeSidebarTab === 'centre' && selectedModule !== 'All Overview' && (
+          <div
+            id="report-individual-module"
+            className="rounded-3xl border border-slate-100 bg-white p-8 shadow-xs animate-in fade-in duration-250"
+          >
+            <h3 className="text-sm font-bold text-slate-800">{selectedModule} reports</h3>
+            <p className="mt-2 max-w-xl text-sm text-slate-500">
+              Detailed canned analytics for this module are not available yet. Use the live overview
+              KPIs above, or open the {selectedModule.toLowerCase()} module for operational data.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3 text-xs">
+              {selectedModule === 'Employee' && (
+                <span className="rounded-full bg-slate-50 px-3 py-1.5 font-semibold text-slate-600">
+                  Headcount: {reportSummary?.employees ?? employees.length}
+                </span>
+              )}
+              {selectedModule === 'Leave' && (
+                <span className="rounded-full bg-slate-50 px-3 py-1.5 font-semibold text-slate-600">
+                  Pending leave: {reportSummary?.pendingLeave ?? '—'}
+                </span>
+              )}
+              {selectedModule === 'Recruitment' && (
+                <>
+                  <span className="rounded-full bg-slate-50 px-3 py-1.5 font-semibold text-slate-600">
+                    Open jobs: {reportSummary?.openJobs ?? '—'}
+                  </span>
+                  <span className="rounded-full bg-slate-50 px-3 py-1.5 font-semibold text-slate-600">
+                    Candidates: {reportSummary?.candidates ?? '—'}
+                  </span>
+                </>
+              )}
+              {selectedModule === 'Claims' && (
+                <span className="rounded-full bg-slate-50 px-3 py-1.5 font-semibold text-slate-600">
+                  Claims pending: {reportSummary?.claimsPending ?? '—'}
+                </span>
+              )}
+              {selectedModule === 'Payroll' && (
+                <span className="rounded-full bg-slate-50 px-3 py-1.5 font-semibold text-slate-600">
+                  Payroll HC this month: {reportSummary?.payrollHeadcountThisMonth ?? '—'}
+                </span>
+              )}
             </div>
-          );
-        })()}
+            <button
+              type="button"
+              onClick={() => setSelectedModule('All Overview')}
+              className="mt-6 inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-novora/30 hover:text-novora cursor-pointer"
+            >
+              Back to overview
+            </button>
+          </div>
+        )}
 
         {/* ==================== VIEW 3: SCHEDULED REPORTS VIEW ==================== */}
         {activeSidebarTab === 'scheduled' && (

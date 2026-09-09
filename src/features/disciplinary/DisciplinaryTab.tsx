@@ -115,7 +115,7 @@ function mapDisciplinaryCaseRow(row: DisciplinaryCaseRow, emps: Employee[]): Dis
 }
 
 export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTabProps) {
-  const [activeSubTab, setActiveSubTab] = useState<DisciplinarySubTab>('Disciplinary Reason');
+  const [activeSubTab, setActiveSubTab] = useState<DisciplinarySubTab>('Disciplinary History');
 
   // Interactive local states for custom entities
   const [reasons, setReasons] = useState<DisciplinaryReason[]>([
@@ -308,11 +308,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
 
   // Sub Tab headers definitions
   const subTabs = [
-    { label: 'Disciplinary Reason', icon: Scale },
-    { label: 'Disciplinary Action', icon: ShieldAlert },
-    { label: 'Disciplinary Setup', icon: FileText },
     { label: 'Disciplinary History', icon: History },
-    { label: 'Disciplinary Reports', icon: BarChart3 },
   ];
 
   // Add reason submit handler

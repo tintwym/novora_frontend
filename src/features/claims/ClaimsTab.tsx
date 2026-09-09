@@ -208,36 +208,30 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
   const [selectedClaimDetail, setSelectedClaimDetail] = useState<Claim | null>(null);
 
   // Approval rules state
-  const [approvalRules, setApprovalRules] = useState([
-    { id: 1, range: 'Claims ≤ SGD 200', desc: 'Direct manager only — single approval', type: 'Sequential' },
-    { id: 2, range: 'Claims SGD 201 – SGD 1,000', desc: 'Manager → Department Head', type: 'Sequential' },
-    { id: 3, range: 'Claims > SGD 1,000', desc: 'Manager → Dept Head → Finance Director', type: 'Parallel with Dept Head' }
-  ]);
+  const [approvalRules, setApprovalRules] = useState<{
+    id: number;
+    range: string;
+    desc: string;
+    type: string;
+  }[]>([]);
   const [isEditApprovalRulesModalOpen, setIsEditApprovalRulesModalOpen] = useState(false);
 
   // Spend limits state
-  const [spendLimits, setSpendLimits] = useState([
-    { category: 'Meal allowance', daily: 'SGD 30', monthly: 'SGD 600', receiptReq: '> SGD 15' },
-    { category: 'Transport', daily: 'SGD 200', monthly: 'SGD 2,000', receiptReq: '> SGD 50' },
-    { category: 'Hotel / stay', daily: 'SGD 350/night', monthly: '—', receiptReq: 'Always' },
-    { category: 'Air ticket', daily: '—', monthly: 'SGD 5,000', receiptReq: 'Always' },
-    { category: 'Mileage', daily: '—', monthly: 'SGD 500', receiptReq: 'SGD 0.55/km' },
-    { category: 'Entertainment', daily: 'SGD 150', monthly: 'SGD 1,000', receiptReq: 'Always' },
-    { category: 'Wellness', daily: '—', monthly: 'SGD 300/yr', receiptReq: '> SGD 50' }
-  ]);
+  const [spendLimits, setSpendLimits] = useState<{
+    category: string;
+    daily: string;
+    monthly: string;
+    receiptReq: string;
+  }[]>([]);
   const [isEditSpendLimitsModalOpen, setIsEditSpendLimitsModalOpen] = useState(false);
   const [selectedSpendLimitIdx, setSelectedSpendLimitIdx] = useState<number | null>(null);
 
   // Validation rules checklist state
-  const [validationRules, setValidationRules] = useState([
-    { id: 1, label: 'Flag claims exceeding daily / monthly category limits', enabled: true },
-    { id: 2, label: 'Detect duplicate submissions (same vendor + date + amount)', enabled: true },
-    { id: 3, label: 'Block claims submitted more than 30 days after receipt date', enabled: true },
-    { id: 4, label: 'Require receipt attachment for claims above threshold', enabled: true },
-    { id: 5, label: 'Auto-convert foreign currency at live exchange rate', enabled: true },
-    { id: 6, label: 'Hold claims from employees on notice period', enabled: true },
-    { id: 7, label: 'Notify HR on claims exceeding SGD 1,000', enabled: true }
-  ]);
+  const [validationRules, setValidationRules] = useState<{
+    id: number;
+    label: string;
+    enabled: boolean;
+  }[]>([]);
   const [isEditValidationRulesModalOpen, setIsEditValidationRulesModalOpen] = useState(false);
   const [newRuleInput, setNewRuleInput] = useState('');
 
@@ -362,10 +356,8 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
           {[
             { id: 'Submit Claim', label: 'Submit Claim', icon: PlusCircle },
             { id: 'Approval', label: 'Approval', icon: CheckCircle, badge: pendingCount, badgeColor: 'bg-amber-100 text-amber-700 border-amber-200' },
-            { id: 'Policy & Compliance', label: 'Policy & Compliance', icon: ShieldAlert },
-            { id: 'Payroll Integration', label: 'Payroll Integration', icon: FileSpreadsheet },
-            { id: 'Analytics & Reports', label: 'Analytics & Reports', icon: PieChart },
-            { id: 'Claim History', label: 'Claim History', icon: RotateCcw }
+            { id: 'Claim History', label: 'Claim History', icon: RotateCcw },
+            // Hidden until APIs exist: Policy & Compliance, Payroll Integration, Analytics & Reports
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeSubTab === tab.id;
@@ -579,11 +571,10 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     triggerClassName="text-xs font-semibold text-slate-700"
                     options={[
                       { value: '', label: 'Consolidated Selection (Choose employee)' },
-                      { value: 'Sarah Lim', label: 'Sarah Lim' },
-                      { value: 'Raj Kumar', label: 'Raj Kumar' },
-                      { value: 'Maya Tan', label: 'Maya Tan' },
-                      { value: 'Ahmad L', label: 'Ahmad L' },
-                      { value: 'Nadia Chen', label: 'Nadia Chen' },
+                      ...employees.map((emp) => ({
+                        value: emp.id,
+                        label: emp.name,
+                      })),
                     ]}
                   />
                 </div>
@@ -2032,11 +2023,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
             <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
               <button
                 onClick={() => {
-                  setApprovalRules([
-                    { id: 1, range: 'Claims ≤ SGD 200', desc: 'Direct manager only — single approval', type: 'Sequential' },
-                    { id: 2, range: 'Claims SGD 201 – SGD 1,000', desc: 'Manager → Department Head', type: 'Sequential' },
-                    { id: 3, range: 'Claims > SGD 1,000', desc: 'Manager → Dept Head → Finance Director', type: 'Parallel with Dept Head' }
-                  ]);
+                  setApprovalRules([]);
                   addToast('Reset rules matrix to factory defaults.', 'info');
                 }}
                 className="text-slate-400 hover:text-slate-700 text-xs font-bold"
