@@ -37,10 +37,6 @@ import {
   Printer,
   Calendar,
 } from 'lucide-react';
-import {
-  initialRequisitions,
-  initialPreOnboarding,
-} from '@/mocks/mockRecruitment'
 import type {
   JobRequisition,
   JobPosting,
@@ -233,12 +229,12 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
   const [reportSearchQuery, setReportSearchQuery] = useState<string>('');
 
   // Core Data states
-  const [requisitions, setRequisitions] = useState<JobRequisition[]>(initialRequisitions);
+  const [requisitions, setRequisitions] = useState<JobRequisition[]>([]);
   const [postings, setPostings] = useState<JobPosting[]>([]);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
-  const [preOnboardings, setPreOnboardings] = useState<PreOnboarding[]>(initialPreOnboarding);
+  const [preOnboardings, setPreOnboardings] = useState<PreOnboarding[]>([]);
   const [recruitmentLoading, setRecruitmentLoading] = useState(true);
 
   // Selection states

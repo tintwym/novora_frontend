@@ -75,3 +75,36 @@ export async function fetchAdminAttendanceOverview(): Promise<DashboardAttendanc
     skipCsrf: true,
   })
 }
+
+export type DashboardGrowthPoint = { month: string; employees: number }
+export type DashboardBirthdayRow = { name: string; role: string; date: string }
+export type DashboardTaskRow = { text: string; status: string }
+export type DashboardDepartmentSlice = { name: string; count: number; percent: number }
+
+export async function fetchAdminGrowth(months = 6): Promise<DashboardGrowthPoint[]> {
+  return apiRequest<DashboardGrowthPoint[]>(`/api/admin/dashboard/growth?months=${months}`, {
+    method: 'GET',
+    skipCsrf: true,
+  })
+}
+
+export async function fetchAdminBirthdays(limit = 8): Promise<DashboardBirthdayRow[]> {
+  return apiRequest<DashboardBirthdayRow[]>(`/api/admin/dashboard/birthdays?limit=${limit}`, {
+    method: 'GET',
+    skipCsrf: true,
+  })
+}
+
+export async function fetchAdminTasks(limit = 12): Promise<DashboardTaskRow[]> {
+  return apiRequest<DashboardTaskRow[]>(`/api/admin/dashboard/tasks?limit=${limit}`, {
+    method: 'GET',
+    skipCsrf: true,
+  })
+}
+
+export async function fetchAdminDepartments(): Promise<DashboardDepartmentSlice[]> {
+  return apiRequest<DashboardDepartmentSlice[]>('/api/admin/dashboard/departments', {
+    method: 'GET',
+    skipCsrf: true,
+  })
+}

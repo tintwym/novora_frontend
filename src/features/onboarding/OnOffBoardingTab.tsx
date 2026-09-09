@@ -186,43 +186,19 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
   // -------------------------------------------------------------
   // STATE 4: OFFBOARDING & CLEARANCE WORKFLOWS STATE
   // -------------------------------------------------------------
-  const [resignationCases, setResignationCases] = useState<ResignationCase[]>([
-    { 
-      id: 'RES051', 
-      employeeName: 'Sarah Lim', 
-      employeeId: 'EMP-001', 
-      resignationDate: '2026-06-01', 
-      lastWorkingDay: '2026-06-30', 
-      reason: 'Accepted senior architectural role with expanded scope.', 
-      managerApproval: 'Approved',
-      clearanceStatus: { IT: 'Cleared', Finance: 'Cleared', HR: 'Pending', Security: 'Pending' }
-    },
-    { 
-      id: 'RES052', 
-      employeeName: 'John Doe', 
-      employeeId: 'EMP-002', 
-      resignationDate: '2026-06-12', 
-      lastWorkingDay: '2026-07-15', 
-      reason: 'Relocating to Singapore for personal family reasons.', 
-      managerApproval: 'Pending',
-      clearanceStatus: { IT: 'Pending', Finance: 'Pending', HR: 'Pending', Security: 'Pending' }
-    }
-  ]);
-  const [selectedResigId, setSelectedResigId] = useState<string>('RES051');
-  const [newResigEmpId, setNewResigEmpId] = useState('EMP-001');
+  const [resignationCases, setResignationCases] = useState<ResignationCase[]>([]);
+  const [selectedResigId, setSelectedResigId] = useState<string>('');
+  const [newResigEmpId, setNewResigEmpId] = useState(employees[0]?.id || '');
   const [newResigReason, setNewResigReason] = useState('');
-  const [newResigDate, setNewResigDate] = useState('2026-06-16');
-  const [newResigLastDay, setNewResigLastDay] = useState('2026-07-16');
+  const [newResigDate, setNewResigDate] = useState('');
+  const [newResigLastDay, setNewResigLastDay] = useState('');
 
   // -------------------------------------------------------------
   // STATE 5: EXIT INTERVIEWS SURVEY STATE
   // -------------------------------------------------------------
-  const [exitSurveys, setExitSurveys] = useState<ExitInterviewForm[]>([
-    { employeeId: 'EMP-001', leavingReason: 'Career opportunities & Growth', ratingWorkLife: 4, ratingCompensation: 4, ratingManagement: 5, ratingGrowth: 3, comments: 'Transition was exceedingly smooth. Novora has a fantastic engineering peer group.' },
-    { employeeId: 'EMP-002', leavingReason: 'Family relocation', ratingWorkLife: 5, ratingCompensation: 3, ratingManagement: 4, ratingGrowth: 4, comments: 'Grateful for remote work allowances that helped during the relocation process.' },
-  ]);
-  const [newSurveyEmpId, setNewSurveyEmpId] = useState('EMP-001');
-  const [newSurveyReason, setNewSurveyReason] = useState('Better career growth');
+  const [exitSurveys, setExitSurveys] = useState<ExitInterviewForm[]>([]);
+  const [newSurveyEmpId, setNewSurveyEmpId] = useState(employees[0]?.id || '');
+  const [newSurveyReason, setNewSurveyReason] = useState('');
   const [wlRating, setWlRating] = useState(4);
   const [compRating, setCompRating] = useState(4);
   const [mgtRating, setMgtRating] = useState(4);

@@ -208,17 +208,6 @@ function mapLeavePolicyFromType(row: LeaveTypeRow): LeavePolicy {
   }
 }
 
-const DEMO_LEAVE_REPORT_ROWS = [
-  { id: 'REP01', employeeId: 'EMP-001', name: 'Sarah Lim', dept: 'Engineering', type: 'Annual leave', days: 3, fromDate: '2026-05-12', toDate: '2026-05-14', approvedBy: 'David Ng', status: 'Approved', paid: 'Yes', rate: '100% payout' },
-  { id: 'REP02', employeeId: 'EMP-002', name: 'Raj Kumar', dept: 'Engineering', type: 'Medical leave', days: 1, fromDate: '2026-05-02', toDate: '2026-05-02', approvedBy: 'David Ng', status: 'Approved', paid: 'Yes', rate: 'Medical allowance' },
-  { id: 'REP03', employeeId: 'EMP-003', name: 'Maya Tan', dept: 'HR', type: 'Emergency leave', days: 1, fromDate: '2026-04-28', toDate: '2026-04-28', approvedBy: 'Nina Reza', status: 'Approved', paid: 'Yes', rate: '100% payout' },
-  { id: 'REP04', employeeId: 'EMP-004', name: 'Ahmad L', dept: 'Operations', type: 'Unpaid leave', days: 1, fromDate: '2026-05-09', toDate: '2026-05-09', approvedBy: 'Malik Said', status: 'Approved', paid: 'No', rate: '1.0x day deducted' },
-  { id: 'REP05', employeeId: 'EMP-005', name: 'Nadia Chen', dept: 'Marketing', type: 'Annual leave', days: 6, fromDate: '2026-05-20', toDate: '2026-05-25', approvedBy: 'Kevin Lim', status: 'Approved', paid: 'Yes', rate: '100% payout' },
-  { id: 'REP06', employeeId: 'EMP-006', name: 'Jonathan Goh', dept: 'Finance', type: 'Compassionate leave', days: 3, fromDate: '2026-05-15', toDate: '2026-05-17', approvedBy: 'Shirley Teh', status: 'Approved', paid: 'Yes', rate: 'Compassionate clause' },
-  { id: 'REP07', employeeId: 'EMP-007', name: 'Elena Rostova', dept: 'Operations', type: 'Medical leave', days: 2, fromDate: '2026-05-26', toDate: '2026-05-27', approvedBy: 'Malik Said', status: 'Approved', paid: 'Yes', rate: 'Medical allowance' },
-  { id: 'REP08', employeeId: 'EMP-008', name: 'Tariq Al-Mansoor', dept: 'Engineering', type: 'Replacement leave', days: 1, fromDate: '2026-05-05', toDate: '2026-05-05', approvedBy: 'David Ng', status: 'Approved', paid: 'Yes', rate: 'FOT comp clause' },
-]
-
 export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabProps) {
   const isAdmin = canManageFullSystem(roles)
   const [activeSubTab, setActiveSubTab] = useState<LeaveSubTab>('Leave type');
@@ -371,7 +360,6 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
   const pendingCount = requests.filter(r => r.status === 'Pending').length;
 
   const leaveReportsRows = useMemo(() => {
-    if (requests.length === 0) return DEMO_LEAVE_REPORT_ROWS
     return requests.map((r) => {
       const leaveMeta = leaveTypeRows.find(
         (t) => t.name.toLowerCase() === r.type.toLowerCase() || t.code.toLowerCase() === r.type.toLowerCase(),

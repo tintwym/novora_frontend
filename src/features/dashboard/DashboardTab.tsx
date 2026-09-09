@@ -20,12 +20,16 @@ import { canManageFullSystem } from '@/lib/roles'
 import {
   fetchAdminAttendanceOverview,
   fetchAdminDashboardSummary,
+  fetchAdminGrowth,
   fetchAdminLeaveRequests,
   fetchAdminRecentHires,
+  fetchAdminTasks,
   fetchMyDashboard,
   type DashboardAttendanceOverview,
   type DashboardEmployeeRow,
+  type DashboardGrowthPoint,
   type DashboardLeaveRequestRow,
+  type DashboardTaskRow,
 } from '@/services'
 
 interface DashboardTabProps {
@@ -37,42 +41,6 @@ interface DashboardTabProps {
 }
 
 type TimelineFilter = 'Last 12 months' | 'Last 6 months' | 'Last 3 months' | 'Last 30 days'
-
-const ATTENTION_ITEMS = [
-  {
-    id: 'leave-1',
-    title: '3 leave requests pending',
-    detail: 'John Doe, Robert Smith, and 1 more',
-    tab: 'Leave Management' as SidebarTab,
-    tone: 'amber' as const,
-  },
-  {
-    id: 'hire-1',
-    title: '2 new hires to onboard',
-    detail: 'Sarah Johnson starts this week',
-    tab: 'On/Off-boarding Management' as SidebarTab,
-    tone: 'blue' as const,
-  },
-  {
-    id: 'payroll-1',
-    title: 'Payroll run in 2 days',
-    detail: 'June cycle — review deductions',
-    tab: 'Payroll Management' as SidebarTab,
-    tone: 'slate' as const,
-  },
-]
-
-const NEW_HIRES = [
-  { name: 'Sarah Johnson', role: 'UI/UX Designer', date: '28 May', initials: 'SJ', color: 'bg-indigo-100 text-indigo-700' },
-  { name: 'Michael Chen', role: 'Backend Developer', date: '27 May', initials: 'MC', color: 'bg-emerald-100 text-emerald-700' },
-  { name: 'Priya Sharma', role: 'HR Executive', date: '26 May', initials: 'PS', color: 'bg-sky-100 text-sky-700' },
-]
-
-const LEAVE_QUEUE = [
-  { name: 'John Doe', type: 'Annual leave', dates: '30 May – 3 Jun', status: 'Pending' as const },
-  { name: 'Emily Davis', type: 'Sick leave', dates: '29 – 30 May', status: 'Approved' as const },
-  { name: 'Robert Smith', type: 'Personal leave', dates: '31 May – 2 Jun', status: 'Pending' as const },
-]
 
 function getGreeting(hour: number) {
   if (hour < 12) return 'Good morning'
@@ -95,36 +63,20 @@ function firstName(name: string) {
   return trimmed.split(/\s+/)[0]
 }
 
-function getTimelineData(filter: TimelineFilter) {
-  switch (filter) {
-    case 'Last 6 months':
-      return {
-        values: [980, 1045, 1110, 1185, 1240, 1284],
-        labels: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
-        minY: 800,
-        maxY: 1400,
-      }
-    case 'Last 3 months':
-      return {
-        values: [1190, 1245, 1284],
-        labels: ['Mar', 'Apr', 'May'],
-        minY: 1100,
-        maxY: 1350,
-      }
-    case 'Last 30 days':
-      return {
-        values: [1260, 1268, 1275, 1284],
-        labels: ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4'],
-        minY: 1240,
-        maxY: 1300,
-      }
-    default:
-      return {
-        values: [611, 700, 780, 830, 890, 950, 980, 1030, 1090, 1145, 1200, 1284],
-        labels: ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
-        minY: 611,
-        maxY: 1316,
-      }
+function growthToTrend(points: DashboardGrowthPoint[]) {
+  if (points.length === 0) {
+    return { values: [] as number[], labels: [] as string[], minY: 0, maxY: 1 }
+  }
+  const values = points.map((p) => p.employees)
+  const labels = points.map((p) => p.month)
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const pad = Math.max(1, Math.round((max - min) * 0.1))
+  return {
+    values,
+    labels,
+    minY: Math.max(0, min - pad),
+    maxY: max + pad,
   }
 }
 
@@ -217,16 +169,23 @@ function StatusBadge({ status }: { status: 'Pending' | 'Approved' | 'Rejected' }
 }
 
 function WorkforceTrendChart({
+  growth,
   filter,
   onFilterChange,
 }: {
+  growth: DashboardGrowthPoint[]
   filter: TimelineFilter
   onFilterChange: (f: TimelineFilter) => void
 }) {
   const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState<{ x: number; y: number; value: number; label: string } | null>(null)
 
-  const trendData = useMemo(() => getTimelineData(filter), [filter])
+  const trendData = useMemo(() => {
+    const months =
+      filter === 'Last 3 months' ? 3 : filter === 'Last 6 months' ? 6 : filter === 'Last 30 days' ? 1 : 12
+    const sliced = growth.length > 0 ? growth.slice(-Math.max(months, 1)) : []
+    return growthToTrend(sliced)
+  }, [filter, growth])
   const chartWidth = 560
   const chartHeight = 180
   const padL = 40
@@ -238,7 +197,7 @@ function WorkforceTrendChart({
 
   const points = trendData.values.map((v, idx) => {
     const x = padL + (w / Math.max(trendData.values.length - 1, 1)) * idx
-    const fraction = (v - trendData.minY) / (trendData.maxY - trendData.minY)
+    const fraction = (v - trendData.minY) / Math.max(trendData.maxY - trendData.minY, 1)
     const y = padT + h * (1 - fraction)
     return { x, y, value: v, label: trendData.labels[idx] }
   })
@@ -284,6 +243,9 @@ function WorkforceTrendChart({
       className="lg:col-span-8"
     >
       <p className="-mt-2 mb-4 text-xs text-slate-500">Headcount trend across your organisation</p>
+      {points.length === 0 ? (
+        <p className="py-12 text-center text-xs text-slate-400">No growth data from the API yet.</p>
+      ) : (
       <div className="relative h-48">
         {hovered && (
           <div
@@ -342,6 +304,7 @@ function WorkforceTrendChart({
           ))}
         </svg>
       </div>
+      )}
     </Panel>
   )
 }
@@ -362,6 +325,8 @@ export default function DashboardTab({
   const [liveHires, setLiveHires] = useState<DashboardEmployeeRow[] | null>(null)
   const [liveLeave, setLiveLeave] = useState<DashboardLeaveRequestRow[] | null>(null)
   const [liveAttendance, setLiveAttendance] = useState<DashboardAttendanceOverview | null>(null)
+  const [liveGrowth, setLiveGrowth] = useState<DashboardGrowthPoint[]>([])
+  const [liveTasks, setLiveTasks] = useState<DashboardTaskRow[]>([])
   const [pendingLeaveCount, setPendingLeaveCount] = useState(0)
 
   useEffect(() => {
@@ -374,11 +339,13 @@ export default function DashboardTab({
     ;(async () => {
       try {
         if (isAdmin) {
-          const [summary, hires, leave, attendance] = await Promise.all([
+          const [summary, hires, leave, attendance, growth, tasks] = await Promise.all([
             fetchAdminDashboardSummary(),
             fetchAdminRecentHires(5),
             fetchAdminLeaveRequests(6),
             fetchAdminAttendanceOverview(),
+            fetchAdminGrowth(12).catch(() => [] as DashboardGrowthPoint[]),
+            fetchAdminTasks(12).catch(() => [] as DashboardTaskRow[]),
           ])
           if (cancelled) return
           const next: Record<string, { value: string; delta: string }> = {}
@@ -389,6 +356,8 @@ export default function DashboardTab({
           setLiveHires(hires)
           setLiveLeave(leave)
           setLiveAttendance(attendance)
+          setLiveGrowth(growth)
+          setLiveTasks(tasks)
           setPendingLeaveCount(leave.filter((r) => /pending/i.test(r.status)).length)
         } else {
           const mine = await fetchMyDashboard()
@@ -400,9 +369,13 @@ export default function DashboardTab({
           setKpiMap(next)
           setLiveAttendance(mine.attendanceOverview ?? null)
           setLiveLeave(mine.leaveRequests ?? null)
+          setLiveGrowth(mine.growth ?? [])
+          setPendingLeaveCount(
+            (mine.leaveRequests ?? []).filter((r) => /pending/i.test(r.status)).length,
+          )
         }
       } catch {
-        // Keep mock/fallback UI if dashboard APIs are empty or unavailable.
+        // Leave panels empty when APIs fail — never seed demo people.
       }
     })()
     return () => {
@@ -421,20 +394,42 @@ export default function DashboardTab({
   }
 
   const attentionItems = useMemo(() => {
+    const items: {
+      id: string
+      title: string
+      detail: string
+      tab: SidebarTab
+      tone: 'amber' | 'blue' | 'slate'
+    }[] = []
     if (pendingLeaveCount > 0) {
-      return [
-        {
-          id: 'leave-live',
-          title: `${pendingLeaveCount} leave request${pendingLeaveCount === 1 ? '' : 's'} pending`,
-          detail: 'Review and approve in Leave Management',
-          tab: 'Leave Management' as SidebarTab,
-          tone: 'amber' as const,
-        },
-        ...ATTENTION_ITEMS.slice(1),
-      ]
+      items.push({
+        id: 'leave-live',
+        title: `${pendingLeaveCount} leave request${pendingLeaveCount === 1 ? '' : 's'} pending`,
+        detail: 'Review and approve in Leave Management',
+        tab: 'Leave Management',
+        tone: 'amber',
+      })
     }
-    return ATTENTION_ITEMS
-  }, [pendingLeaveCount])
+    if (liveHires && liveHires.length > 0) {
+      items.push({
+        id: 'hire-live',
+        title: `${liveHires.length} recent hire${liveHires.length === 1 ? '' : 's'}`,
+        detail: liveHires[0]?.name ? `${liveHires[0].name} and team updates` : 'Open On/Off-boarding',
+        tab: 'On/Off-boarding Management',
+        tone: 'blue',
+      })
+    }
+    liveTasks.slice(0, 3).forEach((task, idx) => {
+      items.push({
+        id: `task-${idx}`,
+        title: task.text,
+        detail: task.status || 'Open task',
+        tab: 'Employees Management',
+        tone: 'slate',
+      })
+    })
+    return items
+  }, [pendingLeaveCount, liveHires, liveTasks])
 
   const hireRows =
     liveHires && liveHires.length > 0
@@ -452,7 +447,7 @@ export default function DashboardTab({
             i % 3
           ],
         }))
-      : NEW_HIRES
+      : []
 
   const leaveRows =
     liveLeave && liveLeave.length > 0
@@ -466,11 +461,11 @@ export default function DashboardTab({
               ? 'Rejected'
               : 'Pending') as 'Pending' | 'Approved' | 'Rejected',
         }))
-      : LEAVE_QUEUE
+      : []
 
   const attendanceRate = liveAttendance
     ? `${liveAttendance.attendanceRate.toFixed(0)}%`
-    : '89%'
+    : '—'
   const attendanceBuckets = liveAttendance?.buckets?.length
     ? liveAttendance.buckets
     : [
@@ -688,7 +683,11 @@ export default function DashboardTab({
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        <WorkforceTrendChart filter={timelineFilter} onFilterChange={setTimelineFilter} />
+        <WorkforceTrendChart
+          growth={liveGrowth}
+          filter={timelineFilter}
+          onFilterChange={setTimelineFilter}
+        />
 
         <Panel
           title="Needs attention"

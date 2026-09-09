@@ -14,6 +14,10 @@ export {
   fetchAdminRecentHires,
   fetchAdminLeaveRequests,
   fetchAdminAttendanceOverview,
+  fetchAdminGrowth,
+  fetchAdminBirthdays,
+  fetchAdminTasks,
+  fetchAdminDepartments,
 } from './dashboardApi'
 export {
   fetchMyAttendance,
@@ -112,6 +116,8 @@ export {
   fetchMyBenefitEnrollments,
   fetchAdminOnboardingTasks,
   createOnboardingTask,
+  fetchMyOnboardingTasks,
+  setMyOnboardingCompleted,
   fetchTrainingEnrollments,
   enrollInTraining,
   completeTrainingEnrollment,
@@ -148,6 +154,10 @@ export type {
   DashboardLeaveRequestRow,
   DashboardAttendanceOverview,
   MyDashboardResponse,
+  DashboardGrowthPoint,
+  DashboardBirthdayRow,
+  DashboardTaskRow,
+  DashboardDepartmentSlice,
 } from './dashboardApi'
 export type {
   AttendanceLog,
@@ -202,6 +212,7 @@ export type {
   BenefitPlanRow,
   BenefitEnrollmentRow,
   OnboardingTaskRow,
+  MyOnboardingTask,
   TrainingEnrollmentRow,
 } from './opsApi'
 export type { DocumentRow, MyProfile, FamilyMemberRow, EducationRow } from './profileApi'

@@ -223,6 +223,30 @@ export async function fetchAdminOnboardingTasks(): Promise<OnboardingTaskRow[]> 
   })
 }
 
+export type MyOnboardingTask = {
+  id: string
+  title: string
+  dueDate: string | null
+  completed: boolean
+}
+
+export async function fetchMyOnboardingTasks(): Promise<MyOnboardingTask[]> {
+  return apiRequest<MyOnboardingTask[]>('/api/my/onboarding', {
+    method: 'GET',
+    skipCsrf: true,
+  })
+}
+
+export async function setMyOnboardingCompleted(
+  taskId: string,
+  completed: boolean,
+): Promise<MyOnboardingTask> {
+  return apiRequest<MyOnboardingTask>(`/api/my/onboarding/${taskId}`, {
+    method: 'PUT',
+    body: { completed },
+  })
+}
+
 export async function createOnboardingTask(payload: {
   employeeId: string
   title: string

@@ -467,43 +467,35 @@ export default function EmployeeProfileTab({
     if (!employee) return;
 
     const employeeId = employee.id;
-    const isSarah = employee.name.toLowerCase().includes('sarah lim');
 
-    const defaultDocs = [
-      { id: '1', name: `Offer Letter - ${employee.name}`, type: 'Contract', uploaded: '12 Jan 2021', expiry: '—' },
-      { id: '2', name: 'NRIC Copy', type: 'NRIC', uploaded: '12 Jan 2021', expiry: '—' },
-      { id: '3', name: 'Passport', type: 'Passport', uploaded: '10 Jan 2020', expiry: '9 Jan 2030' }
-    ];
-    const existingDocs = employeeDocsMapRef.current[employeeId] || defaultDocs;
+    const existingDocs = employeeDocsMapRef.current[employeeId] || [];
 
     const timer = window.setTimeout(() => {
       setProfileData(prev => ({
         ...prev,
-        tenure: isSarah ? '4y 3m' : '2y 6m',
-        payGrade: isSarah ? 'G-7' : 'G-5',
-        leaveLeft: isSarah ? 12 : 14,
-        performanceScore: isSarah ? '92%' : '88%',
+        tenure: '—',
+        payGrade: '—',
+        leaveLeft: 0,
+        performanceScore: '—',
         company: 'Novora',
         jobType: employee.employmentStatus,
-        positionStartDate: isSarah ? '1 Mar 2022' : '15 Apr 2023',
-        jobGrade: isSarah ? 'G-7 / Sub B' : 'G-5 / Sub A',
-        
-        prefTechnical: isSarah ? 92 : 85,
-        prefCommunication: isSarah ? 85 : 82,
-        prefTeamwork: isSarah ? 88 : 84,
-        prefPunctuality: isSarah ? 95 : 90,
-        prefLeadership: isSarah ? 78 : 70,
-
-        dob: isSarah ? '14 March 1991' : '22 May 1994',
-        gender: isSarah ? 'Female' : 'Male',
-        nationality: 'Singaporean',
-        religion: isSarah ? 'Buddhism' : 'Islam',
-        maritalStatus: isSarah ? 'Married' : 'Single',
-        personalEmail: isSarah ? 'sarah.lim@gmail.com' : `${employee.name.toLowerCase().replace(/\s+/g, '.')}@gmail.com`,
-        mobileNo: isSarah ? '+65 9123 4567' : employee.mobile,
-        race: isSarah ? 'Chinese' : 'Malay',
-        basicSalary: isSarah ? 7500.00 : 5400.00,
-        bankAccount: isSarah ? 'Maybank •••• 4521' : 'CIMB •••• 8812',
+        positionStartDate: employee.joinDate || '',
+        jobGrade: '—',
+        prefTechnical: 0,
+        prefCommunication: 0,
+        prefTeamwork: 0,
+        prefPunctuality: 0,
+        prefLeadership: 0,
+        dob: '',
+        gender: '',
+        nationality: '',
+        religion: '',
+        maritalStatus: '',
+        personalEmail: '',
+        mobileNo: employee.mobile || '',
+        race: '',
+        basicSalary: 0,
+        bankAccount: '',
         documentsList: existingDocs,
       }));
 
