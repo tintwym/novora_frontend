@@ -47,6 +47,7 @@ import {
   createHelpdeskTicket,
   createMyHelpdeskTicket,
   fetchAdminHelpdeskTickets,
+  fetchHelpdeskAiDraft,
   fetchMyHelpdeskTickets,
   replyHelpdeskTicket,
   type HelpdeskTicketRow,
@@ -319,6 +320,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
 
   // Selected Active ticket & chat state
   const [chatInputText, setChatInputText] = useState('');
+  const [aiDraftBusy, setAiDraftBusy] = useState(false);
   const [chatInternalNote, setChatInternalNote] = useState(false);
   const [simulatedFileToUpload, setSimulatedFileToUpload] = useState<string>('');
 
@@ -429,9 +431,24 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
 
     if (!chatInternalNote && !useMyHelpdeskApi) {
       try {
-        const updated = await replyHelpdeskTicket(selectedTicketId, bodyText);
+        const savedReply = await replyHelpdeskTicket(selectedTicketId, bodyText);
+        const mappedReply = {
+          sender: 'Support Representative' as const,
+          senderName: savedReply.authorName || 'HR Support',
+          text: savedReply.body,
+          timestamp: savedReply.createdAt?.replace('T', ' ').slice(0, 16) ||
+            new Date().toISOString().slice(0, 16).replace('T', ' '),
+        };
         setTickets((prev) =>
-          prev.map((t) => (t.id === selectedTicketId ? mapHelpdeskTicketRow(updated) : t)),
+          prev.map((t) =>
+            t.id === selectedTicketId
+              ? {
+                  ...t,
+                  status: t.status === 'Open' ? 'In Progress' : t.status,
+                  replies: [...t.replies, mappedReply],
+                }
+              : t,
+          ),
         );
         setChatInputText('');
         setSimulatedFileToUpload('');
@@ -668,8 +685,35 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
     return tickets.find(t => t.id === selectedTicketId) || tickets[0] || null;
   }, [tickets, selectedTicketId]);
 
+  const handleAiDraftReply = async () => {
+    if (!activeTicketObj || aiDraftBusy) return;
+    setAiDraftBusy(true);
+    addToast('Drafting AI reply…', 'loading');
+    try {
+      const result = await fetchHelpdeskAiDraft({
+        subject: activeTicketObj.subject,
+        description: activeTicketObj.description,
+        category: activeTicketObj.category,
+        priority: activeTicketObj.priority,
+        requesterName: activeTicketObj.createdBy,
+        recentReplies: activeTicketObj.replies.slice(-4).map((r) => `${r.senderName}: ${r.text}`),
+      });
+      setChatInputText(result.draft);
+      addToast(
+        result.source === 'gemini' || result.source === 'model'
+          ? 'AI draft ready — review before sending.'
+          : 'Smart draft ready — review before sending.',
+        'success',
+      );
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not draft reply.', 'error');
+    } finally {
+      setAiDraftBusy(false);
+    }
+  };
+
   return (
-    <div id="helpdesk-inquiries-overall-root" className="space-y-6">
+    <div id="helpdesk-inquiries-overall-root" className="space-y-6 animate-in fade-in duration-300">
       <ModuleHeader
         title="Helpdesk"
         description="Tickets, self-service docs, and knowledge base."
@@ -1166,24 +1210,41 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
+                  <div className="flex items-end gap-2">
+                    {!useMyHelpdeskApi && (
+                      <button
+                        type="button"
+                        disabled={aiDraftBusy || !activeTicketObj}
+                        onClick={() => void handleAiDraftReply()}
+                        className="inline-flex h-[42px] items-center gap-1.5 rounded-xl border border-novora/25 bg-novora/5 px-3 text-[11px] font-bold text-novora hover:bg-novora/10 disabled:opacity-60 cursor-pointer shrink-0 transition-all hover:-translate-y-0.5"
+                        title="AI draft reply (review before send)"
+                      >
+                        <Sparkles className={`h-3.5 w-3.5 ${aiDraftBusy ? 'animate-spin' : ''}`} />
+                        {aiDraftBusy ? 'Drafting…' : 'AI Draft'}
+                      </button>
+                    )}
+                    <textarea
                       required
+                      rows={chatInputText.includes('\n') ? 4 : 2}
                       value={chatInputText}
                       onChange={(e) => setChatInputText(e.target.value)}
                       placeholder={chatInternalNote ? "Write operational internal supervisor audit log..." : "Clarify calculation details with the reporter..."}
-                      className="flex-1 text-xs bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 outline-none focus:bg-white focus:border-novora/35 text-slate-700"
+                      className="flex-1 min-h-[42px] max-h-40 text-xs bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 outline-none focus:bg-white focus:border-novora/35 text-slate-700 resize-y"
                     />
                     
                     <button
                       type="submit"
-                      className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl p-2.5 cursor-pointer flex items-center justify-center border border-transparent hover:scale-105 transition-all text-xs"
+                      className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl p-2.5 cursor-pointer flex items-center justify-center border border-transparent hover:scale-105 transition-all text-xs shrink-0"
                       title="Post Message"
                     >
                       <Send className="h-4 w-4" />
                     </button>
                   </div>
+                  {!useMyHelpdeskApi && (
+                    <p className="text-[10px] text-slate-400 px-0.5">
+                      AI suggests a draft only — you review and send.
+                    </p>
+                  )}
                 </form>
 
               </div>

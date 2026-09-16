@@ -20,6 +20,17 @@ export {
   fetchAdminDepartments,
 } from './dashboardApi'
 export {
+  fetchDashboardAiInsights,
+  fetchHelpdeskAiDraft,
+} from './aiApi'
+export type {
+  AiKpiHint,
+  DashboardInsightRequest,
+  DashboardInsightResponse,
+  HelpdeskDraftRequest,
+  HelpdeskDraftResponse,
+} from './aiApi'
+export {
   fetchMyAttendance,
   checkInAttendance,
   checkOutAttendance,
@@ -231,6 +242,7 @@ export type {
 export type {
   NotificationRow,
   HelpdeskTicketRow,
+  HelpdeskReplyRow,
   DisciplinaryCaseRow,
   BenefitPlanRow,
   BenefitEnrollmentRow,

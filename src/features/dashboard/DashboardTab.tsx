@@ -9,6 +9,8 @@ import {
   FileText,
   LogIn,
   LogOut,
+  RefreshCw,
+  Sparkles,
   TrendingDown,
   TrendingUp,
   Umbrella,
@@ -26,8 +28,10 @@ import {
   fetchAdminDashboardSummary,
   fetchAdminDepartments,
   fetchAdminGrowth,
+  fetchAdminLeaveRequests,
   fetchAdminOnboardingTasks,
   fetchAdminRecentHires,
+  fetchDashboardAiInsights,
   fetchMyAttendance,
   fetchRecruitmentCandidates,
   fetchRecruitmentInterviews,
@@ -797,6 +801,11 @@ export default function DashboardTab({
   const [jobs, setJobs] = useState<RecruitmentJobRow[]>([])
   const [offers, setOffers] = useState<RecruitmentOfferRow[]>([])
   const [onboardingTasks, setOnboardingTasks] = useState<OnboardingTaskRow[]>([])
+  const [pendingLeaveCount, setPendingLeaveCount] = useState(0)
+  const [aiInsights, setAiInsights] = useState<string[]>([])
+  const [aiDisclaimer, setAiDisclaimer] = useState('')
+  const [aiSource, setAiSource] = useState('')
+  const [aiBusy, setAiBusy] = useState(false)
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 60_000)
@@ -820,6 +829,7 @@ export default function DashboardTab({
             jobRows,
             offerRows,
             onboard,
+            leaveRows,
           ] = await Promise.all([
             fetchAdminDashboardSummary(),
             fetchAdminRecentHires(5),
@@ -831,6 +841,7 @@ export default function DashboardTab({
             fetchRecruitmentJobs().catch(() => [] as RecruitmentJobRow[]),
             fetchRecruitmentOffers().catch(() => [] as RecruitmentOfferRow[]),
             fetchAdminOnboardingTasks().catch(() => [] as OnboardingTaskRow[]),
+            fetchAdminLeaveRequests(20).catch(() => []),
           ])
           if (cancelled) return
           const next: Record<string, { value: string; delta: string }> = {}
@@ -847,6 +858,7 @@ export default function DashboardTab({
           setJobs(jobRows)
           setOffers(offerRows)
           setOnboardingTasks(onboard)
+          setPendingLeaveCount(leaveRows.filter((r) => /pending/i.test(r.status)).length)
         } else {
           const mine = await fetchMyDashboard()
           if (cancelled) return
@@ -1032,6 +1044,57 @@ export default function DashboardTab({
   }, [departments])
 
   const deptTotal = deptSegments.reduce((s, d) => s + d.value, 0)
+
+  const loadAiInsights = useCallback(
+    async (opts?: { notify?: boolean }) => {
+      if (!isAdmin) return
+      setAiBusy(true)
+      try {
+        const openRolesNum = Number(String(openRolesCount).replace(/,/g, ''))
+        const result = await fetchDashboardAiInsights({
+          kpis: Object.entries(kpiMap).slice(0, 6).map(([label, v]) => ({
+            label,
+            value: v.value,
+            delta: v.delta,
+          })),
+          attendanceRate: liveAttendance?.attendanceRate ?? null,
+          openRoles: Number.isFinite(openRolesNum) ? openRolesNum : null,
+          pendingLeave: pendingLeaveCount,
+          upcomingInterviews: upcomingInterviews.length,
+          onboardingIncomplete: onboardingRows.filter((r) => r.pct < 100).length,
+        })
+        setAiInsights(result.insights ?? [])
+        setAiDisclaimer(result.disclaimer ?? '')
+        setAiSource(result.source ?? '')
+      } catch (err) {
+        setAiInsights([])
+        setAiDisclaimer('')
+        setAiSource('')
+        if (opts?.notify) {
+          addToast(err instanceof ApiError ? err.message : 'Could not load AI insights.', 'error')
+        }
+      } finally {
+        setAiBusy(false)
+      }
+    },
+    [
+      isAdmin,
+      kpiMap,
+      liveAttendance,
+      openRolesCount,
+      pendingLeaveCount,
+      upcomingInterviews.length,
+      onboardingRows,
+      addToast,
+    ],
+  )
+
+  useEffect(() => {
+    if (!isAdmin || loading) return
+    void loadAiInsights()
+    // One-shot after initial dashboard load; use Refresh for updates.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, loading])
 
   if (!isAdmin) {
     return (
@@ -1251,6 +1314,54 @@ export default function DashboardTab({
           iconClass="!bg-violet-50 !text-violet-600"
         />
       </div>
+
+      <Panel
+        title="AI insights"
+        action={
+          <button
+            type="button"
+            disabled={aiBusy}
+            onClick={() => void loadAiInsights({ notify: true })}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-novora hover:underline cursor-pointer disabled:opacity-60"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${aiBusy ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+        }
+        className="nv-ai-panel"
+      >
+        <div className="flex items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-novora/10 text-novora">
+            <Sparkles className="h-4 w-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            {aiBusy && aiInsights.length === 0 ? (
+              <p className="text-xs text-slate-400">Generating insights from live HR metrics…</p>
+            ) : aiInsights.length === 0 ? (
+              <p className="text-xs text-slate-400">No insights yet — refresh after data loads.</p>
+            ) : (
+              <ul className="space-y-2.5">
+                {aiInsights.map((line, idx) => (
+                  <li
+                    key={`${idx}-${line.slice(0, 24)}`}
+                    className="flex gap-2 text-sm text-slate-700 animate-soft-fade-up"
+                    style={{ animationDelay: `${idx * 80}ms` }}
+                  >
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-novora" />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {(aiDisclaimer || aiSource) && (
+              <p className="mt-3 text-[10px] font-medium text-slate-400">
+                {aiDisclaimer}
+                {aiSource ? ` · Source: ${aiSource}` : ''}
+              </p>
+            )}
+          </div>
+        </div>
+      </Panel>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Panel

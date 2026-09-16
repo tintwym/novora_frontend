@@ -10,6 +10,14 @@ export type NotificationRow = {
   createdAt: string | null
 }
 
+export type HelpdeskReplyRow = {
+  id: string
+  authorEmployeeId: string | null
+  authorName: string | null
+  body: string
+  createdAt: string | null
+}
+
 export type HelpdeskTicketRow = {
   id: string
   subject: string
@@ -23,13 +31,7 @@ export type HelpdeskTicketRow = {
   assigneeName: string | null
   createdAt: string | null
   updatedAt: string | null
-  replies: {
-    id: string
-    authorEmployeeId: string | null
-    authorName: string | null
-    body: string
-    createdAt: string | null
-  }[]
+  replies: HelpdeskReplyRow[]
 }
 
 export type DisciplinaryCaseRow = {
@@ -145,8 +147,8 @@ export async function createMyHelpdeskTicket(payload: {
 export async function replyHelpdeskTicket(
   ticketId: string,
   body: string,
-): Promise<HelpdeskTicketRow> {
-  return apiRequest<HelpdeskTicketRow>(`/api/admin/helpdesk/tickets/${ticketId}/replies`, {
+): Promise<HelpdeskReplyRow> {
+  return apiRequest<HelpdeskReplyRow>(`/api/admin/helpdesk/tickets/${ticketId}/replies`, {
     method: 'POST',
     body: { body },
   })
