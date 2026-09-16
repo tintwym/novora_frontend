@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock,
-  DollarSign,
   FileText,
   LogIn,
   TrendingDown,
@@ -14,26 +13,31 @@ import {
   Umbrella,
   UserPlus,
   Users,
+  Zap,
 } from 'lucide-react'
 import type { Employee, SidebarTab } from '@/types'
 import { canManageFullSystem } from '@/lib/roles'
 import {
   fetchAdminAttendanceOverview,
   fetchAdminDashboardSummary,
+  fetchAdminDepartments,
   fetchAdminGrowth,
-  fetchAdminLeaveRequests,
-  fetchAdminPayrollSummary,
+  fetchAdminOnboardingTasks,
   fetchAdminRecentHires,
-  fetchAdminTasks,
+  fetchRecruitmentCandidates,
+  fetchRecruitmentInterviews,
+  fetchRecruitmentJobs,
+  fetchRecruitmentOffers,
   fetchMyDashboard,
-  fetchPayrollRunSummary,
   type DashboardAttendanceOverview,
+  type DashboardDepartmentSlice,
   type DashboardEmployeeRow,
   type DashboardGrowthPoint,
-  type DashboardLeaveRequestRow,
-  type DashboardTaskRow,
-  type PayrollRunSummary,
-  type PayrollSlice,
+  type OnboardingTaskRow,
+  type RecruitmentCandidateRow,
+  type RecruitmentInterviewRow,
+  type RecruitmentJobRow,
+  type RecruitmentOfferRow,
 } from '@/services'
 
 interface DashboardTabProps {
@@ -46,10 +50,21 @@ interface DashboardTabProps {
 
 type TimelineFilter = 'Last 12 months' | 'Last 6 months' | 'Last 3 months' | 'Last 30 days'
 
+const DEPT_COLORS = [
+  '#1a6cff',
+  '#0ea5e9',
+  '#10b981',
+  '#f59e0b',
+  '#8b5cf6',
+  '#f43f5e',
+  '#14b8a6',
+  '#94a3b8',
+]
+
 function getGreeting(hour: number) {
-  if (hour < 12) return 'Good morning'
-  if (hour < 17) return 'Good afternoon'
-  return 'Good evening'
+  if (hour < 12) return 'Good Morning'
+  if (hour < 17) return 'Good Afternoon'
+  return 'Good Evening'
 }
 
 function formatHeaderDate(d: Date) {
@@ -61,10 +76,27 @@ function formatHeaderDate(d: Date) {
   })
 }
 
+function formatMonthRange(d: Date) {
+  const start = new Date(d.getFullYear(), d.getMonth(), 1)
+  const end = new Date(d.getFullYear(), d.getMonth() + 1, 0)
+  const fmt = (x: Date) =>
+    x.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  return `${fmt(start)} - ${fmt(end)}`
+}
+
 function firstName(name: string) {
   const trimmed = name.trim()
   if (!trimmed) return 'there'
   return trimmed.split(/\s+/)[0]
+}
+
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .map((p) => p[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 }
 
 function growthToTrend(points: DashboardGrowthPoint[]) {
@@ -97,6 +129,15 @@ function smoothPath(pts: { x: number; y: number }[]) {
     d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p1.x},${p1.y}`
   }
   return d
+}
+
+function stageBucket(stage: string): 'applications' | 'screened' | 'interviews' | 'offers' | 'hired' {
+  const s = stage.toLowerCase()
+  if (/hir|joined|accepted|onboard/.test(s)) return 'hired'
+  if (/offer/.test(s)) return 'offers'
+  if (/interview|final|tech|culture/.test(s)) return 'interviews'
+  if (/screen|review|phone|shortlist/.test(s)) return 'screened'
+  return 'applications'
 }
 
 function Panel({
@@ -137,38 +178,125 @@ function KpiCard({
   iconClass: string
 }) {
   return (
-    <div className="nv-stat-card">
-      <div className="flex items-start justify-between gap-3">
-        <span className={`nv-stat-icon ${iconClass}`}>
-          <Icon className="h-4 w-4" />
-        </span>
+    <div className="nv-stat-card flex items-start gap-4">
+      <span className={`nv-stat-icon shrink-0 ${iconClass}`}>
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium text-slate-500">{label}</p>
+        <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900">{value}</p>
         {trend && (
-          <span
-            className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-              trendUp ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'
+          <p
+            className={`mt-1.5 inline-flex items-center gap-0.5 text-[11px] font-semibold ${
+              trendUp ? 'text-emerald-600' : 'text-rose-600'
             }`}
           >
             {trendUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
             {trend}
-          </span>
+            {!/vs/i.test(trend) && <span className="font-medium text-slate-400"> vs last month</span>}
+          </p>
         )}
       </div>
-      <p className="mt-3 text-2xl font-bold tracking-tight text-slate-900">{value}</p>
-      <p className="mt-1 text-xs font-medium text-slate-500">{label}</p>
     </div>
   )
 }
 
-function StatusBadge({ status }: { status: 'Pending' | 'Approved' | 'Rejected' }) {
-  const styles = {
-    Pending: 'bg-amber-50 text-amber-700 ring-amber-100',
-    Approved: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
-    Rejected: 'bg-rose-50 text-rose-700 ring-rose-100',
-  }
+function HiringFunnel({
+  stages,
+}: {
+  stages: { label: string; count: number }[]
+}) {
+  const max = Math.max(...stages.map((s) => s.count), 1)
   return (
-    <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${styles[status]}`}>
-      {status}
-    </span>
+    <div className="flex flex-col justify-center gap-3 py-1">
+      {stages.map((stage, idx) => {
+        const width = Math.max(28, Math.round((stage.count / max) * 100))
+        const opacity = 1 - idx * 0.12
+        return (
+          <div key={stage.label} className="flex items-center gap-3">
+            <div className="relative h-9 flex-1 overflow-hidden rounded-xl bg-slate-50">
+              <div
+                className="flex h-full items-center rounded-xl px-3 transition-all duration-500"
+                style={{
+                  width: `${width}%`,
+                  background: `linear-gradient(90deg, color-mix(in srgb, var(--color-novora) ${Math.round(opacity * 100)}%, white), color-mix(in srgb, #0ea5e9 ${Math.round(opacity * 70)}%, white))`,
+                }}
+              >
+                <span className="truncate text-xs font-semibold text-white drop-shadow-sm">
+                  {stage.label}
+                </span>
+              </div>
+            </div>
+            <span className="w-12 shrink-0 text-right text-sm font-bold tabular-nums text-slate-800">
+              {stage.count.toLocaleString()}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function MultiDonut({
+  segments,
+  centerLabel,
+  centerValue,
+  size = 140,
+}: {
+  segments: { label: string; value: number; color: string }[]
+  centerLabel: string
+  centerValue: string
+  size?: number
+}) {
+  const total = segments.reduce((s, x) => s + Math.max(0, x.value), 0)
+  const radius = 42
+  const circumference = 2 * Math.PI * radius
+  let offset = 0
+
+  if (total <= 0) {
+    return (
+      <div className="relative mx-auto flex items-center justify-center" style={{ width: size, height: size }}>
+        <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+          <circle cx="50" cy="50" r={radius} fill="none" stroke="#f1f5f9" strokeWidth="10" />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+          <span className="text-lg font-bold text-slate-800">—</span>
+          <span className="text-[10px] font-medium text-slate-400">{centerLabel}</span>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative mx-auto flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+        <circle cx="50" cy="50" r={radius} fill="none" stroke="#f1f5f9" strokeWidth="10" />
+        {segments.map((seg) => {
+          const len = (Math.max(0, seg.value) / total) * circumference
+          const dash = `${len} ${circumference - len}`
+          const el = (
+            <circle
+              key={seg.label}
+              cx="50"
+              cy="50"
+              r={radius}
+              fill="none"
+              stroke={seg.color}
+              strokeWidth="10"
+              strokeDasharray={dash}
+              strokeDashoffset={-offset}
+              strokeLinecap="butt"
+            />
+          )
+          offset += len
+          return el
+        })}
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+        <span className="text-xl font-bold tracking-tight text-slate-900">{centerValue}</span>
+        <span className="text-[10px] font-medium text-slate-400">{centerLabel}</span>
+      </div>
+    </div>
   )
 }
 
@@ -182,7 +310,9 @@ function WorkforceTrendChart({
   onFilterChange: (f: TimelineFilter) => void
 }) {
   const [open, setOpen] = useState(false)
-  const [hovered, setHovered] = useState<{ x: number; y: number; value: number; label: string } | null>(null)
+  const [hovered, setHovered] = useState<{ x: number; y: number; value: number; label: string } | null>(
+    null,
+  )
 
   const trendData = useMemo(() => {
     const months =
@@ -190,11 +320,20 @@ function WorkforceTrendChart({
     const sliced = growth.length > 0 ? growth.slice(-Math.max(months, 1)) : []
     return growthToTrend(sliced)
   }, [filter, growth])
-  const chartWidth = 560
-  const chartHeight = 180
-  const padL = 40
-  const padR = 12
-  const padT = 12
+
+  const growthPct = useMemo(() => {
+    if (trendData.values.length < 2) return null
+    const first = trendData.values[0]
+    const last = trendData.values[trendData.values.length - 1]
+    if (first <= 0) return null
+    return Math.round(((last - first) / first) * 1000) / 10
+  }, [trendData.values])
+
+  const chartWidth = 720
+  const chartHeight = 200
+  const padL = 36
+  const padR = 16
+  const padT = 16
   const padB = 28
   const w = chartWidth - padL - padR
   const h = chartHeight - padT - padB
@@ -214,7 +353,7 @@ function WorkforceTrendChart({
 
   return (
     <Panel
-      title="Workforce growth"
+      title="Workforce Analytics"
       action={
         <div className="relative">
           <button
@@ -244,70 +383,79 @@ function WorkforceTrendChart({
           )}
         </div>
       }
-      className="lg:col-span-8"
     >
-      <p className="-mt-2 mb-4 text-xs text-slate-500">Headcount trend across your organisation</p>
+      {growthPct != null && (
+        <p className="-mt-2 mb-3 text-xs font-semibold text-emerald-600">
+          {growthPct >= 0 ? '+' : ''}
+          {growthPct}% Employee Growth vs previous period
+        </p>
+      )}
       {points.length === 0 ? (
         <p className="py-12 text-center text-xs text-slate-400">No growth data from the API yet.</p>
       ) : (
-      <div className="relative h-48">
-        {hovered && (
-          <div
-            className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg bg-slate-900 px-2.5 py-1.5 text-[10px] font-medium text-white shadow-lg"
-            style={{ left: hovered.x, top: hovered.y - 8 }}
-          >
-            <div>{hovered.label}</div>
-            <div className="text-blue-300">{hovered.value.toLocaleString()} people</div>
-          </div>
-        )}
-        <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="h-full w-full">
-          <defs>
-            <linearGradient id="dash-area-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#2563eb" stopOpacity="0.2" />
-              <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          {[0, 0.5, 1].map((ratio) => {
-            const y = padT + h * ratio
-            return (
-              <line
-                key={ratio}
-                x1={padL}
-                y1={y}
-                x2={chartWidth - padR}
-                y2={y}
-                className="stroke-slate-100"
-                strokeDasharray="4 4"
-              />
-            )
-          })}
-          {area && <path d={area} fill="url(#dash-area-fill)" />}
-          {line && (
-            <path d={line} fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" />
+        <div className="relative h-52">
+          {hovered && (
+            <div
+              className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg bg-slate-900 px-2.5 py-1.5 text-[10px] font-medium text-white shadow-lg"
+              style={{ left: hovered.x, top: hovered.y - 8 }}
+            >
+              <div className="font-bold">{hovered.value.toLocaleString()}</div>
+              <div className="text-blue-200">{hovered.label}</div>
+            </div>
           )}
-          {points.map((p, idx) => (
-            <g key={idx}>
-              <circle
-                cx={p.x}
-                cy={p.y}
-                r={12}
-                className="fill-transparent cursor-pointer"
-                onMouseEnter={() => setHovered(p)}
-                onMouseLeave={() => setHovered(null)}
-              />
-              <circle
-                cx={p.x}
-                cy={p.y}
-                r={hovered?.value === p.value ? 5 : 3}
-                className="fill-white stroke-[#2563eb] stroke-2"
-              />
-              <text x={p.x} y={chartHeight - 6} textAnchor="middle" className="fill-slate-400 text-[9px] font-medium">
-                {p.label}
-              </text>
-            </g>
-          ))}
-        </svg>
-      </div>
+          <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="h-full w-full">
+            <defs>
+              <linearGradient id="dash-area-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#1a6cff" stopOpacity="0.22" />
+                <stop offset="100%" stopColor="#1a6cff" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {[0, 0.5, 1].map((ratio) => {
+              const y = padT + h * ratio
+              return (
+                <line
+                  key={ratio}
+                  x1={padL}
+                  y1={y}
+                  x2={chartWidth - padR}
+                  y2={y}
+                  className="stroke-slate-100"
+                  strokeDasharray="4 4"
+                />
+              )
+            })}
+            {area && <path d={area} fill="url(#dash-area-fill)" />}
+            {line && (
+              <path d={line} fill="none" stroke="#1a6cff" strokeWidth="2.5" strokeLinecap="round" />
+            )}
+            {points.map((p, idx) => (
+              <g key={idx}>
+                <circle
+                  cx={p.x}
+                  cy={p.y}
+                  r={12}
+                  className="fill-transparent cursor-pointer"
+                  onMouseEnter={() => setHovered(p)}
+                  onMouseLeave={() => setHovered(null)}
+                />
+                <circle
+                  cx={p.x}
+                  cy={p.y}
+                  r={hovered?.value === p.value && hovered?.label === p.label ? 5 : 3}
+                  className="fill-white stroke-[#1a6cff] stroke-2"
+                />
+                <text
+                  x={p.x}
+                  y={chartHeight - 6}
+                  textAnchor="middle"
+                  className="fill-slate-400 text-[9px] font-medium"
+                >
+                  {p.label}
+                </text>
+              </g>
+            ))}
+          </svg>
+        </div>
       )}
     </Panel>
   )
@@ -321,19 +469,20 @@ export default function DashboardTab({
   userName = '',
 }: DashboardTabProps) {
   const [now, setNow] = useState(() => new Date())
-  const [timelineFilter, setTimelineFilter] = useState<TimelineFilter>('Last 12 months')
+  const [timelineFilter, setTimelineFilter] = useState<TimelineFilter>('Last 6 months')
   const isAdmin = canManageFullSystem(roles)
   const headcount = employees.length > 0 ? employees.length.toLocaleString() : '—'
 
   const [kpiMap, setKpiMap] = useState<Record<string, { value: string; delta: string }>>({})
   const [liveHires, setLiveHires] = useState<DashboardEmployeeRow[] | null>(null)
-  const [liveLeave, setLiveLeave] = useState<DashboardLeaveRequestRow[] | null>(null)
   const [liveAttendance, setLiveAttendance] = useState<DashboardAttendanceOverview | null>(null)
   const [liveGrowth, setLiveGrowth] = useState<DashboardGrowthPoint[]>([])
-  const [liveTasks, setLiveTasks] = useState<DashboardTaskRow[]>([])
-  const [pendingLeaveCount, setPendingLeaveCount] = useState(0)
-  const [payrollRun, setPayrollRun] = useState<PayrollRunSummary | null>(null)
-  const [payrollSlices, setPayrollSlices] = useState<PayrollSlice[]>([])
+  const [departments, setDepartments] = useState<DashboardDepartmentSlice[]>([])
+  const [candidates, setCandidates] = useState<RecruitmentCandidateRow[]>([])
+  const [interviews, setInterviews] = useState<RecruitmentInterviewRow[]>([])
+  const [jobs, setJobs] = useState<RecruitmentJobRow[]>([])
+  const [offers, setOffers] = useState<RecruitmentOfferRow[]>([])
+  const [onboardingTasks, setOnboardingTasks] = useState<OnboardingTaskRow[]>([])
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 60_000)
@@ -345,15 +494,28 @@ export default function DashboardTab({
     ;(async () => {
       try {
         if (isAdmin) {
-          const [summary, hires, leave, attendance, growth, tasks, run, slices] = await Promise.all([
+          const [
+            summary,
+            hires,
+            attendance,
+            growth,
+            depts,
+            cand,
+            ints,
+            jobRows,
+            offerRows,
+            onboard,
+          ] = await Promise.all([
             fetchAdminDashboardSummary(),
             fetchAdminRecentHires(5),
-            fetchAdminLeaveRequests(6),
             fetchAdminAttendanceOverview(),
             fetchAdminGrowth(12).catch(() => [] as DashboardGrowthPoint[]),
-            fetchAdminTasks(12).catch(() => [] as DashboardTaskRow[]),
-            fetchPayrollRunSummary().catch(() => null),
-            fetchAdminPayrollSummary().catch(() => [] as PayrollSlice[]),
+            fetchAdminDepartments().catch(() => [] as DashboardDepartmentSlice[]),
+            fetchRecruitmentCandidates().catch(() => [] as RecruitmentCandidateRow[]),
+            fetchRecruitmentInterviews().catch(() => [] as RecruitmentInterviewRow[]),
+            fetchRecruitmentJobs().catch(() => [] as RecruitmentJobRow[]),
+            fetchRecruitmentOffers().catch(() => [] as RecruitmentOfferRow[]),
+            fetchAdminOnboardingTasks().catch(() => [] as OnboardingTaskRow[]),
           ])
           if (cancelled) return
           const next: Record<string, { value: string; delta: string }> = {}
@@ -362,13 +524,14 @@ export default function DashboardTab({
           }
           setKpiMap(next)
           setLiveHires(hires)
-          setLiveLeave(leave)
           setLiveAttendance(attendance)
           setLiveGrowth(growth)
-          setLiveTasks(tasks)
-          setPendingLeaveCount(leave.filter((r) => /pending/i.test(r.status)).length)
-          setPayrollRun(run)
-          setPayrollSlices(slices)
+          setDepartments(depts)
+          setCandidates(cand)
+          setInterviews(ints)
+          setJobs(jobRows)
+          setOffers(offerRows)
+          setOnboardingTasks(onboard)
         } else {
           const mine = await fetchMyDashboard()
           if (cancelled) return
@@ -378,13 +541,8 @@ export default function DashboardTab({
           }
           setKpiMap(next)
           setLiveAttendance(mine.attendanceOverview ?? null)
-          setLiveLeave(mine.leaveRequests ?? null)
           setLiveGrowth(mine.growth ?? [])
-          setPendingLeaveCount(
-            (mine.leaveRequests ?? []).filter((r) => /pending/i.test(r.status)).length,
-          )
-          setPayrollRun(null)
-          setPayrollSlices([])
+          setDepartments(mine.departments ?? [])
         }
       } catch {
         // Leave panels empty when APIs fail — never seed demo people.
@@ -405,75 +563,32 @@ export default function DashboardTab({
     if (message) addToast(message, 'info')
   }
 
-  const attentionItems = useMemo(() => {
-    const items: {
-      id: string
-      title: string
-      detail: string
-      tab: SidebarTab
-      tone: 'amber' | 'blue' | 'slate'
-    }[] = []
-    if (pendingLeaveCount > 0) {
-      items.push({
-        id: 'leave-live',
-        title: `${pendingLeaveCount} leave request${pendingLeaveCount === 1 ? '' : 's'} pending`,
-        detail: 'Review and approve in Leave Management',
-        tab: 'Leave Management',
-        tone: 'amber',
-      })
-    }
-    if (liveHires && liveHires.length > 0) {
-      items.push({
-        id: 'hire-live',
-        title: `${liveHires.length} recent hire${liveHires.length === 1 ? '' : 's'}`,
-        detail: liveHires[0]?.name ? `${liveHires[0].name} and team updates` : 'Open On/Off-boarding',
-        tab: 'On/Off-boarding Management',
-        tone: 'blue',
-      })
-    }
-    liveTasks.slice(0, 3).forEach((task, idx) => {
-      items.push({
-        id: `task-${idx}`,
-        title: task.text,
-        detail: task.status || 'Open task',
-        tab: 'Employees Management',
-        tone: 'slate',
-      })
-    })
-    return items
-  }, [pendingLeaveCount, liveHires, liveTasks])
+  const openRolesCount = useMemo(() => {
+    const openJobs = jobs.filter((j) => /open|active|publish/i.test(j.status) || j.published)
+    if (openJobs.length === 0) return findKpi('position')?.value || findKpi('open')?.value || '0'
+    const openings = openJobs.reduce((sum, j) => sum + (j.openings ?? 1), 0)
+    return String(openings)
+  }, [jobs, kpiMap])
 
-  const hireRows =
-    liveHires && liveHires.length > 0
-      ? liveHires.slice(0, 3).map((h, i) => ({
-          name: h.name,
-          role: h.role,
-          date: h.date,
-          initials: h.name
-            .split(/\s+/)
-            .map((p) => p[0])
-            .join('')
-            .slice(0, 2)
-            .toUpperCase(),
-          color: ['bg-indigo-100 text-indigo-700', 'bg-emerald-100 text-emerald-700', 'bg-sky-100 text-sky-700'][
-            i % 3
-          ],
-        }))
-      : []
-
-  const leaveRows =
-    liveLeave && liveLeave.length > 0
-      ? liveLeave.slice(0, 3).map((r) => ({
-          name: r.name,
-          type: r.leaveType,
-          dates: r.dateRange,
-          status: (/approv/i.test(r.status)
-            ? 'Approved'
-            : /reject|den/i.test(r.status)
-              ? 'Rejected'
-              : 'Pending') as 'Pending' | 'Approved' | 'Rejected',
-        }))
-      : []
+  const funnelStages = useMemo(() => {
+    const counts = { applications: 0, screened: 0, interviews: 0, offers: 0, hired: 0 }
+    for (const c of candidates) {
+      counts[stageBucket(c.stage)] += 1
+    }
+    // Cumulative-style funnel: each stage includes people who reached at least that stage
+    const hired = counts.hired
+    const offerN = counts.offers + hired + offers.length
+    const interviewN = counts.interviews + offerN
+    const screenedN = counts.screened + interviewN
+    const apps = Math.max(candidates.length, screenedN)
+    return [
+      { label: 'Applications', count: apps },
+      { label: 'Screened', count: screenedN },
+      { label: 'Interviews', count: interviewN },
+      { label: 'Offers', count: offerN },
+      { label: 'Hired', count: hired || (liveHires?.length ?? 0) },
+    ]
+  }, [candidates, offers, liveHires])
 
   const attendanceRateValue = liveAttendance?.attendanceRate ?? 0
   const attendanceRate = liveAttendance ? `${attendanceRateValue.toFixed(0)}%` : '—'
@@ -481,44 +596,129 @@ export default function DashboardTab({
     ? liveAttendance.buckets
     : [
         { label: 'Present', count: 0 },
-        { label: 'Absent', count: 0 },
         { label: 'Late', count: 0 },
+        { label: 'Absent', count: 0 },
       ]
-  const attendanceDonut = (() => {
-    const radius = 38
-    const circumference = 2 * Math.PI * radius
-    const pct = Math.max(0, Math.min(100, attendanceRateValue)) / 100
-    return {
-      radius,
-      circumference,
-      dash: `${circumference * pct} ${circumference}`,
-    }
-  })()
 
-  const monthNames = [
-    '',
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ]
-  const payrollPeriodLabel = payrollRun
-    ? `${monthNames[payrollRun.payMonth] || payrollRun.payMonth} ${payrollRun.payYear}`
-    : 'Current cycle'
-  const payrollSliceTotal = payrollSlices.reduce((sum, s) => sum + Math.max(0, s.value), 0)
-  const money = (n: number) =>
-    n.toLocaleString(undefined, { style: 'currency', currency: 'SGD', maximumFractionDigits: 0 })
-  const sliceDollars = (cents: number) => cents / 100
-  const deductionsSlice = payrollSlices.find((s) => /deduct/i.test(s.name))
-  const deductionsDisplay = deductionsSlice ? money(sliceDollars(deductionsSlice.value)) : null
+  const attendanceSegments = useMemo(() => {
+    const colorFor = (label: string) => {
+      if (/present/i.test(label)) return '#10b981'
+      if (/late/i.test(label)) return '#f59e0b'
+      if (/absent/i.test(label)) return '#f43f5e'
+      return '#94a3b8'
+    }
+    const total = attendanceBuckets.reduce((s, b) => s + b.count, 0)
+    if (total <= 0 && liveAttendance) {
+      const present = Math.round(attendanceRateValue)
+      const rest = Math.max(0, 100 - present)
+      return [
+        { label: 'Present', value: present, color: '#10b981', pct: present },
+        { label: 'Late', value: Math.round(rest * 0.6), color: '#f59e0b', pct: Math.round(rest * 0.6) },
+        { label: 'Absent', value: Math.round(rest * 0.4), color: '#f43f5e', pct: Math.round(rest * 0.4) },
+      ]
+    }
+    return attendanceBuckets.slice(0, 3).map((b) => ({
+      label: b.label,
+      value: b.count,
+      color: colorFor(b.label),
+      pct: total > 0 ? Math.round((b.count / total) * 100) : 0,
+    }))
+  }, [attendanceBuckets, attendanceRateValue, liveAttendance])
+
+  const engagementScore = useMemo(() => {
+    if (!liveAttendance) return findKpi('engagement')?.value || '—'
+    return (Math.max(0, Math.min(100, attendanceRateValue)) / 10).toFixed(1)
+  }, [liveAttendance, attendanceRateValue, kpiMap])
+
+  const upcomingInterviews = useMemo(() => {
+    const nowTs = Date.now()
+    return [...interviews]
+      .filter((i) => {
+        const t = Date.parse(i.scheduledAt)
+        return Number.isFinite(t) ? t >= nowTs - 86400000 : true
+      })
+      .sort((a, b) => Date.parse(a.scheduledAt) - Date.parse(b.scheduledAt))
+      .slice(0, 4)
+      .map((i) => {
+        const when = (() => {
+          const t = Date.parse(i.scheduledAt)
+          if (!Number.isFinite(t)) return i.scheduledAt
+          return new Date(t).toLocaleString('en-SG', {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+          })
+        })()
+        const cand = candidates.find((c) => c.id === i.candidateId)
+        const statusLabel = /screen/i.test(i.round || i.status) ? 'Screening' : 'Interview'
+        return {
+          id: i.id,
+          name: i.candidateName,
+          role: cand?.jobTitle || i.round || 'Candidate',
+          when,
+          status: statusLabel as 'Interview' | 'Screening',
+        }
+      })
+  }, [interviews, candidates])
+
+  const onboardingRows = useMemo(() => {
+    const byEmp = new Map<
+      string,
+      { name: string; role: string; done: number; total: number }
+    >()
+    for (const t of onboardingTasks) {
+      const cur = byEmp.get(t.employeeId) || {
+        name: t.employeeName,
+        role: t.title,
+        done: 0,
+        total: 0,
+      }
+      cur.total += 1
+      if (/complete|done|closed/i.test(t.status) || t.completedAt) cur.done += 1
+      byEmp.set(t.employeeId, cur)
+    }
+    // Prefer recent hires when tasks empty — show 0% progress placeholders only if we have hires with tasks
+    const rows = [...byEmp.values()]
+      .map((r) => ({
+        name: r.name,
+        role: r.role,
+        pct: r.total > 0 ? Math.round((r.done / r.total) * 100) : 0,
+      }))
+      .sort((a, b) => b.pct - a.pct)
+      .slice(0, 4)
+
+    if (rows.length === 0 && liveHires && liveHires.length > 0) {
+      return liveHires.slice(0, 4).map((h) => ({
+        name: h.name,
+        role: h.role,
+        pct: 0,
+      }))
+    }
+    return rows
+  }, [onboardingTasks, liveHires])
+
+  const deptSegments = useMemo(() => {
+    const top = departments.slice(0, 7)
+    const rest = departments.slice(7)
+    const slices = top.map((d, i) => ({
+      label: d.name,
+      value: d.count,
+      percent: d.percent,
+      color: DEPT_COLORS[i % DEPT_COLORS.length],
+    }))
+    if (rest.length > 0) {
+      slices.push({
+        label: 'Others',
+        value: rest.reduce((s, d) => s + d.count, 0),
+        percent: rest.reduce((s, d) => s + d.percent, 0),
+        color: DEPT_COLORS[7],
+      })
+    }
+    return slices
+  }, [departments])
+
+  const deptTotal = deptSegments.reduce((s, d) => s + d.value, 0)
 
   if (!isAdmin) {
     return (
@@ -568,7 +768,12 @@ export default function DashboardTab({
             icon={CheckCircle2}
             iconClass=""
           />
-          <KpiCard label="Pending claims" value={findKpi('claim')?.value || '—'} icon={FileText} iconClass="!bg-amber-50 !text-amber-600" />
+          <KpiCard
+            label="Pending claims"
+            value={findKpi('claim')?.value || '—'}
+            icon={FileText}
+            iconClass="!bg-amber-50 !text-amber-600"
+          />
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
@@ -653,49 +858,30 @@ export default function DashboardTab({
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      <header className="nv-dash-hero flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="space-y-5 animate-in fade-in duration-300">
+      {/* Light welcome header — matches TikTok overview composition */}
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/45">
-            {formatHeaderDate(now)}
-          </p>
-          <h1 className="mt-2 font-display text-2xl md:text-3xl font-bold tracking-tight text-white">
-            {getGreeting(now.getHours())}, {firstName(userName)}
+          <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 md:text-[1.75rem]">
+            {getGreeting(now.getHours())}, Here&apos;s your HR overview
           </h1>
-          <p className="mt-1.5 text-sm text-white/60">
-            {attentionItems.length} items need your attention today.
+          <p className="mt-1 text-sm text-slate-500">
+            Live snapshot for {firstName(userName)} · {formatHeaderDate(now)}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => goTo('Employees Management', 'Opening employee directory…')}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/15 cursor-pointer"
-          >
-            <UserPlus className="h-3.5 w-3.5" />
-            Add employee
-          </button>
-          <button
-            type="button"
-            onClick={() => goTo('Leave Management')}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/15 cursor-pointer"
-          >
-            Review leave
-          </button>
-          <button
-            type="button"
-            onClick={() => goTo('Payroll Management')}
-            className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-slate-900 shadow-sm hover:bg-white/95 cursor-pointer"
-          >
-            <DollarSign className="h-3.5 w-3.5" />
-            Payroll
-          </button>
-        </div>
+        <button
+          type="button"
+          className="inline-flex h-10 items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-600 shadow-sm hover:bg-slate-50 cursor-pointer"
+        >
+          <Calendar className="h-3.5 w-3.5 text-slate-400" />
+          {formatMonthRange(now)}
+          <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
+        </button>
       </header>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 nv-stagger">
         <KpiCard
-          label="Total employees"
+          label="Total Employees"
           value={findKpi('employee')?.value || headcount}
           trend={findKpi('employee')?.delta || undefined}
           trendUp={!findKpi('employee')?.delta?.trim().startsWith('-')}
@@ -703,125 +889,93 @@ export default function DashboardTab({
           iconClass=""
         />
         <KpiCard
-          label="On leave today"
-          value={findKpi('leave')?.value || String(pendingLeaveCount || '—')}
-          trend={findKpi('leave')?.delta || undefined}
-          trendUp={!findKpi('leave')?.delta?.trim().startsWith('-')}
-          icon={Umbrella}
-          iconClass="!bg-sky-50 !text-sky-600"
-        />
-        <KpiCard
-          label="Attendance rate"
-          value={findKpi('attendance')?.value || attendanceRate}
-          trend={findKpi('attendance')?.delta || undefined}
-          trendUp={!findKpi('attendance')?.delta?.trim().startsWith('-')}
-          icon={CheckCircle2}
-          iconClass="!bg-emerald-50 !text-emerald-600"
-        />
-        <KpiCard
-          label="Open positions"
-          value={findKpi('position')?.value || findKpi('open')?.value || '—'}
+          label="Open Roles"
+          value={openRolesCount}
           trend={findKpi('position')?.delta || findKpi('open')?.delta || undefined}
-          trendUp={!(findKpi('position')?.delta || findKpi('open')?.delta || '').trim().startsWith('-')}
+          trendUp={
+            !(findKpi('position')?.delta || findKpi('open')?.delta || '').trim().startsWith('-')
+          }
           icon={Briefcase}
           iconClass="!bg-orange-50 !text-orange-600"
         />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        <WorkforceTrendChart
-          growth={liveGrowth}
-          filter={timelineFilter}
-          onFilterChange={setTimelineFilter}
+        <KpiCard
+          label="New Hires"
+          value={findKpi('hire')?.value || findKpi('new')?.value || String(liveHires?.length ?? '—')}
+          trend={findKpi('hire')?.delta || findKpi('new')?.delta || undefined}
+          trendUp={!(findKpi('hire')?.delta || findKpi('new')?.delta || '').trim().startsWith('-')}
+          icon={UserPlus}
+          iconClass="!bg-sky-50 !text-sky-600"
         />
-
-        <Panel
-          title="Needs attention"
-          action={
-            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-              {attentionItems.length} open
-            </span>
-          }
-          className="lg:col-span-4"
-        >
-          <ul className="space-y-2">
-            {attentionItems.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  onClick={() => goTo(item.tab)}
-                  className="group flex w-full items-start gap-3 rounded-xl border border-slate-100 p-3 text-left hover:border-novora/20 hover:bg-slate-50/80 cursor-pointer"
-                >
-                  <span
-                    className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
-                      item.tone === 'amber'
-                        ? 'bg-amber-400'
-                        : item.tone === 'blue'
-                          ? 'bg-novora'
-                          : 'bg-slate-400'
-                    }`}
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-semibold text-slate-800 group-hover:text-novora">
-                      {item.title}
-                    </span>
-                    <span className="mt-0.5 block text-xs text-slate-500">{item.detail}</span>
-                  </span>
-                  <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-300 group-hover:text-novora" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </Panel>
+        <KpiCard
+          label="Engagement Score"
+          value={engagementScore}
+          trend={liveAttendance ? `Based on ${attendanceRate} present` : undefined}
+          trendUp
+          icon={Zap}
+          iconClass="!bg-violet-50 !text-violet-600"
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Panel
-          title="Attendance this month"
+          title="Hiring Funnel"
           action={
             <button
               type="button"
-              onClick={() => goTo('Attendance Management')}
+              onClick={() => goTo('Recruitment Management')}
               className="text-xs font-semibold text-novora hover:underline cursor-pointer"
             >
               View all
             </button>
           }
         >
-          <div className="flex items-center gap-5">
-            <div className="relative flex h-24 w-24 shrink-0 items-center justify-center">
-              <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
-                <circle cx="50" cy="50" r={attendanceDonut.radius} fill="none" stroke="#f1f5f9" strokeWidth="8" />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r={attendanceDonut.radius}
-                  fill="none"
-                  stroke="#4F46E5"
-                  strokeWidth="8"
-                  strokeDasharray={attendanceDonut.dash}
-                  strokeLinecap="round"
-                  className="transition-[stroke-dasharray] duration-500"
-                />
-              </svg>
-              <span className="absolute text-lg font-bold text-slate-800">{attendanceRate}</span>
-            </div>
-            <ul className="flex-1 space-y-2 text-xs">
-              {attendanceBuckets.slice(0, 3).map((row) => (
-                <li key={row.label} className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-2 text-slate-600">
-                    <span className="h-2 w-2 rounded-full bg-novora" />
-                    {row.label}
-                  </span>
-                  <span className="font-semibold text-slate-800">{row.count}</span>
-                </li>
+          {candidates.length === 0 && offers.length === 0 ? (
+            <p className="py-8 text-center text-xs text-slate-400">
+              No recruitment pipeline data yet.
+            </p>
+          ) : (
+            <HiringFunnel stages={funnelStages} />
+          )}
+        </Panel>
+
+        <Panel
+          title="Attendance Summary"
+          action={
+            <button
+              type="button"
+              onClick={() => goTo('Attendance Management')}
+              className="text-xs font-semibold text-novora hover:underline cursor-pointer"
+            >
+              Details
+            </button>
+          }
+        >
+          <div className="flex flex-col items-center gap-4">
+            <MultiDonut
+              segments={attendanceSegments.map((s) => ({
+                label: s.label,
+                value: s.value,
+                color: s.color,
+              }))}
+              centerValue={attendanceRate}
+              centerLabel="Present Rate"
+            />
+            <div className="flex flex-wrap justify-center gap-2">
+              {attendanceSegments.map((s) => (
+                <span
+                  key={s.label}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-600"
+                >
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+                  {s.pct}% {s.label}
+                </span>
               ))}
-            </ul>
+            </div>
           </div>
         </Panel>
 
         <Panel
-          title="New hires"
+          title="Employees by Department"
           action={
             <button
               type="button"
@@ -832,142 +986,129 @@ export default function DashboardTab({
             </button>
           }
         >
-          <ul className="divide-y divide-slate-100">
-            {hireRows.length === 0 ? (
-              <li className="py-6 text-center text-xs text-slate-400">No recent hires from the API yet.</li>
-            ) : (
-              hireRows.map((person) => (
-              <li key={person.name} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
-                <div className="flex items-center gap-3">
-                  <span className={`flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold ${person.color}`}>
-                    {person.initials}
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800">{person.name}</p>
-                    <p className="text-xs text-slate-500">{person.role}</p>
-                  </div>
-                </div>
-                <span className="text-xs font-medium text-slate-400">{person.date}</span>
-              </li>
-              ))
-            )}
-          </ul>
-        </Panel>
-
-        <Panel
-          title="Payroll snapshot"
-          action={
-            <button
-              type="button"
-              onClick={() => goTo('Payroll Management')}
-              className="text-xs font-semibold text-novora hover:underline cursor-pointer"
-            >
-              Open payroll
-            </button>
-          }
-        >
-          {payrollRun && payrollRun.headcount > 0 ? (
-            <>
-              <p className="text-2xl font-bold tracking-tight text-slate-900">
-                {money(payrollRun.totalNetPay)}
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                Net pay · {payrollPeriodLabel} · {payrollRun.headcount} employee
-                {payrollRun.headcount === 1 ? '' : 's'}
-              </p>
-              {payrollSliceTotal > 0 && (
-                <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div className="flex h-full">
-                    {payrollSlices.map((slice) => {
-                      const width = Math.max(2, Math.round((slice.value / payrollSliceTotal) * 100))
-                      return (
-                        <div
-                          key={slice.name}
-                          className="h-full"
-                          style={{
-                            width: `${width}%`,
-                            backgroundColor: slice.fill || '#4F46E5',
-                          }}
-                          title={slice.name}
-                        />
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-              <ul className="mt-3 space-y-1.5 text-xs">
-                <li className="flex justify-between text-slate-600">
-                  <span>Net pay</span>
-                  <span className="font-semibold text-slate-800">{money(payrollRun.totalNetPay)}</span>
-                </li>
-                {deductionsDisplay && (
-                  <li className="flex justify-between text-slate-600">
-                    <span>Deductions</span>
-                    <span className="font-semibold text-slate-800">{deductionsDisplay}</span>
-                  </li>
-                )}
-                <li className="flex justify-between text-slate-600">
-                  <span>Status</span>
-                  <span className="font-semibold text-slate-800">
-                    {payrollRun.paidCount} paid · {payrollRun.processedCount} processed ·{' '}
-                    {payrollRun.draftCount} draft
-                  </span>
-                </li>
-              </ul>
-            </>
+          {deptSegments.length === 0 ? (
+            <p className="py-8 text-center text-xs text-slate-400">No department breakdown yet.</p>
           ) : (
-            <>
-              <p className="text-sm text-slate-500">
-                No payroll run for this month yet. Generate or process payslips in Pay management.
-              </p>
-              <button
-                type="button"
-                onClick={() => goTo('Payroll Management')}
-                className="mt-4 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-novora/30 hover:text-novora cursor-pointer"
-              >
-                Go to payroll
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            </>
+            <div className="flex items-center gap-4">
+              <MultiDonut
+                segments={deptSegments}
+                centerValue={String(deptTotal || findKpi('employee')?.value || '—')}
+                centerLabel="Total"
+                size={120}
+              />
+              <ul className="min-w-0 flex-1 space-y-1.5">
+                {deptSegments.map((d) => (
+                  <li key={d.label} className="flex items-center justify-between gap-2 text-[11px]">
+                    <span className="flex min-w-0 items-center gap-1.5 text-slate-600">
+                      <span
+                        className="h-2 w-2 shrink-0 rounded-full"
+                        style={{ backgroundColor: d.color }}
+                      />
+                      <span className="truncate">{d.label}</span>
+                    </span>
+                    <span className="shrink-0 font-semibold tabular-nums text-slate-800">
+                      {Math.round(d.percent)}%
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </Panel>
       </div>
 
-      <Panel
-        title="Leave queue"
-        action={
-          <button
-            type="button"
-            onClick={() => goTo('Leave Management')}
-            className="text-xs font-semibold text-novora hover:underline cursor-pointer"
-          >
-            Manage all
-          </button>
-        }
-      >
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          {leaveRows.length === 0 ? (
-            <p className="col-span-full py-6 text-center text-xs text-slate-400">
-              No leave requests in the queue.
-            </p>
-          ) : (
-            leaveRows.map((item) => (
-            <div
-              key={item.name}
-              className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-3 py-3"
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Panel
+          title="Upcoming Interviews"
+          action={
+            <button
+              type="button"
+              onClick={() => goTo('Recruitment Management')}
+              className="text-xs font-semibold text-novora hover:underline cursor-pointer"
             >
-              <div>
-                <p className="text-sm font-semibold text-slate-800">{item.name}</p>
-                <p className="text-xs text-slate-500">
-                  {item.type} · {item.dates}
-                </p>
-              </div>
-              <StatusBadge status={item.status} />
-            </div>
-            ))
+              Schedule
+            </button>
+          }
+        >
+          {upcomingInterviews.length === 0 ? (
+            <p className="py-8 text-center text-xs text-slate-400">No upcoming interviews scheduled.</p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {upcomingInterviews.map((row) => (
+                <li key={row.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-novora/10 text-[11px] font-bold text-novora">
+                    {initials(row.name)}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-slate-800">{row.name}</p>
+                    <p className="truncate text-xs text-slate-500">
+                      {row.role} · {row.when}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${
+                      row.status === 'Interview'
+                        ? 'bg-emerald-50 text-emerald-700 ring-emerald-100'
+                        : 'bg-sky-50 text-sky-700 ring-sky-100'
+                    }`}
+                  >
+                    {row.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
-        </div>
-      </Panel>
+        </Panel>
+
+        <Panel
+          title="Onboarding Tracker"
+          action={
+            <button
+              type="button"
+              onClick={() => goTo('On/Off-boarding Management')}
+              className="text-xs font-semibold text-novora hover:underline cursor-pointer"
+            >
+              Open
+            </button>
+          }
+        >
+          {onboardingRows.length === 0 ? (
+            <p className="py-8 text-center text-xs text-slate-400">No onboarding progress to show.</p>
+          ) : (
+            <ul className="space-y-4">
+              {onboardingRows.map((row) => {
+                const barColor =
+                  row.pct >= 70 ? '#10b981' : row.pct >= 40 ? '#f59e0b' : '#f43f5e'
+                return (
+                  <li key={row.name}>
+                    <div className="mb-1.5 flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-800">{row.name}</p>
+                        <p className="truncate text-xs text-slate-500">{row.role}</p>
+                      </div>
+                      <span className="shrink-0 text-xs font-bold tabular-nums text-slate-700">
+                        {row.pct}%
+                      </span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${Math.max(row.pct, 4)}%`, backgroundColor: barColor }}
+                      />
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </Panel>
+      </div>
+
+      <WorkforceTrendChart
+        growth={liveGrowth}
+        filter={timelineFilter}
+        onFilterChange={setTimelineFilter}
+      />
     </div>
   )
 }
