@@ -103,11 +103,32 @@ function todayLocalIso() {
   return `${y}-${m}-${day}`
 }
 
-function formatPunchClock(iso: string | null | undefined) {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+/** Backend returns LocalTime as "HH:mm:ss" (not a full ISO datetime). */
+function formatPunchClock(value: string | null | undefined) {
+  if (!value) return '—'
+  const raw = String(value).trim()
+  const timeOnly = raw.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/)
+  if (timeOnly) {
+    const hh = Number(timeOnly[1])
+    const mm = Number(timeOnly[2])
+    const d = new Date()
+    d.setHours(hh, mm, 0, 0)
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+  const parsed = new Date(raw)
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+  return raw
+}
+
+function normalizeWorkDate(value: unknown): string {
+  if (typeof value === 'string') return value.slice(0, 10)
+  if (Array.isArray(value) && value.length >= 3) {
+    const [y, m, d] = value
+    return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  }
+  return ''
 }
 
 function initials(name: string) {
@@ -226,33 +247,49 @@ function TodayPunchCard({
   const [checkOutTime, setCheckOutTime] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [clock, setClock] = useState(() => new Date())
+  const [errorHint, setErrorHint] = useState<string | null>(null)
+
+  const applyLog = useCallback((checkIn: string | null | undefined, checkOut: string | null | undefined) => {
+    if (checkIn && checkOut) {
+      setPhase('done')
+      setCheckInTime(formatPunchClock(checkIn))
+      setCheckOutTime(formatPunchClock(checkOut))
+    } else if (checkIn) {
+      setPhase('in')
+      setCheckInTime(formatPunchClock(checkIn))
+      setCheckOutTime(null)
+    } else {
+      setPhase('not_started')
+      setCheckInTime(null)
+      setCheckOutTime(null)
+    }
+  }, [])
 
   const refresh = useCallback(async () => {
     try {
+      setErrorHint(null)
       const rows = await fetchMyAttendance()
       const today = todayLocalIso()
-      const todayLog = rows.find((r) => r.workDate === today)
-      if (todayLog?.checkInTime && todayLog.checkOutTime) {
-        setPhase('done')
-        setCheckInTime(formatPunchClock(todayLog.checkInTime))
-        setCheckOutTime(formatPunchClock(todayLog.checkOutTime))
-      } else if (todayLog?.checkInTime) {
-        setPhase('in')
-        setCheckInTime(formatPunchClock(todayLog.checkInTime))
-        setCheckOutTime(null)
+      const todayUtc = new Date().toISOString().slice(0, 10)
+      const openSession = rows.find((r) => r.checkInTime && !r.checkOutTime)
+      const todayLog =
+        rows.find((r) => {
+          const wd = normalizeWorkDate(r.workDate)
+          return wd === today || wd === todayUtc
+        }) || openSession
+
+      if (todayLog) {
+        applyLog(todayLog.checkInTime, todayLog.checkOutTime)
       } else {
-        setPhase('not_started')
-        setCheckInTime(null)
-        setCheckOutTime(null)
+        applyLog(null, null)
       }
     } catch (err) {
-      if (err instanceof ApiError && (err.status === 401 || err.status === 403 || err.status === 404)) {
-        setPhase('unavailable')
-        return
-      }
+      const message =
+        err instanceof ApiError ? err.message : 'Could not load attendance. Is the API running?'
+      setErrorHint(message)
       setPhase('unavailable')
     }
-  }, [])
+  }, [applyLog])
 
   useEffect(() => {
     void refresh()
@@ -269,12 +306,13 @@ function TodayPunchCard({
     addToast('Punching in…', 'loading')
     try {
       const log = await checkInAttendance()
-      setPhase('in')
-      setCheckInTime(formatPunchClock(log.checkInTime))
-      setCheckOutTime(null)
+      applyLog(log.checkInTime, log.checkOutTime)
+      setErrorHint(null)
       addToast(`Punched in at ${formatPunchClock(log.checkInTime)}.`, 'success')
     } catch (err) {
-      addToast(err instanceof ApiError ? err.message : 'Punch in failed.', 'error')
+      const message = err instanceof ApiError ? err.message : 'Punch in failed.'
+      addToast(message, 'error')
+      setErrorHint(message)
       await refresh()
     } finally {
       setBusy(false)
@@ -287,12 +325,13 @@ function TodayPunchCard({
     addToast('Punching out…', 'loading')
     try {
       const log = await checkOutAttendance()
-      setPhase('done')
-      setCheckInTime(formatPunchClock(log.checkInTime))
-      setCheckOutTime(formatPunchClock(log.checkOutTime))
+      applyLog(log.checkInTime, log.checkOutTime)
+      setErrorHint(null)
       addToast(`Punched out at ${formatPunchClock(log.checkOutTime)}.`, 'success')
     } catch (err) {
-      addToast(err instanceof ApiError ? err.message : 'Punch out failed.', 'error')
+      const message = err instanceof ApiError ? err.message : 'Punch out failed.'
+      addToast(message, 'error')
+      setErrorHint(message)
       await refresh()
     } finally {
       setBusy(false)
@@ -328,20 +367,29 @@ function TodayPunchCard({
             <div>
               <p className="text-sm font-semibold text-slate-800">Punch In / Out</p>
               <p className="text-xs text-slate-500">
-                Link your user to an employee profile to punch from the dashboard.
+                {errorHint || 'Could not load your attendance session.'}
               </p>
             </div>
           </div>
-          {onOpenAttendance && (
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={onOpenAttendance}
+              onClick={() => void refresh()}
               className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-novora/30 hover:text-novora cursor-pointer"
             >
-              Open attendance
-              <ArrowRight className="h-3.5 w-3.5" />
+              Retry
             </button>
-          )}
+            {onOpenAttendance && (
+              <button
+                type="button"
+                onClick={onOpenAttendance}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-novora/30 hover:text-novora cursor-pointer"
+              >
+                Open attendance
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       </section>
     )
@@ -378,6 +426,7 @@ function TodayPunchCard({
                 <strong className="font-semibold text-slate-800">{checkOutTime || '—'}</strong>
               </span>
             </div>
+            {errorHint && <p className="mt-2 text-[11px] font-medium text-rose-600">{errorHint}</p>}
           </div>
         </div>
 

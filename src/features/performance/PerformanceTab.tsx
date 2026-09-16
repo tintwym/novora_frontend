@@ -638,7 +638,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
         description="Goals, KPIs, and appraisal cycles."
       />
       {/* 1. Header/Navigation ribbon styled exactly like Claims/Benefits */}
-      <div id="performance-module-navigator" className="flex flex-col xl:flex-row xl:items-center justify-between nv-card px-4 py-1.5 gap-3">
+      <div id="performance-module-navigator" className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 border-b border-slate-200/85 pb-4">
         {/* Navigation Tabs Pillbox Grid */}
         <div id="performance-navigation-pills" className="flex items-center gap-2 select-none overflow-x-auto w-full xl:w-auto scrollbar-none py-1">
           {subTabsList.map((tab) => {

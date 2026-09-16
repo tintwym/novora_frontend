@@ -1597,7 +1597,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
               Warning: A spike in <strong>"Payroll Discrepancy"</strong> tickets (particularly weekend timesheet multiplier calculation anomalies) has been detected over the past 48 hours. This indicates a potential systemic payroll gateway database out-of-sync situation with the automated clocking system. 
             </p>
 
-            <div className="bg-white border rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-3xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-0.5">
                 <span className="text-[10px] text-slate-400 font-extrabold uppercase block">Reconcile System Action Recommendation</span>
                 <span className="text-xs text-slate-700 font-medium">Reset automated Roster-Claims database sync protocol logs #SNC-9281.</span>

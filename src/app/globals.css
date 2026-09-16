@@ -151,11 +151,16 @@ body {
 
 html[data-theme='cyber-dark'] .nv-card,
 html[data-theme='cyber-dark'] .nv-panel,
-html[data-theme='cyber-dark'] .nv-toolbar,
 html[data-theme='cyber-dark'] .nv-stat-card {
   background: rgba(15, 23, 42, 0.72);
   border-color: var(--color-novora-border);
   color: var(--color-novora-ink);
+}
+
+html[data-theme='cyber-dark'] .nv-toolbar {
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 html[data-theme='cyber-dark'] .nv-btn-secondary {
@@ -965,11 +970,11 @@ html[data-theme='cyber-dark'] #novora-hrms-root select:not([multiple]):not([size
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  border-radius: 1.25rem;
-  border: 1px solid var(--color-novora-border);
-  background: white;
-  padding: 1rem 1.25rem;
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-novora-ink) 3%, transparent);
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
 }
 
 .nv-stat-card {
@@ -1291,15 +1296,16 @@ html[data-theme='cyber-dark'] #novora-hrms-root select:not([multiple]):not([size
 .nv-stagger > *:nth-child(5) { animation-delay: 240ms; }
 .nv-stagger > *:nth-child(6) { animation-delay: 290ms; }
 
+/* Keep module action rows flush with the page — no frosted white toolbar shells. */
 #portal-inner-board .nv-toolbar,
 #portal-inner-board [id$='-top-controls'],
 #portal-inner-board [id$='-upper-actions'],
 #portal-inner-board #performance-module-navigator,
 #portal-inner-board #payroll-global-ctrls {
-  background: color-mix(in srgb, white 92%, transparent);
-  backdrop-filter: blur(10px);
-  border-color: var(--color-novora-border);
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-novora-ink) 3%, transparent);
+  background: transparent;
+  backdrop-filter: none;
+  border: none;
+  box-shadow: none;
 }
 
 html[data-theme='cyber-dark'] .nv-dash-hero {

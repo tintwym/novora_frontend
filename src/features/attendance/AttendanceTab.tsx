@@ -325,8 +325,17 @@ function parseBreakMins(breakTime: string): number | undefined {
 
 function formatPunchTime(iso: string | null | undefined) {
   if (!iso) return '—'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
+  const raw = String(iso).trim()
+  const timeOnly = raw.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/)
+  if (timeOnly) {
+    const hh = Number(timeOnly[1])
+    const mm = Number(timeOnly[2])
+    const d = new Date()
+    d.setHours(hh, mm, 0, 0)
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+  const d = new Date(raw)
+  if (Number.isNaN(d.getTime())) return raw
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
@@ -360,8 +369,21 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
       const rows = await fetchMyAttendance()
       setRecentChecks(rows.slice(0, 14).map(mapAttendanceRow))
 
-      const today = new Date().toISOString().slice(0, 10)
-      const todayLog = rows.find((r) => r.workDate === today)
+      const todayLocal = (() => {
+        const d = new Date()
+        const y = d.getFullYear()
+        const m = String(d.getMonth() + 1).padStart(2, '0')
+        const day = String(d.getDate()).padStart(2, '0')
+        return `${y}-${m}-${day}`
+      })()
+      const todayUtc = new Date().toISOString().slice(0, 10)
+      const openSession = rows.find((r) => r.checkInTime && !r.checkOutTime)
+      const todayLog =
+        rows.find((r) => {
+          const wd = String(r.workDate || '').slice(0, 10)
+          return wd === todayLocal || wd === todayUtc
+        }) || openSession
+
       if (todayLog?.checkInTime && !todayLog.checkOutTime) {
         setCheckedIn(true)
         setCheckInTime(formatPunchTime(todayLog.checkInTime))
@@ -686,6 +708,11 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
 
   const executeCheckInFlow = async () => {
     if (attendanceBusy) return
+    // Already completed both punches for today — don't re-trigger check-in.
+    if (checkInTime && checkOutTime) {
+      addToast('You already completed punch in/out for today.', 'info')
+      return
+    }
     setAttendanceBusy(true)
     try {
       if (!checkedIn) {
@@ -1022,7 +1049,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
           <div className="space-y-6">
             
             {/* Week Scheduler Top controls */}
-            <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="text-xs font-bold text-slate-500"> Roster Period: </span>
                 <span className="text-sm font-extrabold text-slate-800 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">5 – 11 May 2026</span>
@@ -1150,7 +1177,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
         {/* 3. TIMESHEET SUB-TAB */}
         {activeSubTab === 'Timesheet' && (
           <div className="space-y-5">
-            <div className="nv-card p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <select className="bg-slate-50 border border-slate-200 p-2 rounded-xl text-xs font-bold text-slate-700">
                   <option>Single shift</option>
@@ -1376,7 +1403,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
         {/* 5. ROLL CALL SUB-TAB */}
         {activeSubTab === 'Roll Call' && (
           <div className="space-y-5">
-            <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <input
                   type="date"
@@ -1623,7 +1650,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
         {/* 7. UNKNOWN SWIPES SUB-TAB */}
         {activeSubTab === 'Unknown Swipes' && (
           <div className="space-y-5">
-            <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-extrabold text-slate-500">Unresolved Tickets: </span>
                 <span className="bg-rose-50 text-rose-600 px-3 py-1 text-xs font-extrabold rounded-full border border-rose-100 inline-flex items-center whitespace-nowrap shrink-0">
@@ -1998,7 +2025,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
             </div>
 
             {/* 3. Reports Controls & Input Filters */}
-            <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                 <button
                   onClick={() => setReportType('detail')}

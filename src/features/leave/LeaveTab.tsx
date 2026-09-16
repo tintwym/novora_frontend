@@ -2041,7 +2041,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
           </div>
 
           {/* 3. Reports Controls & Input Filters */}
-          <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
               <button
                 onClick={() => setLeaveReportType('detail')}

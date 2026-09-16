@@ -470,7 +470,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
       />
 
       {/* Upper Module Navigation Bar */}
-      <div id="engagement-navigator-row" className="flex flex-col lg:flex-row lg:items-center justify-between nv-card px-4 py-1.5 gap-3">
+      <div id="engagement-navigator-row" className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-200/85 pb-4">
         <div id="engagement-nav-tabs" className="flex items-center gap-1 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
           {(
             [

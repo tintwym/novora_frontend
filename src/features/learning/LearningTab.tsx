@@ -455,7 +455,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
       />
 
       {/* Top Navigation Row - styled exactly matching other modular HRM tabs */}
-      <div id="learning-navigator-row" className="flex flex-col lg:flex-row lg:items-center justify-between nv-card px-4 py-1.5 gap-3">
+      <div id="learning-navigator-row" className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-200/85 pb-4">
         <div id="learning-nav-tabs" className="flex items-center gap-1.5 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
           {(
             [
@@ -544,7 +544,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
           </div>
 
           {/* Filtering and Search Ribbon + Action Buttons */}
-          <div className="bg-white border border-slate-100 p-4.5 rounded-2xl shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
               {/* Search */}

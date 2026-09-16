@@ -584,7 +584,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
         <div id="disciplinary-reasons-view" className="space-y-4">
           
           {/* Controls section */}
-          <div className="nv-card p-4.5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="relative w-full sm:w-80">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
               <input
@@ -693,7 +693,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
       {activeSubTab === 'Disciplinary Action' && (
         <div id="disciplinary-actions-view" className="space-y-4">
           
-          <div className="nv-card p-4.5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="text-xs text-slate-400 font-semibold">
               Warning parameters matrix matching standard corporate audit protocols
             </div>
@@ -1162,7 +1162,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
         <div id="disciplinary-history-view" className="space-y-4">
           
           {/* Controls toolbar */}
-          <div className="nv-card p-4.5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             
             <div className="relative w-full sm:w-80">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -1490,7 +1490,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
             </div>
 
             {/* 3. Reports Controls & Input Filters */}
-            <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row flex-wrap items-center justify-between gap-4">
               
               <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                 <button

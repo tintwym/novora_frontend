@@ -872,7 +872,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
       </div>
 
       {/* Primary Sub-Navigation Bar */}
-      <div id="assets-management-subtabs" className="border border-slate-100 bg-white rounded-2xl px-4 py-1.5 flex flex-wrap items-center justify-between gap-3">
+      <div id="assets-management-subtabs" className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/85 pb-4">
         <div className="flex gap-2.5 overflow-x-auto pb-px">
           {(['Registry'] as const).map(tab => {
             const isActive = activeSubTab === tab;

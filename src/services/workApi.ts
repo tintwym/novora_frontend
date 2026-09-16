@@ -43,11 +43,17 @@ export async function fetchMyAttendance(): Promise<AttendanceLog[]> {
 }
 
 export async function checkInAttendance(): Promise<AttendanceLog> {
-  return apiRequest<AttendanceLog>('/api/my/attendance/check-in', { method: 'POST' })
+  return apiRequest<AttendanceLog>('/api/my/attendance/check-in', {
+    method: 'POST',
+    body: {},
+  })
 }
 
 export async function checkOutAttendance(): Promise<AttendanceLog> {
-  return apiRequest<AttendanceLog>('/api/my/attendance/check-out', { method: 'POST' })
+  return apiRequest<AttendanceLog>('/api/my/attendance/check-out', {
+    method: 'POST',
+    body: {},
+  })
 }
 
 export type LeaveBalance = {

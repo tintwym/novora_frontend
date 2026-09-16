@@ -1149,7 +1149,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
         {activeSubTab === 'Candidate Pipeline' && (
           <div className="space-y-5">
             {/* Filter controls bar */}
-            <div className="nv-card p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div id="position-dropdown" className="relative">
                   <button className="h-9 inline-flex items-center gap-2 px-3.5 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0">
