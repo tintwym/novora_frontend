@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowRight,
   Briefcase,
@@ -8,6 +8,7 @@ import {
   Clock,
   FileText,
   LogIn,
+  LogOut,
   TrendingDown,
   TrendingUp,
   Umbrella,
@@ -18,12 +19,16 @@ import {
 import type { Employee, SidebarTab } from '@/types'
 import { canManageFullSystem } from '@/lib/roles'
 import {
+  ApiError,
+  checkInAttendance,
+  checkOutAttendance,
   fetchAdminAttendanceOverview,
   fetchAdminDashboardSummary,
   fetchAdminDepartments,
   fetchAdminGrowth,
   fetchAdminOnboardingTasks,
   fetchAdminRecentHires,
+  fetchMyAttendance,
   fetchRecruitmentCandidates,
   fetchRecruitmentInterviews,
   fetchRecruitmentJobs,
@@ -88,6 +93,21 @@ function firstName(name: string) {
   const trimmed = name.trim()
   if (!trimmed) return 'there'
   return trimmed.split(/\s+/)[0]
+}
+
+function todayLocalIso() {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function formatPunchClock(iso: string | null | undefined) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
 function initials(name: string) {
@@ -158,6 +178,250 @@ function Panel({
         {action}
       </div>
       {children}
+    </section>
+  )
+}
+
+function EmptyState({
+  message,
+  cta,
+  onClick,
+}: {
+  message: string
+  cta?: string
+  onClick?: () => void
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+      <p className="max-w-[220px] text-xs leading-relaxed text-slate-400">{message}</p>
+      {cta && onClick && (
+        <button
+          type="button"
+          onClick={onClick}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-novora/30 hover:text-novora cursor-pointer"
+        >
+          {cta}
+          <ArrowRight className="h-3.5 w-3.5" />
+        </button>
+      )}
+    </div>
+  )
+}
+
+function SkeletonBlock({ className = '' }: { className?: string }) {
+  return <div className={`animate-pulse rounded-xl bg-slate-100 ${className}`} />
+}
+
+type PunchPhase = 'loading' | 'unavailable' | 'not_started' | 'in' | 'done'
+
+function TodayPunchCard({
+  addToast,
+  onOpenAttendance,
+}: {
+  addToast: (text: string, type: 'success' | 'info' | 'error' | 'loading') => void
+  onOpenAttendance?: () => void
+}) {
+  const [phase, setPhase] = useState<PunchPhase>('loading')
+  const [checkInTime, setCheckInTime] = useState<string | null>(null)
+  const [checkOutTime, setCheckOutTime] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [clock, setClock] = useState(() => new Date())
+
+  const refresh = useCallback(async () => {
+    try {
+      const rows = await fetchMyAttendance()
+      const today = todayLocalIso()
+      const todayLog = rows.find((r) => r.workDate === today)
+      if (todayLog?.checkInTime && todayLog.checkOutTime) {
+        setPhase('done')
+        setCheckInTime(formatPunchClock(todayLog.checkInTime))
+        setCheckOutTime(formatPunchClock(todayLog.checkOutTime))
+      } else if (todayLog?.checkInTime) {
+        setPhase('in')
+        setCheckInTime(formatPunchClock(todayLog.checkInTime))
+        setCheckOutTime(null)
+      } else {
+        setPhase('not_started')
+        setCheckInTime(null)
+        setCheckOutTime(null)
+      }
+    } catch (err) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403 || err.status === 404)) {
+        setPhase('unavailable')
+        return
+      }
+      setPhase('unavailable')
+    }
+  }, [])
+
+  useEffect(() => {
+    void refresh()
+  }, [refresh])
+
+  useEffect(() => {
+    const id = window.setInterval(() => setClock(new Date()), 1000)
+    return () => window.clearInterval(id)
+  }, [])
+
+  const punchIn = async () => {
+    if (busy) return
+    setBusy(true)
+    addToast('Punching in…', 'loading')
+    try {
+      const log = await checkInAttendance()
+      setPhase('in')
+      setCheckInTime(formatPunchClock(log.checkInTime))
+      setCheckOutTime(null)
+      addToast(`Punched in at ${formatPunchClock(log.checkInTime)}.`, 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Punch in failed.', 'error')
+      await refresh()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const punchOut = async () => {
+    if (busy) return
+    setBusy(true)
+    addToast('Punching out…', 'loading')
+    try {
+      const log = await checkOutAttendance()
+      setPhase('done')
+      setCheckInTime(formatPunchClock(log.checkInTime))
+      setCheckOutTime(formatPunchClock(log.checkOutTime))
+      addToast(`Punched out at ${formatPunchClock(log.checkOutTime)}.`, 'success')
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Punch out failed.', 'error')
+      await refresh()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const statusLabel =
+    phase === 'done'
+      ? 'Completed today'
+      : phase === 'in'
+        ? 'On the clock'
+        : phase === 'unavailable'
+          ? 'Unavailable'
+          : phase === 'loading'
+            ? 'Loading…'
+            : 'Not punched in'
+
+  const statusClass =
+    phase === 'done'
+      ? 'bg-slate-100 text-slate-600'
+      : phase === 'in'
+        ? 'bg-emerald-50 text-emerald-700'
+        : 'bg-amber-50 text-amber-700'
+
+  if (phase === 'unavailable') {
+    return (
+      <section className="nv-card p-5 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-50 text-slate-400">
+              <Clock className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Punch In / Out</p>
+              <p className="text-xs text-slate-500">
+                Link your user to an employee profile to punch from the dashboard.
+              </p>
+            </div>
+          </div>
+          {onOpenAttendance && (
+            <button
+              type="button"
+              onClick={onOpenAttendance}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-novora/30 hover:text-novora cursor-pointer"
+            >
+              Open attendance
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="nv-card p-5 shadow-sm">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-start gap-4">
+          <span
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
+              phase === 'in' ? 'bg-emerald-50 text-emerald-600' : 'bg-novora/10 text-novora'
+            }`}
+          >
+            <Clock className="h-5 w-5" />
+          </span>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-sm font-semibold text-slate-800">Today&apos;s attendance</h3>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${statusClass}`}>
+                {statusLabel}
+              </span>
+            </div>
+            <p className="mt-1 font-mono text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
+              {clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-4 text-xs text-slate-500">
+              <span>
+                In{' '}
+                <strong className="font-semibold text-slate-800">{checkInTime || '—'}</strong>
+              </span>
+              <span>
+                Out{' '}
+                <strong className="font-semibold text-slate-800">{checkOutTime || '—'}</strong>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {phase === 'loading' ? (
+            <SkeletonBlock className="h-11 w-36" />
+          ) : phase === 'not_started' ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void punchIn()}
+              className="inline-flex h-11 items-center gap-2 rounded-xl bg-novora px-5 text-xs font-bold text-white shadow-sm hover:opacity-95 disabled:opacity-60 cursor-pointer"
+            >
+              <LogIn className="h-4 w-4" />
+              Punch In
+            </button>
+          ) : phase === 'in' ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void punchOut()}
+              className="inline-flex h-11 items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-5 text-xs font-bold text-rose-600 hover:bg-rose-100 disabled:opacity-60 cursor-pointer"
+            >
+              <LogOut className="h-4 w-4" />
+              Punch Out
+            </button>
+          ) : (
+            <span className="inline-flex h-11 items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 text-xs font-bold text-emerald-700">
+              <CheckCircle2 className="h-4 w-4" />
+              Day complete
+            </span>
+          )}
+          {onOpenAttendance && (
+            <button
+              type="button"
+              onClick={onOpenAttendance}
+              className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 hover:border-novora/30 hover:text-novora cursor-pointer"
+            >
+              Details
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
     </section>
   )
 }
@@ -473,6 +737,7 @@ export default function DashboardTab({
   const isAdmin = canManageFullSystem(roles)
   const headcount = employees.length > 0 ? employees.length.toLocaleString() : '—'
 
+  const [loading, setLoading] = useState(true)
   const [kpiMap, setKpiMap] = useState<Record<string, { value: string; delta: string }>>({})
   const [liveHires, setLiveHires] = useState<DashboardEmployeeRow[] | null>(null)
   const [liveAttendance, setLiveAttendance] = useState<DashboardAttendanceOverview | null>(null)
@@ -491,6 +756,7 @@ export default function DashboardTab({
 
   useEffect(() => {
     let cancelled = false
+    setLoading(true)
     ;(async () => {
       try {
         if (isAdmin) {
@@ -546,6 +812,8 @@ export default function DashboardTab({
         }
       } catch {
         // Leave panels empty when APIs fail — never seed demo people.
+      } finally {
+        if (!cancelled) setLoading(false)
       }
     })()
     return () => {
@@ -564,10 +832,12 @@ export default function DashboardTab({
   }
 
   const openRolesCount = useMemo(() => {
-    const openJobs = jobs.filter((j) => /open|active|publish/i.test(j.status) || j.published)
-    if (openJobs.length === 0) return findKpi('position')?.value || findKpi('open')?.value || '0'
-    const openings = openJobs.reduce((sum, j) => sum + (j.openings ?? 1), 0)
-    return String(openings)
+    // Prefer summary KPI (now computed from open job openings server-side).
+    const fromKpi = findKpi('position')?.value || findKpi('open positions')?.value
+    if (fromKpi && fromKpi !== '—') return fromKpi
+    const openJobs = jobs.filter((j) => /^open$/i.test(j.status) || j.published)
+    if (openJobs.length === 0) return '0'
+    return String(openJobs.reduce((sum, j) => sum + (j.openings ?? 1), 0))
   }, [jobs, kpiMap])
 
   const funnelStages = useMemo(() => {
@@ -607,21 +877,25 @@ export default function DashboardTab({
       if (/absent/i.test(label)) return '#f43f5e'
       return '#94a3b8'
     }
-    const total = attendanceBuckets.reduce((s, b) => s + b.count, 0)
-    if (total <= 0 && liveAttendance) {
+    const preferred = ['Present', 'Late', 'Absent']
+    const byLabel = new Map(attendanceBuckets.map((b) => [b.label.toLowerCase(), b.count]))
+    const rows = preferred.map((label) => ({
+      label,
+      value: byLabel.get(label.toLowerCase()) ?? 0,
+      color: colorFor(label),
+    }))
+    const total = rows.reduce((s, b) => s + b.value, 0)
+    // When logs exist, show real % split. When only a rate exists, show present vs remainder.
+    if (total <= 0 && liveAttendance && attendanceRateValue > 0) {
       const present = Math.round(attendanceRateValue)
-      const rest = Math.max(0, 100 - present)
       return [
         { label: 'Present', value: present, color: '#10b981', pct: present },
-        { label: 'Late', value: Math.round(rest * 0.6), color: '#f59e0b', pct: Math.round(rest * 0.6) },
-        { label: 'Absent', value: Math.round(rest * 0.4), color: '#f43f5e', pct: Math.round(rest * 0.4) },
+        { label: 'Other', value: Math.max(0, 100 - present), color: '#94a3b8', pct: Math.max(0, 100 - present) },
       ]
     }
-    return attendanceBuckets.slice(0, 3).map((b) => ({
-      label: b.label,
-      value: b.count,
-      color: colorFor(b.label),
-      pct: total > 0 ? Math.round((b.count / total) * 100) : 0,
+    return rows.map((b) => ({
+      ...b,
+      pct: total > 0 ? Math.round((b.value / total) * 100) : 0,
     }))
   }, [attendanceBuckets, attendanceRateValue, liveAttendance])
 
@@ -678,8 +952,7 @@ export default function DashboardTab({
       if (/complete|done|closed/i.test(t.status) || t.completedAt) cur.done += 1
       byEmp.set(t.employeeId, cur)
     }
-    // Prefer recent hires when tasks empty — show 0% progress placeholders only if we have hires with tasks
-    const rows = [...byEmp.values()]
+    return [...byEmp.values()]
       .map((r) => ({
         name: r.name,
         role: r.role,
@@ -687,16 +960,7 @@ export default function DashboardTab({
       }))
       .sort((a, b) => b.pct - a.pct)
       .slice(0, 4)
-
-    if (rows.length === 0 && liveHires && liveHires.length > 0) {
-      return liveHires.slice(0, 4).map((h) => ({
-        name: h.name,
-        role: h.role,
-        pct: 0,
-      }))
-    }
-    return rows
-  }, [onboardingTasks, liveHires])
+  }, [onboardingTasks])
 
   const deptSegments = useMemo(() => {
     const top = departments.slice(0, 7)
@@ -776,31 +1040,14 @@ export default function DashboardTab({
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-          <Panel title="Today" className="lg:col-span-5">
-            <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
-              <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-novora shadow-sm">
-                  <Clock className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">Not clocked in yet</p>
-                  <p className="text-xs text-slate-500">Use Attendance to punch in for today</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => goTo('Attendance Management', 'Opening attendance…')}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-semibold text-slate-700 hover:border-novora/30 hover:text-novora cursor-pointer"
-              >
-                Open attendance
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </Panel>
+        <TodayPunchCard
+          addToast={addToast}
+          onOpenAttendance={() => goTo('Attendance Management', 'Opening attendance…')}
+        />
 
-          <Panel title="Upcoming" className="lg:col-span-7">
-            <ul className="space-y-3">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+          <Panel title="Upcoming" className="lg:col-span-12">
+            <ul className="grid gap-3 sm:grid-cols-3">
               {[
                 { title: 'Public holiday — National Day', date: '9 Aug', icon: Calendar },
                 { title: 'Team stand-up', date: 'Tomorrow, 10:00', icon: Users },
@@ -857,6 +1104,35 @@ export default function DashboardTab({
     )
   }
 
+  if (isAdmin && loading) {
+    return (
+      <div className="space-y-5 animate-in fade-in duration-300">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <SkeletonBlock className="h-8 w-72" />
+            <SkeletonBlock className="h-4 w-56" />
+          </div>
+          <SkeletonBlock className="h-10 w-52" />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <SkeletonBlock key={i} className="h-28" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <SkeletonBlock key={i} className="h-56" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <SkeletonBlock className="h-52" />
+          <SkeletonBlock className="h-52" />
+        </div>
+        <SkeletonBlock className="h-64" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-5 animate-in fade-in duration-300">
       {/* Light welcome header — matches TikTok overview composition */}
@@ -879,6 +1155,11 @@ export default function DashboardTab({
         </button>
       </header>
 
+      <TodayPunchCard
+        addToast={addToast}
+        onOpenAttendance={() => goTo('Attendance Management')}
+      />
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 nv-stagger">
         <KpiCard
           label="Total Employees"
@@ -891,10 +1172,12 @@ export default function DashboardTab({
         <KpiCard
           label="Open Roles"
           value={openRolesCount}
-          trend={findKpi('position')?.delta || findKpi('open')?.delta || undefined}
-          trendUp={
-            !(findKpi('position')?.delta || findKpi('open')?.delta || '').trim().startsWith('-')
+          trend={
+            findKpi('position')?.delta && findKpi('position')?.delta !== '—'
+              ? findKpi('position')?.delta
+              : undefined
           }
+          trendUp={!(findKpi('position')?.delta || '').trim().startsWith('-')}
           icon={Briefcase}
           iconClass="!bg-orange-50 !text-orange-600"
         />
@@ -909,7 +1192,11 @@ export default function DashboardTab({
         <KpiCard
           label="Engagement Score"
           value={engagementScore}
-          trend={liveAttendance ? `Based on ${attendanceRate} present` : undefined}
+          trend={
+            liveAttendance && engagementScore !== '—'
+              ? `Based on ${attendanceRate} present`
+              : undefined
+          }
           trendUp
           icon={Zap}
           iconClass="!bg-violet-50 !text-violet-600"
@@ -930,9 +1217,11 @@ export default function DashboardTab({
           }
         >
           {candidates.length === 0 && offers.length === 0 ? (
-            <p className="py-8 text-center text-xs text-slate-400">
-              No recruitment pipeline data yet.
-            </p>
+            <EmptyState
+              message="No candidates in the pipeline yet. Post a role to start hiring."
+              cta="Post a job"
+              onClick={() => goTo('Recruitment Management', 'Opening recruitment…')}
+            />
           ) : (
             <HiringFunnel stages={funnelStages} />
           )}
@@ -950,28 +1239,37 @@ export default function DashboardTab({
             </button>
           }
         >
-          <div className="flex flex-col items-center gap-4">
-            <MultiDonut
-              segments={attendanceSegments.map((s) => ({
-                label: s.label,
-                value: s.value,
-                color: s.color,
-              }))}
-              centerValue={attendanceRate}
-              centerLabel="Present Rate"
+          {!liveAttendance ||
+          (attendanceSegments.every((s) => s.value === 0) && attendanceRateValue <= 0) ? (
+            <EmptyState
+              message="No attendance logs this month yet."
+              cta="Open attendance"
+              onClick={() => goTo('Attendance Management')}
             />
-            <div className="flex flex-wrap justify-center gap-2">
-              {attendanceSegments.map((s) => (
-                <span
-                  key={s.label}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-600"
-                >
-                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
-                  {s.pct}% {s.label}
-                </span>
-              ))}
+          ) : (
+            <div className="flex flex-col items-center gap-4">
+              <MultiDonut
+                segments={attendanceSegments.map((s) => ({
+                  label: s.label,
+                  value: s.value,
+                  color: s.color,
+                }))}
+                centerValue={attendanceRate}
+                centerLabel="Present Rate"
+              />
+              <div className="flex flex-wrap justify-center gap-2">
+                {attendanceSegments.map((s) => (
+                  <span
+                    key={s.label}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-600"
+                  >
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+                    {s.pct}% {s.label}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </Panel>
 
         <Panel
@@ -987,7 +1285,11 @@ export default function DashboardTab({
           }
         >
           {deptSegments.length === 0 ? (
-            <p className="py-8 text-center text-xs text-slate-400">No department breakdown yet.</p>
+            <EmptyState
+              message="Assign departments to employees to see this breakdown."
+              cta="Open directory"
+              onClick={() => goTo('Employees Management')}
+            />
           ) : (
             <div className="flex items-center gap-4">
               <MultiDonut
@@ -1031,7 +1333,11 @@ export default function DashboardTab({
           }
         >
           {upcomingInterviews.length === 0 ? (
-            <p className="py-8 text-center text-xs text-slate-400">No upcoming interviews scheduled.</p>
+            <EmptyState
+              message="No interviews scheduled. Add candidates and book a round."
+              cta="Schedule interview"
+              onClick={() => goTo('Recruitment Management', 'Opening recruitment…')}
+            />
           ) : (
             <ul className="divide-y divide-slate-100">
               {upcomingInterviews.map((row) => (
@@ -1073,7 +1379,11 @@ export default function DashboardTab({
           }
         >
           {onboardingRows.length === 0 ? (
-            <p className="py-8 text-center text-xs text-slate-400">No onboarding progress to show.</p>
+            <EmptyState
+              message="No onboarding checklists yet. Create tasks for new hires."
+              cta="Set up onboarding"
+              onClick={() => goTo('On/Off-boarding Management')}
+            />
           ) : (
             <ul className="space-y-4">
               {onboardingRows.map((row) => {
