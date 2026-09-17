@@ -1044,15 +1044,16 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                     {/* Quick Resolve dropdown controls */}
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] text-slate-400 font-extrabold uppercase">State:</span>
-                      <select
+                      <SelectMenu
                         value={activeTicketObj.status}
-                        onChange={(e) => handleToggleTicketStatus(activeTicketObj.id, e.target.value as any)}
-                        className="text-[11px] font-black border border-slate-100 rounded bg-slate-50 cursor-pointer outline-none focus:ring-1 focus:ring-novora p-1 text-slate-700"
-                      >
-                        <option value="Open">Open</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Resolved">Resolved</option>
-                      </select>
+                        onChange={(v) => handleToggleTicketStatus(activeTicketObj.id, v as any)}
+                        triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                        options={[
+                          { value: 'Open', label: 'Open' },
+                          { value: 'In Progress', label: 'In Progress' },
+                          { value: 'Resolved', label: 'Resolved' },
+                        ]}
+                      />
                     </div>
                   </div>
 
@@ -1193,16 +1194,17 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   <div className="flex items-center justify-between text-[10px] text-slate-400 px-0.5">
                     <div className="flex items-center gap-2">
                       <span className="font-bold uppercase">Insert Corrected Document:</span>
-                      <select
+                      <SelectMenu
                         value={simulatedFileToUpload}
-                        onChange={(e) => setSimulatedFileToUpload(e.target.value)}
-                        className="text-[10px] font-bold border rounded bg-slate-50 p-0.5 text-slate-700 outline-none"
-                      >
-                        <option value="">-- No File selected --</option>
-                        <option value="YTD_Revised_Tax_Recalculated.pdf">YTD_Revised_Tax_Recalculated.pdf</option>
-                        <option value="Signed_Salary_Certificate.pdf">Signed_Salary_Certificate.pdf</option>
-                        <option value="Medical_Checkup_Receipt.pdf">Medical_Checkup_Receipt.pdf</option>
-                      </select>
+                        onChange={setSimulatedFileToUpload}
+                        triggerClassName="text-xs font-bold bg-slate-50"
+                        options={[
+                          { value: '', label: '-- No File selected --' },
+                          { value: 'YTD_Revised_Tax_Recalculated.pdf', label: 'YTD_Revised_Tax_Recalculated.pdf' },
+                          { value: 'Signed_Salary_Certificate.pdf', label: 'Signed_Salary_Certificate.pdf' },
+                          { value: 'Medical_Checkup_Receipt.pdf', label: 'Medical_Checkup_Receipt.pdf' },
+                        ]}
+                      />
                     </div>
 
                     {/* Toggle confidential note flag */}

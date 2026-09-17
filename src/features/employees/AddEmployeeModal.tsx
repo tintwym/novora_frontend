@@ -21,6 +21,7 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import type { Employee, Department, EmploymentStatus } from '@/types';
+import { SelectMenu } from '@/components/ui';
 import { ApiError, createDepartment, createEmployee, fetchDepartments } from '@/services';
 
 interface AddEmployeeModalProps {
@@ -560,16 +561,17 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                     {/* Employment status */}
                     <div className="space-y-1.5">
                       <label className="block font-bold text-slate-500 uppercase tracking-wider">Employment status <span className="text-red-500">*</span></label>
-                      <select 
-                        value={employmentStatus} 
-                        onChange={(e) => setEmploymentStatus(e.target.value as EmploymentStatus)}
-                        className="w-full bg-white border border-slate-200 focus:outline-none focus:border-novora p-2.5 rounded-xl font-bold text-slate-800"
-                      >
-                        <option value="Permanent">Permanent</option>
-                        <option value="Contract">Contract</option>
-                        <option value="Intern">Intern</option>
-                        <option value="Part-time">Part-time</option>
-                      </select>
+                      <SelectMenu
+                        value={employmentStatus}
+                        onChange={(v) => setEmploymentStatus(v as EmploymentStatus)}
+                        triggerClassName="text-xs font-bold border-slate-200"
+                        options={[
+                          { value: 'Permanent', label: 'Permanent' },
+                          { value: 'Contract', label: 'Contract' },
+                          { value: 'Intern', label: 'Intern' },
+                          { value: 'Part-time', label: 'Part-time' },
+                        ]}
+                      />
                     </div>
 
                     {/* Company */}
@@ -608,33 +610,35 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                     {/* Department */}
                     <div className="space-y-1.5">
                       <label className="block font-bold text-slate-500 uppercase tracking-wider">Department <span className="text-red-500">*</span></label>
-                      <select 
-                        value={department} 
-                        onChange={(e) => setDepartment(e.target.value as Department)}
-                        className="w-full bg-white border border-slate-200 focus:outline-none focus:border-novora p-2.5 rounded-xl font-bold text-slate-800"
-                      >
-                        <option value="Engineering">Engineering</option>
-                        <option value="Finance">Finance</option>
-                        <option value="HR">HR</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Operations">Operations</option>
-                      </select>
+                      <SelectMenu
+                        value={department}
+                        onChange={(v) => setDepartment(v as Department)}
+                        triggerClassName="text-xs font-bold border-slate-200"
+                        options={[
+                          { value: 'Engineering', label: 'Engineering' },
+                          { value: 'Finance', label: 'Finance' },
+                          { value: 'HR', label: 'HR' },
+                          { value: 'Marketing', label: 'Marketing' },
+                          { value: 'Operations', label: 'Operations' },
+                        ]}
+                      />
                     </div>
 
                     {/* Section */}
                     <div className="space-y-1.5">
                       <label className="block font-bold text-slate-500 uppercase tracking-wider">Section</label>
-                      <select 
-                        value={section} 
-                        onChange={(e) => setSection(e.target.value)}
-                        className="w-full bg-white border border-slate-200 focus:outline-none focus:border-novora p-2.5 rounded-xl font-bold text-slate-800"
-                      >
-                        <option value="Tech Division">Tech Division</option>
-                        <option value="Accounting Desk">Accounting Desk</option>
-                        <option value="Talent Acquisition">Talent Acquisition</option>
-                        <option value="Media Outreach">Media Outreach</option>
-                        <option value="Ground Ops">Ground Ops</option>
-                      </select>
+                      <SelectMenu
+                        value={section}
+                        onChange={setSection}
+                        triggerClassName="text-xs font-bold border-slate-200"
+                        options={[
+                          { value: 'Tech Division', label: 'Tech Division' },
+                          { value: 'Accounting Desk', label: 'Accounting Desk' },
+                          { value: 'Talent Acquisition', label: 'Talent Acquisition' },
+                          { value: 'Media Outreach', label: 'Media Outreach' },
+                          { value: 'Ground Ops', label: 'Ground Ops' },
+                        ]}
+                      />
                     </div>
 
                     {/* Position */}
@@ -661,47 +665,50 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                     {/* Job Type */}
                     <div className="space-y-1.5">
                       <label className="block font-bold text-slate-500 uppercase tracking-wider">Job Type <span className="text-red-500">*</span></label>
-                      <select 
-                        value={jobType} 
-                        onChange={(e) => setJobType(e.target.value)}
-                        className="w-full bg-white border border-slate-200 focus:outline-none focus:border-novora p-2.5 rounded-xl font-bold text-slate-800"
-                      >
-                        <option value="Full-time">Full-time</option>
-                        <option value="Part-time">Part-time</option>
-                        <option value="Academic Intern">Academic Intern</option>
-                        <option value="Contract-Hourly">Contract-Hourly</option>
-                      </select>
+                      <SelectMenu
+                        value={jobType}
+                        onChange={setJobType}
+                        triggerClassName="text-xs font-bold border-slate-200"
+                        options={[
+                          { value: 'Full-time', label: 'Full-time' },
+                          { value: 'Part-time', label: 'Part-time' },
+                          { value: 'Academic Intern', label: 'Academic Intern' },
+                          { value: 'Contract-Hourly', label: 'Contract-Hourly' },
+                        ]}
+                      />
                     </div>
 
                     {/* Type of Appointment */}
                     <div className="space-y-1.5">
                       <label className="block font-bold text-slate-500 uppercase tracking-wider">Type of Appointment</label>
-                      <select 
-                        value={typeOfAppointment} 
-                        onChange={(e) => setTypeOfAppointment(e.target.value)}
-                        className="w-full bg-white border border-slate-200 focus:outline-none focus:border-novora p-2.5 rounded-xl font-bold text-slate-800"
-                      >
-                        <option value="Confirmed">Confirmed</option>
-                        <option value="Probation">Probation</option>
-                        <option value="Contractual Stage">Contractual Stage</option>
-                      </select>
+                      <SelectMenu
+                        value={typeOfAppointment}
+                        onChange={setTypeOfAppointment}
+                        triggerClassName="text-xs font-bold border-slate-200"
+                        options={[
+                          { value: 'Confirmed', label: 'Confirmed' },
+                          { value: 'Probation', label: 'Probation' },
+                          { value: 'Contractual Stage', label: 'Contractual Stage' },
+                        ]}
+                      />
                     </div>
 
                     {/* Job Grade */}
                     <div className="space-y-1.5">
                       <label className="block font-bold text-slate-500 uppercase tracking-wider">Job Grade</label>
-                      <select 
-                        value={jobGrade} 
-                        onChange={(e) => setJobGrade(e.target.value)}
-                        className="w-full bg-white border border-slate-200 focus:outline-none focus:border-novora p-2.5 rounded-xl font-bold text-slate-800"
-                      >
-                        <option value="G-1">Grade 1 - Junior Executive</option>
-                        <option value="G-3">Grade 3 - Mid Executive</option>
-                        <option value="G-5">Grade 5 - Senior Lead</option>
-                        <option value="G-7">Grade 7 - Managerial</option>
-                        <option value="G-9">Grade 9 - Specialist / Principal</option>
-                        <option value="G-10">Grade 10 - Executive Director</option>
-                      </select>
+                      <SelectMenu
+                        value={jobGrade}
+                        onChange={setJobGrade}
+                        triggerClassName="text-xs font-bold border-slate-200"
+                        options={[
+                          { value: 'G-1', label: 'Grade 1 - Junior Executive' },
+                          { value: 'G-3', label: 'Grade 3 - Mid Executive' },
+                          { value: 'G-5', label: 'Grade 5 - Senior Lead' },
+                          { value: 'G-7', label: 'Grade 7 - Managerial' },
+                          { value: 'G-9', label: 'Grade 9 - Specialist / Principal' },
+                          { value: 'G-10', label: 'Grade 10 - Executive Director' },
+                        ]}
+                      />
                     </div>
 
                     {/* Join Date */}
@@ -731,17 +738,18 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                     {/* Reports to */}
                     <div className="space-y-1.5">
                       <label className="block font-semibold text-slate-550 uppercase tracking-wider">Reports to</label>
-                      <select 
-                        value={reportsTo} 
-                        onChange={(e) => setReportsTo(e.target.value)}
-                        className="w-full bg-white border border-slate-200 focus:outline-none focus:border-novora p-2.5 rounded-xl font-bold text-slate-800"
-                      >
-                        <option value="EMP-0010">David Ng (Director of Engineering)</option>
-                        <option value="EMP-0030">Rachel Tan (head of Finance)</option>
-                        <option value="EMP-0040">Nina Reza (head of People Op)</option>
-                        <option value="EMP-0050">Kevin Lim (VP Marketing)</option>
-                        <option value="EMP-0001">Katherin Lee (Chief Executive Officer)</option>
-                      </select>
+                      <SelectMenu
+                        value={reportsTo}
+                        onChange={setReportsTo}
+                        triggerClassName="text-xs font-bold border-slate-200"
+                        options={[
+                          { value: 'EMP-0010', label: 'David Ng (Director of Engineering)' },
+                          { value: 'EMP-0030', label: 'Rachel Tan (head of Finance)' },
+                          { value: 'EMP-0040', label: 'Nina Reza (head of People Op)' },
+                          { value: 'EMP-0050', label: 'Kevin Lim (VP Marketing)' },
+                          { value: 'EMP-0001', label: 'Katherin Lee (Chief Executive Officer)' },
+                        ]}
+                      />
                     </div>
                   </div>
                 </div>
@@ -850,76 +858,80 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                     {/* Gender */}
                     <div className="space-y-1.5">
                       <label className="block font-bold text-slate-500 uppercase tracking-wider">Gender <span className="text-red-500">*</span></label>
-                      <select 
-                        value={gender} 
-                        onChange={(e) => setGender(e.target.value)}
-                        className="w-full bg-white border border-slate-200 focus:outline-none focus:border-novora p-2.5 rounded-xl font-bold text-slate-800"
-                      >
-                        <option value="Female">Female</option>
-                        <option value="Male">Male</option>
-                        <option value="Other">Other</option>
-                      </select>
+                      <SelectMenu
+                        value={gender}
+                        onChange={setGender}
+                        triggerClassName="text-xs font-bold border-slate-200"
+                        options={[
+                          { value: 'Female', label: 'Female' },
+                          { value: 'Male', label: 'Male' },
+                          { value: 'Other', label: 'Other' },
+                        ]}
+                      />
                     </div>
 
                     {/* Marital Status */}
                     <div className="space-y-1.5">
                       <label className="block font-bold text-slate-500 uppercase tracking-wider">Marital Status</label>
-                      <select 
-                        value={maritalStatus} 
-                        onChange={(e) => setMaritalStatus(e.target.value)}
-                        className="w-full bg-white border border-slate-200 focus:outline-none focus:border-novora p-2.5 rounded-xl font-bold text-slate-800"
-                      >
-                        <option value="Single">Single</option>
-                        <option value="Married">Married</option>
-                        <option value="Divorced">Divorced</option>
-                        <option value="Widowed">Widowed</option>
-                      </select>
+                      <SelectMenu
+                        value={maritalStatus}
+                        onChange={setMaritalStatus}
+                        triggerClassName="text-xs font-bold border-slate-200"
+                        options={[
+                          { value: 'Single', label: 'Single' },
+                          { value: 'Married', label: 'Married' },
+                          { value: 'Divorced', label: 'Divorced' },
+                          { value: 'Widowed', label: 'Widowed' },
+                        ]}
+                      />
                     </div>
 
                     {/* Nationality */}
                     <div className="space-y-1.5">
                       <label className="block font-bold text-slate-500 uppercase tracking-wider">Nationality <span className="text-red-500">*</span></label>
-                      <select 
-                        value={nationality} 
-                        onChange={(e) => setNationality(e.target.value)}
-                        className="w-full bg-white border border-slate-200 focus:outline-none focus:border-novora p-2.5 rounded-xl font-bold text-slate-800"
-                      >
-                        <option value="Singaporean">Singaporean</option>
-                        <option value="Singaporean">Singaporean</option>
-                        <option value="Indonesian">Indonesian</option>
-                        <option value="Other">Other</option>
-                      </select>
+                      <SelectMenu
+                        value={nationality}
+                        onChange={setNationality}
+                        triggerClassName="text-xs font-bold border-slate-200"
+                        options={[
+                          { value: 'Singaporean', label: 'Singaporean' },
+                          { value: 'Indonesian', label: 'Indonesian' },
+                          { value: 'Other', label: 'Other' },
+                        ]}
+                      />
                     </div>
 
                     {/* Race */}
                     <div className="space-y-1.5">
                       <label className="block font-bold text-slate-500 uppercase tracking-wider">Race</label>
-                      <select 
-                        value={race} 
-                        onChange={(e) => setRace(e.target.value)}
-                        className="w-full bg-white border border-slate-200 focus:outline-none focus:border-novora p-2.5 rounded-xl font-bold text-slate-800"
-                      >
-                        <option value="Chinese">Chinese</option>
-                        <option value="Malay">Malay</option>
-                        <option value="Indian">Indian</option>
-                        <option value="Other">Other</option>
-                      </select>
+                      <SelectMenu
+                        value={race}
+                        onChange={setRace}
+                        triggerClassName="text-xs font-bold border-slate-200"
+                        options={[
+                          { value: 'Chinese', label: 'Chinese' },
+                          { value: 'Malay', label: 'Malay' },
+                          { value: 'Indian', label: 'Indian' },
+                          { value: 'Other', label: 'Other' },
+                        ]}
+                      />
                     </div>
 
                     {/* Religion */}
                     <div className="space-y-1.5">
                       <label className="block font-bold text-slate-500 uppercase tracking-wider">Religion</label>
-                      <select 
-                        value={religion} 
-                        onChange={(e) => setReligion(e.target.value)}
-                        className="w-full bg-white border border-slate-200 focus:outline-none focus:border-novora p-2.5 rounded-xl font-bold text-slate-800"
-                      >
-                        <option value="Buddhism">Buddhism</option>
-                        <option value="Islam">Islam</option>
-                        <option value="Christianity">Christianity</option>
-                        <option value="Hinduism">Hinduism</option>
-                        <option value="No Religion">No Religion / Other</option>
-                      </select>
+                      <SelectMenu
+                        value={religion}
+                        onChange={setReligion}
+                        triggerClassName="text-xs font-bold border-slate-200"
+                        options={[
+                          { value: 'Buddhism', label: 'Buddhism' },
+                          { value: 'Islam', label: 'Islam' },
+                          { value: 'Christianity', label: 'Christianity' },
+                          { value: 'Hinduism', label: 'Hinduism' },
+                          { value: 'No Religion', label: 'No Religion / Other' },
+                        ]}
+                      />
                     </div>
 
                     {/* Personal Email */}
@@ -1096,15 +1108,15 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                   {/* Country */}
                   <div className="space-y-1.5">
                     <label className="block font-bold text-slate-400 uppercase tracking-wider">Country <span className="text-red-500">*</span></label>
-                    <select 
-                      value={country} 
-                      onChange={(e) => setCountry(e.target.value)}
-                      className="w-full bg-white border border-slate-200 focus:outline-none focus:border-novora p-2.5 rounded-xl font-bold text-slate-800"
-                    >
-                      <option value="Singapore">Singapore</option>
-                      <option value="Singapore">Singapore</option>
-                      <option value="Brunei">Brunei</option>
-                    </select>
+                    <SelectMenu
+                      value={country}
+                      onChange={setCountry}
+                      triggerClassName="text-xs font-bold border-slate-200"
+                      options={[
+                        { value: 'Singapore', label: 'Singapore' },
+                        { value: 'Brunei', label: 'Brunei' },
+                      ]}
+                    />
                   </div>
                 </div>
 
@@ -1256,19 +1268,16 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                         {/* Terminal Selection */}
                         <div className="md:col-span-6 space-y-1.5">
                           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider">Terminal <span className="text-red-500">*</span></label>
-                          <select 
+                          <SelectMenu
                             value={row.terminal}
-                            onChange={(e) => {
-                              const updated = [...terminalsList];
-                              updated[index].terminal = e.target.value;
-                              setTerminalsList(updated);
-                            }}
-                            className="w-full bg-white border border-slate-200 focus:outline-none focus:border-novora p-2.5 rounded-xl font-bold text-slate-800"
-                          >
-                            <option value="Main Lobby — Terminal 1">Main Lobby — Terminal 1</option>
-                            <option value="Level 3 — Terminal 2">Level 3 — Terminal 2</option>
-                            <option value="Secondary Entrance Terminal 3">Secondary Entrance Terminal 3</option>
-                          </select>
+                            onChange={(v) => { const updated = [...terminalsList]; updated[index].terminal = v; setTerminalsList(updated); }}
+                            triggerClassName="text-xs font-bold border-slate-200"
+                            options={[
+                              { value: 'Main Lobby — Terminal 1', label: 'Main Lobby — Terminal 1' },
+                              { value: 'Level 3 — Terminal 2', label: 'Level 3 — Terminal 2' },
+                              { value: 'Secondary Entrance Terminal 3', label: 'Secondary Entrance Terminal 3' },
+                            ]}
+                          />
                         </div>
 
                         {/* Trash Delete */}

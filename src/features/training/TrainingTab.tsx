@@ -1109,15 +1109,16 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
             <form onSubmit={handleSubmissionRequest} className="space-y-4 text-xs font-semibold text-slate-700">
               <div className="space-y-1">
                 <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Course title <span className="text-rose-500">*</span></label>
-                <select
+                <SelectMenu
                   value={formCourse}
-                  onChange={e => setFormCourse(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-1 focus:ring-novora"
-                >
-                  <option value="Excel advanced">Excel advanced</option>
-                  <option value="Leadership essentials">Leadership essentials</option>
-                  <option value="ISO 9001 awareness">ISO 9001 awareness</option>
-                </select>
+                  onChange={setFormCourse}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Excel advanced', label: 'Excel advanced' },
+                    { value: 'Leadership essentials', label: 'Leadership essentials' },
+                    { value: 'ISO 9001 awareness', label: 'ISO 9001 awareness' },
+                  ]}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -1799,18 +1800,20 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 </div>
                 
                 {selectedReportType === 'skills' && (
-                  <select
+                <SelectMenu
                     value={reportFilterDept}
-                    onChange={(e) => setReportFilterDept(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none"
-                  >
-                    <option value="All">All Departments</option>
-                    <option value="Engineering">Engineering</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Operations">Operations</option>
-                    <option value="Human Resources">HR</option>
-                    <option value="Marketing">Marketing</option>
-                  </select>
+                    onChange={setReportFilterDept}
+                    className="w-auto shrink-0"
+                    triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                    options={[
+                      { value: 'All', label: 'All Departments' },
+                      { value: 'Engineering', label: 'Engineering' },
+                      { value: 'Finance', label: 'Finance' },
+                      { value: 'Operations', label: 'Operations' },
+                      { value: 'Human Resources', label: 'HR' },
+                      { value: 'Marketing', label: 'Marketing' },
+                    ]}
+                  />
                 )}
               </div>
               
@@ -2055,14 +2058,15 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Status</label>
-                    <select
+                    <SelectMenu
                       value={newTypeStatus}
-                      onChange={e => setNewTypeStatus(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none"
-                    >
-                      <option value="Active">Active</option>
-                      <option value="Draft">Draft</option>
-                    </select>
+                      onChange={setNewTypeStatus}
+                      triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                      options={[
+                        { value: 'Active', label: 'Active' },
+                        { value: 'Draft', label: 'Draft' },
+                      ]}
+                    />
                   </div>
                   <div className="flex justify-end gap-2 pt-4 border-t border-slate-50">
                     <button type="button" onClick={resetForm} className="border border-slate-200 px-4 py-2 rounded-xl">Cancel</button>
@@ -2086,16 +2090,17 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Training Type</label>
-                    <select
+                    <SelectMenu
                       value={newCatType}
-                      onChange={e => setNewCatType(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none"
-                    >
-                      <option value="Management">Management</option>
-                      <option value="Technical">Technical</option>
-                      <option value="Compliance">Compliance</option>
-                      <option value="Soft skills">Soft skills</option>
-                    </select>
+                      onChange={setNewCatType}
+                      triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                      options={[
+                        { value: 'Management', label: 'Management' },
+                        { value: 'Technical', label: 'Technical' },
+                        { value: 'Compliance', label: 'Compliance' },
+                        { value: 'Soft skills', label: 'Soft skills' },
+                      ]}
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Description</label>
@@ -2130,20 +2135,30 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Type / Category</label>
-                      <select value={newCourseType} onChange={e => setNewCourseType(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-                        <option value="Management">Management</option>
-                        <option value="Technical">Technical</option>
-                        <option value="Compliance">Compliance</option>
-                        <option value="Soft skills">Soft skills</option>
-                      </select>
+                      <SelectMenu
+                        value={newCourseType}
+                        onChange={setNewCourseType}
+                        triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                        options={[
+                          { value: 'Management', label: 'Management' },
+                          { value: 'Technical', label: 'Technical' },
+                          { value: 'Compliance', label: 'Compliance' },
+                          { value: 'Soft skills', label: 'Soft skills' },
+                        ]}
+                      />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Delivery</label>
-                      <select value={newCourseDelivery} onChange={e => setNewCourseDelivery(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-                        <option value="Internal">Internal</option>
-                        <option value="External">External</option>
-                        <option value="Overseas">Overseas</option>
-                      </select>
+                      <SelectMenu
+                        value={newCourseDelivery}
+                        onChange={setNewCourseDelivery}
+                        triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                        options={[
+                          { value: 'Internal', label: 'Internal' },
+                          { value: 'External', label: 'External' },
+                          { value: 'Overseas', label: 'Overseas' },
+                        ]}
+                      />
                     </div>
                   </div>
 
@@ -2154,10 +2169,15 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Mandatory</label>
-                      <select value={newCourseMandatory} onChange={e => setNewCourseMandatory(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
-                      </select>
+                      <SelectMenu
+                        value={newCourseMandatory}
+                        onChange={setNewCourseMandatory}
+                        triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                        options={[
+                          { value: 'Yes', label: 'Yes' },
+                          { value: 'No', label: 'No' },
+                        ]}
+                      />
                     </div>
                   </div>
 
@@ -2183,10 +2203,15 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Course Category</label>
-                    <select value={newSubjCourse} onChange={e => setNewSubjCourse(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
-                      <option value="Leadership essentials">Leadership essentials</option>
-                      <option value="Excel advanced">Excel advanced</option>
-                    </select>
+                    <SelectMenu
+                      value={newSubjCourse}
+                      onChange={setNewSubjCourse}
+                      triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                      options={[
+                        { value: 'Leadership essentials', label: 'Leadership essentials' },
+                        { value: 'Excel advanced', label: 'Excel advanced' },
+                      ]}
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
@@ -2213,18 +2238,28 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 <form onSubmit={handleAddSchedule} className="space-y-4 text-xs font-semibold text-slate-700">
                   <div className="space-y-1">
                     <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Course Title</label>
-                    <select value={newSchedCourse} onChange={e => setNewSchedCourse(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
-                      <option value="Leadership essentials">Leadership essentials</option>
-                      <option value="Excel advanced">Excel advanced</option>
-                    </select>
+                    <SelectMenu
+                      value={newSchedCourse}
+                      onChange={setNewSchedCourse}
+                      triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                      options={[
+                        { value: 'Leadership essentials', label: 'Leadership essentials' },
+                        { value: 'Excel advanced', label: 'Excel advanced' },
+                      ]}
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Type</label>
-                      <select value={newSchedType} onChange={e => setNewSchedType(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-                        <option value="Internal">Internal</option>
-                        <option value="External">External</option>
-                      </select>
+                      <SelectMenu
+                        value={newSchedType}
+                        onChange={setNewSchedType}
+                        triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                        options={[
+                          { value: 'Internal', label: 'Internal' },
+                          { value: 'External', label: 'External' },
+                        ]}
+                      />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Period</label>
@@ -2252,12 +2287,17 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 <form onSubmit={handleAddAttendance} className="space-y-4 text-xs font-semibold text-slate-700">
                   <div className="space-y-1">
                     <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Employee Name</label>
-                    <select value={newAttEmployee} onChange={e => setNewAttEmployee(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
-                      <option value="Sarah Lim">Sarah Lim</option>
-                      <option value="Raj Kumar">Raj Kumar</option>
-                      <option value="Maya Tan">Maya Tan</option>
-                      <option value="Ahmad Luqman">Ahmad Luqman</option>
-                    </select>
+                    <SelectMenu
+                      value={newAttEmployee}
+                      onChange={setNewAttEmployee}
+                      triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                      options={[
+                        { value: 'Sarah Lim', label: 'Sarah Lim' },
+                        { value: 'Raj Kumar', label: 'Raj Kumar' },
+                        { value: 'Maya Tan', label: 'Maya Tan' },
+                        { value: 'Ahmad Luqman', label: 'Ahmad Luqman' },
+                      ]}
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Course / Subject</label>
@@ -2270,11 +2310,16 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Status</label>
-                      <select value={newAttStatus} onChange={e => setNewAttStatus(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-                        <option value="Present">Present</option>
-                        <option value="Late">Late</option>
-                        <option value="Absent">Absent</option>
-                      </select>
+                      <SelectMenu
+                        value={newAttStatus}
+                        onChange={setNewAttStatus}
+                        triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                        options={[
+                          { value: 'Present', label: 'Present' },
+                          { value: 'Late', label: 'Late' },
+                          { value: 'Absent', label: 'Absent' },
+                        ]}
+                      />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">

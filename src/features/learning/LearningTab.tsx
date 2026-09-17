@@ -765,44 +765,47 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-[10px] text-slate-400 font-bold block mb-1">Provider Source</label>
-                      <select
+                      <SelectMenu
                         value={scormProvider}
-                        onChange={(e) => setScormProvider(e.target.value as any)}
-                        className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none"
-                      >
-                        <option value="LinkedIn Learning">LinkedIn Learning</option>
-                        <option value="Coursera">Coursera</option>
-                        <option value="Udemy">Udemy</option>
-                      </select>
+                        onChange={(v) => setScormProvider(v as any)}
+                        triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                        options={[
+                          { value: 'LinkedIn Learning', label: 'LinkedIn Learning' },
+                          { value: 'Coursera', label: 'Coursera' },
+                          { value: 'Udemy', label: 'Udemy' },
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="text-[10px] text-slate-400 font-bold block mb-1">Course Category</label>
-                      <select
+                      <SelectMenu
                         value={scormCategory}
-                        onChange={(e) => setScormCategory(e.target.value as any)}
-                        className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none"
-                      >
-                        <option value="General">General / Core</option>
-                        <option value="Engineering">Engineering</option>
-                        <option value="Finance">Finance</option>
-                        <option value="HR">HR</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Operations">Operations</option>
-                      </select>
+                        onChange={(v) => setScormCategory(v as any)}
+                        triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                        options={[
+                          { value: 'General', label: 'General / Core' },
+                          { value: 'Engineering', label: 'Engineering' },
+                          { value: 'Finance', label: 'Finance' },
+                          { value: 'HR', label: 'HR' },
+                          { value: 'Marketing', label: 'Marketing' },
+                          { value: 'Operations', label: 'Operations' },
+                        ]}
+                      />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-[10px] text-slate-400 font-bold block mb-1">Format Type</label>
-                      <select
+                      <SelectMenu
                         value={scormFormat}
-                        onChange={(e) => setScormFormat(e.target.value as any)}
-                        className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none"
-                      >
-                        <option value="Interactive (SCORM)">Interactive SCORM Module</option>
-                        <option value="Video Sequence">Video Lecture Track</option>
-                      </select>
+                        onChange={(v) => setScormFormat(v as any)}
+                        triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                        options={[
+                          { value: 'Interactive (SCORM)', label: 'Interactive SCORM Module' },
+                          { value: 'Video Sequence', label: 'Video Lecture Track' },
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="text-[10px] text-slate-400 font-bold block mb-1">Estimated duration</label>
@@ -1015,31 +1018,33 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Assigned Department</label>
-                    <select
+                    <SelectMenu
                       value={newPathDept}
-                      onChange={(e) => setNewPathDept(e.target.value)}
-                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 outline-none cursor-pointer"
-                    >
-                      <option value="Engineering">Engineering</option>
-                      <option value="Finance">Finance</option>
-                      <option value="HR">HR</option>
-                      <option value="Marketing">Marketing</option>
-                      <option value="Operations">Operations</option>
-                      <option value="General">Entire Cohort</option>
-                    </select>
+                      onChange={setNewPathDept}
+                      triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                      options={[
+                        { value: 'Engineering', label: 'Engineering' },
+                        { value: 'Finance', label: 'Finance' },
+                        { value: 'HR', label: 'HR' },
+                        { value: 'Marketing', label: 'Marketing' },
+                        { value: 'Operations', label: 'Operations' },
+                        { value: 'General', label: 'Entire Cohort' },
+                      ]}
+                    />
                   </div>
 
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Difficulty level</label>
-                    <select
+                    <SelectMenu
                       value={newPathDiff}
-                      onChange={(e) => setNewPathDiff(e.target.value as any)}
-                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer"
-                    >
-                      <option value="Beginner">Beginner (101)</option>
-                      <option value="Intermediate">Intermediate (201)</option>
-                      <option value="Advanced">Advanced (301)</option>
-                    </select>
+                      onChange={(v) => setNewPathDiff(v as any)}
+                      triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                      options={[
+                        { value: 'Beginner', label: 'Beginner (101)' },
+                        { value: 'Intermediate', label: 'Intermediate (201)' },
+                        { value: 'Advanced', label: 'Advanced (301)' },
+                      ]}
+                    />
                   </div>
 
                   <div>

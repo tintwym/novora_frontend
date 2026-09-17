@@ -868,16 +868,17 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Relationship</label>
-                    <select
+                    <SelectMenu
                       value={newDepRel}
-                      onChange={(e) => setNewDepRel(e.target.value as any)}
-                      className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 outline-none focus:bg-white focus:border-slate-200 cursor-pointer"
-                    >
-                      <option value="Spouse">Spouse</option>
-                      <option value="Child">Child</option>
-                      <option value="Parent">Parent</option>
-                      <option value="Sibling">Sibling</option>
-                    </select>
+                      onChange={(v) => setNewDepRel(v as any)}
+                      triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                      options={[
+                        { value: 'Spouse', label: 'Spouse' },
+                        { value: 'Child', label: 'Child' },
+                        { value: 'Parent', label: 'Parent' },
+                        { value: 'Sibling', label: 'Sibling' },
+                      ]}
+                    />
                   </div>
 
                   <div>
@@ -904,15 +905,16 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
 
                 <div>
                   <label className="text-[10px] text-slate-400 font-bold block mb-1">Assigned Coverage Policy</label>
-                  <select
+                  <SelectMenu
                     value={newDepTier}
-                    onChange={(e) => setNewDepTier(e.target.value as any)}
-                    className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 outline-none focus:bg-white focus:border-slate-200 cursor-pointer"
-                  >
-                    <option value="Standard Medical Only">Standard Medical Only</option>
-                    <option value="Full Comprehensive">Full Comprehensive</option>
-                    <option value="Accident Coverage">Accident Coverage</option>
-                  </select>
+                    onChange={(v) => setNewDepTier(v as any)}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                    options={[
+                      { value: 'Standard Medical Only', label: 'Standard Medical Only' },
+                      { value: 'Full Comprehensive', label: 'Full Comprehensive' },
+                      { value: 'Accident Coverage', label: 'Accident Coverage' },
+                    ]}
+                  />
                 </div>
 
                 <button

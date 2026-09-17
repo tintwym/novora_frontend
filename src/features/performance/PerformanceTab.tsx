@@ -31,7 +31,7 @@ import {
   Download,
   Settings
 } from 'lucide-react';
-import { DropdownAnchor } from '@/components/ui';
+import { DropdownAnchor, SelectMenu} from '@/components/ui';
 import {
   ApiError,
   createPerformanceReview,
@@ -2215,14 +2215,15 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     </div>
                     <div>
                       <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Status</label>
-                      <select
+                      <SelectMenu
                         value={lvlStatus}
-                        onChange={(e) => setLvlStatus(e.target.value)}
-                        className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                      >
-                        <option>Active</option>
-                        <option>Draft</option>
-                      </select>
+                        onChange={setLvlStatus}
+                        triggerClassName="text-xs font-bold"
+                        options={[
+                          { value: 'Active', label: 'Active' },
+                          { value: 'Draft', label: 'Draft' },
+                        ]}
+                      />
                     </div>
                     <button
                       type="button"
@@ -2281,14 +2282,15 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     </div>
                     <div>
                       <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Apply for evaluation calculations</label>
-                      <select
+                      <SelectMenu
                         value={grdApply}
-                        onChange={(e) => setGrdApply(e.target.value)}
-                        className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                      >
-                        <option>Yes</option>
-                        <option>No (Draft scale)</option>
-                      </select>
+                        onChange={setGrdApply}
+                        triggerClassName="text-xs font-bold"
+                        options={[
+                          { value: 'Yes', label: 'Yes' },
+                          { value: 'No (Draft scale)', label: 'No (Draft scale)' },
+                        ]}
+                      />
                     </div>
                     <button
                       type="button"
@@ -2306,14 +2308,15 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">KPI framework type</label>
-                        <select
+                        <SelectMenu
                           value={selectedKPIType}
-                          onChange={(e) => setSelectedKPIType(e.target.value as any)}
-                          className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                        >
-                          <option>Attendance</option>
-                          <option>Achievement</option>
-                        </select>
+                          onChange={(v) => setSelectedKPIType(v as any)}
+                          triggerClassName="text-xs font-bold"
+                          options={[
+                            { value: 'Attendance', label: 'Attendance' },
+                            { value: 'Achievement', label: 'Achievement' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Scoring weightage</label>
@@ -2380,77 +2383,83 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Frequency period</label>
-                        <select
+                        <SelectMenu
                           value={tpEvery}
-                          onChange={(e) => setTpEvery(e.target.value)}
-                          className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                        >
-                          <option>1 month</option>
-                          <option>3 months</option>
-                          <option>6 months</option>
-                          <option>12 months</option>
-                        </select>
+                          onChange={setTpEvery}
+                          triggerClassName="text-xs font-bold"
+                          options={[
+                            { value: '1 month', label: '1 month' },
+                            { value: '3 months', label: '3 months' },
+                            { value: '6 months', label: '6 months' },
+                            { value: '12 months', label: '12 months' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Achieve KPI calculation</label>
-                        <select
+                        <SelectMenu
                           value={tpAchieveKpi}
-                          onChange={(e) => setTpAchieveKpi(e.target.value)}
-                          className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                        >
-                          <option>Yes</option>
-                          <option>No</option>
-                        </select>
+                          onChange={setTpAchieveKpi}
+                          triggerClassName="text-xs font-bold"
+                          options={[
+                            { value: 'Yes', label: 'Yes' },
+                            { value: 'No', label: 'No' },
+                          ]}
+                        />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Notification period</label>
-                        <select
+                        <SelectMenu
                           value={tpNotify}
-                          onChange={(e) => setTpNotify(e.target.value)}
-                          className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                        >
-                          <option>7 days</option>
-                          <option>15 days</option>
-                          <option>30 days</option>
-                        </select>
+                          onChange={setTpNotify}
+                          triggerClassName="text-xs font-bold"
+                          options={[
+                            { value: '7 days', label: '7 days' },
+                            { value: '15 days', label: '15 days' },
+                            { value: '30 days', label: '30 days' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Include self evaluation</label>
-                        <select
+                        <SelectMenu
                           value={tpTrainee}
-                          onChange={(e) => setTpTrainee(e.target.value)}
-                          className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                        >
-                          <option>Yes</option>
-                          <option>No</option>
-                        </select>
+                          onChange={setTpTrainee}
+                          triggerClassName="text-xs font-bold"
+                          options={[
+                            { value: 'Yes', label: 'Yes' },
+                            { value: 'No', label: 'No' },
+                          ]}
+                        />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Primary appraiser</label>
-                        <select
+                        <SelectMenu
                           value={tpAppraiser}
-                          onChange={(e) => setTpAppraiser(e.target.value)}
-                          className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                        >
-                          <option>Direct manager</option>
-                          <option>Department Head</option>
-                          <option>Peer Group</option>
-                        </select>
+                          onChange={setTpAppraiser}
+                          triggerClassName="text-xs font-bold"
+                          options={[
+                            { value: 'Direct manager', label: 'Direct manager' },
+                            { value: 'Department Head', label: 'Department Head' },
+                            { value: 'Peer Group', label: 'Peer Group' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Status</label>
-                        <select
+                        <SelectMenu
                           value={tpStatus}
-                          onChange={(e) => setTpStatus(e.target.value)}
-                          className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                        >
-                          <option>Active</option>
-                          <option>Draft</option>
-                        </select>
+                          onChange={setTpStatus}
+                          triggerClassName="text-xs font-bold"
+                          options={[
+                            { value: 'Active', label: 'Active' },
+                            { value: 'Draft', label: 'Draft' },
+                          ]}
+                        />
                       </div>
                     </div>
                     <button
@@ -2479,16 +2488,17 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">KPI connection type</label>
-                        <select
+                        <SelectMenu
                           value={catType}
-                          onChange={(e) => setCatType(e.target.value as any)}
-                          className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                        >
-                          <option>Attribute</option>
-                          <option>Competency</option>
-                          <option>KPI category</option>
-                          <option>Attendance KPI</option>
-                        </select>
+                          onChange={(v) => setCatType(v as any)}
+                          triggerClassName="text-xs font-bold"
+                          options={[
+                            { value: 'Attribute', label: 'Attribute' },
+                            { value: 'Competency', label: 'Competency' },
+                            { value: 'KPI category', label: 'KPI category' },
+                            { value: 'Attendance KPI', label: 'Attendance KPI' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Weightage percentage %</label>
@@ -2504,15 +2514,16 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Scoring system</label>
-                        <select
+                        <SelectMenu
                           value={catScoring}
-                          onChange={(e) => setCatScoring(e.target.value)}
-                          className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                        >
-                          <option>1–5 rating scale</option>
-                          <option>Pass / Fail gate</option>
-                          <option>Percentage score</option>
-                        </select>
+                          onChange={setCatScoring}
+                          triggerClassName="text-xs font-bold"
+                          options={[
+                            { value: '1–5 rating scale', label: '1–5 rating scale' },
+                            { value: 'Pass / Fail gate', label: 'Pass / Fail gate' },
+                            { value: 'Percentage score', label: 'Percentage score' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Measurement target</label>
@@ -2558,15 +2569,16 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     </div>
                     <div>
                       <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Evaluation Type</label>
-                      <select
+                      <SelectMenu
                         value={stpType}
-                        onChange={(e) => setStpType(e.target.value)}
-                        className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                      >
-                        <option>Year-end appraisal</option>
-                        <option>Probation review</option>
-                        <option>H2 performance review</option>
-                      </select>
+                        onChange={setStpType}
+                        triggerClassName="text-xs font-bold"
+                        options={[
+                          { value: 'Year-end appraisal', label: 'Year-end appraisal' },
+                          { value: 'Probation review', label: 'Probation review' },
+                          { value: 'H2 performance review', label: 'H2 performance review' },
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1.5">Linked categories to evaluate</label>
@@ -2600,17 +2612,27 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     <div className="grid grid-cols-2 gap-3.5 border-t pt-3">
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Appraiser notes</label>
-                        <select value={stpAppraiserNote} onChange={(e) => setStpAppraiserNote(e.target.value)} className="w-full text-xs p-2 border rounded-lg">
-                          <option>Yes</option>
-                          <option>No</option>
-                        </select>
+                        <SelectMenu
+                          value={stpAppraiserNote}
+                          onChange={setStpAppraiserNote}
+                          triggerClassName="text-xs font-bold"
+                          options={[
+                            { value: 'Yes', label: 'Yes' },
+                            { value: 'No', label: 'No' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Career objectives</label>
-                        <select value={stpCareerEnabled} onChange={(e) => setStpCareerEnabled(e.target.value)} className="w-full text-xs p-2 border rounded-lg">
-                          <option>Yes</option>
-                          <option>No</option>
-                        </select>
+                        <SelectMenu
+                          value={stpCareerEnabled}
+                          onChange={setStpCareerEnabled}
+                          triggerClassName="text-xs font-bold"
+                          options={[
+                            { value: 'Yes', label: 'Yes' },
+                            { value: 'No', label: 'No' },
+                          ]}
+                        />
                       </div>
                     </div>
                     <button
@@ -2628,27 +2650,29 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   <div className="space-y-4">
                     <div>
                       <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Evaluator / primary appraiser</label>
-                      <select
+                      <SelectMenu
                         value={prmEvaluator}
-                        onChange={(e) => setPrmEvaluator(e.target.value)}
-                        className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                      >
-                        <option>David Ng</option>
-                        <option>Nina Reza</option>
-                        <option>Kevin Lim</option>
-                      </select>
+                        onChange={setPrmEvaluator}
+                        triggerClassName="text-xs font-bold"
+                        options={[
+                          { value: 'David Ng', label: 'David Ng' },
+                          { value: 'Nina Reza', label: 'Nina Reza' },
+                          { value: 'Kevin Lim', label: 'Kevin Lim' },
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Evaluation framework type</label>
-                      <select
+                      <SelectMenu
                         value={prmType}
-                        onChange={(e) => setPrmType(e.target.value)}
-                        className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                      >
-                        <option>Year-end appraisal</option>
-                        <option>Probation review</option>
-                        <option>Mid-year review</option>
-                      </select>
+                        onChange={setPrmType}
+                        triggerClassName="text-xs font-bold"
+                        options={[
+                          { value: 'Year-end appraisal', label: 'Year-end appraisal' },
+                          { value: 'Probation review', label: 'Probation review' },
+                          { value: 'Mid-year review', label: 'Mid-year review' },
+                        ]}
+                      />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -2672,14 +2696,15 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     </div>
                     <div>
                       <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Status</label>
-                      <select
+                      <SelectMenu
                         value={prmStatus}
-                        onChange={(e) => setPrmStatus(e.target.value)}
-                        className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                      >
-                        <option>Active</option>
-                        <option>Draft</option>
-                      </select>
+                        onChange={setPrmStatus}
+                        triggerClassName="text-xs font-bold"
+                        options={[
+                          { value: 'Active', label: 'Active' },
+                          { value: 'Draft', label: 'Draft' },
+                        ]}
+                      />
                     </div>
                     <button
                       type="button"
@@ -2744,31 +2769,30 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Competency type</label>
-                        <select
+                        <SelectMenu
                           value={compType}
-                          onChange={(e) => {
-                            setCompType(e.target.value);
-                            if (e.target.value === 'Competency') setCompParent('—');
-                          }}
-                          className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer"
-                        >
-                          <option>Competency</option>
-                          <option>Sub-comp.</option>
-                        </select>
+                          onChange={(v) => { setCompType(v); if (v === 'Competency') setCompParent('—'); }}
+                          triggerClassName="text-xs font-bold"
+                          options={[
+                            { value: 'Competency', label: 'Competency' },
+                            { value: 'Sub-comp.', label: 'Sub-comp.' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Parent category Group</label>
-                        <select
+                        <SelectMenu
                           value={compParent}
-                          onChange={(e) => setCompParent(e.target.value)}
+                          onChange={setCompParent}
                           disabled={compType === 'Competency'}
-                          className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer disabled:bg-slate-50 disabled:text-slate-400"
-                        >
-                          <option>—</option>
-                          <option>Leadership</option>
-                          <option>Problem solving</option>
-                          <option>Adaptability</option>
-                        </select>
+                          triggerClassName="text-xs font-bold bg-slate-50"
+                          options={[
+                            { value: '—', label: '—' },
+                            { value: 'Leadership', label: 'Leadership' },
+                            { value: 'Problem solving', label: 'Problem solving' },
+                            { value: 'Adaptability', label: 'Adaptability' },
+                          ]}
+                        />
                       </div>
                     </div>
                     <div>
@@ -2826,16 +2850,17 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Review Type *</label>
-                        <select
+                        <SelectMenu
                           value={evalReviewType}
-                          onChange={(e) => setEvalReviewType(e.target.value)}
-                          className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer bg-white"
-                        >
-                          <option>Year-end appraisal</option>
-                          <option>Mid-year appraisal</option>
-                          <option>Probation review</option>
-                          <option>360 Performance Review</option>
-                        </select>
+                          onChange={setEvalReviewType}
+                          triggerClassName="text-xs font-bold"
+                          options={[
+                            { value: 'Year-end appraisal', label: 'Year-end appraisal' },
+                            { value: 'Mid-year appraisal', label: 'Mid-year appraisal' },
+                            { value: 'Probation review', label: 'Probation review' },
+                            { value: '360 Performance Review', label: '360 Performance Review' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Review Period *</label>

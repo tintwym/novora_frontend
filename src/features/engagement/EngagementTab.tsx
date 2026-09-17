@@ -1162,32 +1162,34 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-[10px] text-slate-400 font-bold block mb-1">Target Department</label>
-                      <select
+                      <SelectMenu
                         value={newActDept}
-                        onChange={(e) => setNewActDept(e.target.value)}
-                        className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-2 outline-none cursor-pointer focus:bg-white focus:border-slate-200"
-                      >
-                        <option value="All Departments">All Departments</option>
-                        <option value="Engineering">Engineering</option>
-                        <option value="Operations">Operations</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Finance">Finance</option>
-                        <option value="HR">HR Division</option>
-                      </select>
+                        onChange={setNewActDept}
+                        triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                        options={[
+                          { value: 'All Departments', label: 'All Departments' },
+                          { value: 'Engineering', label: 'Engineering' },
+                          { value: 'Operations', label: 'Operations' },
+                          { value: 'Marketing', label: 'Marketing' },
+                          { value: 'Finance', label: 'Finance' },
+                          { value: 'HR', label: 'HR Division' },
+                        ]}
+                      />
                     </div>
 
                     <div>
                       <label className="text-[10px] text-slate-400 font-bold block mb-1">Critical Priority</label>
-                      <select
+                      <SelectMenu
                         value={newActPriority}
-                        onChange={(e) => setNewActPriority(e.target.value as any)}
-                        className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-2 outline-none cursor-pointer focus:bg-white focus:border-slate-200"
-                      >
-                        <option value="Critical">🚨 Critical</option>
-                        <option value="High">🔴 High</option>
-                        <option value="Medium font-bold">🟡 Medium</option>
-                        <option value="Normal">🟢 Normal</option>
-                      </select>
+                        onChange={(v) => setNewActPriority(v as any)}
+                        triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                        options={[
+                          { value: 'Critical', label: '🚨 Critical' },
+                          { value: 'High', label: '🔴 High' },
+                          { value: 'Medium font-bold', label: '🟡 Medium' },
+                          { value: 'Normal', label: '🟢 Normal' },
+                        ]}
+                      />
                     </div>
                   </div>
 

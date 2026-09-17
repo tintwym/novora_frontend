@@ -1167,17 +1167,18 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   <div className="flex items-center gap-3 w-full sm:w-auto">
                     {/* Policy selector */}
                     <div className="relative">
-                      <select
+                    <SelectMenu
                         value={selectedPolicyFilter}
-                        onChange={(e) => setSelectedPolicyFilter(e.target.value)}
-                        className="bg-slate-50 border border-slate-200 text-xs font-bold p-2.5 rounded-xl focus:outline-none cursor-pointer"
-                      >
-                        <option value="All policy types">All policy types</option>
-                        <option value="Transport">Transport</option>
-                        <option value="Meal">Meal</option>
-                        <option value="Normal">Normal</option>
-                        <option value="Shift">Shift</option>
-                      </select>
+                        onChange={setSelectedPolicyFilter}
+                        triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                        options={[
+                          { value: 'All policy types', label: 'All policy types' },
+                          { value: 'Transport', label: 'Transport' },
+                          { value: 'Meal', label: 'Meal' },
+                          { value: 'Normal', label: 'Normal' },
+                          { value: 'Shift', label: 'Shift' },
+                        ]}
+                      />
                     </div>
 
                     <div className="relative flex-1 sm:w-64">
@@ -1531,16 +1532,17 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             {bonusSubTab === 'Bonus type' && (
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <select
+                <SelectMenu
                     value={selectedPolicyFilter}
-                    onChange={(e) => setSelectedPolicyFilter(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 text-xs font-bold p-2.5 rounded-xl focus:outline-none cursor-pointer self-start sm:self-auto"
-                  >
-                    <option value="All policy types">All policy types</option>
-                    <option value="Normal">Normal</option>
-                    <option value="Working service">Working service</option>
-                    <option value="LTIP">LTIP</option>
-                  </select>
+                    onChange={setSelectedPolicyFilter}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'All policy types', label: 'All policy types' },
+                      { value: 'Normal', label: 'Normal' },
+                      { value: 'Working service', label: 'Working service' },
+                      { value: 'LTIP', label: 'LTIP' },
+                    ]}
+                  />
 
                   <button
                     type="button"
@@ -2424,18 +2426,19 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             {deductionSubTab === 'Deduction type' && (
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <select
+                <SelectMenu
                     value={selectedPolicyFilter}
-                    onChange={(e) => setSelectedPolicyFilter(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 text-xs font-bold p-2.5 rounded-xl focus:outline-none cursor-pointer self-start sm:self-auto"
-                  >
-                    <option value="All policy types">All policy types</option>
-                    <option value="Statutory">Statutory</option>
-                    <option value="Tax">Tax</option>
-                    <option value="Rota rule">Rota rule</option>
-                    <option value="Attendance">Attendance</option>
-                    <option value="Leave">Leave</option>
-                  </select>
+                    onChange={setSelectedPolicyFilter}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'All policy types', label: 'All policy types' },
+                      { value: 'Statutory', label: 'Statutory' },
+                      { value: 'Tax', label: 'Tax' },
+                      { value: 'Rota rule', label: 'Rota rule' },
+                      { value: 'Attendance', label: 'Attendance' },
+                      { value: 'Leave', label: 'Leave' },
+                    ]}
+                  />
 
                   <button
                     type="button"
@@ -3506,16 +3509,17 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Category type</label>
-                <select
+                <SelectMenu
                   value={newAllowancePolicy}
-                  onChange={(e) => setNewAllowancePolicy(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer"
-                >
-                  <option value="Normal">Normal</option>
-                  <option value="Transport">Transport</option>
-                  <option value="Meal">Meal</option>
-                  <option value="Shift">Shift</option>
-                </select>
+                  onChange={setNewAllowancePolicy}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Normal', label: 'Normal' },
+                    { value: 'Transport', label: 'Transport' },
+                    { value: 'Meal', label: 'Meal' },
+                    { value: 'Shift', label: 'Shift' },
+                  ]}
+                />
               </div>
 
               <div>
@@ -3531,14 +3535,15 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Government Taxable</label>
-                <select
+                <SelectMenu
                   value={newAllowanceTaxable}
-                  onChange={(e) => setNewAllowanceTaxable(e.target.value as 'Yes'|'No')}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer"
-                >
-                  <option value="No">No (Exempted)</option>
-                  <option value="Yes">Yes (Witholding)</option>
-                </select>
+                  onChange={(v) => setNewAllowanceTaxable(v as 'Yes'|'No')}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'No', label: 'No (Exempted)' },
+                    { value: 'Yes', label: 'Yes (Witholding)' },
+                  ]}
+                />
               </div>
             </div>
 
@@ -3582,15 +3587,16 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Category type</label>
-                <select
+                <SelectMenu
                   value={newBonusPolicy}
-                  onChange={(e) => setNewBonusPolicy(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer"
-                >
-                  <option value="Normal">Normal</option>
-                  <option value="Working service">Working service</option>
-                  <option value="LTIP">LTIP</option>
-                </select>
+                  onChange={setNewBonusPolicy}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Normal', label: 'Normal' },
+                    { value: 'Working service', label: 'Working service' },
+                    { value: 'LTIP', label: 'LTIP' },
+                  ]}
+                />
               </div>
 
               <div>
@@ -3718,17 +3724,18 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Deduction category</label>
-                <select
+                <SelectMenu
                   value={newDeductionType}
-                  onChange={(e) => setNewDeductionType(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer"
-                >
-                  <option value="Statutory">Statutory</option>
-                  <option value="Tax">Tax</option>
-                  <option value="Rota rule">Rota rule</option>
-                  <option value="Attendance">Attendance</option>
-                  <option value="Leave">Leave</option>
-                </select>
+                  onChange={setNewDeductionType}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Statutory', label: 'Statutory' },
+                    { value: 'Tax', label: 'Tax' },
+                    { value: 'Rota rule', label: 'Rota rule' },
+                    { value: 'Attendance', label: 'Attendance' },
+                    { value: 'Leave', label: 'Leave' },
+                  ]}
+                />
               </div>
 
               <div>
@@ -3796,15 +3803,16 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Calculate On</label>
-                <select
+                <SelectMenu
                   value={newTaxOn}
-                  onChange={(e) => setNewTaxOn(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer"
-                >
-                  <option value="Monthly salary">Monthly salary</option>
-                  <option value="Basic salary">Basic salary</option>
-                  <option value="Overall emoluments">Overall emoluments</option>
-                </select>
+                  onChange={setNewTaxOn}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Monthly salary', label: 'Monthly salary' },
+                    { value: 'Basic salary', label: 'Basic salary' },
+                    { value: 'Overall emoluments', label: 'Overall emoluments' },
+                  ]}
+                />
               </div>
             </div>
 
@@ -3848,16 +3856,17 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Category type</label>
-                <select
+                <SelectMenu
                   value={editingAllowance.policyType}
-                  onChange={(e) => setEditingAllowance({ ...editingAllowance, policyType: e.target.value })}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Normal">Normal</option>
-                  <option value="Transport">Transport</option>
-                  <option value="Meal">Meal</option>
-                  <option value="Shift">Shift</option>
-                </select>
+                  onChange={(v) => setEditingAllowance({ ...editingAllowance, policyType: v })}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Normal', label: 'Normal' },
+                    { value: 'Transport', label: 'Transport' },
+                    { value: 'Meal', label: 'Meal' },
+                    { value: 'Shift', label: 'Shift' },
+                  ]}
+                />
               </div>
 
               <div>
@@ -3874,26 +3883,28 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Government Taxable</label>
-                <select
+                <SelectMenu
                   value={editingAllowance.taxable}
-                  onChange={(e) => setEditingAllowance({ ...editingAllowance, taxable: e.target.value as 'Yes' | 'No' })}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="No">No (Exempted)</option>
-                  <option value="Yes">Yes (Withholding)</option>
-                </select>
+                  onChange={(v) => setEditingAllowance({ ...editingAllowance, taxable: v as 'Yes' | 'No' })}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'No', label: 'No (Exempted)' },
+                    { value: 'Yes', label: 'Yes (Withholding)' },
+                  ]}
+                />
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</label>
-                <select
+                <SelectMenu
                   value={editingAllowance.status}
-                  onChange={(e) => setEditingAllowance({ ...editingAllowance, status: e.target.value as 'Active' | 'Inactive' })}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+                  onChange={(v) => setEditingAllowance({ ...editingAllowance, status: v as 'Active' | 'Inactive' })}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Active', label: 'Active' },
+                    { value: 'Inactive', label: 'Inactive' },
+                  ]}
+                />
               </div>
             </div>
 
@@ -3937,15 +3948,16 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Category type</label>
-                <select
+                <SelectMenu
                   value={editingBonus.policyType}
-                  onChange={(e) => setEditingBonus({ ...editingBonus, policyType: e.target.value })}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Normal">Normal</option>
-                  <option value="Working service">Working service</option>
-                  <option value="LTIP">LTIP</option>
-                </select>
+                  onChange={(v) => setEditingBonus({ ...editingBonus, policyType: v })}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Normal', label: 'Normal' },
+                    { value: 'Working service', label: 'Working service' },
+                    { value: 'LTIP', label: 'LTIP' },
+                  ]}
+                />
               </div>
 
               <div>
@@ -3974,26 +3986,28 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Show on Payslip</label>
-                <select
+                <SelectMenu
                   value={editingBonus.onPayslip}
-                  onChange={(e) => setEditingBonus({ ...editingBonus, onPayslip: e.target.value as 'Yes' | 'No' })}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
+                  onChange={(v) => setEditingBonus({ ...editingBonus, onPayslip: v as 'Yes' | 'No' })}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Yes', label: 'Yes' },
+                    { value: 'No', label: 'No' },
+                  ]}
+                />
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</label>
-                <select
+                <SelectMenu
                   value={editingBonus.status}
-                  onChange={(e) => setEditingBonus({ ...editingBonus, status: e.target.value as 'Active' | 'Inactive' })}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+                  onChange={(v) => setEditingBonus({ ...editingBonus, status: v as 'Active' | 'Inactive' })}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Active', label: 'Active' },
+                    { value: 'Inactive', label: 'Inactive' },
+                  ]}
+                />
               </div>
             </div>
 
@@ -4085,14 +4099,15 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</label>
-                <select
+                <SelectMenu
                   value={editingDeposit.status}
-                  onChange={(e) => setEditingDeposit({ ...editingDeposit, status: e.target.value as 'Active' | 'Inactive' })}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+                  onChange={(v) => setEditingDeposit({ ...editingDeposit, status: v as 'Active' | 'Inactive' })}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Active', label: 'Active' },
+                    { value: 'Inactive', label: 'Inactive' },
+                  ]}
+                />
               </div>
             </div>
 
@@ -4136,17 +4151,18 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Deduction category</label>
-                <select
+                <SelectMenu
                   value={editingDeduction.type}
-                  onChange={(e) => setEditingDeduction({ ...editingDeduction, type: e.target.value })}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Statutory">Statutory</option>
-                  <option value="Tax">Tax</option>
-                  <option value="Rota rule">Rota rule</option>
-                  <option value="Attendance">Attendance</option>
-                  <option value="Leave">Leave</option>
-                </select>
+                  onChange={(v) => setEditingDeduction({ ...editingDeduction, type: v })}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Statutory', label: 'Statutory' },
+                    { value: 'Tax', label: 'Tax' },
+                    { value: 'Rota rule', label: 'Rota rule' },
+                    { value: 'Attendance', label: 'Attendance' },
+                    { value: 'Leave', label: 'Leave' },
+                  ]}
+                />
               </div>
 
               <div>
@@ -4163,26 +4179,28 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Show on Payslip</label>
-                <select
+                <SelectMenu
                   value={editingDeduction.onPayslip}
-                  onChange={(e) => setEditingDeduction({ ...editingDeduction, onPayslip: e.target.value as 'Yes' | 'No' })}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
+                  onChange={(v) => setEditingDeduction({ ...editingDeduction, onPayslip: v as 'Yes' | 'No' })}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Yes', label: 'Yes' },
+                    { value: 'No', label: 'No' },
+                  ]}
+                />
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</label>
-                <select
+                <SelectMenu
                   value={editingDeduction.status}
-                  onChange={(e) => setEditingDeduction({ ...editingDeduction, status: e.target.value as 'Active' | 'Inactive' })}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+                  onChange={(v) => setEditingDeduction({ ...editingDeduction, status: v as 'Active' | 'Inactive' })}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Active', label: 'Active' },
+                    { value: 'Inactive', label: 'Inactive' },
+                  ]}
+                />
               </div>
             </div>
 
@@ -4238,39 +4256,42 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Calculate On</label>
-                <select
+                <SelectMenu
                   value={editingTax.calculateOn}
-                  onChange={(e) => setEditingTax({ ...editingTax, calculateOn: e.target.value })}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Monthly salary">Monthly salary</option>
-                  <option value="Basic salary">Basic salary</option>
-                  <option value="Overall emoluments">Overall emoluments</option>
-                </select>
+                  onChange={(v) => setEditingTax({ ...editingTax, calculateOn: v })}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Monthly salary', label: 'Monthly salary' },
+                    { value: 'Basic salary', label: 'Basic salary' },
+                    { value: 'Overall emoluments', label: 'Overall emoluments' },
+                  ]}
+                />
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Calculate Overall Income</label>
-                <select
+                <SelectMenu
                   value={editingTax.calcOverallIncome}
-                  onChange={(e) => setEditingTax({ ...editingTax, calcOverallIncome: e.target.value as 'Yes' | 'No' })}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
+                  onChange={(v) => setEditingTax({ ...editingTax, calcOverallIncome: v as 'Yes' | 'No' })}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Yes', label: 'Yes' },
+                    { value: 'No', label: 'No' },
+                  ]}
+                />
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</label>
-                <select
+                <SelectMenu
                   value={editingTax.status}
-                  onChange={(e) => setEditingTax({ ...editingTax, status: e.target.value as 'Active' | 'Inactive' })}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+                  onChange={(v) => setEditingTax({ ...editingTax, status: v as 'Active' | 'Inactive' })}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Active', label: 'Active' },
+                    { value: 'Inactive', label: 'Inactive' },
+                  ]}
+                />
               </div>
             </div>
 
@@ -4403,15 +4424,16 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Calculate by</label>
-                  <select
+                  <SelectMenu
                     value={otPolicySettings.calculateBy}
-                    onChange={(e) => setOtPolicySettings({ ...otPolicySettings, calculateBy: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold text-slate-800 cursor-pointer"
-                  >
-                    <option value="Per minute rate">Per minute rate</option>
-                    <option value="Per half hour">Per half hour</option>
-                    <option value="Per hour block">Per hour block</option>
-                  </select>
+                    onChange={(v) => setOtPolicySettings({ ...otPolicySettings, calculateBy: v })}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Per minute rate', label: 'Per minute rate' },
+                      { value: 'Per half hour', label: 'Per half hour' },
+                      { value: 'Per hour block', label: 'Per hour block' },
+                    ]}
+                  />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Rounding block</label>
@@ -4506,30 +4528,32 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Department</label>
-                <select
+                <SelectMenu
                   value={newOtStaffDept}
-                  onChange={(e) => setNewOtStaffDept(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Engineering">Engineering</option>
-                  <option value="Operations">Operations</option>
-                  <option value="Logistics">Logistics</option>
-                  <option value="Sales & Finance">Sales & Finance</option>
-                </select>
+                  onChange={setNewOtStaffDept}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Engineering', label: 'Engineering' },
+                    { value: 'Operations', label: 'Operations' },
+                    { value: 'Logistics', label: 'Logistics' },
+                    { value: 'Sales & Finance', label: 'Sales & Finance' },
+                  ]}
+                />
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Policy Type</label>
-                <select
+                <SelectMenu
                   value={newOtStaffPolicy}
-                  onChange={(e) => setNewOtStaffPolicy(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Salary-based">Salary-based</option>
-                  <option value="Hourly override">Hourly override</option>
-                  <option value="Fixed amount">Fixed amount</option>
-                  <option value="Exempted">Exempted</option>
-                </select>
+                  onChange={setNewOtStaffPolicy}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Salary-based', label: 'Salary-based' },
+                    { value: 'Hourly override', label: 'Hourly override' },
+                    { value: 'Fixed amount', label: 'Fixed amount' },
+                    { value: 'Exempted', label: 'Exempted' },
+                  ]}
+                />
               </div>
             </div>
 
@@ -4731,29 +4755,31 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tax Exempt Allowance Limit</label>
-                <select
+                <SelectMenu
                   value={newEmolLimit}
-                  onChange={(e) => setNewEmolLimit(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="No Limit">No Limit (Fully Taxable)</option>
-                  <option value="SGD 1,200 annually">SGD 1,200 annually</option>
-                  <option value="SGD 3,000 annually">SGD 3,000 annually</option>
-                  <option value="SGD 5,000 annually">SGD 5,000 annually</option>
-                  <option value="Exempt from tax">Exempt from tax</option>
-                </select>
+                  onChange={setNewEmolLimit}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'No Limit', label: 'No Limit (Fully Taxable)' },
+                    { value: 'SGD 1,200 annually', label: 'SGD 1,200 annually' },
+                    { value: 'SGD 3,000 annually', label: 'SGD 3,000 annually' },
+                    { value: 'SGD 5,000 annually', label: 'SGD 5,000 annually' },
+                    { value: 'Exempt from tax', label: 'Exempt from tax' },
+                  ]}
+                />
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Initial Taxable Status</label>
-                <select
+                <SelectMenu
                   value={newEmolTaxable ? 'yes' : 'no'}
-                  onChange={(e) => setNewEmolTaxable(e.target.value === 'yes')}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="yes">Taxable Component</option>
-                  <option value="no">Tax-Exempt Component</option>
-                </select>
+                  onChange={(v) => setNewEmolTaxable(v === 'yes')}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'yes', label: 'Taxable Component' },
+                    { value: 'no', label: 'Tax-Exempt Component' },
+                  ]}
+                />
               </div>
             </div>
 
@@ -4838,15 +4864,16 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Initial Status</label>
-                <select
+                <SelectMenu
                   value={newDurationStatus}
-                  onChange={(e) => setNewDurationStatus(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800"
-                >
-                  <option value="Draft">Draft</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Current">Current Cycle</option>
-                </select>
+                  onChange={setNewDurationStatus}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Draft', label: 'Draft' },
+                    { value: 'Approved', label: 'Approved' },
+                    { value: 'Current', label: 'Current Cycle' },
+                  ]}
+                />
               </div>
             </div>
 

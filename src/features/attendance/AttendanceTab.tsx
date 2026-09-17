@@ -51,7 +51,7 @@ import {
 } from '@/services'
 import type { Employee } from '@/types'
 import ModuleHeader from '@/components/ui/ModuleHeader'
-import { DropdownAnchor } from '@/components/ui'
+import { DropdownAnchor, SelectMenu} from '@/components/ui'
 
 interface AttendanceTabProps {
   addToast: (text: string, type: 'success' | 'loading' | 'error' | 'info') => void
@@ -1548,14 +1548,15 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-slate-400 block uppercase">Punch Type <span className="text-red-500">*</span></label>
-                    <select
+                    <SelectMenu
                       value={punchType}
-                      onChange={(e) => setPunchType(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-novora p-2 text-xs font-bold text-slate-700"
-                    >
-                      <option value="Clock In">Clock In</option>
-                      <option value="Clock Out">Clock Out</option>
-                    </select>
+                      onChange={setPunchType}
+                      triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                      options={[
+                        { value: 'Clock In', label: 'Clock In' },
+                        { value: 'Clock Out', label: 'Clock Out' },
+                      ]}
+                    />
                   </div>
                 </div>
 
@@ -1572,16 +1573,17 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
 
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-400 block uppercase">Reason</label>
-                  <select
+                  <SelectMenu
                     value={punchReason}
-                    onChange={(e) => setPunchReason(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-novora p-2 text-xs font-bold text-slate-700"
-                  >
-                    <option value="Fingerprint device offline">Fingerprint device offline</option>
-                    <option value="Forgot to swipe">Forgot to swipe</option>
-                    <option value="Remote work">Remote work</option>
-                    <option value="Biometric verification failed">Biometric failed</option>
-                  </select>
+                    onChange={setPunchReason}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Fingerprint device offline', label: 'Fingerprint device offline' },
+                      { value: 'Forgot to swipe', label: 'Forgot to swipe' },
+                      { value: 'Remote work', label: 'Remote work' },
+                      { value: 'Biometric verification failed', label: 'Biometric failed' },
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-1.5">
@@ -2068,27 +2070,31 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                 </div>
 
                 {/* Department drop selections */}
-                <select
+                <SelectMenu
                   value={reportsFilterDept}
-                  onChange={(e) => setReportsFilterDept(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 focus:border-novora focus:bg-white px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 transition-colors cursor-pointer"
-                >
-                  <option value="All departments">All departments</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="HR">HR</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Operations">Operations</option>
-                </select>
+                  onChange={setReportsFilterDept}
+                  className="w-auto shrink-0"
+                  triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                  options={[
+                    { value: 'All departments', label: 'All departments' },
+                    { value: 'Engineering', label: 'Engineering' },
+                    { value: 'HR', label: 'HR' },
+                    { value: 'Marketing', label: 'Marketing' },
+                    { value: 'Operations', label: 'Operations' },
+                  ]}
+                />
 
-                <select
+                                <SelectMenu
                   value={reportMonth}
-                  onChange={(e) => setReportMonth(e.target.value)}
-                  className="bg-slate-50 border border-slate-205 py-1.5 px-3 rounded-xl text-xs font-bold text-slate-700 cursor-pointer"
-                >
-                  <option value="May 2026">May 2026</option>
-                  <option value="June 2026">June 2026</option>
-                  <option value="July 2026">July 2026</option>
-                </select>
+                  onChange={setReportMonth}
+                  className="w-auto shrink-0"
+                  triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                  options={[
+                    { value: 'May 2026', label: 'May 2026' },
+                    { value: 'June 2026', label: 'June 2026' },
+                    { value: 'July 2026', label: 'July 2026' },
+                  ]}
+                />
               </div>
 
               <button
@@ -2243,14 +2249,15 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-400 block uppercase">Night Shift</label>
-                  <select
+                  <SelectMenu
                     value={newShift.nightShift}
-                    onChange={(e) => setNewShift(prev => ({ ...prev, nightShift: e.target.value }))}
-                    className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold text-slate-700 rounded-xl"
-                  >
-                    <option value="No">No</option>
-                    <option value="Yes">Yes</option>
-                  </select>
+                    onChange={(v) => setNewShift(prev => ({ ...prev, nightShift: v }))}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'No', label: 'No' },
+                      { value: 'Yes', label: 'Yes' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -2309,16 +2316,17 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-semibold text-slate-400 block uppercase">Shift Layout</label>
-                  <select
+                  <SelectMenu
                     value={newTimesheet.shift}
-                    onChange={(e) => setNewTimesheet(prev => ({ ...prev, shift: e.target.value }))}
-                    className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold text-slate-700 rounded-xl"
-                  >
-                    <option value="Standard shift">Standard shift</option>
-                    <option value="Flexible shift">Flexible shift</option>
-                    <option value="Night shift">Night shift</option>
-                    <option value="PM split shift">PM split shift</option>
-                  </select>
+                    onChange={(v) => setNewTimesheet(prev => ({ ...prev, shift: v }))}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Standard shift', label: 'Standard shift' },
+                      { value: 'Flexible shift', label: 'Flexible shift' },
+                      { value: 'Night shift', label: 'Night shift' },
+                      { value: 'PM split shift', label: 'PM split shift' },
+                    ]}
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-semibold text-slate-400 block uppercase">Duty Days Pattern</label>
@@ -2412,17 +2420,18 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-semibold text-slate-400 block uppercase">Shift Layout</label>
-                  <select
+                  <SelectMenu
                     value={selectedTimesheet.shift}
-                    onChange={(e) => setSelectedTimesheet(prev => prev ? { ...prev, shift: e.target.value } : null)}
-                    className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
-                  >
-                    <option value="Standard">Standard</option>
-                    <option value="Std + OT">Std + OT</option>
-                    <option value="Night shift">Night shift</option>
-                    <option value="Flexible shift">Flexible shift</option>
-                    <option value="PM split shift">PM split shift</option>
-                  </select>
+                    onChange={(v) => setSelectedTimesheet(prev => prev ? { ...prev, shift: v } : null)}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Standard', label: 'Standard' },
+                      { value: 'Std + OT', label: 'Std + OT' },
+                      { value: 'Night shift', label: 'Night shift' },
+                      { value: 'Flexible shift', label: 'Flexible shift' },
+                      { value: 'PM split shift', label: 'PM split shift' },
+                    ]}
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-semibold text-slate-400 block uppercase">Duty Days Pattern</label>
@@ -2473,15 +2482,16 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-semibold text-slate-400 block uppercase">Status</label>
-                  <select
+                  <SelectMenu
                     value={selectedTimesheet.status}
-                    onChange={(e) => setSelectedTimesheet(prev => prev ? { ...prev, status: e.target.value } : null)}
-                    className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="On leave">On leave</option>
-                    <option value="Suspended">Suspended</option>
-                  </select>
+                    onChange={(v) => setSelectedTimesheet(prev => prev ? { ...prev, status: v } : null)}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Active', label: 'Active' },
+                      { value: 'On leave', label: 'On leave' },
+                      { value: 'Suspended', label: 'Suspended' },
+                    ]}
+                  />
                 </div>
               </div>
 

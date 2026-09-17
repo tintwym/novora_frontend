@@ -1639,48 +1639,51 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 p-4.5 bg-slate-50 rounded-xl">
                 <div>
                   <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Sector Division</span>
-                  <select
+                  <SelectMenu
                     value={repDept}
-                    onChange={(e) => { setRepDept(e.target.value); setIsReportGenerated(true); }}
-                    className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer w-full"
-                  >
-                    <option value="All">All Departments</option>
-                    <option value="Engineering">Engineering</option>
-                    <option value="Finance">Finance</option>
-                    <option value="HR">HR</option>
-                    <option value="Marketing">Marketing</option>
-                    <option value="Operations">Operations</option>
-                  </select>
+                    onChange={(v) => { setRepDept(v); setIsReportGenerated(true); }}
+                    triggerClassName="text-xs font-bold border-slate-200"
+                    options={[
+                      { value: 'All', label: 'All Departments' },
+                      { value: 'Engineering', label: 'Engineering' },
+                      { value: 'Finance', label: 'Finance' },
+                      { value: 'HR', label: 'HR' },
+                      { value: 'Marketing', label: 'Marketing' },
+                      { value: 'Operations', label: 'Operations' },
+                    ]}
+                  />
                 </div>
 
                 <div>
                   <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Expense category</span>
-                  <select
+                  <SelectMenu
                     value={repCategory}
-                    onChange={(e) => { setRepCategory(e.target.value); setIsReportGenerated(true); }}
-                    className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer w-full"
-                  >
-                    <option value="All">All Categories</option>
-                    <option value="Meal allowance">Meal allowance</option>
-                    <option value="Transport">Transport</option>
-                    <option value="Hotel / stay">Hotel / stay</option>
-                    <option value="Air ticket">Air ticket</option>
-                    <option value="Wellness">Wellness</option>
-                  </select>
+                    onChange={(v) => { setRepCategory(v); setIsReportGenerated(true); }}
+                    triggerClassName="text-xs font-bold border-slate-200"
+                    options={[
+                      { value: 'All', label: 'All Categories' },
+                      { value: 'Meal allowance', label: 'Meal allowance' },
+                      { value: 'Transport', label: 'Transport' },
+                      { value: 'Hotel / stay', label: 'Hotel / stay' },
+                      { value: 'Air ticket', label: 'Air ticket' },
+                      { value: 'Wellness', label: 'Wellness' },
+                    ]}
+                  />
                 </div>
 
                 <div>
                   <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Sanction state</span>
-                  <select
+                  <SelectMenu
                     value={repStatus}
-                    onChange={(e) => { setRepStatus(e.target.value); setIsReportGenerated(true); }}
-                    className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer w-full"
-                  >
-                    <option value="All">All Statuses</option>
-                    <option value="Pending">Approval Pending</option>
-                    <option value="Approved">Approved and Queued</option>
-                    <option value="Rejected">Rejected</option>
-                  </select>
+                    onChange={(v) => { setRepStatus(v); setIsReportGenerated(true); }}
+                    triggerClassName="text-xs font-bold border-slate-200"
+                    options={[
+                      { value: 'All', label: 'All Statuses' },
+                      { value: 'Pending', label: 'Approval Pending' },
+                      { value: 'Approved', label: 'Approved and Queued' },
+                      { value: 'Rejected', label: 'Rejected' },
+                    ]}
+                  />
                 </div>
 
                 <div>
@@ -2014,19 +2017,17 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                       <span className="font-black text-novora bg-novora/10 px-2 py-0.5 rounded text-[10.5px]">Rule Range {idx+1}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] text-slate-400 font-bold">Route Type:</span>
-                        <select
+                        <SelectMenu
                           value={rule.type}
-                          onChange={(e) => {
-                            const updated = [...approvalRules];
-                            updated[idx].type = e.target.value;
-                            setApprovalRules(updated);
-                          }}
-                          className="bg-white border border-slate-200 rounded px-2 py-0.5 font-bold text-slate-700"
-                        >
-                          <option value="Sequential">Sequential</option>
-                          <option value="Parallel with Dept Head">Parallel with Dept Head</option>
-                          <option value="Direct Approval">Direct Approval</option>
-                        </select>
+                          onChange={(v) => { const updated = [...approvalRules]; updated[idx].type = v; setApprovalRules(updated); }}
+                          className="w-auto shrink-0"
+                          triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                          options={[
+                            { value: 'Sequential', label: 'Sequential' },
+                            { value: 'Parallel with Dept Head', label: 'Parallel with Dept Head' },
+                            { value: 'Direct Approval', label: 'Direct Approval' },
+                          ]}
+                        />
                       </div>
                     </div>
 
@@ -2543,16 +2544,17 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
 
                   <div className="space-y-1">
                     <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Target ERP integration gateway</label>
-                    <select
+                    <SelectMenu
                       value={payrollIntegrationChannel}
-                      onChange={(e) => setPayrollIntegrationChannel(e.target.value)}
-                      className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-200 py-2 px-3 rounded-xl outline-none focus:border-indigo-500 cursor-pointer"
-                    >
-                      <option value="Workday ERP Connector v2.4">Workday Core HR API Integrator</option>
-                      <option value="SAP SuccessFactors Web API">SAP SuccessFactors Gateway</option>
-                      <option value="HRLearn Bank Auto-File Export">Direct Bank GIRO GIRO text format</option>
-                      <option value="Manual spreadsheet ledger batch">General Ledger Excel spreadsheet</option>
-                    </select>
+                      onChange={setPayrollIntegrationChannel}
+                      triggerClassName="text-xs font-bold border-slate-200"
+                      options={[
+                        { value: 'Workday ERP Connector v2.4', label: 'Workday Core HR API Integrator' },
+                        { value: 'SAP SuccessFactors Web API', label: 'SAP SuccessFactors Gateway' },
+                        { value: 'HRLearn Bank Auto-File Export', label: 'Direct Bank GIRO GIRO text format' },
+                        { value: 'Manual spreadsheet ledger batch', label: 'General Ledger Excel spreadsheet' },
+                      ]}
+                    />
                   </div>
 
                   <div className="bg-slate-50 rounded-xl p-4.5 border border-slate-100 space-y-2.5">

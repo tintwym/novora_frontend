@@ -29,6 +29,7 @@ import {
   Printer
 } from 'lucide-react';
 import type { Employee, EmploymentStatus } from '@/types';
+import { SelectMenu } from '@/components/ui';
 import { formatPersonDisplayName } from '@/lib/personName'
 import {
   ApiError,
@@ -1407,16 +1408,17 @@ export default function EmployeeProfileTab({
                       <div className="flex justify-between py-1 border-b border-slate-50/70">
                         <span className="text-slate-400 font-medium">Job Type</span>
                         {isEditingSummary ? (
-                          <select 
-                            value={profileData.jobType} 
-                            onChange={(e) => { setProfileData({...profileData, jobType: e.target.value as EmploymentStatus}); setIsStateModified(true); }}
-                            className="bg-slate-50 border border-slate-200 focus:outline-none px-1 py-0.5 rounded text-xs select-none font-bold"
-                          >
-                            <option value="Permanent">Permanent</option>
-                            <option value="Contract">Contract</option>
-                            <option value="Intern">Intern</option>
-                            <option value="Part-time">Part-time</option>
-                          </select>
+                        <SelectMenu
+                            value={profileData.jobType}
+                            onChange={(v) => { setProfileData({...profileData, jobType: v as EmploymentStatus}); setIsStateModified(true); }}
+                            triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                            options={[
+                              { value: 'Permanent', label: 'Permanent' },
+                              { value: 'Contract', label: 'Contract' },
+                              { value: 'Intern', label: 'Intern' },
+                              { value: 'Part-time', label: 'Part-time' },
+                            ]}
+                          />
                         ) : (
                           <span className="text-slate-800 font-bold">{profileData.jobType}</span>
                         )}
@@ -1615,14 +1617,15 @@ export default function EmployeeProfileTab({
                       <div className="flex justify-between py-1 border-b border-slate-50/70 items-center">
                         <span className="text-slate-400">Blacklisted</span>
                         {isEditingHRNotes ? (
-                          <select 
+                        <SelectMenu
                             value={profileData.blacklisted}
-                            onChange={(e) => { setProfileData({...profileData, blacklisted: e.target.value}); setIsStateModified(true); }}
-                            className="bg-slate-50 border border-slate-200 px-1 py-0.5 rounded text-xs select-none font-bold"
-                          >
-                            <option value="No">No</option>
-                            <option value="Yes">Yes</option>
-                          </select>
+                            onChange={(v) => { setProfileData({...profileData, blacklisted: v}); setIsStateModified(true); }}
+                            triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                            options={[
+                              { value: 'No', label: 'No' },
+                              { value: 'Yes', label: 'Yes' },
+                            ]}
+                          />
                         ) : (
                           <span className={profileData.blacklisted === 'Yes' ? 'text-rose-600 font-black' : 'text-slate-800 font-bold'}>{profileData.blacklisted}</span>
                         )}
@@ -1631,14 +1634,15 @@ export default function EmployeeProfileTab({
                       <div className="flex justify-between py-1 items-center">
                         <span className="text-slate-400">Auto clock-in</span>
                         {isEditingHRNotes ? (
-                          <select 
+                        <SelectMenu
                             value={profileData.autoClockIn}
-                            onChange={(e) => { setProfileData({...profileData, autoClockIn: e.target.value}); setIsStateModified(true); }}
-                            className="bg-slate-50 border border-slate-200 px-1 py-0.5 rounded text-xs select-none font-bold"
-                          >
-                            <option value="Disabled">Disabled</option>
-                            <option value="Enabled">Enabled</option>
-                          </select>
+                            onChange={(v) => { setProfileData({...profileData, autoClockIn: v}); setIsStateModified(true); }}
+                            triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                            options={[
+                              { value: 'Disabled', label: 'Disabled' },
+                              { value: 'Enabled', label: 'Enabled' },
+                            ]}
+                          />
                         ) : (
                           <span className="text-slate-800 font-bold">{profileData.autoClockIn}</span>
                         )}
@@ -2909,21 +2913,21 @@ export default function EmployeeProfileTab({
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label htmlFor="doc-type-select" className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Doc Type *</label>
-                  <select 
-                    id="doc-type-select"
+                  <SelectMenu
                     value={docType}
-                    onChange={(e) => setDocType(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-novora focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800"
-                  >
-                    <option value="Contract">Contract / Offer</option>
-                    <option value="NRIC">NRIC / National ID</option>
-                    <option value="Passport">Passport</option>
-                    <option value="Certificate">Certificate / Degree</option>
-                    <option value="Tax">Government Tax</option>
-                    <option value="Payslip">Payslip</option>
-                    <option value="Medical">Medical Form</option>
-                    <option value="Other">Other Document</option>
-                  </select>
+                    onChange={setDocType}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Contract', label: 'Contract / Offer' },
+                      { value: 'NRIC', label: 'NRIC / National ID' },
+                      { value: 'Passport', label: 'Passport' },
+                      { value: 'Certificate', label: 'Certificate / Degree' },
+                      { value: 'Tax', label: 'Government Tax' },
+                      { value: 'Payslip', label: 'Payslip' },
+                      { value: 'Medical', label: 'Medical Form' },
+                      { value: 'Other', label: 'Other Document' },
+                    ]}
+                  />
                 </div>
 
                 <div className="flex flex-col justify-end pb-1 pl-1">
@@ -3020,16 +3024,17 @@ export default function EmployeeProfileTab({
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Relationship *</label>
-                  <select 
+                  <SelectMenu
                     value={familyForm.relationship}
-                    onChange={(e) => setFamilyForm({...familyForm, relationship: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-novora focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800"
-                  >
-                    <option value="Spouse">Spouse</option>
-                    <option value="Child">Child</option>
-                    <option value="Mother">Mother</option>
-                    <option value="Father">Father</option>
-                  </select>
+                    onChange={(v) => setFamilyForm({...familyForm, relationship: v})}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Spouse', label: 'Spouse' },
+                      { value: 'Child', label: 'Child' },
+                      { value: 'Mother', label: 'Mother' },
+                      { value: 'Father', label: 'Father' },
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-1">
@@ -3142,19 +3147,20 @@ export default function EmployeeProfileTab({
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Relationship *</label>
-                  <select 
+                  <SelectMenu
                     value={nokForm.relationship}
-                    onChange={(e) => setNokForm({...nokForm, relationship: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-novora focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800"
-                  >
-                    <option value="Spouse">Spouse</option>
-                    <option value="Mother">Mother</option>
-                    <option value="Father">Father</option>
-                    <option value="Brother">Brother</option>
-                    <option value="Sister">Sister</option>
-                    <option value="Child">Child</option>
-                    <option value="Other">Other</option>
-                  </select>
+                    onChange={(v) => setNokForm({...nokForm, relationship: v})}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Spouse', label: 'Spouse' },
+                      { value: 'Mother', label: 'Mother' },
+                      { value: 'Father', label: 'Father' },
+                      { value: 'Brother', label: 'Brother' },
+                      { value: 'Sister', label: 'Sister' },
+                      { value: 'Child', label: 'Child' },
+                      { value: 'Other', label: 'Other' },
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-1">
@@ -3246,16 +3252,17 @@ export default function EmployeeProfileTab({
 
                 <div className="space-y-1">
                   <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Device Type *</label>
-                  <select 
+                  <SelectMenu
                     value={biometricForm.deviceType}
-                    onChange={(e) => setBiometricForm({...biometricForm, deviceType: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-novora focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800"
-                  >
-                    <option value="Face ID">Face ID</option>
-                    <option value="Fingerprint">Fingerprint</option>
-                    <option value="RFID Card">RFID Card</option>
-                    <option value="Iris Scanner">Iris Scanner</option>
-                  </select>
+                    onChange={(v) => setBiometricForm({...biometricForm, deviceType: v})}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Face ID', label: 'Face ID' },
+                      { value: 'Fingerprint', label: 'Fingerprint' },
+                      { value: 'RFID Card', label: 'RFID Card' },
+                      { value: 'Iris Scanner', label: 'Iris Scanner' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -3285,14 +3292,15 @@ export default function EmployeeProfileTab({
 
                 <div className="space-y-1">
                   <label className="text-[10.5px] font-black text-slate-700 text-slate-700 uppercase tracking-wider block">Status *</label>
-                  <select 
+                  <SelectMenu
                     value={biometricForm.status}
-                    onChange={(e) => setBiometricForm({...biometricForm, status: e.target.value as any})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-novora focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold transition-all text-slate-800"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
+                    onChange={(v) => setBiometricForm({...biometricForm, status: v as any})}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Active', label: 'Active' },
+                      { value: 'Inactive', label: 'Inactive' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -3370,16 +3378,17 @@ export default function EmployeeProfileTab({
 
                 <div className="space-y-1">
                   <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Frequency *</label>
-                  <select 
+                  <SelectMenu
                     value={allowanceForm.frequency}
-                    onChange={(e) => setAllowanceForm({...allowanceForm, frequency: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-novora focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-sans transition-all text-slate-800"
-                  >
-                    <option value="Monthly">Monthly</option>
-                    <option value="Weekly">Weekly</option>
-                    <option value="One-off">One-off</option>
-                    <option value="Annually">Annually</option>
-                  </select>
+                    onChange={(v) => setAllowanceForm({...allowanceForm, frequency: v})}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Monthly', label: 'Monthly' },
+                      { value: 'Weekly', label: 'Weekly' },
+                      { value: 'One-off', label: 'One-off' },
+                      { value: 'Annually', label: 'Annually' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -3400,14 +3409,15 @@ export default function EmployeeProfileTab({
 
                 <div className="space-y-1">
                   <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Status *</label>
-                  <select 
+                  <SelectMenu
                     value={allowanceForm.status}
-                    onChange={(e) => setAllowanceForm({...allowanceForm, status: e.target.value as any})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-novora focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-sans transition-all text-slate-800"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
+                    onChange={(v) => setAllowanceForm({...allowanceForm, status: v as any})}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Active', label: 'Active' },
+                      { value: 'Inactive', label: 'Inactive' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -3485,16 +3495,17 @@ export default function EmployeeProfileTab({
 
                 <div className="space-y-1">
                   <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Frequency *</label>
-                  <select 
+                  <SelectMenu
                     value={deductionForm.frequency}
-                    onChange={(e) => setDeductionForm({...deductionForm, frequency: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-novora focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-sans transition-all text-slate-800"
-                  >
-                    <option value="Monthly">Monthly</option>
-                    <option value="Weekly">Weekly</option>
-                    <option value="One-off">One-off</option>
-                    <option value="Annually">Annually</option>
-                  </select>
+                    onChange={(v) => setDeductionForm({...deductionForm, frequency: v})}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Monthly', label: 'Monthly' },
+                      { value: 'Weekly', label: 'Weekly' },
+                      { value: 'One-off', label: 'One-off' },
+                      { value: 'Annually', label: 'Annually' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -3512,14 +3523,15 @@ export default function EmployeeProfileTab({
 
                 <div className="space-y-1">
                   <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Status *</label>
-                  <select 
+                  <SelectMenu
                     value={deductionForm.status}
-                    onChange={(e) => setDeductionForm({...deductionForm, status: e.target.value as any})}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-novora focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-xs font-bold font-sans transition-all text-slate-800"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
+                    onChange={(v) => setDeductionForm({...deductionForm, status: v as any})}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Active', label: 'Active' },
+                      { value: 'Inactive', label: 'Inactive' },
+                    ]}
+                  />
                 </div>
               </div>
 

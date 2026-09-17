@@ -29,7 +29,7 @@ import {
 import type { Employee } from '@/types';
 import { canManageFullSystem } from '@/lib/roles';
 import ModuleHeader from '@/components/ui/ModuleHeader';
-import { DropdownAnchor } from '@/components/ui';
+import { DropdownAnchor, SelectMenu} from '@/components/ui';
 import {
   ApiError,
   cancelMyLeave,
@@ -1114,16 +1114,17 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             <form onSubmit={handleSelfRequestSubmit} className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 block uppercase">Leave type *</label>
-                <select
+                <SelectMenu
                   value={reqType}
-                  onChange={(e) => setReqType(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white focus:outline-none"
-                >
-                  <option value="Annual Leave">Annual Leave</option>
-                  <option value="Sick Leave">Sick Leave</option>
-                  <option value="Personal Leave">Personal Leave</option>
-                  <option value="Unpaid Leave">Unpaid Leave</option>
-                </select>
+                  onChange={setReqType}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                  options={[
+                    { value: 'Annual Leave', label: 'Annual Leave' },
+                    { value: 'Sick Leave', label: 'Sick Leave' },
+                    { value: 'Personal Leave', label: 'Personal Leave' },
+                    { value: 'Unpaid Leave', label: 'Unpaid Leave' },
+                  ]}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -1161,27 +1162,29 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-400 block uppercase">First day</label>
-                  <select
+                  <SelectMenu
                     value={firstDayHalf}
-                    onChange={(e) => setFirstDayHalf(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
-                  >
-                    <option value="Full day">Full day</option>
-                    <option value="AM half day">AM half day</option>
-                    <option value="PM half day">PM half day</option>
-                  </select>
+                    onChange={setFirstDayHalf}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                    options={[
+                      { value: 'Full day', label: 'Full day' },
+                      { value: 'AM half day', label: 'AM half day' },
+                      { value: 'PM half day', label: 'PM half day' },
+                    ]}
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-400 block uppercase">Last day</label>
-                  <select
+                  <SelectMenu
                     value={lastDayHalf}
-                    onChange={(e) => setLastDayHalf(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
-                  >
-                    <option value="Full day">Full day</option>
-                    <option value="AM half day">AM half day</option>
-                    <option value="PM half day">PM half day</option>
-                  </select>
+                    onChange={setLastDayHalf}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                    options={[
+                      { value: 'Full day', label: 'Full day' },
+                      { value: 'AM half day', label: 'AM half day' },
+                      { value: 'PM half day', label: 'PM half day' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -1339,16 +1342,17 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 block uppercase">Leave type *</label>
-                <select
+                <SelectMenu
                   value={rfoType}
-                  onChange={(e) => setRfoType(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
-                >
-                  <option value="Annual Leave">Annual Leave</option>
-                  <option value="Sick Leave">Sick Leave</option>
-                  <option value="Personal Leave">Personal Leave</option>
-                  <option value="Unpaid Leave">Unpaid Leave</option>
-                </select>
+                  onChange={setRfoType}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                  options={[
+                    { value: 'Annual Leave', label: 'Annual Leave' },
+                    { value: 'Sick Leave', label: 'Sick Leave' },
+                    { value: 'Personal Leave', label: 'Personal Leave' },
+                    { value: 'Unpaid Leave', label: 'Unpaid Leave' },
+                  ]}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -1386,15 +1390,16 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-400 block uppercase">Session</label>
-                  <select
+                  <SelectMenu
                     value={rfoSession}
-                    onChange={(e) => setRfoSession(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
-                  >
-                    <option value="Full day">Full day</option>
-                    <option value="AM half day">AM half day</option>
-                    <option value="PM half day">PM half day</option>
-                  </select>
+                    onChange={setRfoSession}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                    options={[
+                      { value: 'Full day', label: 'Full day' },
+                      { value: 'AM half day', label: 'AM half day' },
+                      { value: 'PM half day', label: 'PM half day' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -1619,16 +1624,18 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 />
               </div>
 
-              <select
+                            <SelectMenu
                 value={historyTypeFilter}
-                onChange={(e) => setHistoryTypeFilter(e.target.value)}
-                className="bg-white border border-slate-200 text-slate-700 text-xs font-bold px-2 rounded-xl"
-              >
-                <option value="All types">All types</option>
-                <option value="Annual">Annual</option>
-                <option value="Medical">Medical</option>
-                <option value="Emergency">Emergency</option>
-              </select>
+                onChange={setHistoryTypeFilter}
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                options={[
+                  { value: 'All types', label: 'All types' },
+                  { value: 'Annual', label: 'Annual' },
+                  { value: 'Medical', label: 'Medical' },
+                  { value: 'Emergency', label: 'Emergency' },
+                ]}
+              />
             </div>
 
             <div className="flex items-center gap-3">
@@ -2097,32 +2104,36 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
               </div>
 
               {/* Department filter */}
-              <select
+              <SelectMenu
                 value={leaveReportsFilterDept}
-                onChange={(e) => setLeaveReportsFilterDept(e.target.value)}
-                className="bg-slate-50 border border-slate-200 text-xs font-bold p-2 rounded-xl focus:outline-none"
-              >
-                <option value="All departments">All departments</option>
-                <option value="Engineering">Engineering</option>
-                <option value="HR">HR</option>
-                <option value="Finance">Finance</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Operations">Operations</option>
-              </select>
+                onChange={setLeaveReportsFilterDept}
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                options={[
+                  { value: 'All departments', label: 'All departments' },
+                  { value: 'Engineering', label: 'Engineering' },
+                  { value: 'HR', label: 'HR' },
+                  { value: 'Finance', label: 'Finance' },
+                  { value: 'Marketing', label: 'Marketing' },
+                  { value: 'Operations', label: 'Operations' },
+                ]}
+              />
 
               {/* Month Selector */}
-              <select
+              <SelectMenu
                 value={leaveReportMonth}
-                onChange={(e) => setLeaveReportMonth(e.target.value)}
-                className="bg-slate-50 border border-[#b4c3ee] text-novora text-xs font-extrabold p-2 rounded-xl focus:outline-none"
-              >
-                <option value="January 2026">January 2026</option>
-                <option value="February 2026">February 2026</option>
-                <option value="March 2026">March 2026</option>
-                <option value="April 2026">April 2026</option>
-                <option value="May 2026">May 2026</option>
-                <option value="June 2026">June 2026</option>
-              </select>
+                onChange={setLeaveReportMonth}
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                options={[
+                  { value: 'January 2026', label: 'January 2026' },
+                  { value: 'February 2026', label: 'February 2026' },
+                  { value: 'March 2026', label: 'March 2026' },
+                  { value: 'April 2026', label: 'April 2026' },
+                  { value: 'May 2026', label: 'May 2026' },
+                  { value: 'June 2026', label: 'June 2026' },
+                ]}
+              />
 
               {/* Export report button */}
               <button
@@ -2280,14 +2291,15 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-semibold text-slate-400 block uppercase">Paid Class</label>
-                  <select
+                  <SelectMenu
                     value={newTypeData.paid ? 'paid' : 'unpaid'}
-                    onChange={(e) => setNewTypeData({ ...newTypeData, paid: e.target.value === 'paid' })}
-                    className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold text-slate-700 rounded-xl"
-                  >
-                    <option value="paid">Paid leave</option>
-                    <option value="unpaid">Unpaid leave</option>
-                  </select>
+                    onChange={(v) => setNewTypeData({ ...newTypeData, paid: v === 'paid' })}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'paid', label: 'Paid leave' },
+                      { value: 'unpaid', label: 'Unpaid leave' },
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-1">
@@ -2304,26 +2316,28 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-semibold text-slate-400 block uppercase">Hour based?</label>
-                  <select
+                  <SelectMenu
                     value={newTypeData.hourBased ? 'yes' : 'no'}
-                    onChange={(e) => setNewTypeData({ ...newTypeData, hourBased: e.target.value === 'yes' })}
-                    className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold text-slate-700 rounded-xl"
-                  >
-                    <option value="no">No (Fixed days)</option>
-                    <option value="yes">Yes (Hourly credit)</option>
-                  </select>
+                    onChange={(v) => setNewTypeData({ ...newTypeData, hourBased: v === 'yes' })}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'no', label: 'No (Fixed days)' },
+                      { value: 'yes', label: 'Yes (Hourly credit)' },
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-semibold text-slate-400 block uppercase">Attachment req.?</label>
-                  <select
+                  <SelectMenu
                     value={newTypeData.attachmentReq ? 'yes' : 'no'}
-                    onChange={(e) => setNewTypeData({ ...newTypeData, attachmentReq: e.target.value === 'yes' })}
-                    className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold text-slate-700 rounded-xl"
-                  >
-                    <option value="no">No (None)</option>
-                    <option value="yes">Yes (Mandatory upload)</option>
-                  </select>
+                    onChange={(v) => setNewTypeData({ ...newTypeData, attachmentReq: v === 'yes' })}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'no', label: 'No (None)' },
+                      { value: 'yes', label: 'Yes (Mandatory upload)' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -2401,14 +2415,15 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-semibold text-slate-400 block uppercase">Paid class</label>
-                  <select
+                  <SelectMenu
                     value={editingType.paid ? 'paid' : 'unpaid'}
-                    onChange={(e) => setEditingType({ ...editingType, paid: e.target.value === 'paid' })}
-                    className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold text-slate-700 rounded-xl"
-                  >
-                    <option value="paid">Paid leave</option>
-                    <option value="unpaid">Unpaid leave</option>
-                  </select>
+                    onChange={(v) => setEditingType({ ...editingType, paid: v === 'paid' })}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'paid', label: 'Paid leave' },
+                      { value: 'unpaid', label: 'Unpaid leave' },
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-1">
@@ -2425,26 +2440,28 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-semibold text-slate-400 block uppercase">Hour based?</label>
-                  <select
+                  <SelectMenu
                     value={editingType.hourBased ? 'yes' : 'no'}
-                    onChange={(e) => setEditingType({ ...editingType, hourBased: e.target.value === 'yes' })}
-                    className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold text-slate-700 rounded-xl"
-                  >
-                    <option value="no">No</option>
-                    <option value="yes">Yes</option>
-                  </select>
+                    onChange={(v) => setEditingType({ ...editingType, hourBased: v === 'yes' })}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'no', label: 'No' },
+                      { value: 'yes', label: 'Yes' },
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-semibold text-slate-400 block uppercase">Attachment req.</label>
-                  <select
+                  <SelectMenu
                     value={editingType.attachmentReq ? 'yes' : 'no'}
-                    onChange={(e) => setEditingType({ ...editingType, attachmentReq: e.target.value === 'yes' })}
-                    className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold text-slate-700 rounded-xl"
-                  >
-                    <option value="no">No</option>
-                    <option value="yes">Yes</option>
-                  </select>
+                    onChange={(v) => setEditingType({ ...editingType, attachmentReq: v === 'yes' })}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'no', label: 'No' },
+                      { value: 'yes', label: 'Yes' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -2514,16 +2531,17 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Accrual Method</label>
-                  <select
+                  <SelectMenu
                     value={newPolicyData.accrual}
-                    onChange={(e) => setNewPolicyData({ ...newPolicyData, accrual: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-700 rounded-xl"
-                  >
-                    <option value="Monthly prorate">Monthly prorate</option>
-                    <option value="Full upfront">Full upfront</option>
-                    <option value="Quarterly accrual">Quarterly accrual</option>
-                    <option value="Bi-weekly incremental">Bi-weekly incremental</option>
-                  </select>
+                    onChange={(v) => setNewPolicyData({ ...newPolicyData, accrual: v })}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Monthly prorate', label: 'Monthly prorate' },
+                      { value: 'Full upfront', label: 'Full upfront' },
+                      { value: 'Quarterly accrual', label: 'Quarterly accrual' },
+                      { value: 'Bi-weekly incremental', label: 'Bi-weekly incremental' },
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-1">

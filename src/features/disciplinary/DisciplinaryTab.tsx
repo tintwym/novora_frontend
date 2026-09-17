@@ -1666,46 +1666,52 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                 </div>
 
                 {/* Department filter */}
-                <select
+                <SelectMenu
                   value={disciplinaryReportDept}
-                  onChange={(e) => setDisciplinaryReportDept(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 text-xs font-bold p-2 rounded-xl focus:outline-none cursor-pointer"
-                >
-                  <option value="All departments">All Departments</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="HR">HR</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Operations">Operations</option>
-                </select>
+                  onChange={setDisciplinaryReportDept}
+                  className="w-auto shrink-0"
+                  triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                  options={[
+                    { value: 'All departments', label: 'All Departments' },
+                    { value: 'Engineering', label: 'Engineering' },
+                    { value: 'HR', label: 'HR' },
+                    { value: 'Finance', label: 'Finance' },
+                    { value: 'Marketing', label: 'Marketing' },
+                    { value: 'Operations', label: 'Operations' },
+                  ]}
+                />
 
                 {/* Period/month filter */}
-                <select
+                <SelectMenu
                   value={disciplinaryReportPeriod}
-                  onChange={(e) => setDisciplinaryReportPeriod(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 text-xs font-bold p-2 rounded-xl focus:outline-none cursor-pointer"
-                >
-                  <option value="All times">All Times</option>
-                  <option value="June 2026">June 2026</option>
-                  <option value="May 2026">May 2026</option>
-                  <option value="April 2026">April 2026</option>
-                  <option value="Older Periods">Older Periods</option>
-                </select>
+                  onChange={setDisciplinaryReportPeriod}
+                  className="w-auto shrink-0"
+                  triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                  options={[
+                    { value: 'All times', label: 'All Times' },
+                    { value: 'June 2026', label: 'June 2026' },
+                    { value: 'May 2026', label: 'May 2026' },
+                    { value: 'April 2026', label: 'April 2026' },
+                    { value: 'Older Periods', label: 'Older Periods' },
+                  ]}
+                />
 
                 {/* Warning Level filter */}
-                <select
+                <SelectMenu
                   value={disciplinaryReportLevel}
-                  onChange={(e) => setDisciplinaryReportLevel(e.target.value)}
-                  className="bg-slate-50 border border-[#b4c3ee] text-novora text-xs font-extrabold p-2 rounded-xl focus:outline-none cursor-pointer"
-                >
-                  <option value="All levels">All Warning Levels</option>
-                  <option value="L1">L1 - Verbal warning</option>
-                  <option value="L2">L2 - First written warning</option>
-                  <option value="L3">L3 - Second written warning</option>
-                  <option value="L4">L4 - Suspension without pay</option>
-                  <option value="L5">L5 - Demotion</option>
-                  <option value="L6">L6 - Termination</option>
-                </select>
+                  onChange={setDisciplinaryReportLevel}
+                  className="w-auto shrink-0"
+                  triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                  options={[
+                    { value: 'All levels', label: 'All Warning Levels' },
+                    { value: 'L1', label: 'L1 - Verbal warning' },
+                    { value: 'L2', label: 'L2 - First written warning' },
+                    { value: 'L3', label: 'L3 - Second written warning' },
+                    { value: 'L4', label: 'L4 - Suspension without pay' },
+                    { value: 'L5', label: 'L5 - Demotion' },
+                    { value: 'L6', label: 'L6 - Termination' },
+                  ]}
+                />
 
                 {/* Export button */}
                 <button
@@ -1933,15 +1939,16 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Severity Category</label>
-                <select
+                <SelectMenu
                   value={newReasonSeverity}
-                  onChange={(e) => setNewReasonSeverity(e.target.value as any)}
-                  className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold rounded-xl focus:outline-none"
-                >
-                  <option value="Minor">Minor</option>
-                  <option value="Major">Major</option>
-                  <option value="Gross misconduct">Gross misconduct</option>
-                </select>
+                  onChange={(v) => setNewReasonSeverity(v as any)}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Minor', label: 'Minor' },
+                    { value: 'Major', label: 'Major' },
+                    { value: 'Gross misconduct', label: 'Gross misconduct' },
+                  ]}
+                />
               </div>
 
               <div className="space-y-1">
@@ -2032,16 +2039,17 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pay Impact Level</label>
-                <select
+                <SelectMenu
                   value={newActionPay}
-                  onChange={(e) => setNewActionPay(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold rounded-xl focus:outline-none"
-                >
-                  <option value="No deduction">No deduction</option>
-                  <option value="Partial deduction">Partial deduction</option>
-                  <option value="Full deduction">Full deduction</option>
-                  <option value="Pay review">Pay review</option>
-                </select>
+                  onChange={setNewActionPay}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'No deduction', label: 'No deduction' },
+                    { value: 'Partial deduction', label: 'Partial deduction' },
+                    { value: 'Full deduction', label: 'Full deduction' },
+                    { value: 'Pay review', label: 'Pay review' },
+                  ]}
+                />
               </div>
 
               <div className="space-y-1">
@@ -2110,27 +2118,29 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Severity Category</label>
-                <select
+                <SelectMenu
                   value={editReasonSeverity}
-                  onChange={(e) => setEditReasonSeverity(e.target.value as any)}
-                  className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold rounded-xl focus:outline-none"
-                >
-                  <option value="Minor">Minor</option>
-                  <option value="Major">Major</option>
-                  <option value="Gross misconduct">Gross misconduct</option>
-                </select>
+                  onChange={(v) => setEditReasonSeverity(v as any)}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Minor', label: 'Minor' },
+                    { value: 'Major', label: 'Major' },
+                    { value: 'Gross misconduct', label: 'Gross misconduct' },
+                  ]}
+                />
               </div>
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Status</label>
-                <select
+                <SelectMenu
                   value={editReasonStatus}
-                  onChange={(e) => setEditReasonStatus(e.target.value as any)}
-                  className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold rounded-xl focus:outline-none"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+                  onChange={(v) => setEditReasonStatus(v as any)}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Active', label: 'Active' },
+                    { value: 'Inactive', label: 'Inactive' },
+                  ]}
+                />
               </div>
 
               <div className="space-y-1">
@@ -2220,16 +2230,17 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pay Impact Level</label>
-                <select
+                <SelectMenu
                   value={editActionPay}
-                  onChange={(e) => setEditActionPay(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold rounded-xl focus:outline-none"
-                >
-                  <option value="No deduction">No deduction</option>
-                  <option value="Partial deduction">Partial deduction</option>
-                  <option value="Full deduction">Full deduction</option>
-                  <option value="Pay review">Pay review</option>
-                </select>
+                  onChange={setEditActionPay}
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'No deduction', label: 'No deduction' },
+                    { value: 'Partial deduction', label: 'Partial deduction' },
+                    { value: 'Full deduction', label: 'Full deduction' },
+                    { value: 'Pay review', label: 'Pay review' },
+                  ]}
+                />
               </div>
 
               <div className="space-y-1">

@@ -1452,15 +1452,17 @@ export default function SettingsTab({
                     onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                     className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none"
                   />
-                  <select
+                  <SelectMenu
                     value={newUser.role}
-                    onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                    className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none"
-                  >
-                    <option>Super admin</option>
-                    <option>HR manager</option>
-                    <option>Department head</option>
-                  </select>
+                    onChange={(v) => setNewUser({ ...newUser, role: v })}
+                    className="w-auto shrink-0"
+                    triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                    options={[
+                      { value: 'Super admin', label: 'Super admin' },
+                      { value: 'HR manager', label: 'HR manager' },
+                      { value: 'Department head', label: 'Department head' },
+                    ]}
+                  />
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => void inviteUser()} className="px-3 py-1.5 bg-novora text-white font-bold text-xs rounded-lg cursor-pointer">
@@ -2044,17 +2046,18 @@ export default function SettingsTab({
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase">Hierarchy Approval Chain</label>
-                    <select
+                    <SelectMenu
                       value={newWorkflowForm.chain}
-                      onChange={(e) => setNewWorkflowForm({ ...newWorkflowForm, chain: e.target.value })}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold outline-none text-slate-700 focus:border-novora"
-                    >
-                      <option>Direct Manager</option>
-                      <option>Direct Manager → HOD</option>
-                      <option>Direct Manager → Family HOD → Managing Director</option>
-                      <option>Supervisor → HR Specialist → CFO</option>
-                      <option>HOD → Executive Board</option>
-                    </select>
+                      onChange={(v) => setNewWorkflowForm({ ...newWorkflowForm, chain: v })}
+                      triggerClassName="text-xs font-bold border-slate-200"
+                      options={[
+                        { value: 'Direct Manager', label: 'Direct Manager' },
+                        { value: 'Direct Manager → HOD', label: 'Direct Manager → HOD' },
+                        { value: 'Direct Manager → Family HOD → Managing Director', label: 'Direct Manager → Family HOD → Managing Director' },
+                        { value: 'Supervisor → HR Specialist → CFO', label: 'Supervisor → HR Specialist → CFO' },
+                        { value: 'HOD → Executive Board', label: 'HOD → Executive Board' },
+                      ]}
+                    />
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -2398,29 +2401,33 @@ export default function SettingsTab({
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-700">Minimum Length Character count</span>
-                    <select
+                    <SelectMenu
                       value={securityParams.pwMinLength}
-                      onChange={(e) => setSecurityParams({ ...securityParams, pwMinLength: e.target.value })}
-                      className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 outline-none"
-                    >
-                      <option>8 characters</option>
-                      <option>10 characters</option>
-                      <option>12 characters</option>
-                    </select>
+                      onChange={(v) => setSecurityParams({ ...securityParams, pwMinLength: v })}
+                      className="w-auto shrink-0"
+                      triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                      options={[
+                        { value: '8 characters', label: '8 characters' },
+                        { value: '10 characters', label: '10 characters' },
+                        { value: '12 characters', label: '12 characters' },
+                      ]}
+                    />
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-700">Automatic Expiration indices</span>
-                    <select
+                    <SelectMenu
                       value={securityParams.pwExpiryDays}
-                      onChange={(e) => setSecurityParams({ ...securityParams, pwExpiryDays: e.target.value })}
-                      className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 outline-none"
-                    >
-                      <option>30 days</option>
-                      <option>90 days</option>
-                      <option>180 days</option>
-                      <option>Never expire</option>
-                    </select>
+                      onChange={(v) => setSecurityParams({ ...securityParams, pwExpiryDays: v })}
+                      className="w-auto shrink-0"
+                      triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                      options={[
+                        { value: '30 days', label: '30 days' },
+                        { value: '90 days', label: '90 days' },
+                        { value: '180 days', label: '180 days' },
+                        { value: 'Never expire', label: 'Never expire' },
+                      ]}
+                    />
                   </div>
 
                   <div className="border-t border-slate-100 pt-3 space-y-3">
@@ -2810,18 +2817,19 @@ export default function SettingsTab({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-bold text-slate-400 uppercase">Process Trigger</label>
-                        <select
+                        <SelectMenu
                           value={newTemplateForm.trigger}
-                          onChange={(e) => setNewTemplateForm({ ...newTemplateForm, trigger: e.target.value })}
-                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold outline-none text-slate-700 focus:border-novora"
-                        >
-                          <option>On leave request</option>
-                          <option>On payroll confirm</option>
-                          <option>On claim approval</option>
-                          <option>On employee creation</option>
-                          <option>On course completion</option>
-                          <option>On feedback submit</option>
-                        </select>
+                          onChange={(v) => setNewTemplateForm({ ...newTemplateForm, trigger: v })}
+                          triggerClassName="text-xs font-bold border-slate-200"
+                          options={[
+                            { value: 'On leave request', label: 'On leave request' },
+                            { value: 'On payroll confirm', label: 'On payroll confirm' },
+                            { value: 'On claim approval', label: 'On claim approval' },
+                            { value: 'On employee creation', label: 'On employee creation' },
+                            { value: 'On course completion', label: 'On course completion' },
+                            { value: 'On feedback submit', label: 'On feedback submit' },
+                          ]}
+                        />
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-bold text-slate-400 uppercase">Email Subject Line</label>

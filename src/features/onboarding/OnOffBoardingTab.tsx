@@ -594,16 +594,17 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
 
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Document Category</label>
-                    <select
+                    <SelectMenu
                       value={newDocCategory}
-                      onChange={(e) => setNewDocCategory(e.target.value)}
-                      className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 outline-none focus:bg-white focus:border-slate-200 cursor-pointer"
-                    >
-                      <option>Legal Proof</option>
-                      <option>Contract</option>
-                      <option>Health Clearance</option>
-                      <option>Credentials</option>
-                    </select>
+                      onChange={setNewDocCategory}
+                      triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                      options={[
+                        { value: 'Legal Proof', label: 'Legal Proof' },
+                        { value: 'Contract', label: 'Contract' },
+                        { value: 'Health Clearance', label: 'Health Clearance' },
+                        { value: 'Credentials', label: 'Credentials' },
+                      ]}
+                    />
                   </div>
 
                   <div className="border border-dashed border-slate-200 hover:border-novora p-6.5 rounded-xl text-center bg-slate-50 transition-all cursor-pointer" onClick={() => addToast('Simulating mock file select...', 'info')}>
@@ -662,18 +663,19 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
 
                 <div>
                   <label className="text-[10px] text-slate-400 font-bold block mb-1">Owning Department</label>
-                  <select
+                  <SelectMenu
                     value={newChecklistDept}
-                    onChange={(e) => setNewChecklistDept(e.target.value as any)}
-                    className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 outline-none focus:bg-white focus:border-slate-200 cursor-pointer"
-                  >
-                    <option value="IT Operations">IT Operations</option>
-                    <option value="HR Compliance">HR Compliance</option>
-                    <option value="Finance Payroll">Finance Payroll</option>
-                    <option value="Security Assets">Security/Facilities</option>
-                    <option value="Engineering department">Engineering Dept</option>
-                    <option value="HR Administration">HR Administration</option>
-                  </select>
+                    onChange={(v) => setNewChecklistDept(v as any)}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                    options={[
+                      { value: 'IT Operations', label: 'IT Operations' },
+                      { value: 'HR Compliance', label: 'HR Compliance' },
+                      { value: 'Finance Payroll', label: 'Finance Payroll' },
+                      { value: 'Security Assets', label: 'Security/Facilities' },
+                      { value: 'Engineering department', label: 'Engineering Dept' },
+                      { value: 'HR Administration', label: 'HR Administration' },
+                    ]}
+                  />
                 </div>
 
                 <div>
@@ -1275,16 +1277,17 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
 
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Primary trigger of departure</label>
-                    <select
+                    <SelectMenu
                       value={newSurveyReason}
-                      onChange={(e) => setNewSurveyReason(e.target.value)}
-                      className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 outline-none cursor-pointer"
-                    >
-                      <option>Better career growth</option>
-                      <option>Workplace culture issues</option>
-                      <option>Compensation package</option>
-                      <option>Family relocation & Personal reasons</option>
-                    </select>
+                      onChange={setNewSurveyReason}
+                      triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                      options={[
+                        { value: 'Better career growth', label: 'Better career growth' },
+                        { value: 'Workplace culture issues', label: 'Workplace culture issues' },
+                        { value: 'Compensation package', label: 'Compensation package' },
+                        { value: 'Family relocation & Personal reasons', label: 'Family relocation & Personal reasons' },
+                      ]}
+                    />
                   </div>
 
                   {/* Ratings */}

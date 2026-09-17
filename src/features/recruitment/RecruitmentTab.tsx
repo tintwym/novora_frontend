@@ -64,7 +64,7 @@ import {
   type RecruitmentOfferRow,
 } from '@/services'
 import ModuleHeader from '@/components/ui/ModuleHeader'
-import { DropdownAnchor } from '@/components/ui'
+import { DropdownAnchor, SelectMenu} from '@/components/ui'
 
 function mapJobStatus(status: string): JobPosting['status'] {
   const s = status.toLowerCase()
@@ -2170,38 +2170,36 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   {/* Select Department filter */}
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Analytical sector</span>
-                    <select
+                    <SelectMenu
                       value={reportFilterDept}
-                      onChange={(e) => {
-                        setReportFilterDept(e.target.value);
-                        addToast(`Refocused recruitment reports for: ${e.target.value}`, 'info');
-                      }}
-                      className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer"
-                    >
-                      <option value="All departments">All Departments &bull; Consolidated</option>
-                      <option value="Engineering">Engineering Team</option>
-                      <option value="Finance">Finance Department</option>
-                      <option value="Marketing">Marketing &amp; Brand</option>
-                      <option value="Operations">Operations Roster</option>
-                      <option value="HR">Human Resources</option>
-                    </select>
+                      onChange={(v) => { setReportFilterDept(v); addToast(`Refocused recruitment reports for: ${v}`, 'info'); }}
+                      className="w-auto shrink-0"
+                      triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                      options={[
+                        { value: 'All departments', label: 'All Departments · Consolidated' },
+                        { value: 'Engineering', label: 'Engineering Team' },
+                        { value: 'Finance', label: 'Finance Department' },
+                        { value: 'Marketing', label: 'Marketing & Brand' },
+                        { value: 'Operations', label: 'Operations Roster' },
+                        { value: 'HR', label: 'Human Resources' },
+                      ]}
+                    />
                   </div>
 
                   {/* Select Period filter */}
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Reporting Period</span>
-                    <select
+                    <SelectMenu
                       value={reportFilterPeriod}
-                      onChange={(e) => {
-                        setReportFilterPeriod(e.target.value);
-                        addToast(`Report timeframe adjusted to: ${e.target.value}`, 'info');
-                      }}
-                      className="bg-white border border-slate-200 hover:border-slate-355 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer font-sans"
-                    >
-                      <option value="Q2 2026">Q2 2026 (1 Apr - 30 Jun)</option>
-                      <option value="Q1 2026">Q1 2026 (1 Jan - 31 Mar)</option>
-                      <option value="Full Year 2025">Full Year 2025 (Jan - Dec)</option>
-                    </select>
+                      onChange={(v) => { setReportFilterPeriod(v); addToast(`Report timeframe adjusted to: ${v}`, 'info'); }}
+                      className="w-auto shrink-0"
+                      triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                      options={[
+                        { value: 'Q2 2026', label: 'Q2 2026 (1 Apr - 30 Jun)' },
+                        { value: 'Q1 2026', label: 'Q1 2026 (1 Jan - 31 Mar)' },
+                        { value: 'Full Year 2025', label: 'Full Year 2025 (Jan - Dec)' },
+                      ]}
+                    />
                   </div>
 
                 </div>
@@ -2717,42 +2715,45 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       </div>
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Department *</label>
-                        <select
+                        <SelectMenu
                           value={reqForm.department}
-                          onChange={(e) => setReqForm({ ...reqForm, department: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                        >
-                          <option value="HR">Human Resources</option>
-                          <option value="Engineering">Engineering</option>
-                          <option value="Finance">Finance</option>
-                          <option value="Marketing">Marketing</option>
-                          <option value="Operations">Operations</option>
-                        </select>
+                          onChange={(v) => setReqForm({ ...reqForm, department: v })}
+                          triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                          options={[
+                            { value: 'HR', label: 'Human Resources' },
+                            { value: 'Engineering', label: 'Engineering' },
+                            { value: 'Finance', label: 'Finance' },
+                            { value: 'Marketing', label: 'Marketing' },
+                            { value: 'Operations', label: 'Operations' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Section / team</label>
-                        <select
+                        <SelectMenu
                           value={reqForm.sectionTeam}
-                          onChange={(e) => setReqForm({ ...reqForm, sectionTeam: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                        >
-                          <option value="">-- Select section (optional) --</option>
-                          <option value="Recruitment">Recruitment &amp; Talent</option>
-                          <option value="Operations">HR Operations</option>
-                          <option value="CompBen">Compensation &amp; Benefits</option>
-                        </select>
+                          onChange={(v) => setReqForm({ ...reqForm, sectionTeam: v })}
+                          triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                          options={[
+                            { value: '', label: '-- Select section (optional) --' },
+                            { value: 'Recruitment', label: 'Recruitment & Talent' },
+                            { value: 'Operations', label: 'HR Operations' },
+                            { value: 'CompBen', label: 'Compensation & Benefits' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Reports to *</label>
-                        <select
+                        <SelectMenu
                           value={reqForm.reportsTo}
-                          onChange={(e) => setReqForm({ ...reqForm, reportsTo: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                        >
-                          <option value="Nina Reza (Head of HR)">Nina Reza (Head of HR)</option>
-                          <option value="Malik Said (COO)">Malik Said (COO)</option>
-                          <option value="Ahmad Wahid (CEO)">Ahmad Wahid (CEO)</option>
-                        </select>
+                          onChange={(v) => setReqForm({ ...reqForm, reportsTo: v })}
+                          triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                          options={[
+                            { value: 'Nina Reza (Head of HR)', label: 'Nina Reza (Head of HR)' },
+                            { value: 'Malik Said (COO)', label: 'Malik Said (COO)' },
+                            { value: 'Ahmad Wahid (CEO)', label: 'Ahmad Wahid (CEO)' },
+                          ]}
+                        />
                       </div>
                     </div>
                   </div>
@@ -2765,39 +2766,42 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs">
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Employment type *</label>
-                        <select
+                        <SelectMenu
                           value={reqForm.employmentType}
-                          onChange={(e) => setReqForm({ ...reqForm, employmentType: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                        >
-                          <option value="Permanent">Permanent</option>
-                          <option value="Contract">Contract</option>
-                          <option value="Temporary">Temporary</option>
-                        </select>
+                          onChange={(v) => setReqForm({ ...reqForm, employmentType: v })}
+                          triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                          options={[
+                            { value: 'Permanent', label: 'Permanent' },
+                            { value: 'Contract', label: 'Contract' },
+                            { value: 'Temporary', label: 'Temporary' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Work arrangement</label>
-                        <select
+                        <SelectMenu
                           value={reqForm.workArrangement}
-                          onChange={(e) => setReqForm({ ...reqForm, workArrangement: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                        >
-                          <option value="On-site">On-site</option>
-                          <option value="Hybrid">Hybrid</option>
-                          <option value="Remote">Remote</option>
-                        </select>
+                          onChange={(v) => setReqForm({ ...reqForm, workArrangement: v })}
+                          triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                          options={[
+                            { value: 'On-site', label: 'On-site' },
+                            { value: 'Hybrid', label: 'Hybrid' },
+                            { value: 'Remote', label: 'Remote' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Job grade</label>
-                        <select
+                        <SelectMenu
                           value={reqForm.jobGrade}
-                          onChange={(e) => setReqForm({ ...reqForm, jobGrade: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                        >
-                          <option value="G-5 / Sub B">G-5 / Sub B</option>
-                          <option value="G-4 / Senior Executive">G-4 / Senior Executive</option>
-                          <option value="G-6 / Director Level">G-6 / Director Level</option>
-                        </select>
+                          onChange={(v) => setReqForm({ ...reqForm, jobGrade: v })}
+                          triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                          options={[
+                            { value: 'G-5 / Sub B', label: 'G-5 / Sub B' },
+                            { value: 'G-4 / Senior Executive', label: 'G-4 / Senior Executive' },
+                            { value: 'G-6 / Director Level', label: 'G-6 / Director Level' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">No. of vacancies *</label>
@@ -2822,15 +2826,16 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       </div>
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Urgency</label>
-                        <select
+                        <SelectMenu
                           value={reqForm.urgency}
-                          onChange={(e) => setReqForm({ ...reqForm, urgency: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                        >
-                          <option value="Normal">Normal</option>
-                          <option value="Urgent">Urgent</option>
-                          <option value="Critical">Immediate / Critical</option>
-                        </select>
+                          onChange={(v) => setReqForm({ ...reqForm, urgency: v })}
+                          triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                          options={[
+                            { value: 'Normal', label: 'Normal' },
+                            { value: 'Urgent', label: 'Urgent' },
+                            { value: 'Critical', label: 'Immediate / Critical' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Salary range &mdash; min (SGD)</label>
@@ -2854,15 +2859,16 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       </div>
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Reason for requisition *</label>
-                        <select
+                        <SelectMenu
                           value={reqForm.reason}
-                          onChange={(e) => setReqForm({ ...reqForm, reason: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                        >
-                          <option value="New headcount">New headcount</option>
-                          <option value="Replacement">Replacement vacancy</option>
-                          <option value="Budget expansion">Special budget expansion</option>
-                        </select>
+                          onChange={(v) => setReqForm({ ...reqForm, reason: v })}
+                          triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                          options={[
+                            { value: 'New headcount', label: 'New headcount' },
+                            { value: 'Replacement', label: 'Replacement vacancy' },
+                            { value: 'Budget expansion', label: 'Special budget expansion' },
+                          ]}
+                        />
                       </div>
                     </div>
 
@@ -2926,16 +2932,17 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Minimum education *</label>
-                        <select
+                        <SelectMenu
                           value={reqForm.minEducation}
-                          onChange={(e) => setReqForm({ ...reqForm, minEducation: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                        >
-                          <option value="Bachelor's degree">Bachelor's degree</option>
-                          <option value="Diploma">Diploma / Associate's</option>
-                          <option value="Master's degree">Master's degree</option>
-                          <option value="PhD">PhD / Doctorate</option>
-                        </select>
+                          onChange={(v) => setReqForm({ ...reqForm, minEducation: v })}
+                          triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                          options={[
+                            { value: 'Bachelor\'s degree', label: 'Bachelor\'s degree' },
+                            { value: 'Diploma', label: 'Diploma / Associate\'s' },
+                            { value: 'Master\'s degree', label: 'Master\'s degree' },
+                            { value: 'PhD', label: 'PhD / Doctorate' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Field of study</label>
@@ -2949,29 +2956,31 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       </div>
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Minimum experience (years) *</label>
-                        <select
+                        <SelectMenu
                           value={reqForm.minExperience}
-                          onChange={(e) => setReqForm({ ...reqForm, minExperience: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                        >
-                          <option value="Fresh graduate (0 yrs)">Fresh graduate (0 yrs)</option>
-                          <option value="1-2 yrs">1 &mdash; 2 yrs experience</option>
-                          <option value="3-5 yrs">3 &mdash; 5 yrs experience</option>
-                          <option value="5+ yrs">5+ yrs senior experience</option>
-                        </select>
+                          onChange={(v) => setReqForm({ ...reqForm, minExperience: v })}
+                          triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                          options={[
+                            { value: 'Fresh graduate (0 yrs)', label: 'Fresh graduate (0 yrs)' },
+                            { value: '1-2 yrs', label: '1 &mdash; 2 yrs experience' },
+                            { value: '3-5 yrs', label: '3 &mdash; 5 yrs experience' },
+                            { value: '5+ yrs', label: '5+ yrs senior experience' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Language requirement</label>
-                        <select
+                        <SelectMenu
                           value={reqForm.languageRequirement}
-                          onChange={(e) => setReqForm({ ...reqForm, languageRequirement: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                        >
-                          <option value="English only">English only</option>
-                          <option value="Bilingual English &amp; Malay">Bilingual (English &amp; Malay)</option>
-                          <option value="Mandarin highly preferred">Mandarin highly preferred</option>
-                          <option value="English, Malay, Mandarin">Trilingual proficient</option>
-                        </select>
+                          onChange={(v) => setReqForm({ ...reqForm, languageRequirement: v })}
+                          triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                          options={[
+                            { value: 'English only', label: 'English only' },
+                            { value: 'Bilingual English &amp; Malay', label: 'Bilingual (English & Malay)' },
+                            { value: 'Mandarin highly preferred', label: 'Mandarin highly preferred' },
+                            { value: 'English, Malay, Mandarin', label: 'Trilingual proficient' },
+                          ]}
+                        />
                       </div>
                     </div>
                   </div>
@@ -3301,25 +3310,27 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Primary recruiter *</label>
-                        <select
+                        <SelectMenu
                           value={reqForm.primaryRecruiter}
-                          onChange={(e) => setReqForm({ ...reqForm, primaryRecruiter: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                        >
-                          <option value="Maya Tan (HR Executive)">Maya Tan (HR Executive)</option>
-                          <option value="Lena Wong (HR Specialist)">Lena Wong (HR Specialist)</option>
-                        </select>
+                          onChange={(v) => setReqForm({ ...reqForm, primaryRecruiter: v })}
+                          triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                          options={[
+                            { value: 'Maya Tan (HR Executive)', label: 'Maya Tan (HR Executive)' },
+                            { value: 'Lena Wong (HR Specialist)', label: 'Lena Wong (HR Specialist)' },
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hiring manager</label>
-                        <select
+                        <SelectMenu
                           value={reqForm.hiringManager}
-                          onChange={(e) => setReqForm({ ...reqForm, hiringManager: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                        >
-                          <option value="Nina Reza (Head of HR)">Nina Reza (Head of HR)</option>
-                          <option value="Malik Said (COO)">Malik Said (COO)</option>
-                        </select>
+                          onChange={(v) => setReqForm({ ...reqForm, hiringManager: v })}
+                          triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                          options={[
+                            { value: 'Nina Reza (Head of HR)', label: 'Nina Reza (Head of HR)' },
+                            { value: 'Malik Said (COO)', label: 'Malik Said (COO)' },
+                          ]}
+                        />
                       </div>
                     </div>
                   </div>
@@ -3428,16 +3439,17 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Publish Channel</label>
-                  <select
+                  <SelectMenu
                     value={newPost.channel}
-                    onChange={(e) => setNewPost({ ...newPost, channel: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs text-slate-700 outline-none"
-                  >
-                    <option value="LinkedIn">LinkedIn Jobs</option>
-                    <option value="JobStreet">JobStreet.com</option>
-                    <option value="Indeed">Indeed</option>
-                    <option value="Internal">Internal Careers page</option>
-                  </select>
+                    onChange={(v) => setNewPost({ ...newPost, channel: v })}
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'LinkedIn', label: 'LinkedIn Jobs' },
+                      { value: 'JobStreet', label: 'JobStreet.com' },
+                      { value: 'Indeed', label: 'Indeed' },
+                      { value: 'Internal', label: 'Internal Careers page' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -3620,16 +3632,17 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold">
                   <div>
                     <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Source Channel</label>
-                    <select
+                    <SelectMenu
                       value={newCand.source}
-                      onChange={(e) => setNewCand({ ...newCand, source: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora transition-all font-semibold"
-                    >
-                      <option value="LinkedIn">LinkedIn Job Ads</option>
-                      <option value="JobStreet">JobStreet Portal</option>
-                      <option value="Referral">Internal Employee Referral</option>
-                      <option value="Direct">Direct Careers Portal</option>
-                    </select>
+                      onChange={(v) => setNewCand({ ...newCand, source: v })}
+                      triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                      options={[
+                        { value: 'LinkedIn', label: 'LinkedIn Job Ads' },
+                        { value: 'JobStreet', label: 'JobStreet Portal' },
+                        { value: 'Referral', label: 'Internal Employee Referral' },
+                        { value: 'Direct', label: 'Direct Careers Portal' },
+                      ]}
+                    />
                   </div>
                   <div>
                     <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Target Job Requisition *</label>
@@ -3768,16 +3781,17 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-xs font-semibold">
                     <div>
                       <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">Interview Stage</label>
-                      <select
+                      <SelectMenu
                         value={newInt.stage}
-                        onChange={(e) => setNewInt({ ...newInt, stage: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                      >
-                        <option value="Phone screening">Phone screening</option>
-                        <option value="Panel interview">Panel interview</option>
-                        <option value="Technical test">Technical assessment</option>
-                        <option value="Director round">Director round</option>
-                      </select>
+                        onChange={(v) => setNewInt({ ...newInt, stage: v })}
+                        triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                        options={[
+                          { value: 'Phone screening', label: 'Phone screening' },
+                          { value: 'Panel interview', label: 'Panel interview' },
+                          { value: 'Technical test', label: 'Technical assessment' },
+                          { value: 'Director round', label: 'Director round' },
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Meeting format</label>
@@ -3802,16 +3816,17 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     </div>
                     <div>
                       <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Expected duration</label>
-                      <select
+                      <SelectMenu
                         value={newInt.duration}
-                        onChange={(e) => setNewInt({ ...newInt, duration: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
-                      >
-                        <option value="30 minutes">30 mins screening</option>
-                        <option value="45 minutes">45 mins tech talk</option>
-                        <option value="1 hour">1 hour system panel</option>
-                        <option value="2 hours">2 hours deep-dive session</option>
-                      </select>
+                        onChange={(v) => setNewInt({ ...newInt, duration: v })}
+                        triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                        options={[
+                          { value: '30 minutes', label: '30 mins screening' },
+                          { value: '45 minutes', label: '45 mins tech talk' },
+                          { value: '1 hour', label: '1 hour system panel' },
+                          { value: '2 hours', label: '2 hours deep-dive session' },
+                        ]}
+                      />
                     </div>
 
                     <div>
@@ -4064,34 +4079,36 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     </div>
                     <div>
                       <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Employment Grade</label>
-                      <select
+                      <SelectMenu
                         value={newOffer.grade}
-                        onChange={(e) => setNewOffer({ ...newOffer, grade: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold text-xs"
-                      >
-                        <option value="G-1 (Associate / Entry)">G-1 (Associate / Entry)</option>
-                        <option value="G-2 (Senior Associate)">G-2 (Senior Associate)</option>
-                        <option value="G-3 (Specialist / Lead)">G-3 (Specialist / Lead)</option>
-                        <option value="G-4 (Manager / Consultant)">G-4 (Manager / Consultant)</option>
-                        <option value="G-5 / Sub B">G-5 / Sub B (Senior Manager)</option>
-                        <option value="G-6 / Sub A">G-6 / Sub A (Director)</option>
-                        <option value="G-7 (Vice President / Executive)">G-7 (Vice President / Executive)</option>
-                      </select>
+                        onChange={(v) => setNewOffer({ ...newOffer, grade: v })}
+                        triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                        options={[
+                          { value: 'G-1 (Associate / Entry)', label: 'G-1 (Associate / Entry)' },
+                          { value: 'G-2 (Senior Associate)', label: 'G-2 (Senior Associate)' },
+                          { value: 'G-3 (Specialist / Lead)', label: 'G-3 (Specialist / Lead)' },
+                          { value: 'G-4 (Manager / Consultant)', label: 'G-4 (Manager / Consultant)' },
+                          { value: 'G-5 / Sub B', label: 'G-5 / Sub B (Senior Manager)' },
+                          { value: 'G-6 / Sub A', label: 'G-6 / Sub A (Director)' },
+                          { value: 'G-7 (Vice President / Executive)', label: 'G-7 (Vice President / Executive)' },
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Probation Period Duration</label>
-                      <select
+                      <SelectMenu
                         value={newOffer.probation}
-                        onChange={(e) => setNewOffer({ ...newOffer, probation: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold text-xs"
-                      >
-                        <option value="No Probation">No Probation (Immediate Permanent)</option>
-                        <option value="1 month">1 month</option>
-                        <option value="2 months">2 months</option>
-                        <option value="3 months">3 months</option>
-                        <option value="6 months">6 months</option>
-                        <option value="9 months">9 months</option>
-                      </select>
+                        onChange={(v) => setNewOffer({ ...newOffer, probation: v })}
+                        triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                        options={[
+                          { value: 'No Probation', label: 'No Probation (Immediate Permanent)' },
+                          { value: '1 month', label: '1 month' },
+                          { value: '2 months', label: '2 months' },
+                          { value: '3 months', label: '3 months' },
+                          { value: '6 months', label: '6 months' },
+                          { value: '9 months', label: '9 months' },
+                        ]}
+                      />
                     </div>
                   </div>
 
