@@ -1625,61 +1625,65 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                   {/* Report Type */}
                   <div className="flex flex-col space-y-1.5">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Report type</label>
-                    <select
+                    <SelectMenu
                       value={scheduleForm.type}
-                      onChange={(e) => setScheduleForm(prev => ({ ...prev, type: e.target.value }))}
-                      className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl px-4 py-3 text-xs text-slate-700 font-bold outline-none cursor-pointer"
-                    >
-                      <option value="Monthly payroll summary">Monthly payroll summary (Consolidated)</option>
-                      <option value="Attendance summary — Apr">Attendance summary (Total list)</option>
-                      <option value="Leave balance summary">Leave balance report (By leave type)</option>
-                      <option value="Performance appraisal results">Performance metrics summary (Executive)</option>
-                      <option value="Recruitment funnel state">Recruitment funnel status report</option>
-                    </select>
+                      onChange={(v) => setScheduleForm(prev => ({ ...prev, type: v }))}
+                      triggerClassName="bg-slate-50 border-slate-200 rounded-2xl py-3 text-xs font-bold"
+                      options={[
+                        { value: 'Monthly payroll summary', label: 'Monthly payroll summary (Consolidated)' },
+                        { value: 'Attendance summary — Apr', label: 'Attendance summary (Total list)' },
+                        { value: 'Leave balance summary', label: 'Leave balance report (By leave type)' },
+                        { value: 'Performance appraisal results', label: 'Performance metrics summary (Executive)' },
+                        { value: 'Recruitment funnel state', label: 'Recruitment funnel status report' },
+                      ]}
+                    />
                   </div>
 
                   {/* Frequency */}
                   <div className="flex flex-col space-y-1.5">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Frequency</label>
-                    <select
+                    <SelectMenu
                       value={scheduleForm.frequency}
-                      onChange={(e) => setScheduleForm(prev => ({ ...prev, frequency: e.target.value }))}
-                      className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl px-4 py-3 text-xs text-slate-700 font-bold outline-none cursor-pointer"
-                    >
-                      <option value="Daily">Daily automatic run</option>
-                      <option value="Weekly">Weekly consolidated runs</option>
-                      <option value="Monthly">Monthly ledger generation</option>
-                      <option value="Quarterly">Quarterly business reviews</option>
-                    </select>
+                      onChange={(v) => setScheduleForm(prev => ({ ...prev, frequency: v }))}
+                      triggerClassName="bg-slate-50 border-slate-200 rounded-2xl py-3 text-xs font-bold"
+                      options={[
+                        { value: 'Daily', label: 'Daily automatic run' },
+                        { value: 'Weekly', label: 'Weekly consolidated runs' },
+                        { value: 'Monthly', label: 'Monthly ledger generation' },
+                        { value: 'Quarterly', label: 'Quarterly business reviews' },
+                      ]}
+                    />
                   </div>
 
                   {/* Delivery Time */}
                   <div className="flex flex-col space-y-1.5">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Delivery time</label>
-                    <select
+                    <SelectMenu
                       value={scheduleForm.time}
-                      onChange={(e) => setScheduleForm(prev => ({ ...prev, time: e.target.value }))}
-                      className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl px-4 py-3 text-xs text-slate-700 font-bold outline-none cursor-pointer"
-                    >
-                      <option value="06:00 AM">06:00 AM (Early operational review)</option>
-                      <option value="09:00 AM">09:00 AM (Standard morning dispatch)</option>
-                      <option value="12:00 PM">12:00 PM (Mid-day sync run)</option>
-                      <option value="05:00 PM">05:00 PM (Operational wrap-up)</option>
-                    </select>
+                      onChange={(v) => setScheduleForm(prev => ({ ...prev, time: v }))}
+                      triggerClassName="bg-slate-50 border-slate-200 rounded-2xl py-3 text-xs font-bold"
+                      options={[
+                        { value: '06:00 AM', label: '06:00 AM (Early operational review)' },
+                        { value: '09:00 AM', label: '09:00 AM (Standard morning dispatch)' },
+                        { value: '12:00 PM', label: '12:00 PM (Mid-day sync run)' },
+                        { value: '05:00 PM', label: '05:00 PM (Operational wrap-up)' },
+                      ]}
+                    />
                   </div>
 
                   {/* Format */}
                   <div className="flex flex-col space-y-1.5">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Format</label>
-                    <select
+                    <SelectMenu
                       value={scheduleForm.format}
-                      onChange={(e) => setScheduleForm(prev => ({ ...prev, format: e.target.value }))}
-                      className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl px-4 py-3 text-xs text-slate-700 font-bold outline-none cursor-pointer"
-                    >
-                      <option value="Excel (.xlsx)">Excel Spreadsheet (.xlsx)</option>
-                      <option value="CSV (.csv)">Raw Comma Separated Table (.csv)</option>
-                      <option value="PDF (.pdf)">Formatted Executive Booklet (.pdf)</option>
-                    </select>
+                      onChange={(v) => setScheduleForm(prev => ({ ...prev, format: v }))}
+                      triggerClassName="bg-slate-50 border-slate-200 rounded-2xl py-3 text-xs font-bold"
+                      options={[
+                        { value: 'Excel (.xlsx)', label: 'Excel Spreadsheet (.xlsx)' },
+                        { value: 'CSV (.csv)', label: 'Raw Comma Separated Table (.csv)' },
+                        { value: 'PDF (.pdf)', label: 'Formatted Executive Booklet (.pdf)' },
+                      ]}
+                    />
                   </div>
 
                 </div>
@@ -1757,7 +1761,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                       return (
                         <tr key={sch.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="py-3.5 px-4.5 font-bold text-slate-800">{sch.name}</td>
-                          <td className="py-3.5 px-4.5 text-slate-655">{sch.frequency}</td>
+                          <td className="py-3.5 px-4.5 text-slate-700">{sch.frequency}</td>
                           <td className="py-3.5 px-4.5">
                             <span className="bg-blue-50 text-novora text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
                               {execFocus}
@@ -1808,7 +1812,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
             <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4 overflow-visible">
               <div className="flex items-center gap-2 border-b border-slate-50 pb-2">
                 <span className="text-slate-400 font-extrabold text-sm font-mono">1.</span>
-                <span className="text-[10px] font-bold text-slate-405 uppercase tracking-widest">Data Source</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Data Source</span>
               </div>
 
               <div className="space-y-4.5">
@@ -1891,7 +1895,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
             <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4 overflow-visible">
               <div className="flex items-center gap-2 border-b border-slate-50 pb-2">
                 <span className="text-slate-400 font-extrabold text-sm font-mono">2.</span>
-                <span className="text-[10px] font-bold text-slate-405 uppercase tracking-widest flex items-center gap-1.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                   <span>Select Fields</span>
                   <span className="bg-blue-50 text-[8px] px-1.5 py-0.5 text-blue-600 rounded">
                     {builderModule.substring(0, 8).toUpperCase()}
@@ -1899,7 +1903,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                 </span>
               </div>
 
-              <div className="space-y-2.5 text-xs font-semibold text-slate-655 max-h-48 overflow-y-auto pr-1">
+              <div className="space-y-2.5 text-xs font-semibold text-slate-700 max-h-48 overflow-y-auto pr-1">
                 {Object.entries(selectedFields).map(([fieldName, isChecked]) => (
                   <div
                     key={fieldName}
@@ -1921,7 +1925,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
             <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4 overflow-visible">
               <div className="flex items-center gap-2 border-b border-slate-50 pb-2">
                 <span className="text-slate-400 font-extrabold text-sm font-mono">3.</span>
-                <span className="text-[10px] font-bold text-slate-405 uppercase tracking-widest">Filters</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Filters</span>
               </div>
 
               <div className="space-y-3.5">
@@ -1986,7 +1990,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
             <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4 overflow-visible">
               <div className="flex items-center gap-2 border-b border-slate-50 pb-2">
                 <span className="text-slate-400 font-extrabold text-sm font-mono">4.</span>
-                <span className="text-[10px] font-bold text-slate-405 uppercase tracking-widest">Output</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Output</span>
               </div>
 
               <div className="space-y-4">
@@ -2058,7 +2062,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                   setTotalCustomSaved(prev => prev + 1);
                   addToast(`Configuration presets for "${builderModule}" saved successfully!`, 'success');
                 }}
-                className="bg-slate-900 border border-slate-850 hover:bg-slate-800 text-white font-extrabold text-xs px-5 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
+                className="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white font-extrabold text-xs px-5 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
               >
                 <Save className="h-4 w-4" />
                 <span>Save Changes</span>

@@ -266,15 +266,16 @@ export default function PortalShell() {
                     {deptDropdownOpen ? (
                       <div
                         id="dept-dropdown-menu"
-                        className="nv-dropdown-menu w-48 nv-card shadow-lg py-1.5"
+                        className="nv-dropdown-menu w-48"
                       >
                         {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map(
                           (dept) => (
                             <button
                               key={dept}
                               type="button"
+                              aria-selected={deptFilterState === dept}
                               onClick={() => filteredByDepartmentDropdown(dept)}
-                              className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-novora transition-colors"
+                              className={deptFilterState === dept ? 'nv-dropdown-item--active' : ''}
                             >
                               {dept}
                             </button>
@@ -307,16 +308,15 @@ export default function PortalShell() {
                     {exportDropdownOpen ? (
                       <div
                         id="export-dropdown-items"
-                        className="nv-dropdown-menu w-44 nv-card shadow-lg py-1.5"
+                        className="nv-dropdown-menu w-44"
                       >
-                        <div className="px-3.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-50">
+                        <div className="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-0.5">
                           Export Settings
                         </div>
                         <button
                           id="export-excel-item"
                           type="button"
                           onClick={() => triggerExport('Excel')}
-                          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                         >
                           <FileSpreadsheet className="h-4 w-4 text-emerald-500 shrink-0" strokeWidth={2} />
                           <span>Export as Excel</span>
@@ -325,7 +325,6 @@ export default function PortalShell() {
                           id="export-csv-item"
                           type="button"
                           onClick={() => triggerExport('CSV')}
-                          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                         >
                           <FileText className="h-4 w-4 text-blue-500 shrink-0" strokeWidth={2} />
                           <span>Export as CSV</span>
@@ -334,7 +333,6 @@ export default function PortalShell() {
                           id="export-pdf-item"
                           type="button"
                           onClick={() => triggerExport('PDF')}
-                          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                         >
                           <BookOpen className="h-4 w-4 text-rose-500 shrink-0" strokeWidth={2} />
                           <span>Export as PDF</span>

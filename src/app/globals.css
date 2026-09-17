@@ -731,11 +731,11 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   height: 2.25rem;
-  padding: 0 0.875rem;
+  padding: 0 0.8rem;
   border-radius: 0.75rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-novora-border);
   background: #fff;
   color: #334155;
   font-size: 0.75rem;
@@ -744,18 +744,32 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   white-space: nowrap;
   cursor: pointer;
   flex-shrink: 0;
-  transition: border-color 150ms ease, background-color 150ms ease;
+  box-shadow: 0 1px 1px color-mix(in srgb, var(--color-novora-ink) 3%, transparent);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease;
 }
 
 .nv-dd-trigger:hover {
   border-color: #cbd5e1;
   background: #f8fafc;
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-novora-ink) 5%, transparent);
+}
+
+.nv-dd-trigger:focus-visible {
+  outline: none;
+  border-color: var(--color-novora);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-novora) 14%, transparent);
 }
 
 .nv-dd-trigger[aria-expanded='true'],
 .nv-dd-trigger.nv-dd-trigger--open {
-  border-color: color-mix(in srgb, var(--color-novora) 35%, #e2e8f0);
-  background: color-mix(in srgb, var(--color-novora) 5%, #fff);
+  border-color: color-mix(in srgb, var(--color-novora) 40%, #e2e8f0);
+  background: color-mix(in srgb, var(--color-novora) 6%, #fff);
+  color: var(--color-novora-deep);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-novora) 10%, transparent);
 }
 
 .nv-dd-trigger > svg,
@@ -766,7 +780,7 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
 
 .nv-dd-trigger > .nv-chevron-down,
 .nv-dd-trigger > .lucide-chevron-down {
-  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), color 150ms ease;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), color 160ms ease;
 }
 
 .nv-dd-trigger[aria-expanded='true'] > .nv-chevron-down,
@@ -780,6 +794,57 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
 .nv-dd-trigger > span {
   display: inline-block;
   line-height: 1.25;
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Compact export / secondary toolbar actions */
+.nv-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 2.25rem;
+  padding: 0 0.875rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-novora-border);
+  background: #fff;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 1px 1px color-mix(in srgb, var(--color-novora-ink) 3%, transparent);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease;
+}
+
+.nv-toolbar-btn:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-novora-ink) 5%, transparent);
+}
+
+.nv-toolbar-btn:focus-visible {
+  outline: none;
+  border-color: var(--color-novora);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-novora) 14%, transparent);
+}
+
+.nv-toolbar-btn > svg {
+  flex-shrink: 0;
+  color: #94a3b8;
+  transition: color 160ms ease;
+}
+
+.nv-toolbar-btn:hover > svg {
+  color: var(--color-novora);
 }
 
 .nv-trailing-icon {
@@ -796,10 +861,14 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   position: relative;
   display: block;
   overflow: visible;
+  max-width: 100%;
 }
 
-.nv-dropdown-anchor {
-  width: 100%;
+.nv-dropdown-anchor.w-auto,
+.nv-dropdown-anchor.shrink-0 {
+  display: inline-block;
+  width: auto;
+  vertical-align: middle;
 }
 
 .nv-dropdown-panel,
@@ -815,14 +884,55 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   right: 0;
 }
 
+/* Unified menu surface — works even when callers still pass bg/border/shadow utilities */
 .nv-dropdown-menu {
   min-width: 100%;
-  animation: nv-dropdown-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  padding: 0.375rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--color-novora-border) !important;
+  background: #fff !important;
+  box-shadow:
+    0 4px 6px color-mix(in srgb, var(--color-novora-ink) 4%, transparent),
+    0 14px 36px color-mix(in srgb, var(--color-novora-ink) 10%, transparent) !important;
+  overflow: hidden;
+  animation: nv-dropdown-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.nv-dropdown-menu > button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.55rem;
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.nv-dropdown-menu > button:hover {
+  background: color-mix(in srgb, var(--color-novora) 7%, #f8fafc) !important;
+  color: var(--color-novora-deep) !important;
+}
+
+.nv-dropdown-menu > button[aria-selected='true'],
+.nv-dropdown-menu > button.nv-dropdown-item--active {
+  background: color-mix(in srgb, var(--color-novora) 10%, white);
+  color: var(--color-novora-deep);
+  font-weight: 700;
+}
+
+.nv-dropdown-menu > .border-b,
+.nv-dropdown-menu > [class*='border-b'] {
+  margin-bottom: 0.25rem;
+  padding-bottom: 0.35rem;
 }
 
 /* Portaled menus: positioning handled by DropdownAnchor / SelectMenu */
 .nv-dropdown-portal {
-  filter: drop-shadow(0 10px 28px color-mix(in srgb, var(--color-novora-ink) 12%, transparent));
+  filter: drop-shadow(0 12px 28px color-mix(in srgb, var(--color-novora-ink) 12%, transparent));
   transform-origin: top center;
   animation: nv-dropdown-portal-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -839,6 +949,7 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   max-width: min(20rem, calc(100vw - 1rem));
   margin: 0;
   animation: none;
+  filter: none;
 }
 
 @keyframes nv-dropdown-portal-in {
@@ -881,7 +992,7 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   gap: 0.5rem;
   width: 100%;
   min-height: 2.5rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.8rem;
   border-radius: 0.875rem;
   border: 1px solid var(--color-novora-border);
   background: white;
@@ -889,11 +1000,13 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   font-weight: 600;
   color: var(--color-novora-ink);
   cursor: pointer;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  box-shadow: 0 1px 1px color-mix(in srgb, var(--color-novora-ink) 2.5%, transparent);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
 }
 
 .nv-select-trigger:hover:not(:disabled) {
   border-color: #cbd5e1;
+  background: #fcfdff;
 }
 
 .nv-select-trigger--open,
@@ -901,6 +1014,7 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   border-color: var(--color-novora);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-novora) 12%, transparent);
   outline: none;
+  background: #fff;
 }
 
 .nv-select-trigger:disabled {
@@ -918,11 +1032,12 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   height: 0.875rem;
   flex-shrink: 0;
   color: #94a3b8;
-  transition: transform 200ms ease, color 150ms ease;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), color 160ms ease;
 }
 
 .nv-select-trigger--open .nv-select-trigger-chevron {
   color: var(--color-novora);
+  transform: rotate(180deg);
 }
 
 .nv-select-panel {
@@ -932,9 +1047,14 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   border-radius: 0.875rem;
   border: 1px solid var(--color-novora-border);
   background: white;
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-novora-ink) 8%, transparent);
+  box-shadow:
+    0 4px 6px color-mix(in srgb, var(--color-novora-ink) 4%, transparent),
+    0 14px 36px color-mix(in srgb, var(--color-novora-ink) 10%, transparent);
   max-height: 16rem;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
   animation: nv-dropdown-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -943,29 +1063,34 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   align-items: center;
   gap: 0.5rem;
   width: 100%;
-  padding: 0.5rem 0.625rem;
-  border-radius: 0.625rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.55rem;
   font-size: 0.8125rem;
   font-weight: 600;
   color: #475569;
   text-align: left;
   cursor: pointer;
-  transition: background-color 120ms ease, color 120ms ease;
+  transition: background-color 130ms ease, color 130ms ease;
 }
 
 .nv-select-option:hover {
-  background: #f8fafc;
-  color: #0f172a;
+  background: color-mix(in srgb, var(--color-novora) 7%, #f8fafc);
+  color: var(--color-novora-deep);
 }
 
 .nv-select-option--active {
-  background: var(--color-novora);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--color-novora) 12%, white);
+  color: var(--color-novora-deep);
+  font-weight: 700;
 }
 
 .nv-select-option--active:hover {
-  background: var(--color-novora);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--color-novora) 16%, white);
+  color: var(--color-novora-deep);
+}
+
+.nv-select-option--active svg {
+  color: var(--color-novora);
 }
 
 @keyframes nv-dropdown-in {
@@ -1016,22 +1141,41 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
 }
 
 /*
- * Remaining native selects (fallback): balanced chevron — not flush, not too inset.
+ * Native <select> — unified look across Payroll→Settings (and all portal modules).
+ * Single custom chevron; do NOT force a tall min-height (breaks compact inline filters).
  */
 #novora-hrms-root select:not([multiple]):not([size]) {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   padding-inline-end: 2rem !important;
-  background-color: inherit;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-novora-border);
+  background-color: #ffffff !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 0.75rem center;
+  background-position: right 0.65rem center;
   background-size: 0.875rem 0.875rem;
+  color: #334155;
+  line-height: 1.25;
   cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  box-shadow: 0 1px 1px color-mix(in srgb, var(--color-novora-ink) 2.5%, transparent);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+#novora-hrms-root select:not([multiple]):not([size]):hover {
+  border-color: #cbd5e1;
+  background-color: #fcfdff !important;
+}
+
+#novora-hrms-root select:not([multiple]):not([size]):focus,
+#novora-hrms-root select:not([multiple]):not([size]):focus-visible {
+  outline: none;
+  border-color: var(--color-novora);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-novora) 12%, transparent);
 }
 
 #novora-hrms-root .nv-select-wrap select {
@@ -1041,10 +1185,76 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
 #novora-hrms-root select:not([multiple]):not([size]):disabled {
   cursor: not-allowed;
   opacity: 0.65;
+  background-color: #f8fafc !important;
+}
+
+/* Comfortable form / toolbar selects */
+#novora-hrms-root select.w-full:not([multiple]):not([size]),
+#novora-hrms-root select.h-9:not([multiple]):not([size]) {
+  min-height: 2.25rem;
+  padding-block: 0.5rem;
+  padding-inline-start: 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+#novora-hrms-root select.h-9:not([multiple]):not([size]),
+#novora-hrms-root select.h-8:not([multiple]):not([size]) {
+  height: 2.25rem;
+  padding-block: 0;
+}
+
+#novora-hrms-root select.h-8:not([multiple]):not([size]) {
+  min-height: 2rem;
+  height: 2rem;
 }
 
 html[data-theme='cyber-dark'] #novora-hrms-root select:not([multiple]):not([size]) {
+  background-color: rgba(15, 23, 42, 0.92) !important;
+  border-color: var(--color-novora-border);
+  color: var(--color-novora-ink);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+html[data-theme='cyber-dark'] .nv-dd-trigger,
+html[data-theme='cyber-dark'] .nv-toolbar-btn,
+html[data-theme='cyber-dark'] .nv-select-trigger,
+html[data-theme='cyber-dark'] .nv-dropdown-menu,
+html[data-theme='cyber-dark'] .nv-select-panel {
+  background: rgba(15, 23, 42, 0.96) !important;
+  border-color: var(--color-novora-border) !important;
+  color: var(--color-novora-ink);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35) !important;
+}
+
+html[data-theme='cyber-dark'] .nv-dropdown-menu > button,
+html[data-theme='cyber-dark'] .nv-select-option {
+  color: #cbd5e1;
+}
+
+html[data-theme='cyber-dark'] .nv-dropdown-menu > button:hover,
+html[data-theme='cyber-dark'] .nv-select-option:hover {
+  background: color-mix(in srgb, var(--color-novora) 18%, #0f172a) !important;
+  color: #fff !important;
+}
+
+html[data-theme='cyber-dark'] .nv-select-option--active,
+html[data-theme='cyber-dark'] .nv-dropdown-menu > button.nv-dropdown-item--active {
+  background: color-mix(in srgb, var(--color-novora) 22%, #0f172a);
+  color: #fff;
+}
+
+/* Compact toolbar SelectMenu trigger (employee / period chips) */
+.nv-select-trigger.nv-select-trigger--toolbar {
+  min-height: 2.25rem;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  width: auto;
+  min-width: 9.5rem;
+  max-width: 16rem;
 }
 
 .nv-section-label {
@@ -1214,25 +1424,26 @@ html[data-theme='cyber-dark'] #novora-hrms-root select:not([multiple]):not([size
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
+  gap: 1rem 1.25rem;
+  margin-bottom: 1.35rem;
+  padding-bottom: 0.15rem;
 }
 
 .nv-module-header__title {
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--color-novora-ink);
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .nv-module-header__desc {
   margin-top: 0.35rem;
-  max-width: 40rem;
+  max-width: 42rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.45;
   color: var(--shell-muted);
 }
 

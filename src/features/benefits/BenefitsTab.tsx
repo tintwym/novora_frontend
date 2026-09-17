@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import ModuleHeader from '@/components/ui/ModuleHeader';
+import { SelectMenu } from '@/components/ui';
 import {
   ApiError,
   createBenefitEnrollment,
@@ -484,15 +485,17 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
         {/* Global Candidate profile selector */}
         <div className="flex items-center gap-2.5 shrink-0 flex-nowrap">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider whitespace-nowrap shrink-0">Viewing Employee Profile:</span>
-          <select
+          <SelectMenu
             value={selectedSubEmployee}
-            onChange={(e) => { setSelectedSubEmployee(e.target.value); setBenefitAi(null); }}
-            className="text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl px-3 py-1.5 outline-none cursor-pointer hover:bg-slate-50 whitespace-nowrap shrink-0"
-          >
-            {employees.map(emp => (
-              <option key={emp.id} value={emp.id}>{emp.name} ({emp.id})</option>
-            ))}
-          </select>
+            onChange={(v) => { setSelectedSubEmployee(v); setBenefitAi(null); }}
+            aria-label="Viewing employee profile"
+            className="w-auto shrink-0"
+            triggerClassName="nv-select-trigger--toolbar"
+            options={employees.map((emp) => ({
+              value: emp.id,
+              label: `${emp.name} (${emp.id})`,
+            }))}
+          />
           <button
             type="button"
             disabled={aiBenefitBusy || !selectedSubEmployee}
@@ -554,16 +557,18 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
             </div>
             <div>
               <label className="text-[10px] text-slate-400 font-bold block mb-1">Category</label>
-              <select
+              <SelectMenu
                 value={newPlanCategory}
-                onChange={(e) => setNewPlanCategory(e.target.value as BenefitPlan['category'])}
-                className="text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 outline-none"
-              >
-                <option value="Medical">Medical</option>
-                <option value="Dental">Dental</option>
-                <option value="Wellness">Wellness</option>
-                <option value="Lifestyle">Lifestyle</option>
-              </select>
+                onChange={(v) => setNewPlanCategory(v as BenefitPlan['category'])}
+                className="w-36"
+                triggerClassName="text-xs font-bold bg-slate-50 border-slate-100 min-h-9 py-2"
+                options={[
+                  { value: 'Medical', label: 'Medical' },
+                  { value: 'Dental', label: 'Dental' },
+                  { value: 'Wellness', label: 'Wellness' },
+                  { value: 'Lifestyle', label: 'Lifestyle' },
+                ]}
+              />
             </div>
             <div>
               <label className="text-[10px] text-slate-400 font-bold block mb-1">Monthly Cost</label>
@@ -610,7 +615,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                       </div>
 
                       <div className="text-right">
-                        <span className="text-base font-black text-slate-850">RM {plan.monthlyCost}</span>
+                        <span className="text-base font-black text-slate-800">RM {plan.monthlyCost}</span>
                         <span className="text-[9.5px] text-slate-400 block font-semibold">/ month</span>
                       </div>
                     </div>
@@ -789,7 +794,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-100 text-[10.5px] font-black text-slate-405 uppercase tracking-wider bg-slate-50/50">
+                      <tr className="border-b border-slate-100 text-[10.5px] font-black text-slate-400 uppercase tracking-wider bg-slate-50/50">
                         <th className="p-3">Claim ID</th>
                         <th className="p-3">Candidate Employee</th>
                         <th className="p-3">Classification</th>
@@ -802,7 +807,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                       {claims.map((claim) => (
                         <tr key={claim.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="p-3 font-mono text-slate-500 font-bold">{claim.id}</td>
-                          <td className="p-3 font-bold text-slate-850">{claim.employeeName}</td>
+                          <td className="p-3 font-bold text-slate-800">{claim.employeeName}</td>
                           <td className="p-3">
                             <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md ${
                               claim.category === 'Medical' ? 'bg-indigo-50 text-novora' :
@@ -990,7 +995,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                 <ShieldAlert className="h-5 w-5 text-amber-600 shrink-0" />
                 <div>
                   <h6 className="text-xs font-black text-slate-800">Dependent Coverage Policy Notice</h6>
-                  <p className="text-[11px] text-slate-505 leading-relaxed mt-1">
+                  <p className="text-[11px] text-slate-500 leading-relaxed mt-1">
                     Beneficiary additions take effect under the vendor contract on the 1st of the subsequent calendar month. Please double check that passport numbers correspond perfectly with national registries to avoid claim verification rejections.
                   </p>
                 </div>
@@ -1044,7 +1049,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                 <tbody className="divide-y divide-slate-50">
                   {payrollSyncs.map((sync) => (
                     <tr key={sync.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="p-3.5 font-mono text-slate-450 font-bold">{sync.id}</td>
+                      <td className="p-3.5 font-mono text-slate-400 font-bold">{sync.id}</td>
                       <td className="p-3.5 font-bold text-slate-800">{sync.employeeName}</td>
                       <td className="p-3.5 font-semibold text-slate-600">{sync.perkName}</td>
                       <td className="p-3.5">
@@ -1133,7 +1138,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                       <span className="text-[10.5px] font-medium text-slate-400 font-mono">{vendor.domain}</span>
                     </div>
 
-                    <div className="flex items-center gap-4.5 text-[11px] text-slate-505 font-semibold">
+                    <div className="flex items-center gap-4.5 text-[11px] text-slate-500 font-semibold">
                       <span>Covered Employees: <strong className="text-slate-800">{vendor.activePoliciesCount}</strong></span>
                       <span>&bull;</span>
                       <span>Total monthly Premium cost: <strong className="text-novora">RM {vendor.monthlyPremium.toLocaleString()}</strong></span>
@@ -1179,7 +1184,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                 <span className="text-2xl font-black text-slate-800">
                   RM 14,240
                 </span>
-                <span className="text-[10px] text-slate-450 block font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">
                   Consolidated 4 primary plans + vendor slabs
                 </span>
               </div>
@@ -1203,7 +1208,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                   return (
                     <>
                       <span className="text-2xl font-black text-slate-800">{pct}%</span>
-                      <span className="text-[10px] text-slate-455 block font-semibold mt-0.5">
+                      <span className="text-[10px] text-slate-500 block font-semibold mt-0.5">
                         RM {totalSpent.toLocaleString()} spent of RM {totalLimit.toLocaleString()} FSA cap
                       </span>
                     </>
@@ -1237,7 +1242,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                   return (
                     <>
                       <span className="text-2xl font-black text-slate-800">{pct}%</span>
-                      <span className="text-[10px] text-slate-455 block font-semibold mt-0.5">
+                      <span className="text-[10px] text-slate-500 block font-semibold mt-0.5">
                         RM {totalSpent.toLocaleString()} spent of RM {totalLimit.toLocaleString()} cap
                       </span>
                     </>
@@ -1266,13 +1271,13 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                 <span className="text-2xl font-black text-slate-800">
                   {dependents.length} Covered
                 </span>
-                <span className="text-[10px] text-slate-450 block font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">
                   Full panel medical + dental alignment
                 </span>
               </div>
               <div className="flex items-center gap-1 mt-3">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                <span className="text-[9.5px] text-slate-450 font-bold uppercase">All credentials valid</span>
+                <span className="text-[9.5px] text-slate-400 font-bold uppercase">All credentials valid</span>
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { createLocalNumericId, createLocalId } from '@/lib/createLocalId'
 import { useTheme } from '@/providers/ThemeProvider';
 import type { AccentPreset, DensityPreset, ThemePreset } from '@/lib/theme';
 import SettingsSubNav from '@/components/settings/SettingsSubNav';
+import { SelectMenu } from '@/components/ui';
 import {
   ApiError,
   activateUser,
@@ -942,17 +943,18 @@ export default function SettingsTab({
 
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Company Size</label>
-                <select
+                <SelectMenu
                   value={profile.companySize}
-                  onChange={(e) => setProfile({ ...profile, companySize: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:border-novora outline-none text-slate-700"
-                >
-                  <option>1 - 50 employees</option>
-                  <option>51 - 250 employees</option>
-                  <option>251 - 1,000 employees</option>
-                  <option>1,001 - 5,000 employees</option>
-                  <option>5,000+ employees</option>
-                </select>
+                  onChange={(v) => setProfile({ ...profile, companySize: v })}
+                  options={[
+                    { value: '1 - 50 employees', label: '1 - 50 employees' },
+                    { value: '51 - 250 employees', label: '51 - 250 employees' },
+                    { value: '251 - 1,000 employees', label: '251 - 1,000 employees' },
+                    { value: '1,001 - 5,000 employees', label: '1,001 - 5,000 employees' },
+                    { value: '5,000+ employees', label: '5,000+ employees' },
+                  ]}
+                  triggerClassName="text-xs font-semibold"
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -1118,7 +1120,7 @@ export default function SettingsTab({
                   }`}
                 >
                   <div className="space-y-1">
-                    <h4 className="text-xs font-bold text-slate-850">{m.name}</h4>
+                    <h4 className="text-xs font-bold text-slate-800">{m.name}</h4>
                     <p className="text-[10.5px] font-medium text-slate-400 pr-4 leading-relaxed">{m.desc}</p>
                   </div>
                   <button
@@ -2045,7 +2047,7 @@ export default function SettingsTab({
                     <select
                       value={newWorkflowForm.chain}
                       onChange={(e) => setNewWorkflowForm({ ...newWorkflowForm, chain: e.target.value })}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold outline-none text-slate-655 focus:border-novora"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold outline-none text-slate-700 focus:border-novora"
                     >
                       <option>Direct Manager</option>
                       <option>Direct Manager → HOD</option>
@@ -2423,15 +2425,15 @@ export default function SettingsTab({
 
                   <div className="border-t border-slate-100 pt-3 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-605">Require Uppercase &amp; Lowercase alphas</span>
+                      <span className="text-xs font-bold text-slate-600">Require Uppercase &amp; Lowercase alphas</span>
                       <input type="checkbox" checked={securityParams.requireCaps} onChange={() => setSecurityParams({ ...securityParams, requireCaps: !securityParams.requireCaps })} className="h-4 w-4 text-novora" />
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-605">Require Numerical indexes</span>
+                      <span className="text-xs font-bold text-slate-600">Require Numerical indexes</span>
                       <input type="checkbox" checked={securityParams.requireNums} onChange={() => setSecurityParams({ ...securityParams, requireNums: !securityParams.requireNums })} className="h-4 w-4 text-novora" />
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-605">Require Cryptographic special characters</span>
+                      <span className="text-xs font-bold text-slate-600">Require Cryptographic special characters</span>
                       <input type="checkbox" checked={securityParams.requireSpec} onChange={() => setSecurityParams({ ...securityParams, requireSpec: !securityParams.requireSpec })} className="h-4 w-4 text-novora" />
                     </div>
                   </div>
@@ -2491,7 +2493,7 @@ export default function SettingsTab({
                 <tbody className="divide-y divide-slate-100 font-semibold text-slate-600">
                   {filteredLogs.map((log, idx) => (
                     <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-5 py-3.5 text-slate-555 font-medium">{log.time}</td>
+                      <td className="px-5 py-3.5 text-slate-600 font-medium">{log.time}</td>
                       <td className="px-5 py-3.5 font-bold text-slate-800">{log.user}</td>
                       <td className="px-5 py-3.5 font-medium">{log.action}</td>
                       <td className="px-5 py-3.5">
@@ -2553,7 +2555,7 @@ export default function SettingsTab({
                       className={`p-4 text-left border border-slate-100 rounded-2xl cursor-pointer transition-all ${
                         themePref === theme.name
                           ? 'border-novora bg-novora/5 text-slate-800 outline-none ring-1 ring-novora/20 font-bold'
-                          : 'border-slate-100 hover:border-slate-200 bg-white text-slate-505'
+                          : 'border-slate-100 hover:border-slate-200 bg-white text-slate-500'
                       }`}
                     >
                       <div className="text-xs font-bold">{theme.name}</div>
@@ -2636,56 +2638,60 @@ export default function SettingsTab({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">System language</label>
-                <select
+                <SelectMenu
                   value={regional.language}
-                  onChange={(e) => setRegional({ ...regional, language: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:border-novora outline-none text-slate-700"
-                >
-                  <option>English (US)</option>
-                  <option>English (UK)</option>
-                  <option>Bahasa Melayu</option>
-                  <option>Chinese Simplified</option>
-                </select>
+                  onChange={(v) => setRegional({ ...regional, language: v })}
+                  options={[
+                    { value: 'English (US)', label: 'English (US)' },
+                    { value: 'English (UK)', label: 'English (UK)' },
+                    { value: 'Bahasa Melayu', label: 'Bahasa Melayu' },
+                    { value: 'Chinese Simplified', label: 'Chinese Simplified' },
+                  ]}
+                  triggerClassName="text-xs font-semibold"
+                />
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Regional Timezone reference</label>
-                <select
+                <SelectMenu
                   value={regional.timezone}
-                  onChange={(e) => setRegional({ ...regional, timezone: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:border-novora outline-none text-slate-700"
-                >
-                  <option>Asia/Singapore (UTC+8)</option>
-                  <option>Asia/Singapore (UTC+8)</option>
-                  <option>Asia/London (UTC+0)</option>
-                  <option>America/New_York (UTC-5)</option>
-                </select>
+                  onChange={(v) => setRegional({ ...regional, timezone: v })}
+                  options={[
+                    { value: 'Asia/Singapore (UTC+8)', label: 'Asia/Singapore (UTC+8)' },
+                    { value: 'Asia/Kuala_Lumpur (UTC+8)', label: 'Asia/Kuala_Lumpur (UTC+8)' },
+                    { value: 'Asia/London (UTC+0)', label: 'Asia/London (UTC+0)' },
+                    { value: 'America/New_York (UTC-5)', label: 'America/New_York (UTC-5)' },
+                  ]}
+                  triggerClassName="text-xs font-semibold"
+                />
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Calendar Date representation</label>
-                <select
+                <SelectMenu
                   value={regional.dateFormat}
-                  onChange={(e) => setRegional({ ...regional, dateFormat: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:border-novora outline-none text-slate-700"
-                >
-                  <option>DD/MM/YYYY</option>
-                  <option>MM/DD/YYYY</option>
-                  <option>YYYY-MM-DD</option>
-                </select>
+                  onChange={(v) => setRegional({ ...regional, dateFormat: v })}
+                  options={[
+                    { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY' },
+                    { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY' },
+                    { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD' },
+                  ]}
+                  triggerClassName="text-xs font-semibold"
+                />
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Primary Currency ledger</label>
-                <select
+                <SelectMenu
                   value={regional.currency}
-                  onChange={(e) => setRegional({ ...regional, currency: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:border-novora outline-none text-slate-700"
-                >
-                  <option>SGD — Singapore Dollar</option>
-                  <option>USD — US Dollar</option>
-                  <option>GBP — British Pound Sterling</option>
-                </select>
+                  onChange={(v) => setRegional({ ...regional, currency: v })}
+                  options={[
+                    { value: 'SGD — Singapore Dollar', label: 'SGD — Singapore Dollar' },
+                    { value: 'USD — US Dollar', label: 'USD — US Dollar' },
+                    { value: 'GBP — British Pound Sterling', label: 'GBP — British Pound Sterling' },
+                  ]}
+                  triggerClassName="text-xs font-semibold"
+                />
               </div>
             </div>
 
@@ -2807,7 +2813,7 @@ export default function SettingsTab({
                         <select
                           value={newTemplateForm.trigger}
                           onChange={(e) => setNewTemplateForm({ ...newTemplateForm, trigger: e.target.value })}
-                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold outline-none text-slate-655 focus:border-novora"
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold outline-none text-slate-700 focus:border-novora"
                         >
                           <option>On leave request</option>
                           <option>On payroll confirm</option>
@@ -2903,7 +2909,7 @@ export default function SettingsTab({
                             .replace(/\{id\}/g, 'CLM-9821')
                             .replace(/\{email\}/g, 'jane.doe@novora.com')
                         ) : (
-                          <span className="text-slate-350 italic">Start writing the email template body on the left to review real-time markup previews...</span>
+                          <span className="text-slate-300 italic">Start writing the email template body on the left to review real-time markup previews...</span>
                         )}
                       </div>
 
@@ -2929,7 +2935,7 @@ export default function SettingsTab({
                     <th className="px-5 py-3.5 font-bold text-right pb-2">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-semibold text-slate-655">
+                <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
                   {templates.map((temp) => (
                     <tr key={temp.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-5 py-3.5 font-bold text-slate-800">{temp.name}</td>
@@ -3026,7 +3032,7 @@ export default function SettingsTab({
                 <div className="grid grid-cols-2 gap-2.5">
                   <button
                     onClick={() => addToast('Compiling employee roster schemas...', 'loading')}
-                    className="p-2.5 border border-slate-200 hover:border-slate-350 bg-slate-50/20 rounded-xl font-bold text-[10.5px] cursor-pointer text-slate-700 flex flex-col items-center justify-center gap-1 hover:bg-slate-50/50"
+                    className="p-2.5 border border-slate-200 hover:border-slate-300 bg-slate-50/20 rounded-xl font-bold text-[10.5px] cursor-pointer text-slate-700 flex flex-col items-center justify-center gap-1 hover:bg-slate-50/50"
                   >
                     <Users className="h-4 w-4 text-novora" />
                     <span>Export Employees</span>
@@ -3034,7 +3040,7 @@ export default function SettingsTab({
 
                   <button
                     onClick={() => addToast('Assembling payroll worksheets...', 'loading')}
-                    className="p-2.5 border border-slate-200 hover:border-slate-350 bg-slate-50/20 rounded-xl font-bold text-[10.5px] cursor-pointer text-slate-700 flex flex-col items-center justify-center gap-1 hover:bg-slate-50/50"
+                    className="p-2.5 border border-slate-200 hover:border-slate-300 bg-slate-50/20 rounded-xl font-bold text-[10.5px] cursor-pointer text-slate-700 flex flex-col items-center justify-center gap-1 hover:bg-slate-50/50"
                   >
                     <Database className="h-4 w-4 text-emerald-500" />
                     <span>Export Payrolls</span>
@@ -3042,7 +3048,7 @@ export default function SettingsTab({
 
                   <button
                     onClick={() => addToast('Compiling punch records timesheet...', 'loading')}
-                    className="p-2.5 border border-slate-200 hover:border-slate-350 bg-slate-50/20 rounded-xl font-bold text-[10.5px] cursor-pointer text-slate-700 flex flex-col items-center justify-center gap-1 hover:bg-slate-50/50"
+                    className="p-2.5 border border-slate-200 hover:border-slate-300 bg-slate-50/20 rounded-xl font-bold text-[10.5px] cursor-pointer text-slate-700 flex flex-col items-center justify-center gap-1 hover:bg-slate-50/50"
                   >
                     <FileText className="h-4 w-4 text-novora" />
                     <span>Export Attendance</span>
@@ -3050,7 +3056,7 @@ export default function SettingsTab({
 
                   <button
                     onClick={() => addToast('Extracting system logs trace...', 'loading')}
-                    className="p-2.5 border border-slate-200 hover:border-slate-350 bg-slate-50/20 rounded-xl font-bold text-[10.5px] cursor-pointer text-slate-700 flex flex-col items-center justify-center gap-1 hover:bg-slate-50/50"
+                    className="p-2.5 border border-slate-200 hover:border-slate-300 bg-slate-50/20 rounded-xl font-bold text-[10.5px] cursor-pointer text-slate-700 flex flex-col items-center justify-center gap-1 hover:bg-slate-50/50"
                   >
                     <GitBranch className="h-4 w-4 text-amber-500" />
                     <span>Export Audit log</span>

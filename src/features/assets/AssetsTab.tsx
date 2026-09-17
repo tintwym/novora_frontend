@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { createLocalId } from '@/lib/createLocalId';
 import ModuleHeader from '@/components/ui/ModuleHeader';
+import { SelectMenu } from '@/components/ui';
 import { ApiError, createAsset, fetchAssets, fetchAssetsAiInsights, type AssetRow, type AssetsInsightResponse } from '@/services';
 
 type UiAsset = {
@@ -1022,36 +1023,38 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
           {activeSubTab === 'Registry' && (
             <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
               {/* Category Filter */}
-              <div className="flex items-center gap-1 text-xs">
-                <span className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Category:</span>
-                <select
-                  id="assets-filter-category"
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider shrink-0">Category:</span>
+                <SelectMenu
                   value={categoryFilter}
-                  onChange={e => setCategoryFilter(e.target.value)}
-                  className="bg-white border border-slate-200 hover:border-slate-400 text-slate-700 text-xs py-1 px-2 rounded-xl focus:border-novora outline-none transition-all cursor-pointer font-medium"
-                >
-                  <option value="All categories">All categories</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.name}>{cat.name}</option>
-                  ))}
-                </select>
+                  onChange={setCategoryFilter}
+                  aria-label="Asset category filter"
+                  className="w-auto shrink-0"
+                  triggerClassName="nv-select-trigger--toolbar min-w-[8.5rem]"
+                  options={[
+                    { value: 'All categories', label: 'All categories' },
+                    ...categories.map((cat) => ({ value: cat.name, label: cat.name })),
+                  ]}
+                />
               </div>
 
               {/* Status Filter */}
-              <div className="flex items-center gap-1 text-xs">
-                <span className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Status:</span>
-                <select
-                  id="assets-filter-status"
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider shrink-0">Status:</span>
+                <SelectMenu
                   value={statusFilter}
-                  onChange={e => setStatusFilter(e.target.value)}
-                  className="bg-white border border-slate-200 hover:border-slate-400 text-slate-700 text-xs py-1 px-2 rounded-xl focus:border-novora outline-none transition-all cursor-pointer font-medium"
-                >
-                  <option value="All statuses">All statuses</option>
-                  <option value="Available">Available Only</option>
-                  <option value="In Use">In Use Only</option>
-                  <option value="Maintenance">Maintenance Only</option>
-                  <option value="Retired">Retired Only</option>
-                </select>
+                  onChange={setStatusFilter}
+                  aria-label="Asset status filter"
+                  className="w-auto shrink-0"
+                  triggerClassName="nv-select-trigger--toolbar min-w-[8.5rem]"
+                  options={[
+                    { value: 'All statuses', label: 'All statuses' },
+                    { value: 'Available', label: 'Available Only' },
+                    { value: 'In Use', label: 'In Use Only' },
+                    { value: 'Maintenance', label: 'Maintenance Only' },
+                    { value: 'Retired', label: 'Retired Only' },
+                  ]}
+                />
               </div>
             </div>
           )}
@@ -1953,7 +1956,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                         placeholder="e.g. 150.00"
                         value={formIncCost}
                         onChange={e => setFormIncCost(e.target.value)}
-                        className="w-full text-xs border border-slate-200 outline-none p-2 rounded-xl focus:border-novora font-medium text-slate-850 bg-white"
+                        className="w-full text-xs border border-slate-200 outline-none p-2 rounded-xl focus:border-novora font-medium text-slate-800 bg-white"
                       />
                     </div>
                   </div>

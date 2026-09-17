@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { ApiError, createTraining, enrollInTraining, fetchTrainingEnrollments, fetchTrainings, type TrainingEnrollmentRow, type TrainingRow } from '@/services';
 import ModuleHeader from '@/components/ui/ModuleHeader';
+import { SelectMenu } from '@/components/ui';
 
 type UiCourse = {
   id: string | number;
@@ -75,7 +76,7 @@ type TrainingSubTab =
 export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
   const [activeTab, setActiveTab] = useState<TrainingSubTab>('Course');
   const [searchQuery, setSearchQuery] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState('All departments');
+  const [departmentFilter, setDepartmentFilter] = useState('All training types');
 
   // REPORTS STATES
   const [selectedReportType, setSelectedReportType] = useState<'compliance' | 'skills' | 'budget'>('compliance');
@@ -611,6 +612,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
               onClick={() => {
                 setActiveTab(tab.label);
                 setSearchQuery('');
+                if (tab.label === 'Course') setDepartmentFilter('All types');
+                else if (tab.label === 'Category') setDepartmentFilter('All training types');
+                else setDepartmentFilter('All departments');
               }}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === tab.label
@@ -629,10 +633,11 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
         </div>
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => addToast('Exporting spreadsheet document...', 'loading')}
-            className="h-9 inline-flex items-center gap-1.5 px-4 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
+            className="nv-toolbar-btn"
           >
-            <FileSpreadsheet className="h-4 w-4 text-emerald-500 shrink-0" />
+            <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
             <span>Export</span>
           </button>
         </div>
@@ -710,17 +715,20 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
         <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 w-full sm:max-w-md">
-              <select
+              <SelectMenu
                 value={departmentFilter}
-                onChange={e => setDepartmentFilter(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none"
-              >
-                <option value="All training types">All training types</option>
-                <option value="Management">Management</option>
-                <option value="Technical">Technical</option>
-                <option value="Compliance">Compliance</option>
-                <option value="Soft skills">Soft skills</option>
-              </select>
+                onChange={setDepartmentFilter}
+                aria-label="Training type filter"
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[9.5rem]"
+                options={[
+                  { value: 'All training types', label: 'All training types' },
+                  { value: 'Management', label: 'Management' },
+                  { value: 'Technical', label: 'Technical' },
+                  { value: 'Compliance', label: 'Compliance' },
+                  { value: 'Soft skills', label: 'Soft skills' },
+                ]}
+              />
               <div className="relative flex-1">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                   <Search className="h-4 w-4 text-slate-400" />
@@ -796,17 +804,20 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
         <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 w-full sm:max-w-md">
-              <select
+              <SelectMenu
                 value={departmentFilter}
-                onChange={e => setDepartmentFilter(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none"
-              >
-                <option value="All types">All types</option>
-                <option value="Management">Management</option>
-                <option value="Technical">Technical</option>
-                <option value="Compliance">Compliance</option>
-                <option value="Soft skills">Soft skills</option>
-              </select>
+                onChange={setDepartmentFilter}
+                aria-label="Course type filter"
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                options={[
+                  { value: 'All types', label: 'All types' },
+                  { value: 'Management', label: 'Management' },
+                  { value: 'Technical', label: 'Technical' },
+                  { value: 'Compliance', label: 'Compliance' },
+                  { value: 'Soft skills', label: 'Soft skills' },
+                ]}
+              />
               <div className="relative flex-1">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                   <Search className="h-4 w-4 text-slate-400" />
@@ -926,14 +937,19 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
         <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 w-full sm:max-w-md">
-              <select
-                className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none"
-              >
-                <option value="All courses">All courses</option>
-                <option value="Leadership essentials">Leadership essentials</option>
-                <option value="Excel advanced">Excel advanced</option>
-                <option value="Agile & Scrum">Agile & Scrum</option>
-              </select>
+              <SelectMenu
+                value="All courses"
+                onChange={() => undefined}
+                aria-label="Course filter"
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[9rem]"
+                options={[
+                  { value: 'All courses', label: 'All courses' },
+                  { value: 'Leadership essentials', label: 'Leadership essentials' },
+                  { value: 'Excel advanced', label: 'Excel advanced' },
+                  { value: 'Agile & Scrum', label: 'Agile & Scrum' },
+                ]}
+              />
               <div className="relative flex-1">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                   <Search className="h-4 w-4 text-slate-400" />
@@ -1003,12 +1019,22 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
         <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2 w-full sm:max-w-xl">
-              <select className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none">
-                <option value="">All courses</option>
-              </select>
-              <select className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none">
-                <option value="">All status</option>
-              </select>
+              <SelectMenu
+                value="All courses"
+                onChange={() => undefined}
+                aria-label="Schedule course filter"
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                options={[{ value: 'All courses', label: 'All courses' }]}
+              />
+              <SelectMenu
+                value="All status"
+                onChange={() => undefined}
+                aria-label="Schedule status filter"
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[7.5rem]"
+                options={[{ value: 'All status', label: 'All status' }]}
+              />
               <input type="text" placeholder="dd/mm/yyyy" className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium py-1.5 px-3 focus:outline-none w-32" />
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -1434,12 +1460,22 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
         <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2 w-full sm:max-w-xl">
-              <select className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none">
-                <option>All courses</option>
-              </select>
-              <select className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none">
-                <option>All departments</option>
-              </select>
+              <SelectMenu
+                value="All courses"
+                onChange={() => undefined}
+                aria-label="Attendance course filter"
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                options={[{ value: 'All courses', label: 'All courses' }]}
+              />
+              <SelectMenu
+                value="All departments"
+                onChange={() => undefined}
+                aria-label="Attendance department filter"
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[9rem]"
+                options={[{ value: 'All departments', label: 'All departments' }]}
+              />
               <input type="text" placeholder="06/05/2026" className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium py-1.5 px-3 focus:outline-none w-32" />
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -1514,15 +1550,30 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
         <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2 w-full sm:max-w-xl">
-              <select className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none">
-                <option>All status</option>
-              </select>
-              <select className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none">
-                <option>All departments</option>
-              </select>
-              <select className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none">
-                <option>All courses</option>
-              </select>
+              <SelectMenu
+                value="All status"
+                onChange={() => undefined}
+                aria-label="History status filter"
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[7.5rem]"
+                options={[{ value: 'All status', label: 'All status' }]}
+              />
+              <SelectMenu
+                value="All departments"
+                onChange={() => undefined}
+                aria-label="History department filter"
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[9rem]"
+                options={[{ value: 'All departments', label: 'All departments' }]}
+              />
+              <SelectMenu
+                value="All courses"
+                onChange={() => undefined}
+                aria-label="History course filter"
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                options={[{ value: 'All courses', label: 'All courses' }]}
+              />
               <div className="relative flex-1 min-w-[200px]">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                   <Search className="h-4 w-4 text-slate-400" />

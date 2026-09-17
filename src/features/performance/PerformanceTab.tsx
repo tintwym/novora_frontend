@@ -486,7 +486,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
       'C': 'text-amber-600 bg-amber-50 border-amber-200',
       'D': 'text-red-600 bg-red-50 border-red-200',
     };
-    const finalColor = colorMap[grdLetter.toUpperCase()[0]] || 'text-novora bg-novora/5 border-blue-150';
+    const finalColor = colorMap[grdLetter.toUpperCase()[0]] || 'text-novora bg-novora/5 border-blue-100';
 
     if (activeModal === 'grade_new') {
       const newG = {
@@ -695,7 +695,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                 <IconComponent className="h-3.5 w-3.5" />
                 <span>{tab.label}</span>
                 {tab.countBadge !== undefined && (
-                  <span className="font-extrabold text-[10px] h-4.5 min-w-4.5 px-1.5 rounded-full flex items-center justify-center bg-amber-150 text-amber-800 border border-amber-250 animate-pulse shrink-0">
+                  <span className="font-extrabold text-[10px] h-4.5 min-w-4.5 px-1.5 rounded-full flex items-center justify-center bg-amber-100 text-amber-800 border border-amber-200 animate-pulse shrink-0">
                     {tab.countBadge}
                   </span>
                 )}
@@ -717,23 +717,24 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                 setDeptDropdownOpen(false)
                 setYearDropdownOpen(!yearDropdownOpen)
               }}
-              className="nv-dd-trigger"
+              className={`nv-dd-trigger ${yearDropdownOpen ? 'nv-dd-trigger--open' : ''}`}
             >
               <span className="whitespace-nowrap">{selectedYear}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {yearDropdownOpen && (
-              <div className="nv-dropdown-menu w-24 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
+              <div className="nv-dropdown-menu w-24">
                 {['2026', '2025', '2024'].map((y) => (
                   <button
                     key={y}
                     type="button"
+                    aria-selected={selectedYear === y}
                     onClick={() => {
                       setSelectedYear(y);
                       setYearDropdownOpen(false);
                       addToast(`Performance analysis year set to ${y}`, 'info');
                     }}
-                    className="w-full text-left px-3.5 py-1.5 text-xs text-slate-600 hover:bg-slate-50 font-semibold"
+                    className={selectedYear === y ? 'nv-dropdown-item--active' : ''}
                   >
                     {y}
                   </button>
@@ -753,23 +754,24 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                 setYearDropdownOpen(false)
                 setDeptDropdownOpen(!deptDropdownOpen)
               }}
-              className="nv-dd-trigger"
+              className={`nv-dd-trigger ${deptDropdownOpen ? 'nv-dd-trigger--open' : ''}`}
             >
               <span className="whitespace-nowrap">{selectedDept}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {deptDropdownOpen && (
-              <div className="nv-dropdown-menu w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
+              <div className="nv-dropdown-menu w-44">
                 {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map((d) => (
                   <button
                     key={d}
                     type="button"
+                    aria-selected={selectedDept === d}
                     onClick={() => {
                       setSelectedDept(d);
                       setDeptDropdownOpen(false);
                       addToast(`Department filter adjusted: ${d}`, 'info');
                     }}
-                    className="w-full text-left px-4 py-1.5 text-xs text-slate-600 hover:bg-slate-50 font-semibold"
+                    className={selectedDept === d ? 'nv-dropdown-item--active' : ''}
                   >
                     {d}
                   </button>
@@ -779,10 +781,11 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
           </DropdownAnchor>
 
           <button
+            type="button"
             onClick={() => addToast('Compiling performance statistics report...', 'loading')}
-            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-tiny whitespace-nowrap shrink-0"
+            className="nv-toolbar-btn"
           >
-            <Download className="h-4 w-4 text-slate-400 shrink-0" />
+            <Download className="h-4 w-4" />
             <span>Export</span>
           </button>
         </div>
@@ -975,7 +978,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
         {activeSubTab === 'KPI Setting' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between pb-1 border-b border-slate-50">
-              <select className="bg-white border border-slate-205 rounded-xl px-3 py-1.5 text-xs text-slate-605 font-bold outline-none cursor-pointer">
+              <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer">
                 <option>All KPI types</option>
                 <option>Attendance KPI</option>
                 <option>Achievement KPI</option>
@@ -1002,7 +1005,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
               <div className="border border-slate-100 rounded-2xl p-4.5 bg-slate-50/30">
                 <div className="flex items-center justify-between mb-3 pb-2 border-b border-dashed border-slate-100">
                   <h4 className="text-sm font-extrabold text-slate-800">Attendance KPI</h4>
-                  <span className="bg-blue-50 text-novora border border-blue-150 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-lg">
+                  <span className="bg-blue-50 text-novora border border-blue-100 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-lg">
                     Attendance
                   </span>
                 </div>
@@ -1195,7 +1198,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
         {activeSubTab === 'Eval. Category' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between pb-2">
-              <select className="bg-white border border-slate-205 rounded-xl px-3 py-1.5 text-xs text-slate-605 font-bold outline-none cursor-pointer">
+              <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer">
                 <option>All KPI types</option>
                 <option>Attribute</option>
                 <option>Competency</option>
@@ -1280,7 +1283,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
         {activeSubTab === 'Eval. Setup' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between pb-1 border-b border-slate-50">
-              <select className="bg-white border border-slate-205 rounded-xl px-3 py-1.5 text-xs text-slate-605 font-bold outline-none cursor-pointer">
+              <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer">
                 <option>All evaluation types</option>
                 <option>Year-end appraisal</option>
                 <option>Probation review</option>
@@ -1399,12 +1402,12 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
           <div className="space-y-4">
             <div className="flex items-center justify-between pb-2">
               <div className="flex gap-2.5">
-                <select className="bg-white border border-slate-205 rounded-xl px-3 py-1.5 text-xs text-slate-605 font-bold outline-none cursor-pointer">
+                <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer">
                   <option>All evaluation types</option>
                   <option>Year-end appraisal</option>
                   <option>Mid-year appraisal</option>
                 </select>
-                <select className="bg-white border border-slate-205 rounded-xl px-3 py-1.5 text-xs text-slate-605 font-bold outline-none cursor-pointer">
+                <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer">
                   <option>All status</option>
                   <option>Active</option>
                   <option>Expired</option>
@@ -1521,16 +1524,16 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
           <div className="space-y-6">
             <div className="flex flex-wrap items-center justify-between pb-3 border-b border-slate-100 gap-4">
               <div className="flex flex-wrap items-center gap-2">
-                <select className="bg-white border border-slate-205 rounded-xl px-3 py-1.5 text-xs text-slate-605 font-bold cursor-pointer outline-none">
+                <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold cursor-pointer outline-none">
                   <option>All review types</option>
                   <option>Year-end appraisal</option>
                 </select>
-                <select className="bg-white border border-slate-205 rounded-xl px-3 py-1.5 text-xs text-[#d97706] font-bold cursor-pointer outline-none bg-amber-50">
+                <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-[#d97706] font-bold cursor-pointer outline-none bg-amber-50">
                   <option>All status</option>
                   <option>Pending</option>
                   <option>Completed</option>
                 </select>
-                <select className="bg-white border border-slate-205 rounded-xl px-3 py-1.5 text-xs text-slate-605 font-bold cursor-pointer outline-none">
+                <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold cursor-pointer outline-none">
                   <option>All departments</option>
                   <option>Engineering</option>
                   <option>Operations</option>
@@ -1538,7 +1541,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                 <input
                   type="text"
                   placeholder="Search employee..."
-                  className="bg-white border border-slate-205 rounded-xl px-3 py-1.5 text-xs font-semibold outline-none w-48"
+                  className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold outline-none w-48"
                 />
               </div>
 
@@ -1652,14 +1655,14 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                       <div className="flex justify-between items-center bg-white p-2 border border-slate-100 rounded-lg">
                         <span className="font-semibold text-slate-700">Sprints completed on time</span>
                         <div className="flex gap-3 items-center">
-                          <input readOnly type="number" value={activeEval.scores.sprintsCompleted} className="w-14 bg-slate-55 p-1 border rounded text-center font-bold" />
+                          <input readOnly type="number" value={activeEval.scores.sprintsCompleted} className="w-14 bg-slate-50 p-1 border rounded text-center font-bold" />
                           <span className="font-bold text-emerald-600">92%</span>
                         </div>
                       </div>
                       <div className="flex justify-between items-center bg-white p-2 border border-slate-100 rounded-lg">
                         <span className="font-semibold text-slate-700">Bugs resolved within SLA</span>
                         <div className="flex gap-3 items-center">
-                          <input readOnly type="number" value={activeEval.scores.bugsSLA} className="w-14 bg-slate-55 p-1 border rounded text-center font-bold" />
+                          <input readOnly type="number" value={activeEval.scores.bugsSLA} className="w-14 bg-slate-50 p-1 border rounded text-center font-bold" />
                           <span className="font-bold text-emerald-600">88%</span>
                         </div>
                       </div>
@@ -1696,7 +1699,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   </button>
                 </div>
 
-                <div className="bg-slate-55/30 border p-6 rounded-2xl text-xs space-y-3">
+                <div className="bg-slate-50/30 border p-6 rounded-2xl text-xs space-y-3">
                   <div className="flex items-center justify-between gap-2 border-b pb-2">
                     <h4 className="text-sm font-extrabold text-slate-800">Appraiser note</h4>
                     <button
@@ -1751,7 +1754,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                         <td className="py-2.5 text-slate-500">{item.date}</td>
                         <td className="py-2.5 text-slate-500 font-mono font-medium">{item.period}</td>
                         <td className="py-2.5">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${item.status === 'Completed' ? 'bg-green-50 text-emerald-700 border border-green-150' : 'bg-amber-50 text-amber-700 border border-amber-150'}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${item.status === 'Completed' ? 'bg-green-50 text-emerald-700 border border-green-150' : 'bg-amber-50 text-amber-700 border border-amber-100'}`}>
                             {item.status}
                           </span>
                         </td>
@@ -1897,7 +1900,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                           </span>
                         </td>
                         <td className="py-3 text-slate-500 font-semibold">{item.parent}</td>
-                        <td className="py-3 text-slate-550 mr-4 font-medium max-w-xs truncate leading-normal">{item.definition}</td>
+                        <td className="py-3 text-slate-500 mr-4 font-medium max-w-xs truncate leading-normal">{item.definition}</td>
                         <td className="py-3 text-right pr-2">
                           <button
                             title="Edit"
@@ -2014,7 +2017,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   SL
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-850 tracking-tight">Sarah Lim Wei Ling</h3>
+                  <h3 className="text-base font-extrabold text-slate-800 tracking-tight">Sarah Lim Wei Ling</h3>
                   <p className="text-[10.5px] font-semibold text-slate-400 mt-1 uppercase tracking-wide">
                     EMP-0021 &bull; Engineering &bull; Senior Developer
                   </p>
@@ -2028,7 +2031,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                 </div>
                 <div>
                   <span className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Current grade (latest)</span>
-                  <span className="bg-blue-50 text-novora px-2.5 border border-blue-150 font-black rounded text-[11px] h-6.5 inline-flex items-center">A</span>
+                  <span className="bg-blue-50 text-novora px-2.5 border border-blue-100 font-black rounded text-[11px] h-6.5 inline-flex items-center">A</span>
                 </div>
                 <div>
                   <span className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Latest score</span>
@@ -2589,7 +2592,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                               }}
                               className="h-3.5 w-3.5 rounded border-slate-300"
                             />
-                            <label htmlFor={`stp-lnk-cat-${i}`} className="text-slate-605 font-semibold cursor-pointer">{cat}</label>
+                            <label htmlFor={`stp-lnk-cat-${i}`} className="text-slate-600 font-semibold cursor-pointer">{cat}</label>
                           </div>
                         ))}
                       </div>
@@ -2696,7 +2699,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                         <span className="block text-[10px] uppercase font-black text-slate-400">Review Authorization</span>
                         <h4 className="text-sm font-extrabold text-slate-800">{permissionViewItem.evaluator}</h4>
                       </div>
-                      <span className="bg-blue-50 text-novora border border-blue-150 px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                      <span className="bg-blue-50 text-novora border border-blue-100 px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider">
                         {permissionViewItem.type}
                       </span>
                     </div>
@@ -2706,7 +2709,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                       </span>
                       <div className="border rounded-xl divide-y bg-white max-h-[250px] overflow-y-auto">
                         {permissionViewItem.details.map((emp, idx) => (
-                          <div key={idx} className="p-3 font-semibold flex items-center justify-between hover:bg-slate-55/35">
+                          <div key={idx} className="p-3 font-semibold flex items-center justify-between hover:bg-slate-50/35">
                             <span className="text-slate-800">{emp}</span>
                             <span className="text-emerald-600 font-bold flex items-center gap-1 text-[10.5px]">
                               ● Authorized

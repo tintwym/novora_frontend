@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import ModuleHeader from '@/components/ui/ModuleHeader';
+import { DropdownAnchor } from '@/components/ui';
 import {
   ApiError,
   createDisciplinaryCase,
@@ -244,6 +245,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
 
   // Filters state
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('All departments');
+  const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
   const [selectedSeverityFilter, setSelectedSeverityFilter] = useState('All severity');
   const [selectedActionLevelFilter, setSelectedActionLevelFilter] = useState('All levels');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('All status');
@@ -568,27 +570,47 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
 
         {/* Action controllers on the right, integrated into the navigation grid */}
         <div id="disciplinary-upper-actions" className="flex items-center gap-2.5 ml-auto sm:ml-0 font-sans text-slate-700 shrink-0 flex-nowrap">
-          
-          {/* Department global filter dropdown */}
-          <select
-            value={selectedDeptFilter}
-            onChange={(e) => setSelectedDeptFilter(e.target.value)}
-            className="h-9 bg-white border border-slate-200 hover:border-slate-300 text-xs font-bold px-3.5 rounded-xl focus:outline-none transition-colors cursor-pointer whitespace-nowrap shrink-0"
+          <DropdownAnchor
+            open={deptDropdownOpen}
+            onClose={() => setDeptDropdownOpen(false)}
+            align="right"
           >
-            <option value="All departments">All departments</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Finance">Finance</option>
-            <option value="HR">HR</option>
-            <option value="Marketing">Marketing</option>
-            <option value="Operations">Operations</option>
-          </select>
+            <button
+              type="button"
+              aria-expanded={deptDropdownOpen}
+              onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
+              className={`nv-dd-trigger ${deptDropdownOpen ? 'nv-dd-trigger--open' : ''}`}
+            >
+              <span>{selectedDeptFilter}</span>
+              <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
+            </button>
+            {deptDropdownOpen ? (
+              <div className="nv-dropdown-menu w-44">
+                {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map((dept) => (
+                  <button
+                    key={dept}
+                    type="button"
+                    aria-selected={selectedDeptFilter === dept}
+                    onClick={() => {
+                      setSelectedDeptFilter(dept)
+                      setDeptDropdownOpen(false)
+                    }}
+                    className={selectedDeptFilter === dept ? 'nv-dropdown-item--active' : ''}
+                  >
+                    {dept}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </DropdownAnchor>
 
           {/* Export button */}
           <button
+            type="button"
             onClick={() => addToast('Exporting summary disciplinary metrics...', 'loading')}
-            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-tiny whitespace-nowrap shrink-0"
+            className="nv-toolbar-btn"
           >
-            <Download className="h-4 w-4 text-slate-400 shrink-0" />
+            <Download className="h-4 w-4" />
             <span>Export</span>
           </button>
 
@@ -1338,7 +1360,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                                 {item.employeeName.split(' ')[0][0]}{item.employeeName.split(' ')[1]?.[0] || ''}
                               </div>
                               <div>
-                                <span className="font-extrabold text-slate-850 block">{item.employeeName}</span>
+                                <span className="font-extrabold text-slate-800 block">{item.employeeName}</span>
                                 <span className="text-[10px] text-slate-400 font-mono block mt-0.5">{item.employeeId} &bull; {item.department}</span>
                               </div>
                             </div>
@@ -1539,7 +1561,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
             {/* 2. Departmental compliance/utilization scoreboard */}
             <div className="nv-card p-5 shadow-sm space-y-4">
               <div>
-                <h4 className="text-xs font-bold text-slate-850 tracking-tight flex items-center gap-2">
+                <h4 className="text-xs font-bold text-slate-800 tracking-tight flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-novora" />
                   <span>Departmental Disciplinary &amp; Compliance Matrix</span>
                 </h4>
@@ -1575,7 +1597,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                           <td className="p-3 text-center font-mono font-bold text-slate-700">{data.totalCount}</td>
                           <td className="p-3 text-center font-mono text-amber-600 font-bold">{data.pendingCount}</td>
                           <td className="p-3 text-center font-mono text-emerald-600 font-bold">{data.closedCount}</td>
-                          <td className="p-3 text-slate-550 italic font-semibold">{data.commonOffence}</td>
+                          <td className="p-3 text-slate-500 italic font-semibold">{data.commonOffence}</td>
                           <td className="p-3 pr-4 text-right">
                             <span className={`border px-2.5 py-0.5 rounded-md font-extrabold text-[10px] ${healthBadge}`}>
                               {data.riskAssessment === 'Normal' ? 'Clear / Healthy' : data.riskAssessment === 'Under Watch' ? 'Under Watch' : 'Action Required'}
@@ -1759,7 +1781,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                                 <span className="font-bold text-slate-800 block">{item.reason}</span>
                                 <span className="text-[10px] text-slate-400 line-clamp-1 block max-w-sm mt-0.5">{item.description}</span>
                               </td>
-                              <td className="p-3 text-center font-mono text-slate-550 font-semibold">{item.incidentDate}</td>
+                              <td className="p-3 text-center font-mono text-slate-500 font-semibold">{item.incidentDate}</td>
                               <td className="p-3">
                                 <span className="bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded text-[10px]">
                                   {item.warningLevel} &bull; {actions.find(a => a.level === item.warningLevel)?.name || 'Warning'}
@@ -1832,7 +1854,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                               <span className="font-bold text-slate-700 block">{row.employee.department}</span>
                               <span className="text-[10px] text-slate-400 block mt-0.5">{row.employee.position}</span>
                             </td>
-                            <td className="p-3 text-center font-mono font-bold text-slate-808">{row.totalCases}</td>
+                            <td className="p-3 text-center font-mono font-bold text-slate-800">{row.totalCases}</td>
                             <td className="p-3 text-center font-mono text-amber-600 font-bold">{row.pending}</td>
                             <td className="p-3">
                               {row.maxLevel !== 'None' ? (
@@ -2256,12 +2278,12 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
               {/* Employee card overview */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <span className="text-[9.5px] font-bold text-slate-450 uppercase block">Employee Target</span>
+                  <span className="text-[9.5px] font-bold text-slate-400 uppercase block">Employee Target</span>
                   <span className="text-xs font-extrabold text-slate-800 block mt-0.5">{viewCaseDetailsModal.employeeName}</span>
                   <span className="text-[10.5px] text-slate-500 block">ID: {viewCaseDetailsModal.employeeId} &bull; Dept: {viewCaseDetailsModal.department}</span>
                 </div>
                 <div>
-                  <span className="text-[9.5px] font-bold text-slate-450 uppercase block">Action Issued By</span>
+                  <span className="text-[9.5px] font-bold text-slate-400 uppercase block">Action Issued By</span>
                   <span className="text-xs font-extrabold text-slate-800 block mt-0.5">{viewCaseDetailsModal.actionIssuedBy}</span>
                   <span className="text-[10.5px] text-slate-500 block">Date of Action: {viewCaseDetailsModal.actionDate}</span>
                 </div>
@@ -2323,7 +2345,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
               </div>
 
               {/* Status control */}
-              <div className="border-t border-slate-110 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="border-t border-slate-100 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-slate-400">Update Dossier Resolution:</span>
                   <div className="flex gap-1">
@@ -2337,7 +2359,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                         className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold transition-all border cursor-pointer ${
                           viewCaseDetailsModal.status === st
                             ? 'bg-novora text-white border-novora'
-                            : 'bg-slate-55 bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50'
+                            : 'bg-slate-50 bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50'
                         }`}
                       >
                         {st}

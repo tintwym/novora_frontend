@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import ModuleHeader from '@/components/ui/ModuleHeader';
+import { SelectMenu } from '@/components/ui';
 import {
   ApiError,
   createHelpdeskTicket,
@@ -851,47 +852,53 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
 
                 <div>
                   <span className="text-[10px] text-slate-400 font-extrabold block mb-1">Incident Category</span>
-                  <select
+                  <SelectMenu
                     value={ticketCategoryFilter}
-                    onChange={(e) => setTicketCategoryFilter(e.target.value)}
-                    className="w-full text-[11.5px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 rounded-xl p-2 outline-none cursor-pointer"
-                  >
-                    <option value="All">All Categories</option>
-                    <option value="Payroll Discrepancy">Payroll Discrepancy</option>
-                    <option value="Document Request">Document Request</option>
-                    <option value="Tax Form Issue">Tax Form Issue</option>
-                    <option value="Benefits Inquiry">Benefits Inquiry</option>
-                    <option value="General Policy">General Policy</option>
-                  </select>
+                    onChange={setTicketCategoryFilter}
+                    aria-label="Incident category"
+                    options={[
+                      { value: 'All', label: 'All Categories' },
+                      { value: 'Payroll Discrepancy', label: 'Payroll Discrepancy' },
+                      { value: 'Document Request', label: 'Document Request' },
+                      { value: 'Tax Form Issue', label: 'Tax Form Issue' },
+                      { value: 'Benefits Inquiry', label: 'Benefits Inquiry' },
+                      { value: 'General Policy', label: 'General Policy' },
+                    ]}
+                    triggerClassName="text-[11.5px] font-semibold text-slate-600 bg-slate-50 border-slate-100 min-h-9 py-2"
+                  />
                 </div>
 
                 <div>
                   <span className="text-[10px] text-slate-400 font-extrabold block mb-1">Priority Target</span>
-                  <select
+                  <SelectMenu
                     value={ticketPriorityFilter}
-                    onChange={(e) => setTicketPriorityFilter(e.target.value)}
-                    className="w-full text-[11.5px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 rounded-xl p-2 outline-none cursor-pointer"
-                  >
-                    <option value="All">All Priorities</option>
-                    <option value="Critical">Critical</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                  </select>
+                    onChange={setTicketPriorityFilter}
+                    aria-label="Priority target"
+                    options={[
+                      { value: 'All', label: 'All Priorities' },
+                      { value: 'Critical', label: 'Critical' },
+                      { value: 'High', label: 'High' },
+                      { value: 'Medium', label: 'Medium' },
+                      { value: 'Low', label: 'Low' },
+                    ]}
+                    triggerClassName="text-[11.5px] font-semibold text-slate-600 bg-slate-50 border-slate-100 min-h-9 py-2"
+                  />
                 </div>
 
                 <div>
                   <span className="text-[10px] text-slate-400 font-extrabold block mb-1">Lifecycle Status</span>
-                  <select
+                  <SelectMenu
                     value={ticketStatusFilter}
-                    onChange={(e) => setTicketStatusFilter(e.target.value)}
-                    className="w-full text-[11.5px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 rounded-xl p-2 outline-none cursor-pointer"
-                  >
-                    <option value="All">All States</option>
-                    <option value="Open">Open</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
-                  </select>
+                    onChange={setTicketStatusFilter}
+                    aria-label="Lifecycle status"
+                    options={[
+                      { value: 'All', label: 'All States' },
+                      { value: 'Open', label: 'Open' },
+                      { value: 'In Progress', label: 'In Progress' },
+                      { value: 'Resolved', label: 'Resolved' },
+                    ]}
+                    triggerClassName="text-[11.5px] font-semibold text-slate-600 bg-slate-50 border-slate-100 min-h-9 py-2"
+                  />
                 </div>
               </div>
             </div>
@@ -938,7 +945,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-mono font-black text-slate-400 uppercase tracking-widest">{t.id}</span>
-                            <span className="text-slate-205 text-xs">&bull;</span>
+                            <span className="text-slate-200 text-xs">&bull;</span>
                             <span className="text-[9.5px] font-black uppercase text-novora bg-blue-50/70 px-2 py-0.5 rounded">
                               {t.category}
                             </span>
@@ -954,15 +961,15 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                         </span>
                       </div>
 
-                      <p className="text-[11px] text-slate-450 line-clamp-1 mt-1.5 font-medium leading-relaxed">
+                      <p className="text-[11px] text-slate-400 line-clamp-1 mt-1.5 font-medium leading-relaxed">
                         {t.description}
                       </p>
 
                       {/* Display warning badge if SLA is critical or breached */}
-                      <div className="flex flex-wrap items-center gap-2 mt-3 pt-2.5 border-t border-slate-55 flex-row sm:justify-between text-[10px] text-slate-400 font-semibold gap-y-1">
+                      <div className="flex flex-wrap items-center gap-2 mt-3 pt-2.5 border-t border-slate-50 flex-row sm:justify-between text-[10px] text-slate-400 font-semibold gap-y-1">
                         <div className="flex items-center gap-2">
                           <div className="flex items-center gap-1.5 bg-slate-50 text-slate-600 px-2 py-1 rounded">
-                            <User className="h-3 w-3 text-slate-450" />
+                            <User className="h-3 w-3 text-slate-400" />
                             <span className="font-bold">{t.createdBy}</span>
                           </div>
                           <span className="font-mono text-[9px] text-slate-400">{t.createdAt}</span>
@@ -1135,7 +1142,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   <div className="space-y-2 pb-1.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1 text-slate-400">
-                        <MessageSquare className="h-4 w-4 text-slate-450" />
+                        <MessageSquare className="h-4 w-4 text-slate-400" />
                         <span className="text-[10px] font-black uppercase tracking-wider">Two-Way Discussion Audio Trail</span>
                       </div>
                       
@@ -1183,7 +1190,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                 <form onSubmit={handleSendChatMessage} className="pt-3 border-t border-slate-100 space-y-2 bg-white">
                   
                   {/* Select file attachment mock utility (Correcting documents requests) */}
-                  <div className="flex items-center justify-between text-[10px] text-slate-450 px-0.5">
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 px-0.5">
                     <div className="flex items-center gap-2">
                       <span className="font-bold uppercase">Insert Corrected Document:</span>
                       <select
@@ -1250,7 +1257,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
               </div>
             ) : (
               <div className="bg-white border border-slate-100 rounded-3xl p-15 text-center text-slate-400">
-                <LifeBuoy className="h-10 w-10 text-slate-350 mx-auto mb-2 animate-bounce" />
+                <LifeBuoy className="h-10 w-10 text-slate-300 mx-auto mb-2 animate-bounce" />
                 <p className="text-xs">Select any incident voucher on the queue to load ticket Workspace diagnostic tools.</p>
               </div>
             )}
@@ -1349,7 +1356,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
 
             {/* Historical Generated Document list */}
             <div className="nv-card p-4.5 shadow-3xs space-y-3">
-              <span className="text-[10px] font-black uppercase text-slate-450 block">Recent Issued Digital Certificates</span>
+              <span className="text-[10px] font-black uppercase text-slate-400 block">Recent Issued Digital Certificates</span>
               
               <div className="space-y-2 max-h-[220px] overflow-y-auto">
                 {generatedDocs.map((doc) => (
@@ -1448,21 +1455,21 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                 {/* Electronic stamp and signature blocks */}
                 <div className="border-t pt-5 flex justify-between items-end relative z-10">
                   <div className="space-y-2">
-                    <span className="text-[9.5px] font-black text-slate-450 uppercase block">HR Corporate Endorsement Stamp</span>
+                    <span className="text-[9.5px] font-black text-slate-400 uppercase block">HR Corporate Endorsement Stamp</span>
                     <div className="h-16 w-16 border-2 border-emerald-600/30 rounded-full flex items-center justify-center font-black text-[9px] text-emerald-600/60 uppercase tracking-widest font-mono text-center select-none rotate-12 bg-emerald-50/20 shrink-0">
                       <span>Certified<br/>Digital<br/>Stamp</span>
                     </div>
                   </div>
 
                   <div className="space-y-3.5 text-right w-64">
-                    <span className="text-[9.5px] font-black text-slate-455 uppercase block">Signatory Representative Approval</span>
+                    <span className="text-[9.5px] font-black text-slate-500 uppercase block">Signatory Representative Approval</span>
                     
                     {verificationOutput.status === 'Digitally Signed & Issued' ? (
                       <div className="space-y-1">
                         <span className="font-serif italic text-novora font-black text-[13px] block border-b pb-1 border-slate-100">
                           {verificationOutput.signedBy.split(' ')[0]}
                         </span>
-                        <div className="text-[9px] font-bold text-slate-450 uppercase leading-none font-mono">
+                        <div className="text-[9px] font-bold text-slate-400 uppercase leading-none font-mono">
                           {verificationOutput.signedBy}
                         </div>
                       </div>
@@ -1492,7 +1499,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
 
                 {/* PDF Print/Download simulation actions */}
                 <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center bg-slate-50/55 p-3 rounded-2xl">
-                  <div className="flex items-center gap-1.5 text-[10px] text-slate-455 font-bold">
+                  <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold">
                     <QrCode className="h-4 w-4 text-slate-400" />
                     <span>Scan code for authentic blockchain registry check.</span>
                   </div>
@@ -1804,7 +1811,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                             <button
                               onClick={() => handleVoteHelpful(faq.id)}
                               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                                faq.voted ? 'bg-novora/10 text-novora' : 'hover:bg-slate-100 text-slate-450'
+                                faq.voted ? 'bg-novora/10 text-novora' : 'hover:bg-slate-100 text-slate-400'
                               }`}
                             >
                               <ThumbsUp className={`h-3.5 w-3.5 ${faq.voted ? 'fill-blue-600 text-novora' : ''}`} />
@@ -1958,7 +1965,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
               <div className="flex items-center justify-between p-2.5 bg-slate-50 border rounded-xl">
                 <div className="space-y-0.5">
                   <span className="text-[10px] font-bold text-slate-600 uppercase block">Confidential / Double-Blind Channel</span>
-                  <p className="text-[9.5px] text-slate-450">Limit viewing to payroll and direct tax specialists only.</p>
+                  <p className="text-[9.5px] text-slate-400">Limit viewing to payroll and direct tax specialists only.</p>
                 </div>
 
                 <button
@@ -1977,7 +1984,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                 <button
                   type="button"
                   onClick={() => setIsNewTicketModalOpen(false)}
-                  className="px-4 py-2 border border-slate-205 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                  className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 cursor-pointer"
                 >
                   Discard
                 </button>

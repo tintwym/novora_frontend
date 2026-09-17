@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import ModuleHeader from '@/components/ui/ModuleHeader';
+import { SelectMenu } from '@/components/ui';
 import {
   ApiError,
   createOnboardingTask,
@@ -428,15 +429,17 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
         {/* Outer Scope Quick selection info indicator */}
         <div className="flex items-center gap-2.5">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Active Talent:</span>
-          <select
+          <SelectMenu
             value={selectedSubEmployee}
-            onChange={(e) => setSelectedSubEmployee(e.target.value)}
-            className="text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl px-3 py-1.5 outline-none cursor-pointer hover:bg-slate-50"
-          >
-            {employees.map(emp => (
-              <option key={emp.id} value={emp.id}>{emp.name}</option>
-            ))}
-          </select>
+            onChange={setSelectedSubEmployee}
+            aria-label="Active talent"
+            className="w-auto shrink-0"
+            triggerClassName="nv-select-trigger--toolbar"
+            options={employees.map((emp) => ({
+              value: emp.id,
+              label: emp.name,
+            }))}
+          />
         </div>
       </div>
 
@@ -625,7 +628,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                   <AlertCircle className="h-5 w-5 text-novora shrink-0" />
                   <div>
                     <h6 className="text-xs font-bold text-slate-800">Compliance Audit Tip</h6>
-                    <p className="text-[11px] text-slate-505 leading-relaxed mt-1">
+                    <p className="text-[11px] text-slate-500 leading-relaxed mt-1">
                       Legal Proof documents (such as NRIC, working passport) are cross-checked with the Federal Biometric Database. Turnaround time for automated compliance matches is ordinarily 4 hours.
                     </p>
                   </div>
@@ -757,7 +760,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                           {item.completed ? (
                             <CheckSquare className="h-4.5 w-4.5 text-emerald-600" />
                           ) : (
-                            <Square className="h-4.5 w-4.5 text-slate-350" />
+                            <Square className="h-4.5 w-4.5 text-slate-300" />
                           )}
                         </span>
                         <div>
@@ -816,7 +819,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       placeholder="Search policy archives..."
                       value={kbSearchQuery}
                       onChange={(e) => setKbSearchQuery(e.target.value)}
-                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl pl-9 pr-4 py-2 outline-none focus:bg-white focus:border-slate-205"
+                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl pl-9 pr-4 py-2 outline-none focus:bg-white focus:border-slate-200"
                     />
                   </div>
                 </div>
@@ -849,7 +852,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                         </div>
 
                         <h6 className="text-[11.5px] font-black text-slate-800 mt-2.5 leading-tight">{art.title}</h6>
-                        <p className={`text-[11px] text-slate-505 leading-relaxed mt-2 ${
+                        <p className={`text-[11px] text-slate-500 leading-relaxed mt-2 ${
                           selectedKbArticle === art.id ? '' : 'line-clamp-2'
                         }`}>
                           {art.text}
@@ -880,7 +883,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                     <div className="space-y-3.5 w-full">
                       <div className="animate-spin h-7 w-7 border-3 border-white border-t-transparent rounded-full mx-auto items-center shrink-0" />
                       <span className="text-[10px] text-white font-extrabold uppercase tracking-widest block">Stream loaded &bull; Play tracking {videoPlayPercentage}%</span>
-                      <div className="w-full bg-slate-750 rounded-full h-1 pl-0.5 pr-0.5">
+                      <div className="w-full bg-slate-800 rounded-full h-1 pl-0.5 pr-0.5">
                         <div className="bg-blue-500 h-full rounded-full transition-all duration-300" style={{ width: `${videoPlayPercentage}%` }} />
                       </div>
                     </div>
@@ -934,7 +937,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
               <span className="text-[9.5px] font-black uppercase text-rose-700 tracking-wider bg-white rounded-full px-2.5 py-0.5 border border-rose-100 inline-flex items-center whitespace-nowrap shrink-0">
                 Departures & Resignations Workflow
               </span>
-              <h4 className="text-sm font-black text-slate-850 mt-2.5">Official Exit Clearance Protocols</h4>
+              <h4 className="text-sm font-black text-slate-800 mt-2.5">Official Exit Clearance Protocols</h4>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                 Approve active resignations, program cross-department de-provisioning, and confirm secure handbacks.
               </p>
@@ -1035,11 +1038,11 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       className={`p-4 rounded-xl border text-center cursor-pointer transition-all select-none ${
                         selectedResigObj.clearanceStatus.IT === 'Cleared'
                           ? 'bg-emerald-50/30 border-emerald-200'
-                          : 'bg-white border-slate-100 hover:border-slate-205'
+                          : 'bg-white border-slate-100 hover:border-slate-200'
                       }`}
                     >
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">IT Clearance</span>
-                      <h6 className="text-[11px] text-slate-505 font-bold mt-1">SSO & credentials</h6>
+                      <h6 className="text-[11px] text-slate-500 font-bold mt-1">SSO & credentials</h6>
                       <div className="mt-3.5 text-xs font-black">
                         <span className={`px-2.5 py-1 rounded-lg ${
                           selectedResigObj.clearanceStatus.IT === 'Cleared' ? 'bg-emerald-100 text-[#0f5132]' : 'bg-amber-100 text-amber-80 *'
@@ -1055,11 +1058,11 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       className={`p-4 rounded-xl border text-center cursor-pointer transition-all select-none ${
                         selectedResigObj.clearanceStatus.Finance === 'Cleared'
                           ? 'bg-emerald-50/30 border-emerald-200'
-                          : 'bg-white border-slate-100 hover:border-slate-205'
+                          : 'bg-white border-slate-100 hover:border-slate-200'
                       }`}
                     >
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Payroll Clear</span>
-                      <h6 className="text-[11px] text-slate-505 font-bold mt-1">Expenses & taxation</h6>
+                      <h6 className="text-[11px] text-slate-500 font-bold mt-1">Expenses & taxation</h6>
                       <div className="mt-3.5 text-xs font-black">
                         <span className={`px-2.5 py-1 rounded-lg ${
                           selectedResigObj.clearanceStatus.Finance === 'Cleared' ? 'bg-emerald-100 text-[#0f5132]' : 'bg-amber-100 text-amber-800'
@@ -1075,11 +1078,11 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       className={`p-4 rounded-xl border text-center cursor-pointer transition-all select-none ${
                         selectedResigObj.clearanceStatus.HR === 'Cleared'
                           ? 'bg-emerald-50/30 border-emerald-200'
-                          : 'bg-white border-slate-100 hover:border-slate-205'
+                          : 'bg-white border-slate-100 hover:border-slate-200'
                       }`}
                     >
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">HR Compliance</span>
-                      <h6 className="text-[11px] text-slate-505 font-bold mt-1">Official Exit Contract</h6>
+                      <h6 className="text-[11px] text-slate-500 font-bold mt-1">Official Exit Contract</h6>
                       <div className="mt-3.5 text-xs font-black">
                         <span className={`px-2.5 py-1 rounded-lg ${
                           selectedResigObj.clearanceStatus.HR === 'Cleared' ? 'bg-emerald-100 text-[#0f5132]' : 'bg-amber-100 text-amber-800'
@@ -1095,11 +1098,11 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       className={`p-4 rounded-xl border text-center cursor-pointer transition-all select-none ${
                         selectedResigObj.clearanceStatus.Security === 'Cleared'
                           ? 'bg-emerald-50/30 border-emerald-200'
-                          : 'bg-white border-slate-100 hover:border-slate-205'
+                          : 'bg-white border-slate-100 hover:border-slate-200'
                       }`}
                     >
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Access badge</span>
-                      <h6 className="text-[11px] text-slate-505 font-bold mt-1">Lock system & tokens</h6>
+                      <h6 className="text-[11px] text-slate-500 font-bold mt-1">Lock system & tokens</h6>
                       <div className="mt-3.5 text-xs font-black">
                         <span className={`px-2.5 py-1 rounded-lg ${
                           selectedResigObj.clearanceStatus.Security === 'Cleared' ? 'bg-emerald-100 text-[#0f5132]' : 'bg-amber-100 text-amber-800'
@@ -1141,7 +1144,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       type="date"
                       value={newResigDate}
                       onChange={(e) => setNewResigDate(e.target.value)}
-                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2.5 cursor-pointer outline-none focus:bg-white focus:border-slate-205"
+                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2.5 cursor-pointer outline-none focus:bg-white focus:border-slate-200"
                     />
                   </div>
 
@@ -1151,7 +1154,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       type="date"
                       value={newResigLastDay}
                       onChange={(e) => setNewResigLastDay(e.target.value)}
-                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2.5 cursor-pointer outline-none focus:bg-white focus:border-slate-205"
+                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2.5 cursor-pointer outline-none focus:bg-white focus:border-slate-200"
                     />
                   </div>
 
@@ -1311,7 +1314,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       rows={2}
                       value={surveyNotes}
                       onChange={(e) => setSurveyNotes(e.target.value)}
-                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2.5 outline-none focus:bg-white focus:border-slate-205 resize-none"
+                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2.5 outline-none focus:bg-white focus:border-slate-200 resize-none"
                     />
                   </div>
 
@@ -1343,7 +1346,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                         <p className="text-[11px] text-slate-500 italic mt-2 leading-relaxed">
                           "{sv.comments}"
                         </p>
-                        <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-105 text-[9.5px] font-extrabold text-slate-400 uppercase">
+                        <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100 text-[9.5px] font-extrabold text-slate-400 uppercase">
                           <span>WorkLife: <span className="text-slate-800">{sv.ratingWorkLife}/5</span></span>
                           <span>Comp: <span className="text-slate-800">{sv.ratingCompensation}/5</span></span>
                           <span>Manager: <span className="text-slate-800">{sv.ratingManagement}/5</span></span>
@@ -1375,7 +1378,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                 <span className="text-2xl font-black text-slate-800">
                   {Math.round((checklist.filter(c => c.completed).length / (checklist.length || 1)) * 100)}%
                 </span>
-                <span className="text-[10px] text-slate-450 block font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">
                   {checklist.filter(c => c.completed).length} / {checklist.length} milestones checked
                 </span>
               </div>
@@ -1396,7 +1399,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                 <span className="text-2xl font-black text-slate-800">
                   {Math.round((preBoardingDocs.filter(d => d.status === 'Approved').length / (preBoardingDocs.length || 1)) * 100)}%
                 </span>
-                <span className="text-[10px] text-slate-450 block font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">
                   {preBoardingDocs.filter(d => d.status === 'Approved').length} / {preBoardingDocs.length} credentials verified
                 </span>
               </div>
@@ -1417,7 +1420,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                 <span className="text-2xl font-black text-slate-800">
                   {resignationCases.filter(r => r.managerApproval !== 'Approved' || Object.values(r.clearanceStatus).some(status => status === 'Pending')).length}
                 </span>
-                <span className="text-[10px] text-slate-450 block font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">
                   Pending department signoffs & clearances
                 </span>
               </div>
@@ -1439,7 +1442,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                     : 'N/A'
                   } / 5.0
                 </span>
-                <span className="text-[10px] text-slate-450 block font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">
                   Average across {exitSurveys.length} surveys
                 </span>
               </div>
@@ -1565,7 +1568,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                   ].map((drv, idx) => (
                     <div key={idx} className="space-y-1">
                       <div className="flex justify-between items-center text-[10.5px]">
-                        <span className="font-semibold text-slate-655">{drv.reason}</span>
+                        <span className="font-semibold text-slate-700">{drv.reason}</span>
                         <span className="font-bold text-slate-800">{drv.count} surveys ({drv.percentage}%)</span>
                       </div>
                       <div className="w-full bg-slate-50 h-1.5 rounded-full overflow-hidden">

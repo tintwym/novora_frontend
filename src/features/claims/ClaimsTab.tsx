@@ -402,19 +402,20 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 setDeptDropdownOpen(false)
                 setMonthDropdownOpen(!monthDropdownOpen)
               }}
-              className="nv-dd-trigger"
+              className={`nv-dd-trigger ${monthDropdownOpen ? 'nv-dd-trigger--open' : ''}`}
             >
               <span className="whitespace-nowrap">{headerMonth}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {monthDropdownOpen && (
-              <div className="nv-dropdown-menu w-32 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
+              <div className="nv-dropdown-menu w-32">
                 {['May 2026', 'Apr 2026', 'Mar 2026'].map((m) => (
                   <button
                     key={m}
                     type="button"
+                    aria-selected={headerMonth === m}
                     onClick={() => { setHeaderMonth(m); setMonthDropdownOpen(false); }}
-                    className="w-full text-left px-3.5 py-1.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold"
+                    className={headerMonth === m ? 'nv-dropdown-item--active' : ''}
                   >
                     {m}
                   </button>
@@ -435,19 +436,20 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 setMonthDropdownOpen(false)
                 setDeptDropdownOpen(!deptDropdownOpen)
               }}
-              className="nv-dd-trigger"
+              className={`nv-dd-trigger ${deptDropdownOpen ? 'nv-dd-trigger--open' : ''}`}
             >
               <span className="whitespace-nowrap">{headerDept}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {deptDropdownOpen && (
-              <div className="nv-dropdown-menu w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
+              <div className="nv-dropdown-menu w-44">
                 {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map((d) => (
                   <button
                     key={d}
                     type="button"
+                    aria-selected={headerDept === d}
                     onClick={() => { setHeaderDept(d); setDeptDropdownOpen(false); }}
-                    className="w-full text-left px-4 py-1.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold"
+                    className={headerDept === d ? 'nv-dropdown-item--active' : ''}
                   >
                     {d}
                   </button>
@@ -458,10 +460,11 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
 
           {/* Export utility */}
           <button
+            type="button"
             onClick={() => addToast('Exporting active claims ledger...', 'loading')}
-            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-tiny whitespace-nowrap shrink-0"
+            className="nv-toolbar-btn"
           >
-            <Download className="h-4 w-4 text-slate-400 shrink-0" />
+            <Download className="h-4 w-4" />
             <span>Export</span>
           </button>
         </div>
@@ -482,7 +485,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               {/* Receipt Capture Box */}
               <div className="nv-card p-6 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-slate-850 uppercase tracking-wider">Receipt capture & OCR</h3>
+                  <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Receipt capture & OCR</h3>
                   <div className="flex gap-1">
                     <span className="bg-slate-50 text-[10px] font-semibold text-slate-500 px-2 py-0.5 rounded-md">Mobile upload</span>
                     <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-md">OCR scan</span>
@@ -504,7 +507,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                         <Paperclip className="h-5 w-5" />
                       </div>
                       <p className="text-xs font-bold text-slate-800">Snap or upload receipt</p>
-                      <p className="text-[10px] font-medium text-slate-450 mt-1">JPG, PNG, PDF &bull; max 10MB</p>
+                      <p className="text-[10px] font-medium text-slate-400 mt-1">JPG, PNG, PDF &bull; max 10MB</p>
                       <button
                         onClick={handleScanReceipt}
                         className="mt-4 bg-novora hover:bg-blue-600 text-white text-[11px] font-black tracking-wide px-4 py-1.5 rounded-lg transition-colors cursor-pointer uppercase"
@@ -518,7 +521,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
 
               {/* My Recent Claims Widget */}
               <div className="nv-card p-6 shadow-xs">
-                <h3 className="text-sm font-bold text-slate-850 uppercase tracking-wider mb-4">My recent claims</h3>
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">My recent claims</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs font-medium text-slate-600">
                     <thead>
@@ -546,7 +549,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-150'
                                 : claim.status === 'Rejected'
                                   ? 'bg-red-50 text-red-700 border border-red-150'
-                                  : 'bg-amber-50 text-amber-700 border border-amber-150'
+                                  : 'bg-amber-50 text-amber-700 border border-amber-100'
                             }`}>
                               {claim.status}
                             </span>
@@ -625,7 +628,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     type="date"
                     value={claimDate}
                     onChange={(e) => setClaimDate(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-350 focus:border-novora rounded-xl px-3 py-1.5 outline-none"
+                    className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 focus:border-novora rounded-xl px-3 py-1.5 outline-none"
                   />
                 </div>
                 <div>
@@ -635,7 +638,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     placeholder="e.g. Subway Pte. Ltd."
                     value={claimVendor}
                     onChange={(e) => setClaimVendor(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-350 focus:border-novora rounded-xl px-3 py-2 outline-none"
+                    className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 focus:border-novora rounded-xl px-3 py-2 outline-none"
                   />
                 </div>
               </div>
@@ -647,7 +650,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   <select
                     value={claimCurrency}
                     onChange={(e) => setClaimCurrency(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-350 focus:border-novora rounded-xl px-3 py-2 outline-none cursor-pointer"
+                    className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 focus:border-novora rounded-xl px-3 py-2 outline-none cursor-pointer"
                   >
                     <option value="SGD">SGD</option>
                     <option value="USD">USD</option>
@@ -663,7 +666,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     placeholder="0.00"
                     value={claimAmount}
                     onChange={(e) => setClaimAmount(e.target.value)}
-                    className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-200 hover:border-slate-350 focus:border-novora rounded-xl px-3 py-2 outline-none"
+                    className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-200 hover:border-slate-300 focus:border-novora rounded-xl px-3 py-2 outline-none"
                   />
                 </div>
                 <div>
@@ -686,7 +689,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 <select
                   value={claimProject}
                   onChange={(e) => setClaimProject(e.target.value)}
-                  className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-350 focus:border-novora rounded-xl px-3 py-2 outline-none cursor-pointer"
+                  className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 focus:border-novora rounded-xl px-3 py-2 outline-none cursor-pointer"
                 >
                   <option>-- Select (optional) --</option>
                   <option value="Dept General Operations">Corporate Overhead &bull; General</option>
@@ -703,7 +706,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   placeholder="Brief description of the business purpose of the expense..."
                   value={claimDesc}
                   onChange={(e) => setClaimDesc(e.target.value)}
-                  className="w-full text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:border-slate-350 focus:border-novora rounded-xl px-3.5 py-2.5 outline-none resize-none"
+                  className="w-full text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:border-slate-300 focus:border-novora rounded-xl px-3.5 py-2.5 outline-none resize-none"
                 />
               </div>
 
@@ -798,7 +801,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 <select
                   value={approvalStatusFilter}
                   onChange={(e) => setApprovalStatusFilter(e.target.value)}
-                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
+                  className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
                 >
                   <option value="All status">All status</option>
                   <option value="Pending">Pending</option>
@@ -809,7 +812,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 <select
                   value={approvalCategoryFilter}
                   onChange={(e) => setApprovalCategoryFilter(e.target.value)}
-                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
+                  className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
                 >
                   <option value="All categories">All categories</option>
                   <option value="Meal allowance">Meal allowance</option>
@@ -823,7 +826,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 <select
                   value={approvalDeptFilter}
                   onChange={(e) => setApprovalDeptFilter(e.target.value)}
-                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
+                  className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
                 >
                   <option value="All departments">All departments</option>
                   <option value="Engineering">Engineering</option>
@@ -837,10 +840,10 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   type="date"
                   value={approvalDateFilter}
                   onChange={(e) => setApprovalDateFilter(e.target.value)}
-                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1 text-xs text-slate-600 font-semibold outline-none"
+                  className="bg-white border border-slate-200 rounded-xl px-3.5 py-1 text-xs text-slate-600 font-semibold outline-none"
                 />
 
-                <span className="bg-amber-50 text-amber-700 font-extrabold text-xs px-3 py-1 rounded-full border border-amber-150 inline-flex items-center whitespace-nowrap shrink-0">
+                <span className="bg-amber-50 text-amber-700 font-extrabold text-xs px-3 py-1 rounded-full border border-amber-100 inline-flex items-center whitespace-nowrap shrink-0">
                   {claims.filter(c => c.status === 'Pending').length} pending approval
                 </span>
               </div>
@@ -878,7 +881,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-700 shrink-0">{idx + 1}</div>
                     <div>
                       <h4 className="font-bold text-slate-800">{rule.range}</h4>
-                      <p className="text-[11px] text-slate-505 mt-1 leading-normal">{rule.desc}</p>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-normal">{rule.desc}</p>
                       <span className={`inline-block mt-2 text-[9px] font-bold px-1.5 py-0.5 rounded-sm ${
                         rule.type.includes('Parallel') ? 'bg-sky-50 text-sky-700' : 'bg-emerald-50 text-emerald-700'
                       }`}>{rule.type}</span>
@@ -921,7 +924,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                             </div>
                             <div>
                               <div className="font-bold text-slate-800">{claim.empName}</div>
-                              <div className="text-[10px] text-slate-450">{claim.department}</div>
+                              <div className="text-[10px] text-slate-400">{claim.department}</div>
                             </div>
                           </div>
                         </td>
@@ -938,7 +941,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                         <td className="p-4 whitespace-nowrap text-slate-500">
                           {new Date(claim.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                         </td>
-                        <td className="p-4 whitespace-nowrap font-bold text-slate-850">
+                        <td className="p-4 whitespace-nowrap font-bold text-slate-800">
                           SGD {claim.myrEquivalent.toFixed(2)}
                           {claim.currency !== 'SGD' && (
                             <span className="block text-[9px] text-slate-400 font-semibold">{claim.currency} {claim.amount.toFixed(2)}</span>
@@ -1118,7 +1121,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   <div className="flex items-start gap-3 p-3 bg-red-50/20 border border-red-100 rounded-xl">
                     <div className="h-2 w-2 rounded-full bg-amber-500 mt-1 shrink-0 items-center" />
                     <div className="flex-1">
-                      <p className="text-slate-850 font-bold">Meal limit exceeded</p>
+                      <p className="text-slate-800 font-bold">Meal limit exceeded</p>
                       <p className="text-[11px] text-slate-500 mt-0.5">Ahmad L &bull; SGD 42.00 vs SGD 30 limit</p>
                     </div>
                     <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-2 py-0.5 rounded uppercase">Pending</span>
@@ -1127,7 +1130,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   <div className="flex items-start gap-3 p-3 bg-red-50/20 border border-red-100 rounded-xl">
                     <div className="h-2 w-2 rounded-full bg-red-650 mt-1 shrink-0 items-center" />
                     <div className="flex-1">
-                      <p className="text-slate-850 font-bold">Duplicate submission</p>
+                      <p className="text-slate-800 font-bold">Duplicate submission</p>
                       <p className="text-[11px] text-slate-500 mt-0.5">Zara N &bull; Same vendor + date as 28 Apr</p>
                     </div>
                     <span className="bg-red-100 text-red-800 text-[9px] font-black px-2 py-0.5 rounded uppercase">Blocked</span>
@@ -1136,7 +1139,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   <div className="flex items-start gap-3 p-3 bg-red-50/20 border border-red-100 rounded-xl">
                     <div className="h-2 w-2 rounded-full bg-blue-500 mt-1 shrink-0 items-center" />
                     <div className="flex-1">
-                      <p className="text-slate-850 font-bold">Late submission</p>
+                      <p className="text-slate-800 font-bold">Late submission</p>
                       <p className="text-[11px] text-slate-500 mt-0.5">Raj K &bull; Receipt dated 28 Feb, submitted 5 May</p>
                     </div>
                     <span className="bg-indigo-100 text-indigo-800 text-[9px] font-black px-2 py-0.5 rounded uppercase">Review</span>
@@ -1145,7 +1148,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   <div className="flex items-start gap-3 p-3 bg-indigo-50/10 border border-indigo-100 rounded-xl">
                     <div className="h-2 w-2 rounded-full bg-amber-500 mt-1 shrink-0 items-center" />
                     <div className="flex-1">
-                      <p className="text-slate-850 font-bold">Over category cap</p>
+                      <p className="text-slate-800 font-bold">Over category cap</p>
                       <p className="text-[11px] text-slate-500 mt-0.5">Maya T &bull; Air ticket SGD 1,280 needs Finance review</p>
                     </div>
                     <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-2 py-0.5 rounded uppercase">Escalated</span>
@@ -1344,7 +1347,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                         <tr key={claim.id} className="hover:bg-slate-50/20">
                           <td className="py-3.5">
                             <div className="flex items-center gap-2">
-                              <div className="h-6 w-6 rounded-full bg-slate-105 text-slate-700 font-black text-[9px] flex items-center justify-center shrink-0">
+                              <div className="h-6 w-6 rounded-full bg-slate-100 text-slate-700 font-black text-[9px] flex items-center justify-center shrink-0">
                                 {claim.empName.split(' ').map(n=>n[0]).join('')}
                               </div>
                               <span className="font-bold text-slate-800">{claim.empName}</span>
@@ -1352,7 +1355,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                           </td>
                           <td className="py-3.5 text-slate-500">{claim.category}</td>
                           <td className="py-3.5 font-bold text-slate-900">{claim.myrEquivalent.toFixed(2)}</td>
-                          <td className="py-3.5 text-slate-450 font-mono text-[10.5px]">
+                          <td className="py-3.5 text-slate-400 font-mono text-[10.5px]">
                             {claim.approvalChain.split(' \u2192 ').pop()}
                           </td>
                           <td className="py-3.5 text-right">
@@ -1593,7 +1596,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               <div className="border-b border-indigo-50 pb-3 flex flex-wrap justify-between items-center gap-3">
                 <div>
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">CLAIMS REPORT GENERATOR</h3>
-                  <p className="text-[11px] text-slate-450 font-medium mt-0.5">Filter records and compile audit sheets similar to Employee Management directory dossiers</p>
+                  <p className="text-[11px] text-slate-400 font-medium mt-0.5">Filter records and compile audit sheets similar to Employee Management directory dossiers</p>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -1746,7 +1749,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                                 <td className="p-3 pl-4 font-mono text-[10px] text-novora">{c.id}</td>
                                 <td className="p-3">
                                   <div className="font-bold text-slate-800">{c.empName}</div>
-                                  <div className="text-[10px] text-slate-405 font-medium">{c.department}</div>
+                                  <div className="text-[10px] text-slate-400 font-medium">{c.department}</div>
                                 </td>
                                 <td className="p-3 text-[11px]">{c.category}</td>
                                 <td className="p-3 text-slate-500">{c.date}</td>
@@ -1792,7 +1795,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 <select
                   value={historyStatusFilter}
                   onChange={(e) => setHistoryStatusFilter(e.target.value)}
-                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
+                  className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
                 >
                   <option value="All status">All status</option>
                   <option value="Pending">Pending</option>
@@ -1803,7 +1806,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 <select
                   value={historyCategoryFilter}
                   onChange={(e) => setHistoryCategoryFilter(e.target.value)}
-                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
+                  className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
                 >
                   <option value="All categories">All categories</option>
                   <option value="Meal allowance">Meal allowance</option>
@@ -1817,7 +1820,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 <select
                   value={historyDeptFilter}
                   onChange={(e) => setHistoryDeptFilter(e.target.value)}
-                  className="bg-white border border-slate-205 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer font-sans"
+                  className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer font-sans"
                 >
                   <option value="All departments">All departments</option>
                   <option value="Engineering">Engineering</option>
@@ -1833,7 +1836,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     placeholder="Search employee..."
                     value={historySearchQuery}
                     onChange={(e) => setHistorySearchQuery(e.target.value)}
-                    className="bg-white border border-slate-205 rounded-xl pl-8 pr-3.5 py-1.5 text-xs text-slate-700 font-semibold outline-none w-52"
+                    className="bg-white border border-slate-200 rounded-xl pl-8 pr-3.5 py-1.5 text-xs text-slate-700 font-semibold outline-none w-52"
                   />
                   <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
                 </div>
@@ -1845,7 +1848,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     addToast('Generating complete ledger document...', 'loading');
                     setTimeout(() => addToast('PDF exported successfully.', 'success'), 1200);
                   }}
-                  className="text-slate-655 hover:text-slate-800 text-xs font-bold px-3 py-1.5 bg-white border border-slate-100 rounded-xl"
+                  className="text-slate-700 hover:text-slate-800 text-xs font-bold px-3 py-1.5 bg-white border border-slate-100 rounded-xl"
                 >
                   Generate PDF
                 </button>
@@ -1897,20 +1900,20 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                           </div>
                         </td>
                         <td className="p-4">
-                          <span className="inline-block px-2.5 py-0.5 rounded bg-slate-55 text-slate-700 font-bold text-[10.5px]">
+                          <span className="inline-block px-2.5 py-0.5 rounded bg-slate-50 text-slate-700 font-bold text-[10.5px]">
                             {claim.category}
                           </span>
                         </td>
                         <td className="p-4 text-slate-500">
                           {new Date(claim.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                         </td>
-                        <td className="p-4 text-slate-555 font-normal">
+                        <td className="p-4 text-slate-600 font-normal">
                           {claim.vendor}
                         </td>
                         <td className="p-4 font-bold text-slate-900">
                           {claim.myrEquivalent.toFixed(2)}
                         </td>
-                        <td className="p-4 text-slate-450 font-mono text-[10.5px]">
+                        <td className="p-4 text-slate-400 font-mono text-[10.5px]">
                           {claim.status === 'Approved' ? (
                             <span className="flex items-center gap-0.5 text-slate-500">
                               {claim.approvalChain.split(' \u2192 ').pop()} <strong className="text-emerald-600 font-black font-sans">&bull; &#10003;</strong>
@@ -1930,7 +1933,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                           <span className={`inline-block text-[10px] font-black px-2 py-0.5 rounded-full ${
                             claim.pushStatus === 'Pushed' ? 'bg-emerald-50 text-emerald-800 border border-emerald-150' :
                             claim.pushStatus === 'Queued' ? 'bg-amber-50 text-amber-700 border border-[#fef3c7]' :
-                            claim.status === 'Rejected' ? 'bg-red-50 text-red-800 border border-red-150' : 'bg-slate-50 text-slate-450 border border-slate-100'
+                            claim.status === 'Rejected' ? 'bg-red-50 text-red-800 border border-red-150' : 'bg-slate-50 text-slate-400 border border-slate-100'
                           }`}>
                             {claim.pushStatus === 'Pushed' ? 'Pushed' : claim.pushStatus === 'Queued' ? 'Queued' : claim.status}
                           </span>
@@ -2016,7 +2019,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                             updated[idx].range = e.target.value;
                             setApprovalRules(updated);
                           }}
-                          className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-205 rounded-lg px-3 py-1.5 focus:border-novora outline-none"
+                          className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-200 rounded-lg px-3 py-1.5 focus:border-novora outline-none"
                         />
                       </div>
                       <div>
@@ -2029,7 +2032,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                             updated[idx].desc = e.target.value;
                             setApprovalRules(updated);
                           }}
-                          className="w-full text-xs font-semibold text-slate-800 bg-white border border-slate-205 rounded-lg px-3 py-1.5 focus:border-novora outline-none"
+                          className="w-full text-xs font-semibold text-slate-800 bg-white border border-slate-200 rounded-lg px-3 py-1.5 focus:border-novora outline-none"
                         />
                       </div>
                     </div>
@@ -2105,7 +2108,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10.5px] font-bold text-slate-505 mb-1">Daily spent threshold (limit)</label>
+                    <label className="block text-[10.5px] font-bold text-slate-500 mb-1">Daily spent threshold (limit)</label>
                     <input
                       type="text"
                       value={spendLimits[selectedSpendLimitIdx].daily}
@@ -2115,11 +2118,11 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                         setSpendLimits(updated);
                       }}
                       placeholder="e.g. SGD 200"
-                      className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-205 rounded-lg px-3 py-2 focus:border-novora outline-none"
+                      className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-200 rounded-lg px-3 py-2 focus:border-novora outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10.5px] font-bold text-slate-505 mb-1">Monthly allowance cap</label>
+                    <label className="block text-[10.5px] font-bold text-slate-500 mb-1">Monthly allowance cap</label>
                     <input
                       type="text"
                       value={spendLimits[selectedSpendLimitIdx].monthly}
@@ -2129,13 +2132,13 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                         setSpendLimits(updated);
                       }}
                       placeholder="e.g. SGD 2,000"
-                      className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-205 rounded-lg px-3 py-2 focus:border-novora outline-none"
+                      className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-200 rounded-lg px-3 py-2 focus:border-novora outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10.5px] font-bold text-slate-505 mb-1">Receipt requirement rule</label>
+                  <label className="block text-[10.5px] font-bold text-slate-500 mb-1">Receipt requirement rule</label>
                   <input
                     type="text"
                     value={spendLimits[selectedSpendLimitIdx].receiptReq}
@@ -2145,7 +2148,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                       setSpendLimits(updated);
                     }}
                     placeholder="e.g. Always, or > SGD 50"
-                    className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-205 rounded-lg px-3 py-2 focus:border-novora outline-none"
+                    className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-200 rounded-lg px-3 py-2 focus:border-novora outline-none"
                   />
                 </div>
               </div>
@@ -2154,7 +2157,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
             <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
               <button
                 onClick={() => setIsEditSpendLimitsModalOpen(false)}
-                className="px-4 py-2 border border-slate-205 hover:bg-slate-100 rounded-xl text-slate-600 font-bold transition-all text-xs cursor-pointer"
+                className="px-4 py-2 border border-slate-200 hover:bg-slate-100 rounded-xl text-slate-600 font-bold transition-all text-xs cursor-pointer"
               >
                 Close
               </button>
@@ -2213,14 +2216,14 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               </div>
 
               <div className="border-t border-slate-100 pt-3.5 space-y-2">
-                <label className="block text-[10.5px] font-bold text-slate-505">Append custom check criteria</label>
+                <label className="block text-[10.5px] font-bold text-slate-500">Append custom check criteria</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={newRuleInput}
                     onChange={(e) => setNewRuleInput(e.target.value)}
                     placeholder="e.g. Flag claims with weekend transactions..."
-                    className="flex-1 text-xs font-semibold text-slate-800 bg-white border border-slate-205 rounded-xl px-3 py-2 outline-none focus:border-novora"
+                    className="flex-1 text-xs font-semibold text-slate-800 bg-white border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-novora"
                   />
                   <button
                     onClick={() => {
@@ -2265,7 +2268,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   setIsEditValidationRulesModalOpen(false);
                   addToast('Auto-validation scripts configured successfully.', 'success');
                 }}
-                className="px-5 py-2 bg-slate-805 hover:bg-opacity-90 text-white font-black rounded-xl text-xs"
+                className="px-5 py-2 bg-slate-800 hover:bg-opacity-90 text-white font-black rounded-xl text-xs"
               >
                 Dismiss
               </button>
@@ -2277,7 +2280,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
       {/* MODAL 4: DEEP VIEW CLAIM DETAIL TRANSACTION (with invoice preview replica) */}
       {selectedClaimDetail && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-4xl w-full border border-slate-205 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150 flex flex-col md:flex-row h-[90vh] md:h-auto max-h-[92vh]">
+          <div className="bg-white rounded-3xl max-w-4xl w-full border border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150 flex flex-col md:flex-row h-[90vh] md:h-auto max-h-[92vh]">
             
             {/* Left Box: Full ledger text & audit stepper metadata */}
             <div className="flex-1 p-6 md:p-8 overflow-y-auto space-y-6">
@@ -2290,7 +2293,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">TRANSACTION: {selectedClaimDetail.id}</span>
-                    <h3 className="font-extrabold text-slate-850 text-base leading-snug">{selectedClaimDetail.empName}</h3>
+                    <h3 className="font-extrabold text-slate-800 text-base leading-snug">{selectedClaimDetail.empName}</h3>
                     <p className="text-xs text-slate-500 font-semibold">{selectedClaimDetail.department} department</p>
                   </div>
                 </div>
@@ -2306,30 +2309,30 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               {/* Grid values */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-4 border-y border-slate-100 py-5 text-xs">
                 <div>
-                  <span className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider mb-0.5">Claim date</span>
+                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Claim date</span>
                   <p className="font-semibold text-slate-800 text-[12px]">
                     {new Date(selectedClaimDetail.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                   </p>
                 </div>
                 <div>
-                  <span className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider mb-0.5">Expense category</span>
+                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Expense category</span>
                   <p className="font-semibold text-slate-800 text-[12px]">{selectedClaimDetail.category}</p>
                 </div>
                 <div>
-                  <span className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider mb-0.5">Supplier / Merchant</span>
+                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Supplier / Merchant</span>
                   <p className="font-semibold text-slate-800 text-[12px]">{selectedClaimDetail.vendor || 'Direct Submission'}</p>
                 </div>
 
                 <div>
-                  <span className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider mb-0.5">Original Expense</span>
+                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Original Expense</span>
                   <p className="font-mono font-bold text-slate-700 text-[12px]">{selectedClaimDetail.currency} {selectedClaimDetail.amount.toFixed(2)}</p>
                 </div>
                 <div>
-                  <span className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider mb-0.5">SGD rate equivalent</span>
+                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">SGD rate equivalent</span>
                   <p className="font-extrabold text-slate-900 text-[13px]">SGD {selectedClaimDetail.myrEquivalent.toFixed(2)}</p>
                 </div>
                 <div>
-                  <span className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider mb-0.5">Compliance rating</span>
+                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Compliance rating</span>
                   <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-black mt-1 ${
                     selectedClaimDetail.policyFlag === 'Clear' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-105'
                   }`}>
@@ -2340,7 +2343,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
 
               {/* Description */}
               <div className="space-y-1.5 text-xs">
-                <span className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider">Business registration intent</span>
+                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Business registration intent</span>
                 <p className="text-slate-700 leading-relaxed font-semibold bg-slate-50 p-3 rounded-xl border border-slate-100">
                   {selectedClaimDetail.description}
                 </p>
@@ -2348,14 +2351,14 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
 
               {/* Audit timelines step stepper */}
               <div className="space-y-4">
-                <span className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider">Audit timeline & approval route</span>
+                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Audit timeline & approval route</span>
                 
                 <div className="space-y-3 pl-2.5">
                   <div className="flex items-start gap-3 relative border-l-2 border-emerald-500 pb-3 pl-3.5">
                     <div className="absolute -left-1.25 top-1.5 h-2 w-2 rounded-full bg-emerald-500 items-center shrink-0" />
                     <div>
                       <p className="font-bold text-slate-800 text-[11.5px]">Claim Entry Registered</p>
-                      <p className="text-[10px] text-slate-405 font-medium">{selectedClaimDetail.date} 09:00 &bull; Initiated by claimant</p>
+                      <p className="text-[10px] text-slate-400 font-medium">{selectedClaimDetail.date} 09:00 &bull; Initiated by claimant</p>
                     </div>
                   </div>
 
@@ -2369,7 +2372,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     }`} />
                     <div>
                       <p className="font-bold text-slate-800 text-[11.5px]">Manager Level Assessment</p>
-                      <p className="text-[10px] text-slate-405 font-medium">Assigned Route: {selectedClaimDetail.approvalChain.split(' → ')[0]}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">Assigned Route: {selectedClaimDetail.approvalChain.split(' → ')[0]}</p>
                     </div>
                   </div>
 
@@ -2379,7 +2382,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     }`} />
                     <div>
                       <p className="font-bold text-slate-800 text-[11.5px]">Final Ledger Audit & Completion</p>
-                      <p className="text-[10px] text-slate-405 font-medium">
+                      <p className="text-[10px] text-slate-400 font-medium">
                         {selectedClaimDetail.status === 'Approved' ? `Approved \u2014 Queued for month ${selectedClaimDetail.payrollMonth}` : 
                          selectedClaimDetail.status === 'Rejected' ? 'Rejected and archived' : 'Awaiting general finance verify'}
                       </p>
@@ -2397,7 +2400,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               <div className="bg-white border text-center border-slate-200 p-5 rounded-2xl shadow-md rotate-1 hover:rotate-0 transition-all font-mono text-slate-700 text-xs space-y-4">
                 <div className="border-b border-dashed border-slate-300 pb-3">
                   <h4 className="font-black tracking-widest text-novora/90 text-[12px] uppercase">★★★ RECEIPT PROOF ★★★</h4>
-                  <p className="text-[10px] text-slate-405 uppercase tracking-wide mt-1">{selectedClaimDetail.vendor || 'RETAIL SUPP'}</p>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wide mt-1">{selectedClaimDetail.vendor || 'RETAIL SUPP'}</p>
                   <p className="text-[9px] text-slate-400 mt-0.5">SINGAPORE</p>
                 </div>
 
@@ -2455,7 +2458,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
 
                 <button
                   onClick={() => setSelectedClaimDetail(null)}
-                  className="w-full text-xs font-black py-2.5 px-4 rounded-xl bg-slate-805 hover:bg-slate-900 text-white flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                  className="w-full text-xs font-black py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-900 text-white flex items-center justify-center gap-1 cursor-pointer transition-colors"
                 >
                   Dismiss Record
                 </button>
@@ -2496,8 +2499,8 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     <span className="absolute text-xs font-black text-indigo-700">{pushProgressPct}%</span>
                   </div>
                   <div className="space-y-1.5 max-w-xs">
-                    <h4 className="font-extrabold text-slate-850 text-sm">Transmuting receipts ledger ...</h4>
-                    <span className="text-[10px] uppercase font-bold text-slate-405 tracking-widest leading-none block">
+                    <h4 className="font-extrabold text-slate-800 text-sm">Transmuting receipts ledger ...</h4>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest leading-none block">
                       {pushProgressPct < 40 ? 'Verifying merchant VAT logs...' : 
                        pushProgressPct < 80 ? 'Injecting wage supplemental database...' : 'Signing General Ledger entries...'}
                     </span>
@@ -2517,11 +2520,11 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   </div>
 
                   <div className="space-y-1">
-                    <label className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider mb-1">Target ERP integration gateway</label>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Target ERP integration gateway</label>
                     <select
                       value={payrollIntegrationChannel}
                       onChange={(e) => setPayrollIntegrationChannel(e.target.value)}
-                      className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-205 py-2 px-3 rounded-xl outline-none focus:border-indigo-500 cursor-pointer"
+                      className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-200 py-2 px-3 rounded-xl outline-none focus:border-indigo-500 cursor-pointer"
                     >
                       <option value="Workday ERP Connector v2.4">Workday Core HR API Integrator</option>
                       <option value="SAP SuccessFactors Web API">SAP SuccessFactors Gateway</option>
@@ -2564,7 +2567,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
             <div className="px-6 py-4.5 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
               <button
                 onClick={() => setIsPayrollPushModalOpen(false)}
-                className="px-4 py-2 border border-slate-205 hover:bg-slate-100 rounded-xl text-slate-600 font-bold text-xs"
+                className="px-4 py-2 border border-slate-200 hover:bg-slate-100 rounded-xl text-slate-600 font-bold text-xs"
                 disabled={isPushingInProgress}
               >
                 Cancel

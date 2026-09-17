@@ -28,9 +28,11 @@ import {
   Clock,
   Paperclip,
   Sparkles,
+  ChevronDown,
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import ModuleHeader from '@/components/ui/ModuleHeader';
+import { DropdownAnchor, SelectMenu } from '@/components/ui';
 import {
   ApiError,
   createAllowanceType,
@@ -594,8 +596,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
   // Reports view state variables
   const [reportsDept, setReportsDept] = useState('All departments');
   const [reportsSearch, setReportsSearch] = useState('');
-  const [reportsPeriod, setReportsPeriod] = useState('All times');
-
+  const [reportsPeriod, setReportsPeriod] = useState('May 2026');
+  const [payrollPeriodOpen, setPayrollPeriodOpen] = useState(false);
+  const [payrollDeptOpen, setPayrollDeptOpen] = useState(false);
   // Dynamic state changes
   const handleAddNewAllowance = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -926,37 +929,82 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
         {/* Global top level dropdown controllers aligned on the right, integrated into the navigation grid */}
         <div id="payroll-global-ctrls" className="flex items-center gap-2.5 ml-auto sm:ml-0 font-sans text-slate-700 shrink-0 flex-nowrap">
-          {/* Period selector */}
-          <select
-            value={reportsPeriod}
-            onChange={(e) => {
-              setReportsPeriod(e.target.value);
-              addToast(`Transitioned ledger review cycle to active ${e.target.value}`, 'info');
-            }}
-            className="h-9 bg-white border border-slate-200 hover:border-slate-300 text-xs font-bold px-3.5 rounded-xl focus:outline-none transition-colors cursor-pointer whitespace-nowrap shrink-0"
+          <DropdownAnchor
+            open={payrollPeriodOpen}
+            onClose={() => setPayrollPeriodOpen(false)}
+            align="right"
           >
-            <option value="May 2026">May 2026</option>
-            <option value="April 2026">April 2026</option>
-            <option value="March 2026">March 2026</option>
-          </select>
+            <button
+              type="button"
+              aria-expanded={payrollPeriodOpen}
+              onClick={() => {
+                setPayrollDeptOpen(false)
+                setPayrollPeriodOpen(!payrollPeriodOpen)
+              }}
+              className={`nv-dd-trigger ${payrollPeriodOpen ? 'nv-dd-trigger--open' : ''}`}
+            >
+              <span>{reportsPeriod}</span>
+              <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
+            </button>
+            {payrollPeriodOpen ? (
+              <div className="nv-dropdown-menu w-36">
+                {['May 2026', 'April 2026', 'March 2026'].map((period) => (
+                  <button
+                    key={period}
+                    type="button"
+                    aria-selected={reportsPeriod === period}
+                    onClick={() => {
+                      setReportsPeriod(period)
+                      setPayrollPeriodOpen(false)
+                      addToast(`Transitioned ledger review cycle to active ${period}`, 'info')
+                    }}
+                    className={reportsPeriod === period ? 'nv-dropdown-item--active' : ''}
+                  >
+                    {period}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </DropdownAnchor>
 
-          {/* Department global selector */}
-          <select
-            value={selectedDeptFilter}
-            onChange={(e) => {
-              setSelectedDeptFilter(e.target.value);
-              setReportsDept(e.target.value);
-              addToast(`Focused analytics subset on target department: ${e.target.value}`, 'info');
-            }}
-            className="h-9 bg-white border border-slate-200 hover:border-slate-300 text-xs font-bold px-3.5 rounded-xl focus:outline-none transition-colors cursor-pointer whitespace-nowrap shrink-0"
+          <DropdownAnchor
+            open={payrollDeptOpen}
+            onClose={() => setPayrollDeptOpen(false)}
+            align="right"
           >
-            <option value="All departments">All departments</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Finance">Finance</option>
-            <option value="HR">HR</option>
-            <option value="Marketing">Marketing</option>
-            <option value="Operations">Operations</option>
-          </select>
+            <button
+              type="button"
+              aria-expanded={payrollDeptOpen}
+              onClick={() => {
+                setPayrollPeriodOpen(false)
+                setPayrollDeptOpen(!payrollDeptOpen)
+              }}
+              className={`nv-dd-trigger ${payrollDeptOpen ? 'nv-dd-trigger--open' : ''}`}
+            >
+              <span>{selectedDeptFilter}</span>
+              <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
+            </button>
+            {payrollDeptOpen ? (
+              <div className="nv-dropdown-menu w-44">
+                {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map((dept) => (
+                  <button
+                    key={dept}
+                    type="button"
+                    aria-selected={selectedDeptFilter === dept}
+                    onClick={() => {
+                      setSelectedDeptFilter(dept)
+                      setReportsDept(dept)
+                      setPayrollDeptOpen(false)
+                      addToast(`Focused analytics subset on target department: ${dept}`, 'info')
+                    }}
+                    className={selectedDeptFilter === dept ? 'nv-dropdown-item--active' : ''}
+                  >
+                    {dept}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </DropdownAnchor>
 
           {/* Export utility */}
           <button
@@ -967,9 +1015,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 addToast('Comprehensive ledger exported as NovoraPayroll_Ledger_May2026.xlsx', 'success');
               }, 1500);
             }}
-            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-tiny whitespace-nowrap shrink-0"
+            className="nv-toolbar-btn"
           >
-            <Download className="h-4 w-4 text-slate-400 shrink-0" />
+            <Download className="h-4 w-4" />
             <span>Export</span>
           </button>
 
@@ -1597,7 +1645,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                               <span>{file.label}</span>
                             </td>
                             <td className="p-3 font-mono text-slate-400">{file.date}</td>
-                            <td className="p-3 font-mono text-slate-550">{file.size}</td>
+                            <td className="p-3 font-mono text-slate-500">{file.size}</td>
                             <td className="p-3 pr-5 text-right font-bold text-slate-800">{file.uploader}</td>
                           </tr>
                         ))}
@@ -1613,7 +1661,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50 p-4 border border-slate-200 rounded-3xl">
                   <div>
-                    <h4 className="text-xs font-extrabold text-slate-850 uppercase tracking-widest">Calculated May 2026 Bonus disbursement</h4>
+                    <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Calculated May 2026 Bonus disbursement</h4>
                     <p className="text-[10.5px] font-medium text-slate-400">Ledger details with corresponding KPI achievement benchmarks.</p>
                   </div>
                   <button
@@ -1642,7 +1690,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     <tbody className="divide-y divide-slate-100 font-medium">
                       {bonusPayments.map((p) => (
                         <tr key={p.empId} className="hover:bg-slate-50/50">
-                          <td className="p-3 pl-5 font-bold text-slate-850">{p.empName}</td>
+                          <td className="p-3 pl-5 font-bold text-slate-800">{p.empName}</td>
                           <td className="p-3 text-slate-500">{p.dept}</td>
                           <td className="p-3 font-bold text-novora">{p.scale}</td>
                           <td className="p-3 font-mono font-extrabold text-slate-900">SGD {p.amount}</td>
@@ -1703,7 +1751,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
                       {bonusPolicies.map((pol) => (
                         <tr key={pol.id} className="hover:bg-slate-50/50">
-                          <td className="p-3 pl-5 font-bold text-slate-850">{pol.ruleName}</td>
+                          <td className="p-3 pl-5 font-bold text-slate-800">{pol.ruleName}</td>
                           <td className="p-3 font-mono font-extrabold text-blue-600">{pol.weight}</td>
                           <td className="p-3 text-slate-400 font-mono text-xs">{pol.id}</td>
                           <td className="p-3 text-center">
@@ -1768,7 +1816,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     </div>
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">Public holiday OT</span>
-                      <span className="font-bold text-slate-850">{otPolicySettings.holidayOtRate}</span>
+                      <span className="font-bold text-slate-800">{otPolicySettings.holidayOtRate}</span>
                     </div>
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">Calculate by</span>
@@ -1936,7 +1984,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                               <tr key={entry.id} className="hover:bg-slate-50/50">
                                 <td className="p-3 pl-5 font-bold text-slate-800">{entry.empName}</td>
                                 <td className="p-3 font-mono text-slate-400">{entry.date}</td>
-                                <td className="p-3 text-slate-850">{entry.hrs} hours</td>
+                                <td className="p-3 text-slate-800">{entry.hrs} hours</td>
                                 <td className="p-3 text-slate-500">{entry.rate}</td>
                                 <td className="p-3 pr-5 text-right font-mono font-bold text-emerald-600">SGD {entry.total.toFixed(2)}</td>
                               </tr>
@@ -2004,7 +2052,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 {/* OT Request Filing Form */}
                 {overtimeSubTab === 'OT request' && (
                   <div className="max-w-md mx-auto bg-slate-50 border border-slate-200 p-6 rounded-2xl space-y-4">
-                    <h4 className="text-xs font-bold text-slate-850 uppercase tracking-widest text-center">My Overtime Request</h4>
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest text-center">My Overtime Request</h4>
                     <form onSubmit={async (e) => {
                       e.preventDefault();
                       if (!newOtReqHrs || !newOtReqReason) {
@@ -2090,7 +2138,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       }
                     }} className="space-y-3">
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-405 uppercase tracking-wider mb-1">Target Employee</label>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Target Employee</label>
                         <select
                           value={newOtReqStaff}
                           onChange={(e) => setNewOtReqStaff(e.target.value)}
@@ -2205,7 +2253,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 {/* OT History registry list */}
                 {overtimeSubTab === 'OT history' && (
                   <div className="space-y-3 text-xs">
-                    <h4 className="text-xs font-bold text-slate-850 uppercase tracking-widest pl-1">Overtime Requests Log History</h4>
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pl-1">Overtime Requests Log History</h4>
                     <div className="border border-slate-100 bg-white rounded-2xl overflow-hidden">
                       <table className="w-full text-left font-semibold">
                         <thead>
@@ -2290,7 +2338,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                               {dep.employmentStatus}
                             </span>
                           </td>
-                          <td className="p-4 text-slate-550">{dep.frequency}</td>
+                          <td className="p-4 text-slate-500">{dep.frequency}</td>
                           <td className="p-4 font-extrabold text-slate-700">{dep.amountBasis}</td>
                           <td className="p-4 italic text-slate-500 font-semibold">{dep.reimburseMonth}</td>
                           <td className="p-4">
@@ -2424,7 +2472,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                               </span>
                             </td>
                             <td className="p-4 text-slate-600 font-semibold italic">{ded.deductionRule}</td>
-                            <td className="p-4 font-extrabold text-slate-850 font-mono">{ded.amountRate}</td>
+                            <td className="p-4 font-extrabold text-slate-800 font-mono">{ded.amountRate}</td>
                             <td className="p-4 text-center">
                               <span className="bg-emerald-55 text-emerald-700 px-2 py-0.5 border border-emerald-110 rounded text-[10px] font-extrabold">Yes</span>
                             </td>
@@ -2473,7 +2521,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <h4 className="text-xs font-bold text-slate-855 uppercase tracking-widest pl-1">Deduction Agreements Archive</h4>
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest pl-1">Deduction Agreements Archive</h4>
                   <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden text-xs">
                     <table className="w-full text-left">
                       <thead>
@@ -2566,7 +2614,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 </div>
 
                 <div className="lg:col-span-2 space-y-3">
-                  <h4 className="text-xs font-bold text-slate-850 uppercase tracking-widest pl-1">Authorized Custom deductions list</h4>
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pl-1">Authorized Custom deductions list</h4>
                   <div className="border border-slate-100 rounded-2xl bg-white overflow-hidden">
                     <table className="w-full text-left font-semibold">
                       <thead>
@@ -2752,15 +2800,15 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   <div className="bg-white border border-slate-200 p-4 rounded-xl space-y-2 font-semibold text-slate-700">
                     <div className="flex justify-between border-b border-slate-100 pb-1.5">
                       <span>Standard Employer Contribution Rate</span>
-                      <strong className="text-slate-850">13.00% (CPF Base)</strong>
+                      <strong className="text-slate-800">13.00% (CPF Base)</strong>
                     </div>
                     <div className="flex justify-between border-b border-slate-100 py-1.5">
                       <span>Maximum Employee Deduction Cap</span>
-                      <strong className="text-slate-850">11.00% standard salary</strong>
+                      <strong className="text-slate-800">11.00% standard salary</strong>
                     </div>
                     <div className="flex justify-between pt-1.5">
                       <span>Exempt Threshold Level</span>
-                      <strong className="text-slate-850 text-indigo-650">SGD 3,000 / month</strong>
+                      <strong className="text-slate-800 text-indigo-650">SGD 3,000 / month</strong>
                     </div>
                   </div>
                 </div>
@@ -2875,7 +2923,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     </div>
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">Pay date</span>
-                      <span className="font-bold text-slate-850">{paymentDuration.payDate}</span>
+                      <span className="font-bold text-slate-800">{paymentDuration.payDate}</span>
                     </div>
                     <div className="flex py-2.5 justify-between">
                       <span className="text-slate-400">1-day basic salary based on</span>
@@ -3012,7 +3060,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <div className="bg-slate-50 p-4 border border-slate-200 rounded-2xl space-y-3 font-semibold text-slate-700">
                   <div className="flex justify-between border-b border-gutter pb-2">
                     <span>Target Headcount</span>
-                    <strong className="text-slate-850">{payrollSummary?.headcount ?? employees.length} Active Staff</strong>
+                    <strong className="text-slate-800">{payrollSummary?.headcount ?? employees.length} Active Staff</strong>
                   </div>
                   <div className="flex justify-between border-b border-gutter py-2">
                     <span>Estimated Net Payroll</span>
@@ -3175,7 +3223,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <div className="nv-card p-4 shadow-sm flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gross Payout</span>
-                    <h3 className="text-xl font-extrabold text-slate-804 tracking-tight">SGD {grandTotalGross.toLocaleString()}</h3>
+                    <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">SGD {grandTotalGross.toLocaleString()}</h3>
                     <span className="text-[9px] font-bold text-indigo-500 bg-indigo-55/60 px-2 py-0.5 rounded-md border border-indigo-110">Basic + Allowance + OT</span>
                   </div>
                   <div className="h-10 w-10 rounded-xl bg-blue-50 border border-blue-105 flex items-center justify-center">
@@ -3221,7 +3269,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               {/* 2. Department Compliance Table / Scorecard */}
               <div className="nv-card p-5 space-y-4">
                 <div>
-                  <h4 className="text-xs font-bold text-slate-850 tracking-tight flex items-center gap-2">
+                  <h4 className="text-xs font-bold text-slate-800 tracking-tight flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-novora" />
                     <span>Departmental Budget &amp; Payroll Cost Allocation Matrix</span>
                   </h4>
@@ -3283,18 +3331,21 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     />
                   </div>
 
-                  <select
+                  <SelectMenu
                     value={reportsDept}
-                    onChange={(e) => setReportsDept(e.target.value)}
-                    className="bg-white border border-slate-200 text-xs font-bold p-2 rounded-xl focus:outline-none"
-                  >
-                    <option value="All departments">All departments</option>
-                    <option value="Engineering">Engineering</option>
-                    <option value="Finance">Finance</option>
-                    <option value="HR">HR</option>
-                    <option value="Marketing">Marketing</option>
-                    <option value="Operations">Operations</option>
-                  </select>
+                    onChange={setReportsDept}
+                    aria-label="Department filter"
+                    className="w-auto shrink-0"
+                    triggerClassName="nv-select-trigger--toolbar min-w-[9rem]"
+                    options={[
+                      { value: 'All departments', label: 'All departments' },
+                      { value: 'Engineering', label: 'Engineering' },
+                      { value: 'Finance', label: 'Finance' },
+                      { value: 'HR', label: 'HR' },
+                      { value: 'Marketing', label: 'Marketing' },
+                      { value: 'Operations', label: 'Operations' },
+                    ]}
+                  />
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -4355,7 +4406,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   <select
                     value={otPolicySettings.calculateBy}
                     onChange={(e) => setOtPolicySettings({ ...otPolicySettings, calculateBy: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold text-slate-850 cursor-pointer"
+                    className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold text-slate-800 cursor-pointer"
                   >
                     <option value="Per minute rate">Per minute rate</option>
                     <option value="Per half hour">Per half hour</option>

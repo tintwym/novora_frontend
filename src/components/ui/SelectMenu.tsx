@@ -207,7 +207,7 @@ export default function SelectMenu({
                     className={`nv-select-option ${isSelected ? 'nv-select-option--active' : ''}`}
                   >
                     {isSelected ? (
-                      <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                      <Check className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
                     ) : (
                       <span className="w-3.5 shrink-0" aria-hidden />
                     )}
@@ -238,10 +238,7 @@ export default function SelectMenu({
         className={`nv-select-trigger w-full text-left ${open ? 'nv-select-trigger--open' : ''} ${triggerClassName}`}
       >
         <span className="nv-select-trigger-label truncate">{label}</span>
-        <ChevronDown
-          className={`nv-select-trigger-chevron ${open ? 'rotate-180' : ''}`}
-          aria-hidden
-        />
+        <ChevronDown className="nv-select-trigger-chevron" aria-hidden />
       </button>
       {panel}
     </div>

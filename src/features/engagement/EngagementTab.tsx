@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import ModuleHeader from '@/components/ui/ModuleHeader';
+import { SelectMenu } from '@/components/ui';
 import {
   ApiError,
   createFeedPost,
@@ -266,7 +267,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                 icon: '🌟',
                 text: 'Announcement',
                 colorClass: 'text-amber-600',
-                bgClass: 'bg-amber-50 border-amber-150',
+                bgClass: 'bg-amber-50 border-amber-100',
               },
               message: p.body,
               timestamp: p.createdAt ? new Date(p.createdAt).toLocaleString() : '—',
@@ -661,7 +662,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
               {polls.map((poll) => {
                 const isVoted = hasVotedPollIds[poll.id];
                 return (
-                  <div key={poll.id} className="p-4 rounded-xl border border-slate-100 flex flex-col justify-between hover:border-slate-205 transition-all">
+                  <div key={poll.id} className="p-4 rounded-xl border border-slate-100 flex flex-col justify-between hover:border-slate-200 transition-all">
                     <div>
                       <div className="flex justify-between items-center mb-3">
                         <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-blue-50 text-novora">
@@ -685,7 +686,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                               className={`w-full text-left p-2.5 border rounded-xl flex flex-col transition-all cursor-pointer ${
                                 isVoted
                                   ? 'bg-slate-50/50 border-slate-100'
-                                  : 'bg-white border-slate-100 hover:bg-slate-50/50 hover:border-slate-205'
+                                  : 'bg-white border-slate-100 hover:bg-slate-50/50 hover:border-slate-200'
                               }`}
                             >
                               <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
@@ -732,17 +733,18 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                 <form onSubmit={handleSuggestionSubmit} className="space-y-4">
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Target Area Category</label>
-                    <select
+                    <SelectMenu
                       value={newOpinionCategory}
-                      onChange={(e) => setNewOpinionCategory(e.target.value)}
-                      className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 outline-none cursor-pointer focus:bg-white focus:border-slate-200 transition-all"
-                    >
-                      <option value="Office Amenities">Office Amenities & Comfort</option>
-                      <option value="Workload & Pace">Workload & Burnout Buffer Zone</option>
-                      <option value="Policy Clarity">Policy Transparency & HR Admin</option>
-                      <option value="Perks & Reimbursements">Benefits & Claim Reimbursements</option>
-                      <option value="Continuous Training">Continuous Training Programs</option>
-                    </select>
+                      onChange={setNewOpinionCategory}
+                      options={[
+                        { value: 'Office Amenities', label: 'Office Amenities & Comfort' },
+                        { value: 'Workload & Pace', label: 'Workload & Burnout Buffer Zone' },
+                        { value: 'Policy Clarity', label: 'Policy Transparency & HR Admin' },
+                        { value: 'Perks & Reimbursements', label: 'Benefits & Claim Reimbursements' },
+                        { value: 'Continuous Training', label: 'Continuous Training Programs' },
+                      ]}
+                      triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                    />
                   </div>
 
                   <div>
@@ -785,7 +787,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
             {/* Public suggestions board */}
             <div className="lg:col-span-2 space-y-4">
               <div className="bg-none p-1 flex justify-between items-center gap-3 flex-wrap">
-                <span className="text-[11px] font-black text-slate-440 uppercase tracking-widest">Public suggestions Ledger</span>
+                <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Public suggestions Ledger</span>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-400 font-bold">{suggestions.length} submitted entries</span>
                   <button
@@ -848,7 +850,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
 
               <div className="space-y-4">
                 {suggestions.map((entry) => (
-                  <div key={entry.id} className="nv-card p-6 shadow-xs hover:shadow-2xs hover:border-slate-205 transition-all flex flex-col md:flex-row gap-5 justify-between">
+                  <div key={entry.id} className="nv-card p-6 shadow-xs hover:shadow-2xs hover:border-slate-200 transition-all flex flex-col md:flex-row gap-5 justify-between">
                     <div className="space-y-3.5">
                       <div className="flex items-center gap-2.5 flex-wrap">
                         <span className="text-[9.5px] font-black uppercase px-2 py-0.5 rounded-md bg-blue-50 text-novora border border-blue-100/50">
@@ -1126,7 +1128,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
               </span>
               <div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Action Docket Count</span>
-                <span className="text-xl font-black text-slate-850">
+                <span className="text-xl font-black text-slate-800">
                   {actionPlans.filter(p => p.status !== 'Completed').length} Pending
                 </span>
                 <p className="text-[10.5px] text-novora font-bold mt-0.5">1 completed objective today</p>
@@ -1230,7 +1232,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                   {actionPlans.map((plan) => (
                     <div 
                       key={plan.id}
-                      className="p-4 rounded-xl bg-slate-50/50 border border-slate-105 hover:border-slate-205 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                      className="p-4 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-slate-200 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                     >
                       <div className="space-y-1.5">
                         <div className="flex items-center gap-2.5 flex-wrap">
@@ -1290,7 +1292,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                   <ShieldAlert className="h-5 w-5 text-rose-600 shrink-0" />
                   <div>
                     <h6 className="text-xs font-black text-rose-800">Operational Friction Alerts Under Alarm</h6>
-                    <p className="text-[11px] text-slate-560 leading-relaxed mt-1">
+                    <p className="text-[11px] text-slate-600 leading-relaxed mt-1">
                       Text analysis matching on the Anonymous feedback ledger signals recurring overtime indicators within our <strong>Operations & QA</strong> divisions. Buffer renegotiation policies are recommended to HR advisors coordinates to preempt potential resignations.
                     </p>
                   </div>
@@ -1322,7 +1324,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                   return (
                     <>
                       <span className="text-2xl font-black text-slate-800">+{score} eNPS</span>
-                      <span className="text-[10px] text-slate-450 block font-semibold mt-0.5">
+                      <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">
                         {enpsTallies.promoters} Promoters &bull; {enpsTallies.detractors} Detractors
                       </span>
                     </>
@@ -1344,7 +1346,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                 <span className="text-2xl font-black text-slate-800">
                   {polls.reduce((sum, p) => sum + p.totalVoted, 0)} votes
                 </span>
-                <span className="text-[10px] text-slate-450 block font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">
                   Across {polls.length} micro-topic survey polls
                 </span>
               </div>
@@ -1362,7 +1364,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                 <span className="text-2xl font-black text-slate-800">
                   {shoutOuts.length} Shout-Outs
                 </span>
-                <span className="text-[10px] text-slate-450 block font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">
                   {shoutOuts.reduce((sum, s) => sum + s.clapsCount, 0)} claps and badges shared
                 </span>
               </div>
@@ -1381,7 +1383,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                 <span className="text-2xl font-black text-slate-800">
                   {actionPlans.filter(p => p.status === 'Completed').length} / {actionPlans.length} Done
                 </span>
-                <span className="text-[10px] text-slate-450 block font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">
                   Mitigation items completed in 48-hour SLAs
                 </span>
               </div>
@@ -1401,7 +1403,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
             <div className="lg:col-span-7 bg-white border border-slate-100 rounded-3xl p-6 shadow-3xs space-y-5">
               <div className="border-b border-slate-50 pb-3 flex justify-between items-center">
                 <div>
-                  <h5 className="text-[12.5px] font-black text-slate-850 uppercase tracking-wide">Real-time Vibe & Sentiment Feed</h5>
+                  <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Real-time Vibe & Sentiment Feed</h5>
                   <p className="text-[10px] text-slate-400 font-medium italic mt-0.5">Analyzing anonymous submissions against cognitive burnout alarm limits</p>
                 </div>
                 <button 
@@ -1428,7 +1430,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                     {suggestions.map((sg) => (
                       <tr key={sg.id} className="hover:bg-slate-50/20">
                         <td className="py-3 px-3 max-w-xs font-semibold">
-                          <span className="text-slate-850 font-bold block truncate">{sg.text}</span>
+                          <span className="text-slate-800 font-bold block truncate">{sg.text}</span>
                           <span className="text-[9.5px] text-slate-400 font-normal">{sg.category} &bull; {sg.timestamp}</span>
                         </td>
                         <td className="py-3 px-3">
@@ -1510,7 +1512,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                   ].map((bg, idx) => (
                     <div key={idx} className="space-y-1">
                       <div className="flex justify-between items-center text-[10.5px]">
-                        <span className="font-bold text-slate-655 block text-ellipsis truncate max-w-[200px]">{bg.badge}</span>
+                        <span className="font-bold text-slate-700 block text-ellipsis truncate max-w-[200px]">{bg.badge}</span>
                         <span className="font-bold text-slate-800">{bg.count} shared ({bg.share}%)</span>
                       </div>
                       <div className="w-full bg-slate-50 h-1.5 rounded-full overflow-hidden">

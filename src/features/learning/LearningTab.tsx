@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import ModuleHeader from '@/components/ui/ModuleHeader';
+import { SelectMenu } from '@/components/ui';
 import {
   ApiError,
   enrollInTraining,
@@ -590,35 +591,39 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
               </div>
 
               {/* Category selector */}
-              <div className="w-full sm:w-auto">
-                <select
+              <div className="w-full sm:w-44">
+                <SelectMenu
                   value={courseCategoryFilter}
-                  onChange={(e) => setCourseCategoryFilter(e.target.value)}
-                  className="w-full text-xs font-bold text-slate-600 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 outline-none cursor-pointer hover:bg-slate-100/40"
-                >
-                  <option value="All">All Categories</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Finance">Finance</option>
-                  <option value="HR">HR</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Operations">Operations</option>
-                  <option value="General">General / Core</option>
-                </select>
+                  onChange={setCourseCategoryFilter}
+                  aria-label="Course category"
+                  options={[
+                    { value: 'All', label: 'All Categories' },
+                    { value: 'Engineering', label: 'Engineering' },
+                    { value: 'Finance', label: 'Finance' },
+                    { value: 'HR', label: 'HR' },
+                    { value: 'Marketing', label: 'Marketing' },
+                    { value: 'Operations', label: 'Operations' },
+                    { value: 'General', label: 'General / Core' },
+                  ]}
+                  triggerClassName="text-xs font-bold text-slate-600 bg-slate-50 border-slate-100 min-h-9 py-2"
+                />
               </div>
 
               {/* Source filter */}
-              <div className="w-full sm:w-auto">
-                <select
+              <div className="w-full sm:w-48">
+                <SelectMenu
                   value={courseSourceFilter}
-                  onChange={(e) => setCourseSourceFilter(e.target.value)}
-                  className="w-full text-xs font-bold text-slate-600 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 outline-none cursor-pointer hover:bg-slate-100/40"
-                >
-                  <option value="All">All Providers</option>
-                  <option value="Internal Academy">Internal Academy</option>
-                  <option value="LinkedIn Learning">LinkedIn Learning</option>
-                  <option value="Coursera">Coursera</option>
-                  <option value="Udemy">Udemy</option>
-                </select>
+                  onChange={setCourseSourceFilter}
+                  aria-label="Course provider"
+                  options={[
+                    { value: 'All', label: 'All Providers' },
+                    { value: 'Internal Academy', label: 'Internal Academy' },
+                    { value: 'LinkedIn Learning', label: 'LinkedIn Learning' },
+                    { value: 'Coursera', label: 'Coursera' },
+                    { value: 'Udemy', label: 'Udemy' },
+                  ]}
+                  triggerClassName="text-xs font-bold text-slate-600 bg-slate-50 border-slate-100 min-h-9 py-2"
+                />
               </div>
             </div>
 
@@ -734,11 +739,11 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                         <span className="text-[10.5px] font-black text-novora block">SCORM 1.2</span>
                         <span className="text-[8.5px] text-slate-400 font-bold block mt-0.5">Manifest.xml</span>
                       </div>
-                      <div className="p-2 border border-slate-100 hover:border-slate-350 rounded-xl text-center cursor-pointer">
+                      <div className="p-2 border border-slate-100 hover:border-slate-300 rounded-xl text-center cursor-pointer">
                         <span className="text-[10.5px] font-black text-slate-700 block">SCORM 2004</span>
                         <span className="text-[8.5px] text-slate-400 font-bold block mt-0.5">Unpacked zip</span>
                       </div>
-                      <div className="p-2 border border-slate-105 hover:border-slate-355 rounded-xl text-center cursor-pointer">
+                      <div className="p-2 border border-slate-100 hover:border-slate-400 rounded-xl text-center cursor-pointer">
                         <span className="text-[10.5px] font-black text-slate-700 block">Experience API</span>
                         <span className="text-[8.5px] text-slate-400 font-bold block mt-0.5">xAPI Wrapper</span>
                       </div>
@@ -806,7 +811,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                         placeholder="e.g., 4h 15m"
                         value={scormDuration}
                         onChange={(e) => setScormDuration(e.target.value)}
-                        className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-155 rounded-xl p-2.5 outline-none focus:bg-white"
+                        className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:bg-white"
                       />
                     </div>
                   </div>
@@ -929,7 +934,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                     ) : (
                       <button
                         onClick={() => handleEnrollCourse(course.id)}
-                        className="px-4 py-1.5 bg-slate-900 hover:bg-slate-840 text-white hover:bg-blue-600 hover:text-white text-[10.5px] font-extrabold rounded-lg transition-all cursor-pointer shadow-3xs"
+                        className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white hover:bg-blue-600 hover:text-white text-[10.5px] font-extrabold rounded-lg transition-all cursor-pointer shadow-3xs"
                       >
                         Enroll as Student
                       </button>
@@ -1091,7 +1096,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
           {/* Paths display roster */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {learningPaths.map((path) => (
-              <div key={path.id} className="nv-card p-6.5 shadow-xs hover:border-slate-205 transition-all flex flex-col justify-between">
+              <div key={path.id} className="nv-card p-6.5 shadow-xs hover:border-slate-200 transition-all flex flex-col justify-between">
                 <div>
                   
                   {/* Category top row */}
@@ -1281,7 +1286,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                       <td className="py-3 px-3">
                         <div className="leading-tight">
                           <span className="font-extrabold text-slate-700 block">{cert.employeeName}</span>
-                          <span className="text-[10px] text-slate-450 font-semibold">{cert.department}</span>
+                          <span className="text-[10px] text-slate-400 font-semibold">{cert.department}</span>
                         </div>
                       </td>
                       <td className="py-3 px-3 font-mono text-slate-500 font-bold">{cert.issuedDate}</td>
@@ -1345,7 +1350,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                       className={`w-full text-left p-3.5 border rounded-2xl flex flex-col transition-all cursor-pointer ${
                         isCurated 
                           ? 'bg-blue-50/50 border-novora/45 shadow-3xs'
-                          : 'bg-slate-50/50 border-slate-100/80 hover:bg-slate-50 hover:border-slate-205'
+                          : 'bg-slate-50/50 border-slate-100/80 hover:bg-slate-50 hover:border-slate-200'
                       }`}
                     >
                       <div className="flex justify-between items-center w-full mb-1">
@@ -1362,7 +1367,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                         {quiz.title}
                       </h6>
 
-                      <span className="text-[10px] text-slate-450 mt-2 font-medium">
+                      <span className="text-[10px] text-slate-400 mt-2 font-medium">
                         Contains {quiz.questions.length} randomized test items
                       </span>
                     </button>
@@ -1373,7 +1378,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
               <div className="bg-[#fffbeb] border border-amber-200/50 p-3 rounded-xl text-[10.5px] text-slate-700 space-y-1">
                 <span className="font-extrabold text-amber-800 uppercase block">⚠️ Grading Rubrics</span>
                 <p className="font-semibold text-slate-600 leading-relaxed">
-                  Requires <strong className="text-slate-850">75%</strong> score or above to grant course certifications. Users are permitted multiple attempts.
+                  Requires <strong className="text-slate-800">75%</strong> score or above to grant course certifications. Users are permitted multiple attempts.
                 </p>
               </div>
             </div>
@@ -1393,7 +1398,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                         setActiveQuizToTake(null);
                         setQuizScoreCard(null);
                       }}
-                      className="text-xs font-black text-slate-405 hover:text-slate-800 uppercase tracking-wide bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+                      className="text-xs font-black text-slate-400 hover:text-slate-800 uppercase tracking-wide bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
                     >
                       Exit quiz
                     </button>
@@ -1462,7 +1467,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                               Question Item {index + 1} of {activeQuizToTake.questions.length}
                             </span>
 
-                            <h6 className="text-[11.5px] font-extrabold text-slate-850 leading-tight">
+                            <h6 className="text-[11.5px] font-extrabold text-slate-800 leading-tight">
                               {q.questionText}
                             </h6>
 
@@ -1639,7 +1644,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                 const hourCount = [28, 22, 18, 14][index];
                 const activeBadge = ['Gold Edu-Star', 'Silver Medalist', 'Bronze Ribbon', 'Bronze Ribbon'][index];
                 return (
-                  <div key={emp.id} className="p-4 rounded-xl border border-slate-100 flex items-center gap-3 hover:border-slate-205 transition-colors">
+                  <div key={emp.id} className="p-4 rounded-xl border border-slate-100 flex items-center gap-3 hover:border-slate-200 transition-colors">
                     <div className="h-10 w-10 bg-gradient-to-tr from-blue-700 to-indigo-500 text-white flex items-center justify-center font-extrabold text-sm rounded-xl">
                       #{index + 1}
                     </div>
