@@ -106,7 +106,7 @@ function mapFamilyRow(row: FamilyMemberRow): ProfileFamily {
   return {
     id: row.id,
     name: row.name,
-    relationship: row.relationship || 'Spouse',
+    relationship: row.relationship || '',
     dob: formatDobForUi(row.dateOfBirth),
     nric: row.phone || '—',
     taxExempt: false,
@@ -260,7 +260,7 @@ export default function EmployeeProfileTab({
   const [editingFamilyMember, setEditingFamilyMember] = useState<any>(null);
   const [familyForm, setFamilyForm] = useState({
     name: '',
-    relationship: 'Spouse',
+    relationship: '',
     dob: '',
     nric: '',
     taxExempt: false,
@@ -271,7 +271,7 @@ export default function EmployeeProfileTab({
   const [editingNok, setEditingNok] = useState<any>(null);
   const [nokForm, setNokForm] = useState({
     name: '',
-    relationship: 'Spouse',
+    relationship: '',
     contactNo: '',
     address: ''
   });
@@ -686,7 +686,7 @@ export default function EmployeeProfileTab({
     setEditingFamilyMember(null);
     setFamilyForm({
       name: '',
-      relationship: 'Spouse',
+      relationship: '',
       dob: '',
       nric: '',
       taxExempt: false,
@@ -714,6 +714,10 @@ export default function EmployeeProfileTab({
     e.preventDefault();
     if (!familyForm.name.trim()) {
       addToast('Name is required.', 'error');
+      return;
+    }
+    if (!familyForm.relationship) {
+      addToast('Please select a relationship.', 'error');
       return;
     }
 
@@ -769,7 +773,7 @@ export default function EmployeeProfileTab({
     setEditingNok(null);
     setNokForm({
       name: '',
-      relationship: 'Spouse',
+      relationship: '',
       contactNo: '',
       address: ''
     });
@@ -791,6 +795,10 @@ export default function EmployeeProfileTab({
     e.preventDefault();
     if (!nokForm.name.trim()) {
       addToast('Name is required.', 'error');
+      return;
+    }
+    if (!nokForm.relationship) {
+      addToast('Please select a relationship.', 'error');
       return;
     }
 
@@ -1691,14 +1699,9 @@ export default function EmployeeProfileTab({
                     {[
                       { key: 'name', label: 'Full name', value: formatPersonDisplayName(employee.name), editable: false },
                       { key: 'dob', label: 'Date of birth', value: profileData.dob },
-                      { key: 'gender', label: 'Gender', value: profileData.gender },
-                      { key: 'nationality', label: 'Nationality', value: profileData.nationality },
                       { key: 'nric', label: 'NRIC / ID No.', value: profileData.nric },
-                      { key: 'religion', label: 'Religion', value: profileData.religion },
-                      { key: 'maritalStatus', label: 'Marital status', value: profileData.maritalStatus },
                       { key: 'personalEmail', label: 'Personal email', value: profileData.personalEmail },
                       { key: 'mobileNo', label: 'Mobile no.', value: profileData.mobileNo },
-                      { key: 'race', label: 'Race', value: profileData.race }
                     ].map((field) => (
                       <div key={field.key} className="flex flex-col gap-1 pb-2 border-b border-slate-50">
                         <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">{field.label}</span>
@@ -1707,10 +1710,85 @@ export default function EmployeeProfileTab({
                             type="text" 
                             value={(profileData as any)[field.key]} 
                             onChange={(e) => { setProfileData({...profileData, [field.key]: e.target.value}); setIsStateModified(true); }}
-                            className="bg-slate-50 bg-slate-50 border border-slate-200 focus:outline-none focus:border-novora px-2 py-1 rounded text-xs font-bold text-slate-800"
+                            className="bg-slate-50 border border-slate-200 focus:outline-none focus:border-novora px-2 py-1 rounded text-xs font-bold text-slate-800"
                           />
                         ) : (
-                          <span className="text-slate-800 font-bold block pt-0.5">{field.value}</span>
+                          <span className="text-slate-800 font-bold block pt-0.5">{field.value || '—'}</span>
+                        )}
+                      </div>
+                    ))}
+
+                    {([
+                      {
+                        key: 'gender' as const,
+                        label: 'Gender',
+                        options: [
+                          { value: '', label: 'Select…' },
+                          { value: 'Female', label: 'Female' },
+                          { value: 'Male', label: 'Male' },
+                          { value: 'Other', label: 'Other' },
+                        ],
+                      },
+                      {
+                        key: 'maritalStatus' as const,
+                        label: 'Marital status',
+                        options: [
+                          { value: '', label: 'Select…' },
+                          { value: 'Single', label: 'Single' },
+                          { value: 'Married', label: 'Married' },
+                          { value: 'Divorced', label: 'Divorced' },
+                          { value: 'Widowed', label: 'Widowed' },
+                        ],
+                      },
+                      {
+                        key: 'nationality' as const,
+                        label: 'Nationality',
+                        options: [
+                          { value: '', label: 'Select…' },
+                          { value: 'Singaporean', label: 'Singaporean' },
+                          { value: 'Indonesian', label: 'Indonesian' },
+                          { value: 'Other', label: 'Other' },
+                        ],
+                      },
+                      {
+                        key: 'race' as const,
+                        label: 'Race',
+                        options: [
+                          { value: '', label: 'Select…' },
+                          { value: 'Chinese', label: 'Chinese' },
+                          { value: 'Malay', label: 'Malay' },
+                          { value: 'Indian', label: 'Indian' },
+                          { value: 'Other', label: 'Other' },
+                        ],
+                      },
+                      {
+                        key: 'religion' as const,
+                        label: 'Religion',
+                        options: [
+                          { value: '', label: 'Select…' },
+                          { value: 'Buddhism', label: 'Buddhism' },
+                          { value: 'Islam', label: 'Islam' },
+                          { value: 'Christianity', label: 'Christianity' },
+                          { value: 'Hinduism', label: 'Hinduism' },
+                          { value: 'No Religion', label: 'No Religion / Other' },
+                        ],
+                      },
+                    ]).map((field) => (
+                      <div key={field.key} className="flex flex-col gap-1 pb-2 border-b border-slate-50">
+                        <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">{field.label}</span>
+                        {isEditingPersonal ? (
+                          <SelectMenu
+                            value={String(profileData[field.key] ?? '')}
+                            onChange={(v) => {
+                              setProfileData({ ...profileData, [field.key]: v })
+                              setIsStateModified(true)
+                            }}
+                            placeholder="Select…"
+                            triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                            options={field.options}
+                          />
+                        ) : (
+                          <span className="text-slate-800 font-bold block pt-0.5">{profileData[field.key] || '—'}</span>
                         )}
                       </div>
                     ))}
@@ -3027,8 +3105,10 @@ export default function EmployeeProfileTab({
                   <SelectMenu
                     value={familyForm.relationship}
                     onChange={(v) => setFamilyForm({...familyForm, relationship: v})}
+                    placeholder="Select…"
                     triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
                     options={[
+                      { value: '', label: 'Select…' },
                       { value: 'Spouse', label: 'Spouse' },
                       { value: 'Child', label: 'Child' },
                       { value: 'Mother', label: 'Mother' },
@@ -3150,8 +3230,10 @@ export default function EmployeeProfileTab({
                   <SelectMenu
                     value={nokForm.relationship}
                     onChange={(v) => setNokForm({...nokForm, relationship: v})}
+                    placeholder="Select…"
                     triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
                     options={[
+                      { value: '', label: 'Select…' },
                       { value: 'Spouse', label: 'Spouse' },
                       { value: 'Mother', label: 'Mother' },
                       { value: 'Father', label: 'Father' },

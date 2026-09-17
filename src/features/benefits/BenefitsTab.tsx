@@ -219,7 +219,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
   ]);
 
   const [newDepName, setNewDepName] = useState('');
-  const [newDepRel, setNewDepRel] = useState<'Spouse' | 'Child' | 'Parent' | 'Sibling'>('Spouse');
+  const [newDepRel, setNewDepRel] = useState('');
   const [newDepDob, setNewDepDob] = useState('1996-01-01');
   const [newDepNric, setNewDepNric] = useState('');
   const [newDepTier, setNewDepTier] = useState<'Standard Medical Only' | 'Full Comprehensive' | 'Accident Coverage'>('Standard Medical Only');
@@ -396,12 +396,16 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
       addToast('Please specify the dependent’s legal name and identity NRIC number.', 'error');
       return;
     }
+    if (!newDepRel) {
+      addToast('Please select a relationship.', 'error');
+      return;
+    }
 
     const newDep: Dependent = {
       id: createLocalId('DEP'),
       employeeId: selectedSubEmployee,
       name: newDepName,
-      relationship: newDepRel,
+      relationship: newDepRel as Dependent['relationship'],
       dob: newDepDob,
       nric: newDepNric,
       coverageTier: newDepTier
@@ -410,6 +414,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
     setDependents(prev => [...prev, newDep]);
     setNewDepName('');
     setNewDepNric('');
+    setNewDepRel('');
     addToast(`${newDepName} (${newDepRel}) successfully registered under primary medical insurance.`, 'success');
   };
 
@@ -870,9 +875,11 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Relationship</label>
                     <SelectMenu
                       value={newDepRel}
-                      onChange={(v) => setNewDepRel(v as any)}
+                      onChange={setNewDepRel}
+                      placeholder="Select…"
                       triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
                       options={[
+                        { value: '', label: 'Select…' },
                         { value: 'Spouse', label: 'Spouse' },
                         { value: 'Child', label: 'Child' },
                         { value: 'Parent', label: 'Parent' },

@@ -70,21 +70,21 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
   const [ignoreRotaDeduction, setIgnoreRotaDeduction] = useState(false);
   const [ignoreMissingSwipe, setIgnoreMissingSwipe] = useState(false);
 
-  const [employeeNo, setEmployeeNo] = useState('EMP-0285');
-  const [employmentStatus, setEmploymentStatus] = useState<EmploymentStatus>('Permanent');
+  const [employeeNo, setEmployeeNo] = useState('');
+  const [employmentStatus, setEmploymentStatus] = useState<EmploymentStatus | ''>('');
   const [company, setCompany] = useState('Novora');
   const [location, setLocation] = useState('Singapore HQ');
-  const [branch, setBranch] = useState('Main Branch');
-  const [department, setDepartment] = useState<Department>('Engineering');
-  const [section, setSection] = useState('Tech Division');
-  const [position, setPosition] = useState('Senior Developer');
+  const [branch, setBranch] = useState('');
+  const [department, setDepartment] = useState<Department | ''>('');
+  const [section, setSection] = useState('');
+  const [position, setPosition] = useState('');
   
-  const [jobType, setJobType] = useState('Full-time');
-  const [typeOfAppointment, setTypeOfAppointment] = useState('Confirmed');
-  const [jobGrade, setJobGrade] = useState('G-7');
-  const [joinDate, setJoinDate] = useState('2026-06-17');
-  const [positionStartDate, setPositionStartDate] = useState('2026-06-17');
-  const [reportsTo, setReportsTo] = useState('EMP-0010'); // David Ng default manager
+  const [jobType, setJobType] = useState('');
+  const [typeOfAppointment, setTypeOfAppointment] = useState('');
+  const [jobGrade, setJobGrade] = useState('');
+  const [joinDate, setJoinDate] = useState('');
+  const [positionStartDate, setPositionStartDate] = useState('');
+  const [reportsTo, setReportsTo] = useState('');
   const [employersNote, setEmployersNote] = useState('');
   const [remarks, setRemarks] = useState('');
 
@@ -92,12 +92,12 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [nric, setNric] = useState('');
-  const [dob, setDob] = useState('1991-03-14');
-  const [gender, setGender] = useState('Female');
-  const [maritalStatus, setMaritalStatus] = useState('Married');
-  const [nationality, setNationality] = useState('Singaporean');
-  const [race, setRace] = useState('Chinese');
-  const [religion, setReligion] = useState('Buddhism');
+  const [dob, setDob] = useState('');
+  const [gender, setGender] = useState('');
+  const [maritalStatus, setMaritalStatus] = useState('');
+  const [nationality, setNationality] = useState('');
+  const [race, setRace] = useState('');
+  const [religion, setReligion] = useState('');
   const [personalEmail, setPersonalEmail] = useState('');
   const [mobileNo, setMobileNo] = useState('');
   const [workEmail, setWorkEmail] = useState('');
@@ -105,17 +105,17 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
   // Passport info
   const [passportEnabled, setPassportEnabled] = useState(false);
   const [passportNo, setPassportNo] = useState('');
-  const [passportCountry, setPassportCountry] = useState('Singapore');
+  const [passportCountry, setPassportCountry] = useState('');
   const [passportIssueDate, setPassportIssueDate] = useState('');
   const [passportExpiryDate, setPassportExpiryDate] = useState('');
 
   // Address info
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
-  const [city, setCity] = useState('Singapore');
-  const [state, setState] = useState('Singapore');
-  const [postcode, setPostcode] = useState('018982');
-  const [country, setCountry] = useState('Singapore');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [postcode, setPostcode] = useState('');
+  const [country, setCountry] = useState('');
   const [permanentSameAsCurrent, setPermanentSameAsCurrent] = useState(true);
 
   // Step 3: Off duty day configuration (Full and Half days)
@@ -136,6 +136,54 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
       const randNum = createLocalNumericId(100) % 900
       setEmployeeNo(`EMP-0${randNum}`)
       setProfilePhoto(null)
+      setActiveEmployee(true)
+      setAutoClockIn(false)
+      setIgnoreRotaDeduction(false)
+      setIgnoreMissingSwipe(false)
+      setEmploymentStatus('')
+      setCompany('Novora')
+      setLocation('Singapore HQ')
+      setBranch('')
+      setDepartment('')
+      setSection('')
+      setPosition('')
+      setJobType('')
+      setTypeOfAppointment('')
+      setJobGrade('')
+      setJoinDate('')
+      setPositionStartDate('')
+      setReportsTo('')
+      setEmployersNote('')
+      setRemarks('')
+      setFirstName('')
+      setLastName('')
+      setNric('')
+      setDob('')
+      setGender('')
+      setMaritalStatus('')
+      setNationality('')
+      setRace('')
+      setReligion('')
+      setPersonalEmail('')
+      setMobileNo('')
+      setWorkEmail('')
+      setPassportEnabled(false)
+      setPassportNo('')
+      setPassportCountry('')
+      setPassportIssueDate('')
+      setPassportExpiryDate('')
+      setAddressLine1('')
+      setAddressLine2('')
+      setCity('')
+      setState('')
+      setPostcode('')
+      setCountry('')
+      setPermanentSameAsCurrent(true)
+      setFullDaysOff(['Mon', 'Sat'])
+      setHalfDaysOff(['Fri'])
+      setBiometricEnabled(true)
+      setTerminalsList([{ id: '1', taNumber: 'TA-00451', terminal: 'Main Lobby — Terminal 1' }])
+      setSubmitting(false)
     }, 0)
     return () => window.clearTimeout(timer)
   }, [isOpen])
@@ -227,6 +275,26 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
     if (!first) {
       addToast('Please enter the employee first name in the Personal step.', 'error')
       setStep(2)
+      return
+    }
+    if (!gender) {
+      addToast('Please select gender.', 'error')
+      setStep(2)
+      return
+    }
+    if (!nationality) {
+      addToast('Please select nationality.', 'error')
+      setStep(2)
+      return
+    }
+    if (!employmentStatus) {
+      addToast('Please select employment status.', 'error')
+      setStep(1)
+      return
+    }
+    if (!department) {
+      addToast('Please select a department.', 'error')
+      setStep(1)
       return
     }
 
@@ -564,6 +632,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       <SelectMenu
                         value={employmentStatus}
                         onChange={(v) => setEmploymentStatus(v as EmploymentStatus)}
+                        placeholder="Select…"
                         triggerClassName="text-xs font-bold border-slate-200"
                         options={[
                           { value: 'Permanent', label: 'Permanent' },
@@ -613,6 +682,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       <SelectMenu
                         value={department}
                         onChange={(v) => setDepartment(v as Department)}
+                        placeholder="Select…"
                         triggerClassName="text-xs font-bold border-slate-200"
                         options={[
                           { value: 'Engineering', label: 'Engineering' },
@@ -630,8 +700,10 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       <SelectMenu
                         value={section}
                         onChange={setSection}
+                        placeholder="Select…"
                         triggerClassName="text-xs font-bold border-slate-200"
                         options={[
+                          { value: '', label: 'Select…' },
                           { value: 'Tech Division', label: 'Tech Division' },
                           { value: 'Accounting Desk', label: 'Accounting Desk' },
                           { value: 'Talent Acquisition', label: 'Talent Acquisition' },
@@ -668,8 +740,10 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       <SelectMenu
                         value={jobType}
                         onChange={setJobType}
+                        placeholder="Select…"
                         triggerClassName="text-xs font-bold border-slate-200"
                         options={[
+                          { value: '', label: 'Select…' },
                           { value: 'Full-time', label: 'Full-time' },
                           { value: 'Part-time', label: 'Part-time' },
                           { value: 'Academic Intern', label: 'Academic Intern' },
@@ -684,8 +758,10 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       <SelectMenu
                         value={typeOfAppointment}
                         onChange={setTypeOfAppointment}
+                        placeholder="Select…"
                         triggerClassName="text-xs font-bold border-slate-200"
                         options={[
+                          { value: '', label: 'Select…' },
                           { value: 'Confirmed', label: 'Confirmed' },
                           { value: 'Probation', label: 'Probation' },
                           { value: 'Contractual Stage', label: 'Contractual Stage' },
@@ -699,8 +775,10 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       <SelectMenu
                         value={jobGrade}
                         onChange={setJobGrade}
+                        placeholder="Select…"
                         triggerClassName="text-xs font-bold border-slate-200"
                         options={[
+                          { value: '', label: 'Select…' },
                           { value: 'G-1', label: 'Grade 1 - Junior Executive' },
                           { value: 'G-3', label: 'Grade 3 - Mid Executive' },
                           { value: 'G-5', label: 'Grade 5 - Senior Lead' },
@@ -741,8 +819,10 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       <SelectMenu
                         value={reportsTo}
                         onChange={setReportsTo}
+                        placeholder="Select…"
                         triggerClassName="text-xs font-bold border-slate-200"
                         options={[
+                          { value: '', label: 'Select…' },
                           { value: 'EMP-0010', label: 'David Ng (Director of Engineering)' },
                           { value: 'EMP-0030', label: 'Rachel Tan (head of Finance)' },
                           { value: 'EMP-0040', label: 'Nina Reza (head of People Op)' },
@@ -861,6 +941,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       <SelectMenu
                         value={gender}
                         onChange={setGender}
+                        placeholder="Select…"
                         triggerClassName="text-xs font-bold border-slate-200"
                         options={[
                           { value: 'Female', label: 'Female' },
@@ -876,8 +957,10 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       <SelectMenu
                         value={maritalStatus}
                         onChange={setMaritalStatus}
+                        placeholder="Select…"
                         triggerClassName="text-xs font-bold border-slate-200"
                         options={[
+                          { value: '', label: 'Select…' },
                           { value: 'Single', label: 'Single' },
                           { value: 'Married', label: 'Married' },
                           { value: 'Divorced', label: 'Divorced' },
@@ -892,6 +975,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       <SelectMenu
                         value={nationality}
                         onChange={setNationality}
+                        placeholder="Select…"
                         triggerClassName="text-xs font-bold border-slate-200"
                         options={[
                           { value: 'Singaporean', label: 'Singaporean' },
@@ -907,8 +991,10 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       <SelectMenu
                         value={race}
                         onChange={setRace}
+                        placeholder="Select…"
                         triggerClassName="text-xs font-bold border-slate-200"
                         options={[
+                          { value: '', label: 'Select…' },
                           { value: 'Chinese', label: 'Chinese' },
                           { value: 'Malay', label: 'Malay' },
                           { value: 'Indian', label: 'Indian' },
@@ -923,8 +1009,10 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       <SelectMenu
                         value={religion}
                         onChange={setReligion}
+                        placeholder="Select…"
                         triggerClassName="text-xs font-bold border-slate-200"
                         options={[
+                          { value: '', label: 'Select…' },
                           { value: 'Buddhism', label: 'Buddhism' },
                           { value: 'Islam', label: 'Islam' },
                           { value: 'Christianity', label: 'Christianity' },
@@ -1111,6 +1199,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                     <SelectMenu
                       value={country}
                       onChange={setCountry}
+                        placeholder="Select…"
                       triggerClassName="text-xs font-bold border-slate-200"
                       options={[
                         { value: 'Singapore', label: 'Singapore' },
@@ -1270,7 +1359,12 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider">Terminal <span className="text-red-500">*</span></label>
                           <SelectMenu
                             value={row.terminal}
-                            onChange={(v) => { const updated = [...terminalsList]; updated[index].terminal = v; setTerminalsList(updated); }}
+                            onChange={(v) => {
+                              const updated = [...terminalsList]
+                              updated[index].terminal = v
+                              setTerminalsList(updated)
+                            }}
+                            placeholder="Select…"
                             triggerClassName="text-xs font-bold border-slate-200"
                             options={[
                               { value: 'Main Lobby — Terminal 1', label: 'Main Lobby — Terminal 1' },
@@ -1332,7 +1426,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       {firstName || lastName ? `${firstName} ${lastName}`.trim() : 'New hire'}
                     </h4>
                     <p className="text-[11px] font-mono text-slate-500 font-bold mt-1.5">
-                      {employeeNo || 'EMP-0285'} &bull; {department} &bull; {position || '-- Select --'}
+                      {employeeNo || '—'} &bull; {department || 'Select…'} &bull; {position || 'Select…'}
                     </p>
                   </div>
                 </div>
@@ -1350,19 +1444,19 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                       </div>
                       <div className="flex justify-between py-0.5">
                         <span className="text-slate-400 font-semibold">Department:</span>
-                        <span className="text-slate-800 font-bold">{department}</span>
+                        <span className="text-slate-800 font-bold">{department || '—'}</span>
                       </div>
                       <div className="flex justify-between py-0.5">
                         <span className="text-slate-400 font-semibold">Job Type:</span>
-                        <span className="text-slate-800 font-bold">{jobType} &bull; {employmentStatus}</span>
+                        <span className="text-slate-800 font-bold">{jobType || '—'} &bull; {employmentStatus || '—'}</span>
                       </div>
                       <div className="flex justify-between py-0.5">
                         <span className="text-slate-400 font-semibold">Join Date:</span>
-                        <span className="text-slate-800 font-bold">{joinDate}</span>
+                        <span className="text-slate-800 font-bold">{joinDate || '—'}</span>
                       </div>
                       <div className="flex justify-between py-0.5">
                         <span className="text-slate-400 font-semibold">Grade:</span>
-                        <span className="text-slate-800 font-bold">{jobGrade}</span>
+                        <span className="text-slate-800 font-bold">{jobGrade || '—'}</span>
                       </div>
                     </div>
                   </div>
@@ -1373,11 +1467,11 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                     <div className="space-y-2">
                       <div className="flex justify-between py-0.5">
                         <span className="text-slate-400 font-semibold">Nationality:</span>
-                        <span className="text-slate-800 font-bold">{nationality}</span>
+                        <span className="text-slate-800 font-bold">{nationality || '—'}</span>
                       </div>
                       <div className="flex justify-between py-0.5">
                         <span className="text-slate-400 font-semibold">Date of birth:</span>
-                        <span className="text-slate-800 font-bold">{dob}</span>
+                        <span className="text-slate-800 font-bold">{dob || '—'}</span>
                       </div>
                       <div className="flex justify-between py-0.5">
                         <span className="text-slate-400 font-semibold">NRIC:</span>
@@ -1512,9 +1606,33 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
               id="wizard-bottom-forward-action-btn"
               type="button"
               onClick={() => {
-                if (step === 2 && !firstName && !lastName) {
-                  addToast('Name details are required before advancing.', 'error');
-                  return;
+                if (step === 1) {
+                  if (!employmentStatus) {
+                    addToast('Please select employment status.', 'error');
+                    return;
+                  }
+                  if (!department) {
+                    addToast('Please select a department.', 'error');
+                    return;
+                  }
+                  if (!jobType) {
+                    addToast('Please select job type.', 'error');
+                    return;
+                  }
+                }
+                if (step === 2) {
+                  if (!firstName && !lastName) {
+                    addToast('Name details are required before advancing.', 'error');
+                    return;
+                  }
+                  if (!gender) {
+                    addToast('Please select gender.', 'error');
+                    return;
+                  }
+                  if (!nationality) {
+                    addToast('Please select nationality.', 'error');
+                    return;
+                  }
                 }
                 setStep(step + 1);
               }}
