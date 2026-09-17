@@ -1059,11 +1059,12 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
 }
 
 .nv-select-option {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
   align-items: center;
-  gap: 0.5rem;
+  column-gap: 0.55rem;
   width: 100%;
-  padding: 0.5rem 0.65rem;
+  padding: 0.55rem 0.7rem;
   border-radius: 0.55rem;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -1071,6 +1072,20 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   text-align: left;
   cursor: pointer;
   transition: background-color 130ms ease, color 130ms ease;
+}
+
+.nv-select-option-icon {
+  display: flex;
+  width: 1rem;
+  height: 1rem;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nv-select-option-icon svg {
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .nv-select-option:hover {
@@ -1089,7 +1104,7 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   color: var(--color-novora-deep);
 }
 
-.nv-select-option--active svg {
+.nv-select-option--active .nv-select-option-icon {
   color: var(--color-novora);
 }
 

@@ -75,13 +75,13 @@ export default function SelectMenu({
     const trigger = triggerRef.current
     if (!trigger) return
     const rect = trigger.getBoundingClientRect()
-    const gap = 6
+    const gap = 8
     const pad = 8
     const spaceBelow = window.innerHeight - rect.bottom - pad
     const spaceAbove = rect.top - pad
     const openUp = preferUp ? spaceAbove > spaceBelow : spaceBelow < 180 && spaceAbove > spaceBelow
     const available = Math.max(120, (openUp ? spaceAbove : spaceBelow) - gap)
-    const width = Math.max(rect.width, 160)
+    const width = Math.max(rect.width, 168)
     const left = clamp(rect.left, pad, window.innerWidth - width - pad)
 
     if (openUp) {
@@ -206,11 +206,9 @@ export default function SelectMenu({
                     }}
                     className={`nv-select-option ${isSelected ? 'nv-select-option--active' : ''}`}
                   >
-                    {isSelected ? (
-                      <Check className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
-                    ) : (
-                      <span className="w-3.5 shrink-0" aria-hidden />
-                    )}
+                    <span className="nv-select-option-icon" aria-hidden>
+                      {isSelected ? <Check strokeWidth={2.5} /> : null}
+                    </span>
                     <span className="truncate">{opt.label}</span>
                   </button>
                 </li>

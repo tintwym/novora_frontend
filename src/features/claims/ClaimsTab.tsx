@@ -798,43 +798,52 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
             {/* Horizontal Filter Bar */}
             <div className="bg-slate-50/50 border border-slate-100 p-4.5 rounded-2xl flex flex-wrap gap-4 items-center justify-between">
               <div className="flex flex-wrap items-center gap-3">
-                <select
+                <SelectMenu
                   value={approvalStatusFilter}
-                  onChange={(e) => setApprovalStatusFilter(e.target.value)}
-                  className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
-                >
-                  <option value="All status">All status</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
+                  onChange={setApprovalStatusFilter}
+                  aria-label="Approval status filter"
+                  className="w-auto shrink-0"
+                  triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                  options={[
+                    { value: 'All status', label: 'All status' },
+                    { value: 'Pending', label: 'Pending' },
+                    { value: 'Approved', label: 'Approved' },
+                    { value: 'Rejected', label: 'Rejected' },
+                  ]}
+                />
 
-                <select
+                <SelectMenu
                   value={approvalCategoryFilter}
-                  onChange={(e) => setApprovalCategoryFilter(e.target.value)}
-                  className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
-                >
-                  <option value="All categories">All categories</option>
-                  <option value="Meal allowance">Meal allowance</option>
-                  <option value="Transport">Transport</option>
-                  <option value="Hotel / stay">Hotel / stay</option>
-                  <option value="Air ticket">Air ticket</option>
-                  <option value="Mileage">Mileage</option>
-                  <option value="Wellness">Wellness</option>
-                </select>
+                  onChange={setApprovalCategoryFilter}
+                  aria-label="Approval category filter"
+                  className="w-auto shrink-0"
+                  triggerClassName="nv-select-trigger--toolbar min-w-[9rem]"
+                  options={[
+                    { value: 'All categories', label: 'All categories' },
+                    { value: 'Meal allowance', label: 'Meal allowance' },
+                    { value: 'Transport', label: 'Transport' },
+                    { value: 'Hotel / stay', label: 'Hotel / stay' },
+                    { value: 'Air ticket', label: 'Air ticket' },
+                    { value: 'Mileage', label: 'Mileage' },
+                    { value: 'Wellness', label: 'Wellness' },
+                  ]}
+                />
 
-                <select
+                <SelectMenu
                   value={approvalDeptFilter}
-                  onChange={(e) => setApprovalDeptFilter(e.target.value)}
-                  className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
-                >
-                  <option value="All departments">All departments</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Finance">Finance</option>
-                  <option value="HR">HR</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Operations">Operations</option>
-                </select>
+                  onChange={setApprovalDeptFilter}
+                  aria-label="Approval department filter"
+                  className="w-auto shrink-0"
+                  triggerClassName="nv-select-trigger--toolbar min-w-[9rem]"
+                  options={[
+                    { value: 'All departments', label: 'All departments' },
+                    { value: 'Engineering', label: 'Engineering' },
+                    { value: 'Finance', label: 'Finance' },
+                    { value: 'HR', label: 'HR' },
+                    { value: 'Marketing', label: 'Marketing' },
+                    { value: 'Operations', label: 'Operations' },
+                  ]}
+                />
 
                 <input
                   type="date"

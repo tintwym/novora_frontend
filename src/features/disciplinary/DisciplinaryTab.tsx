@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import ModuleHeader from '@/components/ui/ModuleHeader';
-import { DropdownAnchor } from '@/components/ui';
+import { DropdownAnchor, SelectMenu } from '@/components/ui';
 import {
   ApiError,
   createDisciplinaryCase,
@@ -1299,20 +1299,24 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
 
             <div className="flex flex-wrap items-center gap-2.5 font-bold text-slate-700">
               {/* Status filter */}
-              <select
+              <SelectMenu
                 value={selectedStatusFilter}
-                onChange={(e) => setSelectedStatusFilter(e.target.value)}
-                className="bg-slate-50 border border-slate-200 text-xs p-2 rounded-xl cursor-pointer"
-              >
-                <option value="All status">All Status</option>
-                <option value="Pending">Pending</option>
-                <option value="Acknowledged">Acknowledged</option>
-                <option value="Closed">Closed</option>
-              </select>
+                onChange={setSelectedStatusFilter}
+                aria-label="Case status filter"
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[8.5rem]"
+                options={[
+                  { value: 'All status', label: 'All Status' },
+                  { value: 'Pending', label: 'Pending' },
+                  { value: 'Acknowledged', label: 'Acknowledged' },
+                  { value: 'Closed', label: 'Closed' },
+                ]}
+              />
 
               <button
+                type="button"
                 onClick={() => addToast('Dispatched formatted system PDF logs to supervisor dashboard.', 'success')}
-                className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs px-3.5 py-2.5 rounded-xl transition-all shadow-tinier flex items-center gap-1.5 cursor-pointer"
+                className="nv-toolbar-btn"
               >
                 <span>Generate PDF</span>
               </button>

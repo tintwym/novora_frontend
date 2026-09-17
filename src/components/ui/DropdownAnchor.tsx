@@ -65,7 +65,7 @@ export default function DropdownAnchor({
     if (!root) return
 
     const rect = root.getBoundingClientRect()
-    const gap = 6
+    const gap = 8
     const pad = 8
     const spaceBelow = window.innerHeight - rect.bottom - pad
     const spaceAbove = rect.top - pad
