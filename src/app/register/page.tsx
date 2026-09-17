@@ -7,16 +7,15 @@ import { useAuth } from '@/providers/AuthProvider'
 import { portalHomePath } from '@/lib/roles'
 
 export default function RegisterRoute() {
-  const { authReady, session, handleAuthSuccess } = useAuth()
+  const { session, handleAuthSuccess } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (authReady && session) {
+    if (session) {
       router.replace(portalHomePath(session.roles))
     }
-  }, [authReady, session, router])
+  }, [session, router])
 
-  if (!authReady) return null
   if (session) return null
 
   return (

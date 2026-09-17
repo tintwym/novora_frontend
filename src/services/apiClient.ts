@@ -40,17 +40,21 @@ function readCookie(name: string): string | null {
   return match ? decodeURIComponent(match[1]) : null
 }
 
+/** Sync CSRF cache from the XSRF-TOKEN cookie without a network round-trip. */
+export function syncCsrfFromCookie(): boolean {
+  const fromCookie = readCookie('XSRF-TOKEN')
+  if (!fromCookie) return false
+  cachedCsrfToken = fromCookie
+  return true
+}
+
 export async function ensureCsrfToken(forceRefresh = false): Promise<string> {
   if (!forceRefresh) {
     if (cachedCsrfToken) return cachedCsrfToken
-    const fromCookie = readCookie('XSRF-TOKEN')
-    if (fromCookie) {
-      cachedCsrfToken = fromCookie
-      return fromCookie
-    }
+    if (syncCsrfFromCookie()) return cachedCsrfToken!
   }
 
-  // Render free tier can 502 while waking; retry a couple times.
+  // Render free tier can 502 while waking; retry a couple times with short backoff.
   let lastStatus = 0
   for (let attempt = 0; attempt < 3; attempt++) {
     const res = await fetch(`${API_BASE_URL}/api/auth/csrf`, {
@@ -73,7 +77,7 @@ export async function ensureCsrfToken(forceRefresh = false): Promise<string> {
     if (res.status !== 502 && res.status !== 503 && res.status !== 504) {
       break
     }
-    await new Promise((r) => setTimeout(r, 800 * (attempt + 1)))
+    await new Promise((r) => setTimeout(r, 400 * (attempt + 1)))
   }
 
   throw new ApiError('Could not initialize security token. Is the API running?', lastStatus)

@@ -1,48 +1,39 @@
-import { apiRequest, clearCsrfCache, ensureCsrfToken } from './apiClient'
-import { ApiError, type AuthResponse, type LoginRequest, type RegisterRequest } from './types'
+import { apiRequest, clearCsrfCache, ensureCsrfToken, syncCsrfFromCookie } from './apiClient'
+import type { AuthResponse, LoginRequest, RegisterRequest } from './types'
 
 export async function fetchCsrf(): Promise<void> {
   await ensureCsrfToken(true)
 }
 
-async function confirmSession(): Promise<AuthResponse> {
-  try {
-    return await fetchMe()
-  } catch (err) {
-    if (err instanceof ApiError) {
-      throw new ApiError(
-        'Signed in on the server, but the browser did not keep the session cookie. ' +
-          'Use same-origin /api (empty NEXT_PUBLIC_API_BASE_URL + Next.js rewrites) instead of a cross-site API URL.',
-        err.status,
-      )
-    }
-    throw err
-  }
+/**
+ * After login/register Spring rotates the session and refreshes the XSRF cookie.
+ * Prefer the cookie from the auth response; only hit /csrf if the cookie is missing.
+ */
+async function refreshCsrfAfterAuth(): Promise<void> {
+  clearCsrfCache()
+  if (syncCsrfFromCookie()) return
+  await ensureCsrfToken(true)
 }
 
 export async function login(payload: LoginRequest): Promise<AuthResponse> {
-  clearCsrfCache()
-  await ensureCsrfToken(true)
-  await apiRequest<AuthResponse>('/api/auth/login', {
+  // Reuse cached/cookie CSRF when warm (LoginPage prefetches). Avoid forced double CSRF + /me.
+  await ensureCsrfToken()
+  const auth = await apiRequest<AuthResponse>('/api/auth/login', {
     method: 'POST',
     body: payload,
   })
-  // Session fixation protection rotates JSESSIONID — force a fresh CSRF token.
-  clearCsrfCache()
-  await ensureCsrfToken(true)
-  return confirmSession()
+  await refreshCsrfAfterAuth()
+  return auth
 }
 
 export async function register(payload: RegisterRequest): Promise<AuthResponse> {
-  clearCsrfCache()
-  await ensureCsrfToken(true)
-  await apiRequest<AuthResponse>('/api/auth/register', {
+  await ensureCsrfToken()
+  const auth = await apiRequest<AuthResponse>('/api/auth/register', {
     method: 'POST',
     body: payload,
   })
-  clearCsrfCache()
-  await ensureCsrfToken(true)
-  return confirmSession()
+  await refreshCsrfAfterAuth()
+  return auth
 }
 
 export async function fetchMe(signal?: AbortSignal): Promise<AuthResponse> {

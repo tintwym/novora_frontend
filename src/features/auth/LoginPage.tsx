@@ -9,7 +9,7 @@ import {
   getLoginLockout,
   recordLoginFailure,
 } from './loginRateLimit'
-import { login, ApiError } from '@/services'
+import { login, ApiError, fetchCsrf } from '@/services'
 import type { AuthSession } from '@/types'
 
 const REMEMBER_EMAIL_KEY = 'novora.auth.rememberedEmail'
@@ -39,6 +39,13 @@ export default function LoginPage({ onSuccess, onGoRegister, onGoLanding }: Logi
   const [formError, setFormError] = useState<string | null>(null)
   const [rememberMe, setRememberMe] = useState(() => Boolean(readRememberedEmail()))
   const [lockoutSeconds, setLockoutSeconds] = useState(0)
+
+  // Warm CSRF + Render while the user types credentials.
+  useEffect(() => {
+    void fetchCsrf().catch(() => {
+      // Cold start / offline — login() will retry.
+    })
+  }, [])
 
   useEffect(() => {
     const tick = () => {

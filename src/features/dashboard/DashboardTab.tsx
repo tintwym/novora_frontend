@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import type { Employee, SidebarTab } from '@/types'
 import { canManageFullSystem } from '@/lib/roles'
+import { DropdownAnchor } from '@/components/ui'
 import {
   ApiError,
   checkInAttendance,
@@ -672,7 +673,7 @@ function WorkforceTrendChart({
     <Panel
       title="Workforce Analytics"
       action={
-        <div className="relative">
+        <DropdownAnchor open={open} onClose={() => setOpen(false)} align="right">
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
@@ -682,7 +683,7 @@ function WorkforceTrendChart({
             <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
           </button>
           {open && (
-            <div className="nv-dropdown-menu absolute right-0 z-20 w-40 overflow-hidden rounded-xl border border-slate-100 bg-white py-1 shadow-lg">
+            <div className="nv-dropdown-menu w-40 overflow-hidden rounded-xl border border-slate-100 bg-white py-1 shadow-lg">
               {(['Last 12 months', 'Last 6 months', 'Last 3 months', 'Last 30 days'] as const).map((opt) => (
                 <button
                   key={opt}
@@ -698,7 +699,7 @@ function WorkforceTrendChart({
               ))}
             </div>
           )}
-        </div>
+        </DropdownAnchor>
       }
     >
       {growthPct != null && (
@@ -1091,7 +1092,11 @@ export default function DashboardTab({
 
   useEffect(() => {
     if (!isAdmin || loading) return
-    void loadAiInsights()
+    // Defer Gemini so the dashboard shell paints before AI round-trip.
+    const timer = window.setTimeout(() => {
+      void loadAiInsights()
+    }, 400)
+    return () => window.clearTimeout(timer)
     // One-shot after initial dashboard load; use Refresh for updates.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, loading])

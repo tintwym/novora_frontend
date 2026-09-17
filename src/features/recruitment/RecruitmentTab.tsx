@@ -64,6 +64,7 @@ import {
   type RecruitmentOfferRow,
 } from '@/services'
 import ModuleHeader from '@/components/ui/ModuleHeader'
+import { DropdownAnchor } from '@/components/ui'
 
 function mapJobStatus(status: string): JobPosting['status'] {
   const s = status.toLowerCase()
@@ -864,10 +865,18 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
         <div id="recruitment-top-controls" className="flex items-center gap-2.5 shrink-0 relative select-none">
           
           {/* Department filter selection */}
-          <div id="dept-filter-dropdown" className="relative shrink-0">
+          <DropdownAnchor
+            open={deptDropdownOpen}
+            onClose={() => setDeptDropdownOpen(false)}
+            align="right"
+          >
             <button
               id="dept-filter-btn"
-              onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
+              type="button"
+              onClick={() => {
+                setExportDropdownOpen(false)
+                setDeptDropdownOpen(!deptDropdownOpen)
+              }}
               className="h-9 flex items-center gap-2 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 transition-colors rounded-xl cursor-pointer whitespace-nowrap"
             >
               <span>{deptFilter}</span>
@@ -875,10 +884,11 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
             </button>
 
             {deptDropdownOpen && (
-              <div id="dept-dropdown-menu" className="nv-dropdown-menu nv-dropdown-menu--right w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
+              <div id="dept-dropdown-menu" className="nv-dropdown-menu w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
                 {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map((dept) => (
                   <button
                     key={dept}
+                    type="button"
                     onClick={() => {
                       setDeptFilter(dept);
                       setDeptDropdownOpen(false);
@@ -891,13 +901,21 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 ))}
               </div>
             )}
-          </div>
+          </DropdownAnchor>
 
           {/* Highly Professional, Slick Export Button */}
-          <div id="export-actions-dropdown" className="relative shrink-0">
+          <DropdownAnchor
+            open={exportDropdownOpen}
+            onClose={() => setExportDropdownOpen(false)}
+            align="right"
+          >
             <button
               id="export-options-btn"
-              onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+              type="button"
+              onClick={() => {
+                setDeptDropdownOpen(false)
+                setExportDropdownOpen(!exportDropdownOpen)
+              }}
               className="h-9 bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/20 font-bold text-xs text-slate-700 px-3.5 rounded-xl transition-all shadow-xs inline-flex items-center gap-2 cursor-pointer whitespace-nowrap"
             >
               <Download className="h-3.5 w-3.5 text-slate-500 shrink-0" />
@@ -906,12 +924,13 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
             </button>
 
             {exportDropdownOpen && (
-              <div id="export-dropdown-items" className="nv-dropdown-menu nv-dropdown-menu--right w-52 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
+              <div id="export-dropdown-items" className="nv-dropdown-menu w-52 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
                 <div className="px-3.5 py-1 text-[9.5px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
                   Export Settings
                 </div>
                 <button
                   id="export-excel-item"
+                  type="button"
                   onClick={() => triggerRecruitmentExport('Excel')}
                   className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                 >
@@ -920,6 +939,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 </button>
                 <button
                   id="export-csv-item"
+                  type="button"
                   onClick={() => triggerRecruitmentExport('CSV')}
                   className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                 >
@@ -928,6 +948,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 </button>
                 <button
                   id="export-pdf-item"
+                  type="button"
                   onClick={() => triggerRecruitmentExport('PDF')}
                   className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                 >
@@ -936,7 +957,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 </button>
               </div>
             )}
-          </div>
+          </DropdownAnchor>
 
           {/* Contextual primary trigger action button */}
           {activeSubTab === 'Job Requisition' && (

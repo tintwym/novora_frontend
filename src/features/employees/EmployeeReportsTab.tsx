@@ -16,10 +16,10 @@ import {
   CalendarDays,
   MapPin,
   Heart,
-  ChevronDown
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import { formatPersonDisplayName } from '@/lib/personName';
+import { SelectMenu } from '@/components/ui';
 
 interface EmployeeReportsTabProps {
   employees: Employee[];
@@ -120,47 +120,52 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
         {/* Left Side: Filter Dropdowns */}
         <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
           
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-[11rem]">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Sector</span>
-            <div className="relative nv-select-wrap">
-              <select
-                value={selectedDept}
-                onChange={(e) => {
-                  setSelectedDept(e.target.value);
-                  addToast(`Report focused on ${e.target.value} department`, 'info');
-                }}
-                className="nv-select-field bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer w-full"
-              >
-                <option value="All">All Departments</option>
-                <option value="Engineering">Engineering Department</option>
-                <option value="Finance">Finance Team</option>
-                <option value="HR">Human Resources</option>
-                <option value="Marketing">Marketing &amp; Sales</option>
-                <option value="Operations">Operations Support</option>
-              </select>
-              <ChevronDown className="nv-select-chevron nv-chevron-down--lg" strokeWidth={2.25} />
-            </div>
+            <SelectMenu
+              aria-label="Target sector"
+              value={selectedDept}
+              onChange={(value) => {
+                setSelectedDept(value);
+                addToast(`Report focused on ${value === 'All' ? 'All Departments' : value} department`, 'info');
+              }}
+              triggerClassName="bg-white border-slate-200 rounded-xl py-1.5 min-h-9 text-xs"
+              options={[
+                { value: 'All', label: 'All Departments' },
+                { value: 'Engineering', label: 'Engineering Department' },
+                { value: 'Finance', label: 'Finance Team' },
+                { value: 'HR', label: 'Human Resources' },
+                { value: 'Marketing', label: 'Marketing & Sales' },
+                { value: 'Operations', label: 'Operations Support' },
+              ]}
+            />
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-[11rem]">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Employment Type</span>
-            <div className="relative nv-select-wrap">
-              <select
-                value={selectedEmploymentType}
-                onChange={(e) => {
-                  setSelectedEmploymentType(e.target.value);
-                  addToast(`Report filtered to: ${e.target.value}`, 'info');
-                }}
-                className="nv-select-field bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3 py-1.5 text-xs text-slate-700 font-bold outline-none cursor-pointer w-full"
-              >
-                <option value="All">All Types</option>
-                <option value="Permanent">Permanent Staff</option>
-                <option value="Contract">Contract Roster</option>
-                <option value="Intern">Internships</option>
-                <option value="Part-time">Part-time</option>
-              </select>
-              <ChevronDown className="nv-select-chevron nv-chevron-down--lg" strokeWidth={2.25} />
-            </div>
+            <SelectMenu
+              aria-label="Employment type"
+              value={selectedEmploymentType}
+              onChange={(value) => {
+                setSelectedEmploymentType(value);
+                const labels: Record<string, string> = {
+                  All: 'All Types',
+                  Permanent: 'Permanent Staff',
+                  Contract: 'Contract Roster',
+                  Intern: 'Internships',
+                  'Part-time': 'Part-time',
+                };
+                addToast(`Report filtered to: ${labels[value] ?? value}`, 'info');
+              }}
+              triggerClassName="bg-white border-slate-200 rounded-xl py-1.5 min-h-9 text-xs"
+              options={[
+                { value: 'All', label: 'All Types' },
+                { value: 'Permanent', label: 'Permanent Staff' },
+                { value: 'Contract', label: 'Contract Roster' },
+                { value: 'Intern', label: 'Internships' },
+                { value: 'Part-time', label: 'Part-time' },
+              ]}
+            />
           </div>
 
         </div>

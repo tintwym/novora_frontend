@@ -29,6 +29,7 @@ import {
 import type { Employee } from '@/types';
 import { canManageFullSystem } from '@/lib/roles';
 import ModuleHeader from '@/components/ui/ModuleHeader';
+import { DropdownAnchor } from '@/components/ui';
 import {
   ApiError,
   cancelMyLeave,
@@ -662,8 +663,13 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
         {/* Outer Header Actions aligned elegantly with selectors & primary action triggers */}
         <div id="leave-upper-actions" className="flex items-center gap-2.5 shrink-0 flex-nowrap">
           {/* Year Dropdown */}
-          <div className="relative shrink-0">
+          <DropdownAnchor
+            open={yearDropdownOpen}
+            onClose={() => setYearDropdownOpen(false)}
+            align="right"
+          >
             <button
+              type="button"
               onClick={() => { setYearDropdownOpen(!yearDropdownOpen); setDeptDropdownOpen(false); }}
               className="h-9 bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 rounded-xl inline-flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-all whitespace-nowrap"
             >
@@ -671,10 +677,11 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
               <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
             </button>
             {yearDropdownOpen && (
-              <div className="nv-dropdown-menu nv-dropdown-menu--right w-32 bg-white border border-slate-100 rounded-xl shadow-xl py-1 animate-in fade-in duration-150">
+              <div className="nv-dropdown-menu w-32 bg-white border border-slate-100 rounded-xl shadow-xl py-1">
                 {['2025', '2026', '2027'].map(year => (
                   <button
                     key={year}
+                    type="button"
                     onClick={() => { setSelectedYear(year); setYearDropdownOpen(false); addToast(`Fiscal view target changed to ${year}`, 'info'); }}
                     className="w-full text-left text-xs font-bold px-4 py-2 hover:bg-slate-50 text-slate-700"
                   >
@@ -683,11 +690,16 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 ))}
               </div>
             )}
-          </div>
+          </DropdownAnchor>
 
           {/* Department Filter */}
-          <div className="relative shrink-0">
+          <DropdownAnchor
+            open={deptDropdownOpen}
+            onClose={() => setDeptDropdownOpen(false)}
+            align="right"
+          >
             <button
+              type="button"
               onClick={() => { setDeptDropdownOpen(!deptDropdownOpen); setYearDropdownOpen(false); }}
               className="h-9 bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 rounded-xl inline-flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-all whitespace-nowrap"
             >
@@ -695,10 +707,11 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
               <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
             </button>
             {deptDropdownOpen && (
-              <div className="nv-dropdown-menu nv-dropdown-menu--right w-48 bg-white border border-slate-100 rounded-xl shadow-xl py-1 animate-in fade-in duration-150">
+              <div className="nv-dropdown-menu w-48 bg-white border border-slate-100 rounded-xl shadow-xl py-1">
                 {['All departments', 'Engineering', 'HR', 'Finance', 'Marketing', 'Operations'].map(dept => (
                   <button
                     key={dept}
+                    type="button"
                     onClick={() => { setSelectedDept(dept); setDeptDropdownOpen(false); addToast(`Leave database filtered by ${dept}`, 'info'); }}
                     className="w-full text-left text-xs font-bold px-4 py-2 hover:bg-slate-50 text-slate-700"
                   >
@@ -707,7 +720,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 ))}
               </div>
             )}
-          </div>
+          </DropdownAnchor>
 
           {/* Export Button */}
           <button
@@ -747,7 +760,11 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 />
               </div>
 
-              <div className="relative">
+              <DropdownAnchor
+                open={typeFilterDropdown}
+                onClose={() => setTypeFilterDropdown(false)}
+                align="left"
+              >
                 <button
                   type="button"
                   onClick={() => setTypeFilterDropdown(!typeFilterDropdown)}
@@ -757,10 +774,11 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                   <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
                 </button>
                 {typeFilterDropdown && (
-                  <div className="nv-dropdown-menu nv-dropdown-menu--left w-36 bg-white border border-slate-100 rounded-xl shadow-xl py-1">
+                  <div className="nv-dropdown-menu w-36 bg-white border border-slate-100 rounded-xl shadow-xl py-1">
                     {['All types', 'Paid', 'Unpaid'].map(t => (
                       <button
                         key={t}
+                        type="button"
                         onClick={() => { setTypeFilter(t); setTypeFilterDropdown(false); }}
                         className="w-full text-left text-xs font-bold px-4 py-2 hover:bg-slate-50 text-slate-700"
                       >
@@ -769,7 +787,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                     ))}
                   </div>
                 )}
-              </div>
+              </DropdownAnchor>
             </div>
 
             <button

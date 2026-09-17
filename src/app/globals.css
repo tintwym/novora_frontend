@@ -755,7 +755,7 @@ button:has(> .lucide-chevron-down:last-child):not(.nv-select-trigger) {
 .nv-dropdown-menu {
   position: absolute;
   top: calc(100% + 0.5rem);
-  z-index: 50;
+  z-index: 60;
   margin-top: 0;
 }
 
@@ -767,6 +767,19 @@ button:has(> .lucide-chevron-down:last-child):not(.nv-select-trigger) {
 .nv-dropdown-menu {
   min-width: 100%;
   animation: nv-dropdown-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Portaled menus: positioning handled by DropdownAnchor / SelectMenu */
+.nv-dropdown-portal .nv-dropdown-menu,
+.nv-dropdown-portal .nv-dropdown-panel {
+  position: static;
+  top: auto;
+  right: auto;
+  left: auto;
+  z-index: auto;
+  min-width: 100%;
+  width: max-content;
+  max-width: min(20rem, calc(100vw - 1.5rem));
 }
 
 .nv-dropdown-in {
@@ -876,8 +889,13 @@ button:has(> .lucide-chevron-down:last-child):not(.nv-select-trigger) {
 }
 
 .nv-select-option--active {
-  background: color-mix(in srgb, var(--color-novora) 10%, white);
-  color: var(--color-novora-deep);
+  background: var(--color-novora);
+  color: #ffffff;
+}
+
+.nv-select-option--active:hover {
+  background: var(--color-novora);
+  color: #ffffff;
 }
 
 @keyframes nv-dropdown-in {

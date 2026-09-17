@@ -31,6 +31,7 @@ import {
   Download,
   Settings
 } from 'lucide-react';
+import { DropdownAnchor } from '@/components/ui';
 import {
   ApiError,
   createPerformanceReview,
@@ -705,19 +706,28 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
 
         {/* Global filter block on the right aligned nicely */}
         <div id="performance-filters" className="flex items-center gap-2.5 ml-auto sm:ml-0 font-sans text-slate-700 shrink-0 flex-nowrap">
-          <div className="relative shrink-0">
+          <DropdownAnchor
+            open={yearDropdownOpen}
+            onClose={() => setYearDropdownOpen(false)}
+            align="right"
+          >
             <button
-              onClick={() => setYearDropdownOpen(!yearDropdownOpen)}
+              type="button"
+              onClick={() => {
+                setDeptDropdownOpen(false)
+                setYearDropdownOpen(!yearDropdownOpen)
+              }}
               className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 whitespace-nowrap shrink-0"
             >
               <span className="whitespace-nowrap">{selectedYear}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {yearDropdownOpen && (
-              <div className="nv-dropdown-menu nv-dropdown-menu--right w-24 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
+              <div className="nv-dropdown-menu w-24 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
                 {['2026', '2025', '2024'].map((y) => (
                   <button
                     key={y}
+                    type="button"
                     onClick={() => {
                       setSelectedYear(y);
                       setYearDropdownOpen(false);
@@ -730,21 +740,30 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                 ))}
               </div>
             )}
-          </div>
+          </DropdownAnchor>
 
-          <div className="relative shrink-0">
+          <DropdownAnchor
+            open={deptDropdownOpen}
+            onClose={() => setDeptDropdownOpen(false)}
+            align="right"
+          >
             <button
-              onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
+              type="button"
+              onClick={() => {
+                setYearDropdownOpen(false)
+                setDeptDropdownOpen(!deptDropdownOpen)
+              }}
               className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 whitespace-nowrap shrink-0"
             >
               <span className="whitespace-nowrap">{selectedDept}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {deptDropdownOpen && (
-              <div className="nv-dropdown-menu nv-dropdown-menu--right w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
+              <div className="nv-dropdown-menu w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
                 {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map((d) => (
                   <button
                     key={d}
+                    type="button"
                     onClick={() => {
                       setSelectedDept(d);
                       setDeptDropdownOpen(false);
@@ -757,7 +776,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                 ))}
               </div>
             )}
-          </div>
+          </DropdownAnchor>
 
           <button
             onClick={() => addToast('Compiling performance statistics report...', 'loading')}

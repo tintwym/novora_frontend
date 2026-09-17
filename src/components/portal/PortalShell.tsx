@@ -42,6 +42,7 @@ import {
   slugToTab,
 } from '@/lib/roles'
 import { BookOpen, ChevronDown, Download, FileSpreadsheet, FileText } from 'lucide-react'
+import { DropdownAnchor } from '@/components/ui'
 import { SETTINGS_NAV_SECTIONS } from '@/lib/sidebarNav'
 
 const ALLOWED_SETTINGS_TABS = new Set(
@@ -243,10 +244,18 @@ export default function PortalShell() {
                   id="employees-top-controls"
                   className="flex items-center gap-3 self-end md:self-auto relative shrink-0 flex-nowrap"
                 >
-                  <div id="dept-filter-dropdown" className="relative shrink-0">
+                  <DropdownAnchor
+                    open={deptDropdownOpen}
+                    onClose={() => setDeptDropdownOpen(false)}
+                    align="right"
+                  >
                     <button
                       id="dept-filter-btn"
-                      onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
+                      type="button"
+                      onClick={() => {
+                        setExportDropdownOpen(false)
+                        setDeptDropdownOpen(!deptDropdownOpen)
+                      }}
                       className="h-9 inline-flex items-center gap-2 px-4 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 transition-colors rounded-xl cursor-pointer whitespace-nowrap shrink-0"
                     >
                       <span className="whitespace-nowrap">{deptFilterState}</span>
@@ -256,12 +265,13 @@ export default function PortalShell() {
                     {deptDropdownOpen && (
                       <div
                         id="dept-dropdown-menu"
-                        className="nv-dropdown-menu nv-dropdown-menu--right w-48 nv-card shadow-lg py-1.5"
+                        className="nv-dropdown-menu w-48 nv-card shadow-lg py-1.5"
                       >
                         {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map(
                           (dept) => (
                             <button
                               key={dept}
+                              type="button"
                               onClick={() => filteredByDepartmentDropdown(dept)}
                               className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-novora transition-colors"
                             >
@@ -271,12 +281,20 @@ export default function PortalShell() {
                         )}
                       </div>
                     )}
-                  </div>
+                  </DropdownAnchor>
 
-                  <div id="export-actions-dropdown" className="relative shrink-0">
+                  <DropdownAnchor
+                    open={exportDropdownOpen}
+                    onClose={() => setExportDropdownOpen(false)}
+                    align="right"
+                  >
                     <button
                       id="export-options-btn"
-                      onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+                      type="button"
+                      onClick={() => {
+                        setDeptDropdownOpen(false)
+                        setExportDropdownOpen(!exportDropdownOpen)
+                      }}
                       className="h-9 inline-flex items-center gap-2 px-4 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-novora/35 hover:bg-novora/5 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
                     >
                       <Download className="h-4 w-4 text-slate-500 shrink-0" />
@@ -287,13 +305,14 @@ export default function PortalShell() {
                     {exportDropdownOpen && (
                       <div
                         id="export-dropdown-items"
-                        className="nv-dropdown-menu nv-dropdown-menu--right w-44 nv-card shadow-lg py-1.5"
+                        className="nv-dropdown-menu w-44 nv-card shadow-lg py-1.5"
                       >
                         <div className="px-3.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-50">
                           Export Settings
                         </div>
                         <button
                           id="export-excel-item"
+                          type="button"
                           onClick={() => triggerExport('Excel')}
                           className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                         >
@@ -302,6 +321,7 @@ export default function PortalShell() {
                         </button>
                         <button
                           id="export-csv-item"
+                          type="button"
                           onClick={() => triggerExport('CSV')}
                           className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                         >
@@ -310,6 +330,7 @@ export default function PortalShell() {
                         </button>
                         <button
                           id="export-pdf-item"
+                          type="button"
                           onClick={() => triggerExport('PDF')}
                           className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                         >
@@ -318,7 +339,7 @@ export default function PortalShell() {
                         </button>
                       </div>
                     )}
-                  </div>
+                  </DropdownAnchor>
                 </div>
               </div>
 

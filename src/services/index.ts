@@ -1,4 +1,4 @@
-export { apiRequest, API_BASE_URL, clearCsrfCache, ensureCsrfToken, setSessionExpiredHandler } from './apiClient'
+export { apiRequest, API_BASE_URL, clearCsrfCache, ensureCsrfToken, syncCsrfFromCookie, setSessionExpiredHandler } from './apiClient'
 export { login, register, fetchMe, logout, fetchCsrf } from './authApi'
 export {
   listEmployees,

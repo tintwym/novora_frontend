@@ -51,6 +51,7 @@ import {
 } from '@/services'
 import type { Employee } from '@/types'
 import ModuleHeader from '@/components/ui/ModuleHeader'
+import { DropdownAnchor } from '@/components/ui'
 
 interface AttendanceTabProps {
   addToast: (text: string, type: 'success' | 'loading' | 'error' | 'info') => void
@@ -886,8 +887,13 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
 
         {/* Outer Header Actions aligned elegantly */}
         <div id="attendance-upper-actions" className="flex items-center gap-3 shrink-0 flex-nowrap">
-          <div id="department-selector" className="relative">
+          <DropdownAnchor
+            open={deptDropdownOpen}
+            onClose={() => setDeptDropdownOpen(false)}
+            align="right"
+          >
             <button
+              type="button"
               onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
               className="h-9 inline-flex items-center gap-2 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 transition-colors rounded-xl cursor-pointer whitespace-nowrap shrink-0"
             >
@@ -895,10 +901,11 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
               <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
             </button>
             {deptDropdownOpen && (
-              <div className="nv-dropdown-menu nv-dropdown-menu--right w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
+              <div className="nv-dropdown-menu w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
                 {['All departments', 'Engineering', 'HR', 'Marketing', 'Operations'].map((dept) => (
                   <button
                     key={dept}
+                    type="button"
                     onClick={() => {
                       setDeptFilter(dept);
                       setDeptDropdownOpen(false);
@@ -911,7 +918,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                 ))}
               </div>
             )}
-          </div>
+          </DropdownAnchor>
 
           <button
             onClick={handleExportRoster}

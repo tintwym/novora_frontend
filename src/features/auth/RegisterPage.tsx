@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import AuthShell from './AuthShell'
 import AuthField from './AuthField'
@@ -11,7 +11,7 @@ import {
   type RegisterValues,
 } from './validation'
 import { toAuthSession } from './mapSession'
-import { register, ApiError } from '@/services'
+import { register, ApiError, fetchCsrf } from '@/services'
 import type { AuthSession } from '@/types'
 
 interface RegisterPageProps {
@@ -38,6 +38,10 @@ export default function RegisterPage({ onSuccess, onGoLogin, onGoLanding }: Regi
   const [termsError, setTermsError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
   const [honeypot, setHoneypot] = useState('')
+
+  useEffect(() => {
+    void fetchCsrf().catch(() => {})
+  }, [])
 
   const strength = passwordStrength(values.password)
 

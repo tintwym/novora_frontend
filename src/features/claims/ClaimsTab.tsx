@@ -26,7 +26,7 @@ import {
   Printer,
   Edit2,
 } from 'lucide-react';
-import { SelectMenu } from '@/components/ui';
+import { DropdownAnchor, SelectMenu } from '@/components/ui';
 import ModuleHeader from '@/components/ui/ModuleHeader';
 import { canManageFullSystem } from '@/lib/roles';
 import {
@@ -391,19 +391,28 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
         <div id="claims-upper-actions" className="flex items-center gap-2.5 ml-auto sm:ml-0 font-sans text-slate-700 shrink-0 flex-nowrap">
           
           {/* May 2026 / period selector */}
-          <div className="relative">
+          <DropdownAnchor
+            open={monthDropdownOpen}
+            onClose={() => setMonthDropdownOpen(false)}
+            align="right"
+          >
             <button
-              onClick={() => setMonthDropdownOpen(!monthDropdownOpen)}
+              type="button"
+              onClick={() => {
+                setDeptDropdownOpen(false)
+                setMonthDropdownOpen(!monthDropdownOpen)
+              }}
               className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0"
             >
               <span className="whitespace-nowrap">{headerMonth}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {monthDropdownOpen && (
-              <div className="nv-dropdown-menu nv-dropdown-menu--right w-32 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
+              <div className="nv-dropdown-menu w-32 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
                 {['May 2026', 'Apr 2026', 'Mar 2026'].map((m) => (
                   <button
                     key={m}
+                    type="button"
                     onClick={() => { setHeaderMonth(m); setMonthDropdownOpen(false); }}
                     className="w-full text-left px-3.5 py-1.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold"
                   >
@@ -412,22 +421,31 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 ))}
               </div>
             )}
-          </div>
+          </DropdownAnchor>
 
           {/* Department dropdown filter */}
-          <div className="relative">
+          <DropdownAnchor
+            open={deptDropdownOpen}
+            onClose={() => setDeptDropdownOpen(false)}
+            align="right"
+          >
             <button
-              onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
+              type="button"
+              onClick={() => {
+                setMonthDropdownOpen(false)
+                setDeptDropdownOpen(!deptDropdownOpen)
+              }}
               className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0"
             >
               <span className="whitespace-nowrap">{headerDept}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {deptDropdownOpen && (
-              <div className="nv-dropdown-menu nv-dropdown-menu--right w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
+              <div className="nv-dropdown-menu w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
                 {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map((d) => (
                   <button
                     key={d}
+                    type="button"
                     onClick={() => { setHeaderDept(d); setDeptDropdownOpen(false); }}
                     className="w-full text-left px-4 py-1.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold"
                   >
@@ -436,7 +454,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 ))}
               </div>
             )}
-          </div>
+          </DropdownAnchor>
 
           {/* Export utility */}
           <button

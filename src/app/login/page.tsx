@@ -7,16 +7,16 @@ import { useAuth } from '@/providers/AuthProvider'
 import { portalHomePath } from '@/lib/roles'
 
 export default function LoginRoute() {
-  const { authReady, session, handleAuthSuccess } = useAuth()
+  const { session, handleAuthSuccess } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (authReady && session) {
+    if (session) {
       router.replace(portalHomePath(session.roles))
     }
-  }, [authReady, session, router])
+  }, [session, router])
 
-  if (!authReady) return null
+  // Show the form immediately — do not wait for bootstrap /me (that blocked the page on cold starts).
   if (session) return null
 
   return (

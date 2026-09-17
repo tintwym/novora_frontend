@@ -1,6 +1,15 @@
 'use client'
 
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
+import { createPortal } from 'react-dom'
 import { Check, ChevronDown } from 'lucide-react'
 
 export type SelectMenuOption = {
@@ -18,6 +27,17 @@ type SelectMenuProps = {
   placeholder?: string
   'aria-label'?: string
   triggerClassName?: string
+  preferUp?: boolean
+}
+
+const CLOSE_EVENT = 'nv-selectmenu-close'
+
+type PanelPos = {
+  top?: number
+  bottom?: number
+  left: number
+  width: number
+  maxHeight: number
 }
 
 export default function SelectMenu({
@@ -30,42 +50,177 @@ export default function SelectMenu({
   placeholder = 'Select…',
   'aria-label': ariaLabel,
   triggerClassName = '',
+  preferUp = false,
 }: SelectMenuProps) {
   const autoId = useId()
   const rootRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLUListElement>(null)
   const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState<PanelPos | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   const selected = options.find((opt) => opt.value === value)
   const label = selected?.label ?? placeholder
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const updatePosition = () => {
+    const trigger = triggerRef.current
+    if (!trigger) return
+    const rect = trigger.getBoundingClientRect()
+    const gap = 8
+    const viewportPad = 12
+    const spaceBelow = window.innerHeight - rect.bottom - viewportPad
+    const spaceAbove = rect.top - viewportPad
+    const openUp = preferUp ? spaceAbove > spaceBelow : spaceBelow < 180 && spaceAbove > spaceBelow
+    const available = Math.max(120, (openUp ? spaceAbove : spaceBelow) - gap)
+    const width = Math.max(rect.width, 160)
+    const left = Math.min(
+      Math.max(viewportPad, rect.left),
+      Math.max(viewportPad, window.innerWidth - width - viewportPad),
+    )
+
+    if (openUp) {
+      setPos({
+        bottom: window.innerHeight - rect.top + gap,
+        left,
+        width,
+        maxHeight: Math.min(256, available),
+      })
+    } else {
+      setPos({
+        top: rect.bottom + gap,
+        left,
+        width,
+        maxHeight: Math.min(256, available),
+      })
+    }
+  }
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setPos(null)
+      return
+    }
+    updatePosition()
+  }, [open, preferUp, options.length])
+
+  useEffect(() => {
     if (!open) return
-    const onPointerDown = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        setOpen(false)
-      }
+
+    const closeSelf = (event: Event) => {
+      const detail = (event as CustomEvent<{ id: string }>).detail
+      if (detail?.id !== autoId) setOpen(false)
+    }
+    const closeFromAnchor = (event: Event) => {
+      const detail = (event as CustomEvent<{ source?: string; id?: string }>).detail
+      if (detail?.source === 'selectmenu' && detail?.id === autoId) return
+      setOpen(false)
+    }
+
+    window.addEventListener(CLOSE_EVENT, closeSelf)
+    window.addEventListener('nv-dropdown-close', closeFromAnchor)
+    window.dispatchEvent(new CustomEvent(CLOSE_EVENT, { detail: { id: autoId } }))
+    window.dispatchEvent(
+      new CustomEvent('nv-dropdown-close', { detail: { root: null, source: 'selectmenu', id: autoId } }),
+    )
+
+    const onPointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node
+      if (rootRef.current?.contains(target) || panelRef.current?.contains(target)) return
+      setOpen(false)
     }
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false)
     }
+    const onReposition = () => updatePosition()
+
     document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('touchstart', onPointerDown)
     document.addEventListener('keydown', onKeyDown)
+    window.addEventListener('resize', onReposition)
+    window.addEventListener('scroll', onReposition, true)
+
     return () => {
+      window.removeEventListener(CLOSE_EVENT, closeSelf)
+      window.removeEventListener('nv-dropdown-close', closeFromAnchor)
       document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('touchstart', onPointerDown)
       document.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('resize', onReposition)
+      window.removeEventListener('scroll', onReposition, true)
     }
-  }, [open])
+  }, [open, autoId])
+
+  const panelStyle: CSSProperties | undefined = pos
+    ? {
+        position: 'fixed',
+        top: pos.top ?? 'auto',
+        bottom: pos.bottom ?? 'auto',
+        left: pos.left,
+        width: pos.width,
+        maxHeight: pos.maxHeight,
+        zIndex: 90,
+      }
+    : undefined
+
+  const panel =
+    open && pos && mounted
+      ? createPortal(
+          <ul
+            ref={panelRef}
+            role="listbox"
+            className="nv-select-panel nv-dropdown-in"
+            style={panelStyle}
+            aria-activedescendant={selected ? `${autoId}-${value}` : undefined}
+          >
+            {options.map((opt) => {
+              const isSelected = opt.value === value
+              return (
+                <li key={opt.value} role="presentation">
+                  <button
+                    id={`${autoId}-${opt.value}`}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => {
+                      onChange(opt.value)
+                      setOpen(false)
+                    }}
+                    className={`nv-select-option ${isSelected ? 'nv-select-option--active' : ''}`}
+                  >
+                    {isSelected ? (
+                      <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    ) : (
+                      <span className="w-3.5 shrink-0" aria-hidden />
+                    )}
+                    <span className="truncate">{opt.label}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>,
+          document.body,
+        )
+      : null
 
   return (
     <div ref={rootRef} className={`nv-dropdown-anchor ${className}`}>
       <button
+        ref={triggerRef}
         id={id}
         type="button"
         disabled={disabled}
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={open}
-        onClick={() => !disabled && setOpen((v) => !v)}
+        onClick={() => {
+          if (disabled) return
+          setOpen((v) => !v)
+        }}
         className={`nv-select-trigger w-full text-left ${open ? 'nv-select-trigger--open' : ''} ${triggerClassName}`}
       >
         <span className="nv-select-trigger-label truncate">{label}</span>
@@ -74,40 +229,7 @@ export default function SelectMenu({
           aria-hidden
         />
       </button>
-
-      {open && (
-        <ul
-          role="listbox"
-          className="nv-dropdown-panel nv-select-panel"
-          aria-activedescendant={selected ? `${autoId}-${value}` : undefined}
-        >
-          {options.map((opt) => {
-            const isSelected = opt.value === value
-            return (
-              <li key={opt.value} role="presentation">
-                <button
-                  id={`${autoId}-${opt.value}`}
-                  type="button"
-                  role="option"
-                  aria-selected={isSelected}
-                  onClick={() => {
-                    onChange(opt.value)
-                    setOpen(false)
-                  }}
-                  className={`nv-select-option ${isSelected ? 'nv-select-option--active' : ''}`}
-                >
-                  {isSelected ? (
-                    <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  ) : (
-                    <span className="w-3.5 shrink-0" aria-hidden />
-                  )}
-                  <span className="truncate">{opt.label}</span>
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-      )}
+      {panel}
     </div>
   )
 }
