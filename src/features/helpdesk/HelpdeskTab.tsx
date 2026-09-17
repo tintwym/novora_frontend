@@ -786,7 +786,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
 
       {/* QUICK STATUS TICKER OVERVIEW */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div id="stat-total" className="bg-white border border-slate-100 p-4 rounded-2xl shadow-3xs hover:border-slate-200 transition-colors">
+        <div id="stat-total" className="bg-white border border-slate-100 p-4 rounded-2xl shadow-xs hover:border-slate-200 transition-colors">
           <span className="text-[10px] font-black text-slate-400 block uppercase tracking-wider">Active Tickets Log</span>
           <div className="flex items-baseline justify-between mt-1">
             <span className="text-2xl font-extrabold text-slate-900">{metrics.total}</span>
@@ -794,7 +794,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
           </div>
         </div>
 
-        <div id="stat-routing" className="bg-white border border-slate-100 p-4 rounded-2xl shadow-3xs hover:border-slate-200 transition-colors">
+        <div id="stat-routing" className="bg-white border border-slate-100 p-4 rounded-2xl shadow-xs hover:border-slate-200 transition-colors">
           <span className="text-[10px] font-black text-amber-600 block uppercase tracking-wider">Unassigned Open</span>
           <div className="flex items-baseline justify-between mt-1">
             <span className="text-2xl font-extrabold text-amber-600">{metrics.open}</span>
@@ -802,7 +802,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
           </div>
         </div>
 
-        <div id="stat-reconcile" className="bg-white border border-slate-100 p-4 rounded-2xl shadow-3xs hover:border-slate-200 transition-colors">
+        <div id="stat-reconcile" className="bg-white border border-slate-100 p-4 rounded-2xl shadow-xs hover:border-slate-200 transition-colors">
           <span className="text-[10px] font-black text-rose-500 block uppercase tracking-wider">SLA Breached / Warning</span>
           <div className="flex items-baseline justify-between mt-1">
             <span className="text-2xl font-extrabold text-rose-600">{metrics.breached}</span>
@@ -810,7 +810,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
           </div>
         </div>
 
-        <div id="stat-mitigation" className="bg-white border border-slate-100 p-4 rounded-2xl shadow-3xs hover:border-slate-200 transition-colors">
+        <div id="stat-mitigation" className="bg-white border border-slate-100 p-4 rounded-2xl shadow-xs hover:border-slate-200 transition-colors">
           <span className="text-[10px] font-black text-slate-400 block uppercase tracking-wider">Closed resolution rate</span>
           <div className="flex items-baseline justify-between mt-1">
             <span className="text-2xl font-extrabold text-novora">{metrics.resolutionPrc}%</span>
@@ -829,7 +829,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
           <div className="lg:col-span-7 space-y-4">
             
             {/* Extended Filter parameters block */}
-            <div className="nv-card p-4.5 shadow-3xs space-y-3.5">
+            <div className="nv-card p-4.5 shadow-xs space-y-3.5">
               <div className="flex items-center gap-1.5 pb-2.5 border-b border-slate-50">
                 <Filter className="h-4 w-4 text-novora" />
                 <span className="text-xs font-black text-slate-700 uppercase tracking-wider">Filter Service Logs</span>
@@ -938,7 +938,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                       className={`bg-white border rounded-2xl p-4.5 cursor-pointer hover:shadow-xs transition-all ${
                         isCurrent
                           ? 'border-novora ring-2 ring-novora/15'
-                          : 'border-slate-100 shadow-3xs'
+                          : 'border-slate-100 shadow-xs'
                       }`}
                     >
                       <div className="flex justify-between items-start gap-1">
@@ -1084,20 +1084,24 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                       </div>
 
                       {/* Let admins easily switch / manual reassign tickets */}
-                      <select
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            handleManualReassign(activeTicketObj.id, e.target.value);
-                            e.target.value = ''; // Reset dropdown selection after dispatching
-                          }
+                      <SelectMenu
+                        value=""
+                        onChange={(v) => {
+                          if (v) handleManualReassign(activeTicketObj.id, v);
                         }}
-                        className="text-[10px] font-bold bg-white border border-slate-200 rounded px-1 text-slate-600 cursor-pointer outline-none"
-                      >
-                        <option value="">Transfer Agent...</option>
-                        {employees.map(emp => (
-                          <option key={emp.id} value={emp.id}>{emp.name}</option>
-                        ))}
-                      </select>
+                        placeholder="Transfer Agent..."
+                        aria-label="Transfer agent"
+                        className="w-auto"
+                        preferUp
+                        triggerClassName="text-[10px] font-bold bg-white border-slate-200 rounded px-1 text-slate-600"
+                        options={[
+                          { value: '', label: 'Transfer Agent...' },
+                          ...employees.map(emp => ({
+                            value: emp.id,
+                            label: emp.name,
+                          })),
+                        ]}
+                      />
                     </div>
                   </div>
                 </div>
@@ -1133,7 +1137,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
 
                     <button
                       onClick={() => handleSimulateSlaBreach(activeTicketObj.id)}
-                      className="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black px-3 py-1.5 rounded-xl cursor-pointer shadow-3xs hover:-translate-y-0.5 transition-all"
+                      className="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black px-3 py-1.5 rounded-xl cursor-pointer shadow-xs hover:-translate-y-0.5 transition-all"
                     >
                       Trigger Breach Re-route
                     </button>
@@ -1350,7 +1354,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                 {/* Submit trigger compile */}
                 <button
                   type="submit"
-                  className="w-full bg-novora hover:bg-opacity-95 text-white text-xs font-black py-3 rounded-xl cursor-pointer shadow-3xs transition-all flex items-center justify-center gap-2"
+                  className="w-full bg-novora hover:bg-opacity-95 text-white text-xs font-black py-3 rounded-xl cursor-pointer shadow-xs transition-all flex items-center justify-center gap-2"
                 >
                   <FileText className="h-4 w-4" />
                   <span>Compile & Auto-Populate Letter</span>
@@ -1360,7 +1364,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
             </div>
 
             {/* Historical Generated Document list */}
-            <div className="nv-card p-4.5 shadow-3xs space-y-3">
+            <div className="nv-card p-4.5 shadow-xs space-y-3">
               <span className="text-[10px] font-black uppercase text-slate-400 block">Recent Issued Digital Certificates</span>
               
               <div className="space-y-2 max-h-[220px] overflow-y-auto">
@@ -1523,7 +1527,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
 
                     <button
                       onClick={() => addToast('Digital PDF file download initiated successfully.', 'success')}
-                      className="bg-novora text-white hover:bg-opacity-95 text-xs font-black px-4 py-1.5 rounded-xl cursor-pointer transition-all flex items-center gap-1.5 shadow-3xs"
+                      className="bg-novora text-white hover:bg-opacity-95 text-xs font-black px-4 py-1.5 rounded-xl cursor-pointer transition-all flex items-center gap-1.5 shadow-xs"
                     >
                       <Download className="h-3.5 w-3.5" />
                       <span>Download PDF</span>
@@ -1660,7 +1664,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
           </div>
 
           {/* Systemic Pain Point Analyzer Notification Box */}
-          <div className="bg-red-50/50 border border-red-100 rounded-3xl p-5 shadow-3xs space-y-3">
+          <div className="bg-red-50/50 border border-red-100 rounded-3xl p-5 shadow-xs space-y-3">
             <div className="flex items-center gap-2">
               <BadgeAlert className="h-5 w-5 text-red-600 animate-pulse" />
               <h6 className="text-xs font-black text-red-800 uppercase tracking-wider">Systemic Payroll Processing Pain Points Identified</h6>
@@ -1678,7 +1682,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
 
               <button
                 onClick={() => addToast('Systemic database claims synchronization initiated successfully.', 'success')}
-                className="bg-red-600 hover:bg-red-700 text-white text-xs font-black px-4 py-2 rounded-xl scale-95 cursor-pointer hover:scale-100 transition-all shadow-3xs shrink-0 self-end sm:self-auto"
+                className="bg-red-600 hover:bg-red-700 text-white text-xs font-black px-4 py-2 rounded-xl scale-95 cursor-pointer hover:scale-100 transition-all shadow-xs shrink-0 self-end sm:self-auto"
               >
                 Sync Overtime Multiplier DB
               </button>
@@ -1781,7 +1785,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   return (
                     <div
                       key={faq.id}
-                      className="border border-slate-100 rounded-2xl p-4 transition-all hover:bg-slate-50/20 shadow-3xs"
+                      className="border border-slate-100 rounded-2xl p-4 transition-all hover:bg-slate-50/20 shadow-xs"
                     >
                       <button
                         onClick={() => setExpandedKbId(isExpanded ? null : faq.id)}
@@ -2001,7 +2005,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-novora text-white rounded-xl text-xs font-black shadow-3xs cursor-pointer hover:scale-105 transition-all"
+                  className="px-4 py-2 bg-novora text-white rounded-xl text-xs font-black shadow-xs cursor-pointer hover:scale-105 transition-all"
                 >
                   Launch Support Ticket
                 </button>

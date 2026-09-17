@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { Employee, LeaveRequest, AttendanceLog } from '../types';
+import { SelectMenu } from '@/components/ui';
 
 export default function InteractiveDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'attendance' | 'payroll' | 'leaves'>('overview');
@@ -476,17 +477,18 @@ export default function InteractiveDashboard() {
                     </div>
                     <div>
                       <label className="block text-[10px] text-slate-400 font-semibold mb-1">Department</label>
-                      <select
+                      <SelectMenu
                         value={newEmpDept}
-                        onChange={(e) => setNewEmpDept(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-novora"
-                      >
-                        <option value="Engineering">Engineering</option>
-                        <option value="Product">Product</option>
-                        <option value="HR & recruiting">HR & Recruiting</option>
-                        <option value="Finance">Finance</option>
-                        <option value="Operations">Operations</option>
-                      </select>
+                        onChange={setNewEmpDept}
+                        triggerClassName="text-xs text-slate-200 bg-slate-950 border-slate-800 rounded"
+                        options={[
+                          { value: 'Engineering', label: 'Engineering' },
+                          { value: 'Product', label: 'Product' },
+                          { value: 'HR & recruiting', label: 'HR & Recruiting' },
+                          { value: 'Finance', label: 'Finance' },
+                          { value: 'Operations', label: 'Operations' },
+                        ]}
+                      />
                     </div>
                   </div>
                   <div className="flex justify-end gap-2 text-xs">

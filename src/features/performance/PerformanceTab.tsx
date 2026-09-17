@@ -279,6 +279,15 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
   const [kpiTo, setKpiTo] = useState(100);
   const [kpiTarget, setKpiTarget] = useState('100%');
   const [kpiScore, setKpiScore] = useState(100);
+  const [kpiTypeFilter, setKpiTypeFilter] = useState('All KPI types');
+  const [catTypeFilter, setCatTypeFilter] = useState('All KPI types');
+  const [setupTypeFilter, setSetupTypeFilter] = useState('All evaluation types');
+  const [permTypeFilter, setPermTypeFilter] = useState('All evaluation types');
+  const [permStatusFilter, setPermStatusFilter] = useState('All status');
+  const [evalReviewTypeFilter, setEvalReviewTypeFilter] = useState('All review types');
+  const [evalStatusFilter, setEvalStatusFilter] = useState('All status');
+  const [evalDeptFilter, setEvalDeptFilter] = useState('All departments');
+  const [nextObjKpiType, setNextObjKpiType] = useState('Achievement KPI');
 
   // Type Modal Fields
   const [selectedTypeIndex, setSelectedTypeIndex] = useState<number | null>(null);
@@ -978,11 +987,18 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
         {activeSubTab === 'KPI Setting' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between pb-1 border-b border-slate-50">
-              <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer">
-                <option>All KPI types</option>
-                <option>Attendance KPI</option>
-                <option>Achievement KPI</option>
-              </select>
+              <SelectMenu
+                value={kpiTypeFilter}
+                onChange={setKpiTypeFilter}
+                aria-label="KPI type filter"
+                className="w-auto"
+                triggerClassName="bg-white border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold"
+                options={[
+                  { value: 'All KPI types', label: 'All KPI types' },
+                  { value: 'Attendance KPI', label: 'Attendance KPI' },
+                  { value: 'Achievement KPI', label: 'Achievement KPI' },
+                ]}
+              />
               <button
                 onClick={() => {
                   setSelectedKPIType('Attendance');
@@ -1198,13 +1214,20 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
         {activeSubTab === 'Eval. Category' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between pb-2">
-              <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer">
-                <option>All KPI types</option>
-                <option>Attribute</option>
-                <option>Competency</option>
-                <option>KPI category</option>
-                <option>Attendance KPI</option>
-              </select>
+              <SelectMenu
+                value={catTypeFilter}
+                onChange={setCatTypeFilter}
+                aria-label="Category type filter"
+                className="w-auto"
+                triggerClassName="bg-white border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold"
+                options={[
+                  { value: 'All KPI types', label: 'All KPI types' },
+                  { value: 'Attribute', label: 'Attribute' },
+                  { value: 'Competency', label: 'Competency' },
+                  { value: 'KPI category', label: 'KPI category' },
+                  { value: 'Attendance KPI', label: 'Attendance KPI' },
+                ]}
+              />
               <button
                 onClick={() => {
                   setCatName('');
@@ -1283,11 +1306,18 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
         {activeSubTab === 'Eval. Setup' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between pb-1 border-b border-slate-50">
-              <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer">
-                <option>All evaluation types</option>
-                <option>Year-end appraisal</option>
-                <option>Probation review</option>
-              </select>
+              <SelectMenu
+                value={setupTypeFilter}
+                onChange={setSetupTypeFilter}
+                aria-label="Evaluation type filter"
+                className="w-auto"
+                triggerClassName="bg-white border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold"
+                options={[
+                  { value: 'All evaluation types', label: 'All evaluation types' },
+                  { value: 'Year-end appraisal', label: 'Year-end appraisal' },
+                  { value: 'Probation review', label: 'Probation review' },
+                ]}
+              />
               <button
                 onClick={() => {
                   setStpName('');
@@ -1402,16 +1432,30 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
           <div className="space-y-4">
             <div className="flex items-center justify-between pb-2">
               <div className="flex gap-2.5">
-                <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer">
-                  <option>All evaluation types</option>
-                  <option>Year-end appraisal</option>
-                  <option>Mid-year appraisal</option>
-                </select>
-                <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer">
-                  <option>All status</option>
-                  <option>Active</option>
-                  <option>Expired</option>
-                </select>
+                <SelectMenu
+                  value={permTypeFilter}
+                  onChange={setPermTypeFilter}
+                  aria-label="Permission evaluation type"
+                  className="w-auto"
+                  triggerClassName="bg-white border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold"
+                  options={[
+                    { value: 'All evaluation types', label: 'All evaluation types' },
+                    { value: 'Year-end appraisal', label: 'Year-end appraisal' },
+                    { value: 'Mid-year appraisal', label: 'Mid-year appraisal' },
+                  ]}
+                />
+                <SelectMenu
+                  value={permStatusFilter}
+                  onChange={setPermStatusFilter}
+                  aria-label="Permission status"
+                  className="w-auto"
+                  triggerClassName="bg-white border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold"
+                  options={[
+                    { value: 'All status', label: 'All status' },
+                    { value: 'Active', label: 'Active' },
+                    { value: 'Expired', label: 'Expired' },
+                  ]}
+                />
               </div>
               <button
                 onClick={() => {
@@ -1524,20 +1568,41 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
           <div className="space-y-6">
             <div className="flex flex-wrap items-center justify-between pb-3 border-b border-slate-100 gap-4">
               <div className="flex flex-wrap items-center gap-2">
-                <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold cursor-pointer outline-none">
-                  <option>All review types</option>
-                  <option>Year-end appraisal</option>
-                </select>
-                <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-[#d97706] font-bold cursor-pointer outline-none bg-amber-50">
-                  <option>All status</option>
-                  <option>Pending</option>
-                  <option>Completed</option>
-                </select>
-                <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold cursor-pointer outline-none">
-                  <option>All departments</option>
-                  <option>Engineering</option>
-                  <option>Operations</option>
-                </select>
+                <SelectMenu
+                  value={evalReviewTypeFilter}
+                  onChange={setEvalReviewTypeFilter}
+                  aria-label="Review type filter"
+                  className="w-auto"
+                  triggerClassName="bg-white border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold"
+                  options={[
+                    { value: 'All review types', label: 'All review types' },
+                    { value: 'Year-end appraisal', label: 'Year-end appraisal' },
+                  ]}
+                />
+                <SelectMenu
+                  value={evalStatusFilter}
+                  onChange={setEvalStatusFilter}
+                  aria-label="Evaluation status filter"
+                  className="w-auto"
+                  triggerClassName="bg-white border-slate-200 rounded-xl px-3 py-1.5 text-xs text-[#d97706] font-bold bg-amber-50"
+                  options={[
+                    { value: 'All status', label: 'All status' },
+                    { value: 'Pending', label: 'Pending' },
+                    { value: 'Completed', label: 'Completed' },
+                  ]}
+                />
+                <SelectMenu
+                  value={evalDeptFilter}
+                  onChange={setEvalDeptFilter}
+                  aria-label="Department filter"
+                  className="w-auto"
+                  triggerClassName="bg-white border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 font-bold"
+                  options={[
+                    { value: 'All departments', label: 'All departments' },
+                    { value: 'Engineering', label: 'Engineering' },
+                    { value: 'Operations', label: 'Operations' },
+                  ]}
+                />
                 <input
                   type="text"
                   placeholder="Search employee..."
@@ -1673,14 +1738,19 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
 
               {/* Right Column: Objectives and appraiser notes */}
               <div className="lg:col-span-5 space-y-6">
-                <div className="bg-slate-50/20 border border-slate-100 rounded-2xl p-6.5 text-xs space-y-4">
+                <div className="bg-slate-50/20 border border-slate-100 rounded-2xl p-6 text-xs space-y-4">
                   <h4 className="text-sm font-extrabold text-slate-800 border-b pb-2">Objectives for next period</h4>
                   <div>
                     <label className="text-[10px] text-slate-400 uppercase font-black block mb-1">KPI type</label>
-                    <select className="w-full bg-white border rounded-xl p-2 font-semibold">
-                      <option>Achievement KPI</option>
-                      <option>Attendance KPI</option>
-                    </select>
+                    <SelectMenu
+                      value={nextObjKpiType}
+                      onChange={setNextObjKpiType}
+                      triggerClassName="font-semibold bg-white border-slate-200"
+                      options={[
+                        { value: 'Achievement KPI', label: 'Achievement KPI' },
+                        { value: 'Attendance KPI', label: 'Attendance KPI' },
+                      ]}
+                    />
                   </div>
                   <div>
                     <label className="text-[10px] text-slate-400 uppercase font-black block mb-1">Category / objective</label>
@@ -2011,7 +2081,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
         {activeSubTab === 'Employee Profile' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left side card block */}
-            <div className="lg:col-span-5 border border-slate-100 rounded-2xl p-6.5 space-y-5 bg-slate-50/20">
+            <div className="lg:col-span-5 border border-slate-100 rounded-2xl p-6 space-y-5 bg-slate-50/20">
               <div className="flex items-center gap-4 border-b border-slate-100 pb-4.5">
                 <div className="h-12 w-12 bg-blue-100 border border-blue-200 text-novora rounded-xl flex items-center justify-center text-lg font-black shadow-xs">
                   SL
@@ -2031,7 +2101,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                 </div>
                 <div>
                   <span className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Current grade (latest)</span>
-                  <span className="bg-blue-50 text-novora px-2.5 border border-blue-100 font-black rounded text-[11px] h-6.5 inline-flex items-center">A</span>
+                  <span className="bg-blue-50 text-novora px-2.5 border border-blue-100 font-black rounded text-[11px] h-6 inline-flex items-center">A</span>
                 </div>
                 <div>
                   <span className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Latest score</span>
@@ -2826,25 +2896,24 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
 
                     <div>
                       <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Select Employee *</label>
-                      <select
+                      <SelectMenu
                         value={evalEmpId}
-                        onChange={(e) => setEvalEmpId(e.target.value)}
-                        className="w-full text-xs p-2.5 border rounded-xl outline-none cursor-pointer bg-white"
-                      >
-                        {(() => {
-                          const employeeOptions = employees && employees.length > 0 ? employees : [
-                            { id: 'EMP-0021', name: 'Sarah Lim', department: 'Engineering' },
-                            { id: 'EMP-0022', name: 'Raj Kumar', department: 'Engineering' },
-                            { id: 'EMP-0023', name: 'Ahmad L', department: 'Operations' },
-                            { id: 'EMP-0024', name: 'Nadia Chen', department: 'Marketing' },
-                          ];
-                          return employeeOptions.map((emp: any) => (
-                            <option key={emp.id} value={emp.id}>
-                              {emp.name} ({emp.id}) — {emp.department}
-                            </option>
-                          ));
-                        })()}
-                      </select>
+                        onChange={setEvalEmpId}
+                        preferUp
+                        triggerClassName="w-full text-xs border rounded-xl bg-white"
+                        options={(employees && employees.length > 0
+                          ? employees
+                          : [
+                              { id: 'EMP-0021', name: 'Sarah Lim', department: 'Engineering' },
+                              { id: 'EMP-0022', name: 'Raj Kumar', department: 'Engineering' },
+                              { id: 'EMP-0023', name: 'Ahmad L', department: 'Operations' },
+                              { id: 'EMP-0024', name: 'Nadia Chen', department: 'Marketing' },
+                            ]
+                        ).map((emp: { id: string; name: string; department?: string }) => ({
+                          value: emp.id,
+                          label: `${emp.name} (${emp.id}) — ${emp.department ?? ''}`,
+                        }))}
+                      />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -2890,33 +2959,33 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                       <div className="grid grid-cols-3 gap-2.5 text-xs">
                         <div>
                           <label className="block text-[9.5px] text-slate-500 mb-1 font-bold">Code Quality</label>
-                          <select
-                            value={evalCodeQuality}
-                            onChange={(e) => setEvalCodeQuality(Number(e.target.value))}
-                            className="w-full p-2 border rounded-lg outline-none bg-white font-bold"
-                          >
-                            {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
-                          </select>
+                          <SelectMenu
+                            value={String(evalCodeQuality)}
+                            onChange={(v) => setEvalCodeQuality(Number(v))}
+                            preferUp
+                            triggerClassName="w-full p-2 border rounded-lg bg-white font-bold"
+                            options={[1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: String(n) }))}
+                          />
                         </div>
                         <div>
                           <label className="block text-[9.5px] text-slate-500 mb-1 font-bold">Problem Solving</label>
-                          <select
-                            value={evalProblemSolving}
-                            onChange={(e) => setEvalProblemSolving(Number(e.target.value))}
-                            className="w-full p-2 border rounded-lg outline-none bg-white font-bold"
-                          >
-                            {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
-                          </select>
+                          <SelectMenu
+                            value={String(evalProblemSolving)}
+                            onChange={(v) => setEvalProblemSolving(Number(v))}
+                            preferUp
+                            triggerClassName="w-full p-2 border rounded-lg bg-white font-bold"
+                            options={[1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: String(n) }))}
+                          />
                         </div>
                         <div>
                           <label className="block text-[9.5px] text-slate-500 mb-1 font-bold">System Design</label>
-                          <select
-                            value={evalSystemDesign}
-                            onChange={(e) => setEvalSystemDesign(Number(e.target.value))}
-                            className="w-full p-2 border rounded-lg outline-none bg-white font-bold"
-                          >
-                            {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
-                          </select>
+                          <SelectMenu
+                            value={String(evalSystemDesign)}
+                            onChange={(v) => setEvalSystemDesign(Number(v))}
+                            preferUp
+                            triggerClassName="w-full p-2 border rounded-lg bg-white font-bold"
+                            options={[1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: String(n) }))}
+                          />
                         </div>
                       </div>
                     </div>

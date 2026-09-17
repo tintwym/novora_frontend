@@ -508,6 +508,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
     stage: 'Applied' as const,
     positionApplied: 'HR Business Partner',
   });
+  const [candNoticePeriod, setCandNoticePeriod] = useState('Immediate / Available immediately');
 
   const [newInt, setNewInt] = useState({
     candidateId: '',
@@ -2279,7 +2280,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     <div className="border-b border-slate-50 pb-3 mb-4 flex items-center justify-between">
                       <div>
                         <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Candidate conversion waterfall %</h3>
-                        <span className="text-[10px] text-slate-405 font-bold italic mt-0.5 block">{stats.text}</span>
+                        <span className="text-[10px] text-slate-400 font-bold italic mt-0.5 block">{stats.text}</span>
                       </div>
                       <span className="text-[11px] font-bold text-novora bg-blue-50 px-2.5 py-1 rounded-full inline-flex items-center whitespace-nowrap shrink-0">{stats.totalApplicants}</span>
                     </div>
@@ -3423,19 +3424,26 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Linked Requisition</label>
-                  <select
+                  <SelectMenu
                     value={newPost.linkedReqId}
-                    onChange={(e) => {
-                      const reqObj = requisitions.find(r => r.id === e.target.value);
-                      setNewPost({ ...newPost, linkedReqId: e.target.value, position: reqObj ? reqObj.positionTitle : '' });
+                    onChange={(v) => {
+                      const reqObj = requisitions.find((r) => r.id === v)
+                      setNewPost({
+                        ...newPost,
+                        linkedReqId: v,
+                        position: reqObj ? reqObj.positionTitle : '',
+                      })
                     }}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs text-slate-700 outline-none"
-                  >
-                    <option value="">Select open requisition record</option>
-                    {requisitions.map(r => (
-                      <option key={r.id} value={r.id}>{r.id} &mdash; {r.positionTitle}</option>
-                    ))}
-                  </select>
+                    placeholder="Select open requisition record"
+                    triggerClassName="w-full bg-slate-50 border-slate-200 rounded-xl text-xs text-slate-700"
+                    options={[
+                      { value: '', label: 'Select open requisition record' },
+                      ...requisitions.map((r) => ({
+                        value: r.id,
+                        label: `${r.id} — ${r.positionTitle}`,
+                      })),
+                    ]}
+                  />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Publish Channel</label>
@@ -3646,15 +3654,15 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   </div>
                   <div>
                     <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Target Job Requisition *</label>
-                    <select
+                    <SelectMenu
                       value={newCand.positionApplied}
-                      onChange={(e) => setNewCand({ ...newCand, positionApplied: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora transition-all font-semibold"
-                    >
-                      {requisitions.map(r => (
-                        <option key={r.id} value={r.positionTitle}>{r.positionTitle} ({r.id})</option>
-                      ))}
-                    </select>
+                      onChange={(v) => setNewCand({ ...newCand, positionApplied: v })}
+                      triggerClassName="w-full bg-slate-50 border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-semibold"
+                      options={requisitions.map((r) => ({
+                        value: r.positionTitle,
+                        label: `${r.positionTitle} (${r.id})`,
+                      }))}
+                    />
                   </div>
                   <div>
                     <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Expected Monthly Salary (SGD)</label>
@@ -3666,12 +3674,17 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   </div>
                   <div>
                     <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Notice Period</label>
-                    <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora transition-all font-semibold">
-                      <option>Immediate / Available immediately</option>
-                      <option>1 month notice</option>
-                      <option>2 months notice</option>
-                      <option>3 months / buyout requirement</option>
-                    </select>
+                    <SelectMenu
+                      value={candNoticePeriod}
+                      onChange={setCandNoticePeriod}
+                      triggerClassName="w-full bg-slate-50 border-slate-200 rounded-xl text-slate-800 font-semibold"
+                      options={[
+                        { value: 'Immediate / Available immediately', label: 'Immediate / Available immediately' },
+                        { value: '1 month notice', label: '1 month notice' },
+                        { value: '2 months notice', label: '2 months notice' },
+                        { value: '3 months / buyout requirement', label: '3 months / buyout requirement' },
+                      ]}
+                    />
                   </div>
                 </div>
               </div>
@@ -3762,19 +3775,19 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     <label className="block text-xs font-bold text-novora uppercase tracking-wider mb-2.5">
                       Target Candidate Profile
                     </label>
-                    <select
+                    <SelectMenu
                       value={newInt.candidateId}
-                      onChange={(e) => setNewInt({ ...newInt, candidateId: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold text-xs transition-all"
-                      required
-                    >
-                      <option value="">-- Choose active candidate record --</option>
-                      {candidates.map(c => (
-                        <option key={c.id} value={c.id}>
-                          {c.name} &mdash; Applied for {c.positionApplied} [{c.stage}]
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(v) => setNewInt({ ...newInt, candidateId: v })}
+                      placeholder="-- Choose active candidate record --"
+                      triggerClassName="w-full bg-slate-50 border-slate-200 rounded-xl text-slate-800 font-semibold text-xs"
+                      options={[
+                        { value: '', label: '-- Choose active candidate record --' },
+                        ...candidates.map((c) => ({
+                          value: c.id,
+                          label: `${c.name} — Applied for ${c.positionApplied} [${c.stage}]`,
+                        })),
+                      ]}
+                    />
                   </div>
 
                   {/* Date, Time, Stage */}
@@ -4031,27 +4044,26 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     <label className="block text-xs font-bold text-novora uppercase tracking-wider mb-2.5">
                       Approved Candidate Selection
                     </label>
-                    <select
+                    <SelectMenu
                       value={newOffer.candidateName}
-                      onChange={(e) => {
-                        const cName = e.target.value;
-                        const cand = candidates.find(c => c.name === cName);
-                        setNewOffer({ 
-                          ...newOffer, 
-                          candidateName: cName, 
-                          position: cand ? cand.positionApplied : 'HR Business Partner' 
-                        });
+                      onChange={(v) => {
+                        const cand = candidates.find((c) => c.name === v)
+                        setNewOffer({
+                          ...newOffer,
+                          candidateName: v,
+                          position: cand ? cand.positionApplied : 'HR Business Partner',
+                        })
                       }}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 outline-none focus:border-novora font-bold text-xs"
-                      required
-                    >
-                      <option value="">-- Select screen passed candidate records --</option>
-                      {candidates.map(c => (
-                        <option key={c.id} value={c.name}>
-                          {c.name} &mdash; {c.positionApplied} (Score: {c.matchScore})
-                        </option>
-                      ))}
-                    </select>
+                      placeholder="-- Select screen passed candidate records --"
+                      triggerClassName="w-full bg-slate-50 border-slate-200 rounded-xl text-slate-800 font-bold text-xs"
+                      options={[
+                        { value: '', label: '-- Select screen passed candidate records --' },
+                        ...candidates.map((c) => ({
+                          value: c.name,
+                          label: `${c.name} — ${c.positionApplied} (Score: ${c.matchScore})`,
+                        })),
+                      ]}
+                    />
                   </div>
 
                   {/* Salary, Allowance, Grade */}

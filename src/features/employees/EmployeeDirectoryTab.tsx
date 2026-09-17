@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ModuleToolbar } from '@/components/ui';
+import { ModuleToolbar, SelectMenu } from '@/components/ui';
 import ModuleHeader from '@/components/ui/ModuleHeader';
 import { Search, UserPlus, ArrowUpRight, Filter, ClipboardList } from 'lucide-react';
 import type { Employee } from '@/types';
@@ -74,17 +74,17 @@ export default function EmployeeDirectoryTab({
 
           <div className="flex items-center gap-1.5 shrink-0">
             <Filter className="h-3.5 w-3.5 text-slate-400" />
-            <select
+            <SelectMenu
               value={selectedDept}
-              onChange={(e) => setSelectedDept(e.target.value)}
-              className="text-xs font-semibold text-slate-600 bg-white border border-slate-200 focus:outline-none px-2 py-2 rounded-lg"
-            >
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept} {dept !== 'All' ? 'Dept' : ''}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedDept}
+              aria-label="Department filter"
+              className="w-auto"
+              triggerClassName="text-xs font-semibold text-slate-600 bg-white border-slate-200 px-2 py-2 rounded-lg"
+              options={departments.map((dept) => ({
+                value: dept,
+                label: `${dept}${dept !== 'All' ? ' Dept' : ''}`,
+              }))}
+            />
           </div>
         </div>
 

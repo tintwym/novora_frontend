@@ -704,6 +704,10 @@ export default function SettingsTab({
     }, 1000);
   };
 
+  const [backupFrequency, setBackupFrequency] = useState('Daily');
+  const [backupCaptureTime, setBackupCaptureTime] = useState('02:00 AM');
+  const [backupRetention, setBackupRetention] = useState('90 days');
+
   // 9. Integrations State
   const [apiKeyVisible, setApiKeyVisible] = useState(false);
   const [apiKey, setApiKey] = useState('sk-aperio-7a8f9cde2b61ef0a3c9e4f21');
@@ -871,7 +875,7 @@ export default function SettingsTab({
       <SettingsSubNav activeSubTab={activeSubTab} setActiveSubTab={setActiveSubTab} />
       <div className="flex-1 min-w-0 space-y-6">
       {/* SECTION CONTAINER WITH BENTO BOX FEEL */}
-      <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-xs">
+      <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs">
         
         {/* TAB 1: Company Profile */}
         {activeSubTab === 'Company profile' && (
@@ -1128,7 +1132,7 @@ export default function SettingsTab({
                       toggleModule(m.id);
                       addToast(` ${m.name} module toggled ${!m.enabled ? 'ON' : 'OFF'}`, 'info');
                     }}
-                    className={`h-6.5 w-11 rounded-full p-0.5 transition-all outline-none cursor-pointer flex items-center shrink-0 ${
+                    className={`h-6 w-11 rounded-full p-0.5 transition-all outline-none cursor-pointer flex items-center shrink-0 ${
                       m.enabled ? 'bg-novora' : 'bg-slate-300'
                     }`}
                   >
@@ -1509,20 +1513,20 @@ export default function SettingsTab({
                         <div className="text-[10px] text-slate-400 font-bold mt-0.5">{su.email}</div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <select
+                        <SelectMenu
                           value={su.role}
-                          onChange={(e) => void changeUserRole(su.id, e.target.value)}
-                          className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-extrabold uppercase tracking-wide outline-none cursor-pointer"
-                        >
-                          {(availableRoleCodes.length
+                          onChange={(v) => void changeUserRole(su.id, v)}
+                          aria-label={`Role for ${su.name}`}
+                          className="w-auto"
+                          triggerClassName="px-2 py-1 bg-slate-50 border-slate-200 rounded-lg text-[10px] font-extrabold uppercase tracking-wide"
+                          options={(availableRoleCodes.length
                             ? availableRoleCodes
                             : ['SUPER_ADMIN', 'HR_ADMIN', 'HR_MANAGER', 'EMPLOYEE']
-                          ).map((code) => (
-                            <option key={code} value={ROLE_LABEL[code] || code}>
-                              {ROLE_LABEL[code] || code}
-                            </option>
-                          ))}
-                        </select>
+                          ).map((code) => ({
+                            value: ROLE_LABEL[code] || code,
+                            label: ROLE_LABEL[code] || code,
+                          }))}
+                        />
                       </td>
                       <td className="px-5 py-3.5 text-slate-500 font-medium">{su.lastActive}</td>
                       <td className="px-5 py-3.5">
@@ -1644,7 +1648,7 @@ export default function SettingsTab({
                     placeholder="Search module capabilities..."
                     value={matrixSearchQuery}
                     onChange={(e) => setMatrixSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:border-novora outline-none text-slate-700 placeholder-slate-400 shadow-3xs"
+                    className="w-full pl-9 pr-4 py-2 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:border-novora outline-none text-slate-700 placeholder-slate-400 shadow-xs"
                   />
                 </div>
                 {matrixSearchQuery && (
@@ -1658,7 +1662,7 @@ export default function SettingsTab({
               </div>
 
               {/* THE MATRIX GRID */}
-              <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-3xs">
+              <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-xs">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse min-w-[700px]">
                     <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">
@@ -1991,7 +1995,7 @@ export default function SettingsTab({
                     </div>
                     <button
                       onClick={() => setEditingMatrixRole(r.name)}
-                      className="px-3.5 py-2 bg-white border border-novora/35 text-novora hover:bg-slate-50 hover:border-novora font-bold text-xs rounded-xl cursor-pointer shadow-3xs transition-all"
+                      className="px-3.5 py-2 bg-white border border-novora/35 text-novora hover:bg-slate-50 hover:border-novora font-bold text-xs rounded-xl cursor-pointer shadow-xs transition-all"
                     >
                       Configure Matrix
                     </button>
@@ -2994,30 +2998,52 @@ export default function SettingsTab({
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-700">Auto-backup frequency</span>
-                    <select className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 outline-none">
-                      <option>Daily</option>
-                      <option>Weekly</option>
-                      <option>Off-site monthly</option>
-                    </select>
+                    <SelectMenu
+                      value={backupFrequency}
+                      onChange={setBackupFrequency}
+                      aria-label="Backup frequency"
+                      className="w-auto"
+                      triggerClassName="px-2.5 py-1 bg-white border-slate-200 rounded-lg text-xs font-bold text-slate-600"
+                      options={[
+                        { value: 'Daily', label: 'Daily' },
+                        { value: 'Weekly', label: 'Weekly' },
+                        { value: 'Off-site monthly', label: 'Off-site monthly' },
+                      ]}
+                    />
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-700">Backup capture time</span>
-                    <select className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 outline-none">
-                      <option>02:00 AM</option>
-                      <option>12:00 AM</option>
-                      <option>06:00 PM</option>
-                    </select>
+                    <SelectMenu
+                      value={backupCaptureTime}
+                      onChange={setBackupCaptureTime}
+                      aria-label="Backup capture time"
+                      className="w-auto"
+                      triggerClassName="px-2.5 py-1 bg-white border-slate-200 rounded-lg text-xs font-bold text-slate-600"
+                      options={[
+                        { value: '02:00 AM', label: '02:00 AM' },
+                        { value: '12:00 AM', label: '12:00 AM' },
+                        { value: '06:00 PM', label: '06:00 PM' },
+                      ]}
+                    />
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-700">Retention period</span>
-                    <select className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 outline-none">
-                      <option>90 days</option>
-                      <option>180 days</option>
-                      <option>1 year</option>
-                      <option>Forever</option>
-                    </select>
+                    <SelectMenu
+                      value={backupRetention}
+                      onChange={setBackupRetention}
+                      aria-label="Retention period"
+                      className="w-auto"
+                      preferUp
+                      triggerClassName="px-2.5 py-1 bg-white border-slate-200 rounded-lg text-xs font-bold text-slate-600"
+                      options={[
+                        { value: '90 days', label: '90 days' },
+                        { value: '180 days', label: '180 days' },
+                        { value: '1 year', label: '1 year' },
+                        { value: 'Forever', label: 'Forever' },
+                      ]}
+                    />
                   </div>
 
                   <div className="border-t border-slate-100 pt-3 flex justify-between items-center">

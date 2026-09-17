@@ -45,6 +45,13 @@ function clamp(n: number, min: number, max: number) {
   return Math.min(Math.max(n, min), max)
 }
 
+function optionSearchText(opt: SelectMenuOption): string {
+  if (typeof opt.label === 'string' || typeof opt.label === 'number') {
+    return String(opt.label)
+  }
+  return opt.value
+}
+
 export default function SelectMenu({
   value,
   onChange,
@@ -61,11 +68,14 @@ export default function SelectMenu({
   const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLUListElement>(null)
+  const typeaheadRef = useRef({ query: '', timer: 0 })
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState<PanelPos | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [highlightIndex, setHighlightIndex] = useState(-1)
 
   const selected = options.find((opt) => opt.value === value)
+  const selectedIndex = options.findIndex((opt) => opt.value === value)
   const label = selected?.label ?? placeholder
   const isToolbar = triggerClassName.includes('nv-select-trigger--toolbar')
 
@@ -117,6 +127,22 @@ export default function SelectMenu({
   }, [open, preferUp, options.length])
 
   useEffect(() => {
+    if (!open) {
+      setHighlightIndex(-1)
+      return
+    }
+    setHighlightIndex(selectedIndex >= 0 ? selectedIndex : 0)
+  }, [open, selectedIndex])
+
+  useEffect(() => {
+    if (!open || highlightIndex < 0) return
+    const panel = panelRef.current
+    if (!panel) return
+    const el = panel.querySelector<HTMLElement>(`[data-nv-option-index="${highlightIndex}"]`)
+    el?.scrollIntoView({ block: 'nearest' })
+  }, [open, highlightIndex])
+
+  useEffect(() => {
     if (!open) return
 
     const closeSelf = (event: Event) => {
@@ -142,7 +168,63 @@ export default function SelectMenu({
       setOpen(false)
     }
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setOpen(false)
+        triggerRef.current?.focus()
+        return
+      }
+
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault()
+        if (options.length === 0) return
+        setHighlightIndex((prev) => {
+          const base = prev < 0 ? (selectedIndex >= 0 ? selectedIndex : 0) : prev
+          if (event.key === 'ArrowDown') return (base + 1) % options.length
+          return (base - 1 + options.length) % options.length
+        })
+        return
+      }
+
+      if (event.key === 'Home') {
+        event.preventDefault()
+        if (options.length) setHighlightIndex(0)
+        return
+      }
+
+      if (event.key === 'End') {
+        event.preventDefault()
+        if (options.length) setHighlightIndex(options.length - 1)
+        return
+      }
+
+      if (event.key === 'Enter' || event.key === ' ') {
+        if (highlightIndex < 0 || highlightIndex >= options.length) return
+        event.preventDefault()
+        onChange(options[highlightIndex].value)
+        setOpen(false)
+        triggerRef.current?.focus()
+        return
+      }
+
+      // Typeahead: accumulate printable characters
+      if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault()
+        const nextQuery = `${typeaheadRef.current.query}${event.key.toLowerCase()}`
+        typeaheadRef.current.query = nextQuery
+        window.clearTimeout(typeaheadRef.current.timer)
+        typeaheadRef.current.timer = window.setTimeout(() => {
+          typeaheadRef.current.query = ''
+        }, 700)
+
+        const start = highlightIndex >= 0 ? highlightIndex + 1 : 0
+        const pool = [...options.slice(start), ...options.slice(0, start)]
+        const match = pool.find((opt) => optionSearchText(opt).toLowerCase().startsWith(nextQuery))
+        if (match) {
+          const idx = options.findIndex((opt) => opt.value === match.value)
+          if (idx >= 0) setHighlightIndex(idx)
+        }
+      }
     }
     const onReposition = () => updatePosition()
 
@@ -155,6 +237,7 @@ export default function SelectMenu({
 
     return () => {
       window.clearTimeout(timer)
+      window.clearTimeout(typeaheadRef.current.timer)
       window.removeEventListener(CLOSE_EVENT, closeSelf)
       window.removeEventListener('nv-dropdown-close', closeFromAnchor)
       document.removeEventListener('click', onPointerDown, true)
@@ -162,7 +245,7 @@ export default function SelectMenu({
       window.removeEventListener('resize', onReposition)
       window.removeEventListener('scroll', onReposition, true)
     }
-  }, [open, autoId])
+  }, [open, autoId, options, highlightIndex, onChange, selectedIndex])
 
   const panelStyle: CSSProperties = pos
     ? {
@@ -185,30 +268,39 @@ export default function SelectMenu({
         pointerEvents: 'none',
       }
 
+  const activeValue = highlightIndex >= 0 ? options[highlightIndex]?.value : value
+
   const panel =
     open && mounted
       ? createPortal(
           <ul
             ref={panelRef}
             role="listbox"
+            id={`${autoId}-listbox`}
             className={`nv-select-panel ${pos?.openUp ? 'nv-dropdown-in--up' : 'nv-dropdown-in'}`}
             style={panelStyle}
-            aria-activedescendant={selected ? `${autoId}-${value}` : undefined}
+            aria-activedescendant={activeValue != null ? `${autoId}-${activeValue}` : undefined}
           >
-            {options.map((opt) => {
+            {options.map((opt, index) => {
               const isSelected = opt.value === value
+              const isHighlighted = index === highlightIndex
               return (
-                <li key={opt.value} role="presentation">
+                <li key={`${opt.value}-${index}`} role="presentation">
                   <button
                     id={`${autoId}-${opt.value}`}
                     type="button"
                     role="option"
+                    data-nv-option-index={index}
                     aria-selected={isSelected}
+                    onMouseEnter={() => setHighlightIndex(index)}
                     onClick={() => {
                       onChange(opt.value)
                       setOpen(false)
+                      triggerRef.current?.focus()
                     }}
-                    className={`nv-select-option ${isSelected ? 'nv-select-option--active' : ''}`}
+                    className={`nv-select-option ${isSelected ? 'nv-select-option--active' : ''} ${
+                      isHighlighted ? 'nv-select-option--highlight' : ''
+                    }`}
                   >
                     <span className="nv-select-option-icon" aria-hidden>
                       {isSelected ? <Check strokeWidth={2.5} /> : null}
@@ -231,6 +323,11 @@ export default function SelectMenu({
     .filter(Boolean)
     .join(' ')
 
+  const openMenu = () => {
+    if (disabled) return
+    setOpen(true)
+  }
+
   return (
     <div ref={rootRef} className={rootClass}>
       <button
@@ -241,9 +338,19 @@ export default function SelectMenu({
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-controls={open ? `${autoId}-listbox` : undefined}
         onClick={() => {
           if (disabled) return
           setOpen((v) => !v)
+        }}
+        onKeyDown={(event) => {
+          if (disabled) return
+          if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault()
+            openMenu()
+          } else if (event.key === 'Enter' || event.key === ' ') {
+            // native button already toggles via click for Enter/Space; keep default
+          }
         }}
         className={`nv-select-trigger w-full text-left ${open ? 'nv-select-trigger--open' : ''} ${triggerClassName}`}
       >

@@ -25,6 +25,7 @@ export type CreateClaimPayload = {
   currency?: string
   vendor?: string
   description?: string
+  employeeId?: string
 }
 
 export type PayrollRow = {

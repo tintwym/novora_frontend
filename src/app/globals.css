@@ -1121,7 +1121,8 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   height: 0.875rem;
 }
 
-.nv-select-option:hover {
+.nv-select-option:hover,
+.nv-select-option--highlight {
   background: color-mix(in srgb, var(--color-novora) 7%, #f8fafc);
   color: var(--color-novora-deep);
 }
@@ -1303,7 +1304,8 @@ html[data-theme='cyber-dark'] .nv-select-option {
 }
 
 html[data-theme='cyber-dark'] .nv-dropdown-menu > button:hover,
-html[data-theme='cyber-dark'] .nv-select-option:hover {
+html[data-theme='cyber-dark'] .nv-select-option:hover,
+html[data-theme='cyber-dark'] .nv-select-option--highlight {
   background: color-mix(in srgb, var(--color-novora) 18%, #0f172a) !important;
   color: #fff !important;
 }

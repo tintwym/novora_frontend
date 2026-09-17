@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Calendar as CalIcon, Clock, CheckCircle, Mail, User, Building2, ChevronRight, Video, Sparkles } from 'lucide-react';
+import { SelectMenu } from '@/components/ui';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -162,30 +163,32 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] text-slate-500 font-semibold mb-1 uppercase tracking-wide">Company Size</label>
-                      <select
+                      <SelectMenu
                         value={formData.size}
-                        onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition-all"
-                      >
-                        <option value="1-19">1 - 19 employees</option>
-                        <option value="20-99">20 - 99 employees</option>
-                        <option value="100-499">100 - 499 employees</option>
-                        <option value="500+">500+ employees</option>
-                      </select>
+                        onChange={(v) => setFormData({ ...formData, size: v })}
+                        triggerClassName="text-xs text-slate-800 bg-slate-50 border-slate-200"
+                        options={[
+                          { value: '1-19', label: '1 - 19 employees' },
+                          { value: '20-99', label: '20 - 99 employees' },
+                          { value: '100-499', label: '100 - 499 employees' },
+                          { value: '500+', label: '500+ employees' },
+                        ]}
+                      />
                     </div>
 
                     <div>
                       <label className="block text-[10px] text-slate-500 font-semibold mb-1 uppercase tracking-wide">Primary Focus</label>
-                      <select
+                      <SelectMenu
                         value={formData.challenge}
-                        onChange={(e) => setFormData({ ...formData, challenge: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition-all"
-                      >
-                        <option value="Payroll errors & time tracking">Payroll & Biometrics</option>
-                        <option value="Leave & Absence management">Absence & Leave</option>
-                        <option value="Performance & onboarding">Employee Directory</option>
-                        <option value="All-in-one general upgrade">All-in-one Upgrade</option>
-                      </select>
+                        onChange={(v) => setFormData({ ...formData, challenge: v })}
+                        triggerClassName="text-xs text-slate-800 bg-slate-50 border-slate-200"
+                        options={[
+                          { value: 'Payroll errors & time tracking', label: 'Payroll & Biometrics' },
+                          { value: 'Leave & Absence management', label: 'Absence & Leave' },
+                          { value: 'Performance & onboarding', label: 'Employee Directory' },
+                          { value: 'All-in-one general upgrade', label: 'All-in-one Upgrade' },
+                        ]}
+                      />
                     </div>
                   </div>
                 </div>

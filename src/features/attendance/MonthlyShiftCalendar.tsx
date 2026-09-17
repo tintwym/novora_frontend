@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import type { Employee } from '@/types'
 import { localTodayIso } from '@/lib/dates'
+import { SelectMenu } from '@/components/ui'
 
 export type ShiftType = 'morning' | 'afternoon' | 'night' | 'flexible' | 'off'
 
@@ -316,17 +317,17 @@ export default function MonthlyShiftCalendar({
             </h3>
           </div>
           <div className="flex items-center gap-2">
-            <select
+            <SelectMenu
               value={deptFilter}
-              onChange={(e) => setDeptFilter(e.target.value)}
-              className="h-9 text-xs font-bold bg-white border border-slate-200 rounded-xl px-3"
-            >
-              {departments.map((d) => (
-                <option key={d} value={d}>
-                  {d === 'All' ? 'All departments' : d}
-                </option>
-              ))}
-            </select>
+              onChange={setDeptFilter}
+              aria-label="Department filter"
+              className="w-auto"
+              triggerClassName="h-9 text-xs font-bold bg-white border-slate-200 rounded-xl px-3"
+              options={departments.map((d) => ({
+                value: d,
+                label: d === 'All' ? 'All departments' : d,
+              }))}
+            />
             {isHr ? (
               <button type="button" onClick={() => openAssign(localTodayIso())} className="nv-btn-primary h-9">
                 <Plus className="h-3.5 w-3.5" />
@@ -435,17 +436,16 @@ export default function MonthlyShiftCalendar({
             <div className="p-5 space-y-3">
               <label className="block space-y-1.5">
                 <span className="text-[11px] font-bold text-slate-500">Employee</span>
-                <select
+                <SelectMenu
                   value={assignEmpId}
-                  onChange={(e) => setAssignEmpId(e.target.value)}
-                  className="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5"
-                >
-                  {employees.map((e) => (
-                    <option key={e.apiId || e.id} value={e.apiId || e.id}>
-                      {e.name} · {e.department}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setAssignEmpId}
+                  preferUp
+                  triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                  options={employees.map((e) => ({
+                    value: e.apiId || e.id,
+                    label: `${e.name} · ${e.department}`,
+                  }))}
+                />
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <label className="block space-y-1.5">
@@ -459,17 +459,16 @@ export default function MonthlyShiftCalendar({
                 </label>
                 <label className="block space-y-1.5">
                   <span className="text-[11px] font-bold text-slate-500">Shift</span>
-                  <select
+                  <SelectMenu
                     value={assignType}
-                    onChange={(e) => handleTypeChange(e.target.value as ShiftType)}
-                    className="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5"
-                  >
-                    {(Object.keys(SHIFT_META) as ShiftType[]).map((k) => (
-                      <option key={k} value={k}>
-                        {SHIFT_META[k].label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(v) => handleTypeChange(v as ShiftType)}
+                    preferUp
+                    triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                    options={(Object.keys(SHIFT_META) as ShiftType[]).map((k) => ({
+                      value: k,
+                      label: SHIFT_META[k].label,
+                    }))}
+                  />
                 </label>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -494,17 +493,16 @@ export default function MonthlyShiftCalendar({
               </div>
               <label className="block space-y-1.5">
                 <span className="text-[11px] font-bold text-slate-500">Location</span>
-                <select
+                <SelectMenu
                   value={assignLocation}
-                  onChange={(e) => setAssignLocation(e.target.value)}
-                  className="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5"
-                >
-                  {WORKPLACES.map((w) => (
-                    <option key={w} value={w}>
-                      {w}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setAssignLocation}
+                  preferUp
+                  triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
+                  options={WORKPLACES.map((w) => ({
+                    value: w,
+                    label: w,
+                  }))}
+                />
               </label>
               <label className="block space-y-1.5">
                 <span className="text-[11px] font-bold text-slate-500">Notes</span>

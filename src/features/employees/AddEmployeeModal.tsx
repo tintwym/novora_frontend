@@ -430,7 +430,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
             <div id="form-step-1" className="space-y-6 animate-in fade-in duration-300">
               
               {/* Card 1: Avatar Upload & Checklist Config */}
-              <div className="bg-white border border-slate-200/60 rounded-3xl p-6.5 shadow-xs space-y-5">
+              <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-xs space-y-5">
                 <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Profile photo &amp; options</h3>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-8">
@@ -525,7 +525,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
               </div>
 
               {/* Card 2: Organisation details form */}
-              <div className="bg-white border border-slate-200/60 rounded-3xl p-6.5 shadow-xs space-y-6">
+              <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-xs space-y-6">
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                   <h3 className="text-xs font-black text-slate-850 uppercase tracking-wider">Organisation information</h3>
                   <span className="bg-rose-50 text-rose-600 font-extrabold uppercase tracking-widest text-[9px] px-2 py-0.5 rounded border border-rose-100/50">required</span>
@@ -737,7 +737,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
 
                     {/* Reports to */}
                     <div className="space-y-1.5">
-                      <label className="block font-semibold text-slate-550 uppercase tracking-wider">Reports to</label>
+                      <label className="block font-semibold text-slate-500 uppercase tracking-wider">Reports to</label>
                       <SelectMenu
                         value={reportsTo}
                         onChange={setReportsTo}
@@ -796,7 +796,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
             <div id="form-step-2" className="space-y-6 animate-in fade-in duration-300">
               
               {/* Card 1: Personal info form */}
-              <div className="bg-white border border-slate-200/60 rounded-3xl p-6.5 shadow-xs space-y-6">
+              <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-xs space-y-6">
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                   <h3 className="text-xs font-black text-slate-855 uppercase tracking-wider">Personal information</h3>
                   <span className="bg-rose-50 text-rose-600 font-extrabold uppercase tracking-widest text-[9px] px-2 py-0.5 rounded border border-rose-100/50">required</span>
@@ -975,7 +975,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
               </div>
 
               {/* Card 2: Passport Details Frame */}
-              <div className="bg-white border border-slate-200/60 rounded-3xl p-6.5 shadow-xs space-y-4">
+              <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-xs space-y-4">
                 <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                   <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Passport details</h3>
                   
@@ -1043,7 +1043,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
               </div>
 
               {/* Card 3: Address Frame */}
-              <div className="bg-white border border-slate-200/60 rounded-3xl p-6.5 shadow-xs space-y-4">
+              <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-xs space-y-4">
                 <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-3">Current address</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
@@ -1142,7 +1142,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
           {step === 3 && (
             <div id="form-step-3" className="space-y-6 animate-in fade-in duration-300">
               
-              <div className="bg-white border border-slate-200/60 rounded-3xl p-6.5 shadow-xs space-y-6">
+              <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-xs space-y-6">
                 <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-50 pb-3">Off duty days</h3>
 
                 <p className="text-xs font-semibold text-slate-500 leading-relaxed bg-slate-50/50 p-3.5 rounded-2xl border border-slate-100">
@@ -1224,7 +1224,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
           {step === 4 && (
             <div id="form-step-4" className="space-y-6 animate-in fade-in duration-300">
               
-              <div className="bg-white border border-slate-200/60 rounded-3xl p-6.5 shadow-xs space-y-6">
+              <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-xs space-y-6">
                 <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                   <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Biometric registration</h3>
                   
@@ -1315,7 +1315,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
           {step === 5 && (
             <div id="form-step-5" className="space-y-6 animate-in fade-in duration-300">
               
-              <div className="bg-white border border-slate-200/60 rounded-3xl p-6.5 shadow-xs space-y-6">
+              <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-xs space-y-6">
                 <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-50 pb-3">Review &amp; confirm</h3>
 
                 {/* Hero profile review header card */}
@@ -1449,7 +1449,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
         <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-48">
           
           {/* Card 1: Progress meter percentages */}
-          <div className="bg-white border border-slate-200/60 rounded-3xl p-6.5 shadow-xs">
+          <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-xs">
             <span className="text-[10.5px] font-extrabold text-slate-400 block uppercase tracking-wider">Step {step} of 5</span>
             
             <div className="flex justify-between items-baseline mt-1">
@@ -1469,7 +1469,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
           </div>
 
           {/* Card 2: Contextual Help Tips bullets */}
-          <div className="bg-white border border-slate-200/60 rounded-3xl p-6.5 shadow-xs space-y-4">
+          <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-xs space-y-4">
             <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest leading-none">Tips</h4>
             
             <ul className="space-y-3.5">

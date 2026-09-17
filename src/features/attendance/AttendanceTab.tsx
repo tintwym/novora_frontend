@@ -559,6 +559,10 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
     employees: '0'
   });
 
+  const [timesheetRosterMode, setTimesheetRosterMode] = useState('Single shift');
+  const [timesheetShiftPattern, setTimesheetShiftPattern] = useState('Standard 9-6');
+  const [swipeShiftAssign, setSwipeShiftAssign] = useState<Record<string, string>>({});
+
   // New interactive feature states
   const [timesheetModalOpen, setTimesheetModalOpen] = useState(false);
   const [newTimesheet, setNewTimesheet] = useState({
@@ -1186,15 +1190,29 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
           <div className="space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <select className="bg-slate-50 border border-slate-200 p-2 rounded-xl text-xs font-bold text-slate-700">
-                  <option>Single shift</option>
-                  <option>Flexible rosters</option>
-                </select>
-                <select className="bg-slate-50 border border-slate-200 p-2 rounded-xl text-xs font-bold text-slate-700">
-                  <option>Standard 9-6</option>
-                  <option>Night Shift 10-7</option>
-                  <option>Alternative OT patterns</option>
-                </select>
+                <SelectMenu
+                  value={timesheetRosterMode}
+                  onChange={setTimesheetRosterMode}
+                  aria-label="Roster mode"
+                  className="w-auto"
+                  triggerClassName="bg-slate-50 border-slate-200 p-2 rounded-xl text-xs font-bold text-slate-700"
+                  options={[
+                    { value: 'Single shift', label: 'Single shift' },
+                    { value: 'Flexible rosters', label: 'Flexible rosters' },
+                  ]}
+                />
+                <SelectMenu
+                  value={timesheetShiftPattern}
+                  onChange={setTimesheetShiftPattern}
+                  aria-label="Shift pattern"
+                  className="w-auto"
+                  triggerClassName="bg-slate-50 border-slate-200 p-2 rounded-xl text-xs font-bold text-slate-700"
+                  options={[
+                    { value: 'Standard 9-6', label: 'Standard 9-6' },
+                    { value: 'Night Shift 10-7', label: 'Night Shift 10-7' },
+                    { value: 'Alternative OT patterns', label: 'Alternative OT patterns' },
+                  ]}
+                />
               </div>
 
               <div className="flex items-center gap-2">
@@ -1416,7 +1434,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                   type="date"
                   value={rollCallDate}
                   onChange={(e) => setRollCallDate(e.target.value)}
-                  className="bg-slate-50 border border-slate-205 py-1.5 px-3 rounded-xl text-xs font-bold text-slate-700"
+                  className="bg-slate-50 border border-slate-200 py-1.5 px-3 rounded-xl text-xs font-bold text-slate-700"
                 />
 
                 <span className="bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-100">
@@ -1524,16 +1542,19 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
               <form onSubmit={handleAddManualPunchSubmit} className="space-y-4.5">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-400 block uppercase">Employee <span className="text-red-500">*</span></label>
-                  <select
+                  <SelectMenu
                     value={punchEmployee}
-                    onChange={(e) => setPunchEmployee(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-novora p-2.5 rounded-xl text-xs font-bold text-slate-700"
-                  >
-                    <option value="">-- Select employee --</option>
-                    {employeeOptions.map(emp => (
-                      <option key={emp.id} value={emp.id}>{emp.name} ({emp.id})</option>
-                    ))}
-                  </select>
+                    onChange={setPunchEmployee}
+                    placeholder="-- Select employee --"
+                    triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                    options={[
+                      { value: '', label: '-- Select employee --' },
+                      ...employeeOptions.map(emp => ({
+                        value: emp.id,
+                        label: `${emp.name} (${emp.id})`,
+                      })),
+                    ]}
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -1729,12 +1750,20 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                           </span>
                         </td>
                         <td className="py-3.5">
-                          <select className="bg-slate-50 border border-slate-200 p-1 rounded font-bold text-[11px] text-slate-600 focus:border-novora">
-                            <option>-- Assign --</option>
-                            <option>Standard Shift 9-6</option>
-                            <option>Night Shift 10-7</option>
-                            <option>Flexible PM Shift</option>
-                          </select>
+                          <SelectMenu
+                            value={swipeShiftAssign[s.id] ?? ''}
+                            onChange={(v) => setSwipeShiftAssign(prev => ({ ...prev, [s.id]: v }))}
+                            placeholder="-- Assign --"
+                            aria-label="Assign shift"
+                            className="w-auto"
+                            triggerClassName="bg-slate-50 border-slate-200 p-1 rounded font-bold text-[11px] text-slate-600"
+                            options={[
+                              { value: '', label: '-- Assign --' },
+                              { value: 'Standard Shift 9-6', label: 'Standard Shift 9-6' },
+                              { value: 'Night Shift 10-7', label: 'Night Shift 10-7' },
+                              { value: 'Flexible PM Shift', label: 'Flexible PM Shift' },
+                            ]}
+                          />
                         </td>
                         <td className="py-3.5 text-right pr-3">
                           <button
@@ -1766,7 +1795,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                 </div>
                 <button
                   onClick={() => setOtSetupModalOpen(true)}
-                  className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold bg-white border border-slate-205 hover:border-indigo-300 hover:text-indigo-600 rounded-xl cursor-pointer shadow-3xs transition-all whitespace-nowrap shrink-0"
+                  className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 rounded-xl cursor-pointer shadow-xs transition-all whitespace-nowrap shrink-0"
                 >
                   <Plus className="h-3.5 w-3.5 text-slate-500 shrink-0" />
                   <span>Add OT Setup</span>
@@ -1941,7 +1970,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Absences</span>
                   <h3 className="text-xl font-extrabold text-rose-600 tracking-tight">12 days</h3>
-                  <span className="text-[9px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-205">8 with sick leave cert</span>
+                  <span className="text-[9px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">8 with sick leave cert</span>
                 </div>
                 <div className="h-10 w-10 rounded-xl bg-rose-50/50 border border-rose-100 flex items-center justify-center">
                   <UserX className="h-5 w-5 text-rose-600" />
@@ -2298,19 +2327,20 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
             <form onSubmit={handleCreateTimesheetSubmit} className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[10px] font-semibold text-slate-400 block uppercase">Employee Record</label>
-                <select
-                  required
+                <SelectMenu
                   value={newTimesheet.employeeId}
-                  onChange={(e) => setNewTimesheet(prev => ({ ...prev, employeeId: e.target.value }))}
-                  className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
-                >
-                  <option value="">-- Choose employee --</option>
-                  {rosterData.map(r => (
-                    <option key={r.id} value={r.id}>
-                      {r.name} &bull; {r.dept}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => setNewTimesheet(prev => ({ ...prev, employeeId: v }))}
+                  placeholder="-- Choose employee --"
+                  preferUp
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: '', label: '-- Choose employee --' },
+                    ...rosterData.map(r => ({
+                      value: r.id,
+                      label: `${r.name} · ${r.dept}`,
+                    })),
+                  ]}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -2532,19 +2562,20 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
             <form onSubmit={handleCreateOtSetupSubmit} className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[10px] font-semibold text-slate-400 block uppercase">Select Employee For Accordance</label>
-                <select
-                  required
+                <SelectMenu
                   value={newOtSetup.employeeId}
-                  onChange={(e) => setNewOtSetup(prev => ({ ...prev, employeeId: e.target.value }))}
-                  className="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
-                >
-                  <option value="">-- Choose employee --</option>
-                  {employeeOptions.map(r => (
-                    <option key={r.id} value={r.id}>
-                      {r.name} &bull; {r.dept}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => setNewOtSetup(prev => ({ ...prev, employeeId: v }))}
+                  placeholder="-- Choose employee --"
+                  preferUp
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: '', label: '-- Choose employee --' },
+                    ...employeeOptions.map(r => ({
+                      value: r.id,
+                      label: `${r.name} · ${r.dept}`,
+                    })),
+                  ]}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">

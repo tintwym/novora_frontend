@@ -362,6 +362,10 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
   // Exit Survey submit
   const handleExitSurveySubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newSurveyReason) {
+      addToast('Please select a primary departure reason.', 'error');
+      return;
+    }
     const activeSurvey: ExitInterviewForm = {
       employeeId: newSurveyEmpId,
       leavingReason: newSurveyReason,
@@ -453,7 +457,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
             
             {/* Left side: Upload list and compliance status check */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="nv-card p-6.5 shadow-xs">
+              <div className="nv-card p-6 shadow-xs">
                 <div className="flex justify-between items-center mb-5">
                   <div>
                     <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Document Clearance List</h5>
@@ -517,7 +521,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
               </div>
 
               {/* NDA and Offer Contract E-Signature Section */}
-              <div className="nv-card p-6.5 shadow-xs relative overflow-hidden">
+              <div className="nv-card p-6 shadow-xs relative overflow-hidden">
                 <div className="absolute right-0 top-0 w-32 h-32 bg-novora/5 rounded-full blur-2xl pointer-events-none inline-flex items-center shrink-0" />
                 <div className="flex items-center gap-2 mb-4">
                   <PenTool className="h-4 w-4 text-novora" />
@@ -607,7 +611,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                     />
                   </div>
 
-                  <div className="border border-dashed border-slate-200 hover:border-novora p-6.5 rounded-xl text-center bg-slate-50 transition-all cursor-pointer" onClick={() => addToast('Simulating mock file select...', 'info')}>
+                  <div className="border border-dashed border-slate-200 hover:border-novora p-6 rounded-xl text-center bg-slate-50 transition-all cursor-pointer" onClick={() => addToast('Simulating mock file select...', 'info')}>
                     <Upload className="h-7 w-7 text-slate-400 mx-auto mb-2" />
                     <span className="text-xs font-bold text-slate-700 block">Click or Drag & Drop</span>
                     <span className="text-[9.5px] text-slate-400 font-medium block mt-1">Accepts PDF, JPG, PNG up to 10MB</span>
@@ -647,7 +651,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
           
           {/* Left panel: configure custom checklist item */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="nv-card p-6.5 shadow-xs">
+            <div className="nv-card p-6 shadow-xs">
               <h5 className="text-[12.5px] font-black text-slate-700 uppercase tracking-wide mb-4">Create Checklist Task</h5>
               <form onSubmit={handleAddChecklistTask} className="space-y-4">
                 <div>
@@ -754,7 +758,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                       className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer select-none ${
                         item.completed
                           ? 'bg-slate-50/50 border-slate-100 opacity-80'
-                          : 'bg-white border-slate-100 hover:border-slate-200 hover:shadow-3xs'
+                          : 'bg-white border-slate-100 hover:border-slate-200 hover:shadow-xs'
                       }`}
                     >
                       <div className="flex items-start gap-3.5">
@@ -806,7 +810,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
             
             {/* Left Col: Search + Articles cards list */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="nv-card p-6.5 shadow-xs">
+              <div className="nv-card p-6 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
                   <div>
                     <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Knowledge Directory SOP</h5>
@@ -953,7 +957,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
             
             {/* Left side: List of departure cases + department clearance */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="nv-card p-6.5 shadow-xs">
+              <div className="nv-card p-6 shadow-xs">
                 <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide mb-4">Departing Officer Cases</h5>
                 
                 <div className="overflow-x-auto">
@@ -1016,7 +1020,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
 
               {/* clearance progress matrix tracking */}
               {selectedResigObj && (
-                <div className="nv-card p-6.5 shadow-xs">
+                <div className="nv-card p-6 shadow-xs">
                   <div className="flex justify-between items-start flex-wrap gap-4 mb-4">
                     <div>
                       <h5 className="text-[12px] font-black text-slate-800 uppercase tracking-wide">
@@ -1129,15 +1133,16 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                 <form onSubmit={handleResigSubmit} className="space-y-4">
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Impacted Employee</label>
-                    <select
+                    <SelectMenu
                       value={newResigEmpId}
-                      onChange={(e) => setNewResigEmpId(e.target.value)}
-                      className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 outline-none focus:bg-white focus:border-slate-200 cursor-pointer"
-                    >
-                      {employees.map(emp => (
-                        <option key={emp.id} value={emp.id}>{emp.name} ({emp.id})</option>
-                      ))}
-                    </select>
+                      onChange={setNewResigEmpId}
+                      preferUp
+                      triggerClassName="text-xs font-bold text-slate-700 bg-slate-50 border-slate-100"
+                      options={employees.map(emp => ({
+                        value: emp.id,
+                        label: `${emp.name} (${emp.id})`,
+                      }))}
+                    />
                   </div>
 
                   <div>
@@ -1264,15 +1269,16 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                 <form onSubmit={handleExitSurveySubmit} className="space-y-4">
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Departing officer</label>
-                    <select
+                    <SelectMenu
                       value={newSurveyEmpId}
-                      onChange={(e) => setNewSurveyEmpId(e.target.value)}
-                      className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 outline-none cursor-pointer"
-                    >
-                      {employees.map(emp => (
-                        <option key={emp.id} value={emp.id}>{emp.name}</option>
-                      ))}
-                    </select>
+                      onChange={setNewSurveyEmpId}
+                      preferUp
+                      triggerClassName="text-xs font-bold text-slate-700 bg-slate-50 border-slate-100"
+                      options={employees.map(emp => ({
+                        value: emp.id,
+                        label: emp.name,
+                      }))}
+                    />
                   </div>
 
                   <div>
@@ -1280,8 +1286,10 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                     <SelectMenu
                       value={newSurveyReason}
                       onChange={setNewSurveyReason}
+                      placeholder="-- Select reason --"
                       triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
                       options={[
+                        { value: '', label: '-- Select reason --' },
                         { value: 'Better career growth', label: 'Better career growth' },
                         { value: 'Workplace culture issues', label: 'Workplace culture issues' },
                         { value: 'Compensation package', label: 'Compensation package' },
@@ -1334,7 +1342,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
 
             {/* Right side: list exit surveys logged */}
             <div className="lg:col-span-1 space-y-6">
-              <div className="nv-card p-6.5 shadow-xs">
+              <div className="nv-card p-6 shadow-xs">
                 <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide mb-4">Exit Interviews Record</h5>
                 
                 <div className="space-y-4">
@@ -1372,7 +1380,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
           
           {/* Key Metrics Cards Block */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Completed Tasks Ratio</span>
                 <CheckCircle className="h-4 w-4 text-emerald-500" />
@@ -1393,7 +1401,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
               </div>
             </div>
 
-            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Document Clear Rate</span>
                 <ShieldCheck className="h-4 w-4 text-blue-500" />
@@ -1414,7 +1422,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
               </div>
             </div>
 
-            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Active Offboarding</span>
                 <UserX className="h-4 w-4 text-rose-500" />
@@ -1433,7 +1441,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
               </div>
             </div>
 
-            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Exit Satisfaction Score</span>
                 <Award className="h-4 w-4 text-emerald-500" />
@@ -1459,7 +1467,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             {/* Left Aspect: Clearance Progress Monitor (7 Cols) */}
-            <div className="lg:col-span-7 bg-white border border-slate-100 rounded-3xl p-6 shadow-3xs space-y-5">
+            <div className="lg:col-span-7 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-5">
               <div className="border-b border-slate-50 pb-3 flex justify-between items-center">
                 <div>
                   <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Pending Clearance Auditing Log</h5>
@@ -1531,7 +1539,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
             {/* Right Aspect: Task Completion by Department and Exit Reason Stats (5 Cols) */}
             <div className="lg:col-span-5 space-y-6">
               
-              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-3xs space-y-4">
+              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
                 <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Checklist Density by department</h5>
                 
                 <div className="space-y-3">
@@ -1560,7 +1568,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
               </div>
 
               {/* Exit interview trends */}
-              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-3xs space-y-4">
+              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
                 <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Primary Separation Drivers</h5>
                 
                 <div className="space-y-3">

@@ -1228,7 +1228,7 @@ export default function EmployeeProfileTab({
           <button 
             id="profile-delete-btn"
             onClick={() => setShowDeleteModal(true)}
-            className="px-3.5 py-1.5 text-[11px] font-bold text-rose-500 hover:text-rose-600 bg-white border border-rose-200/60 hover:bg-rose-50/50 rounded-xl transition-all cursor-pointer shadow-3xs"
+            className="px-3.5 py-1.5 text-[11px] font-bold text-rose-500 hover:text-rose-600 bg-white border border-rose-200/60 hover:bg-rose-50/50 rounded-xl transition-all cursor-pointer shadow-xs"
           >
             Delete Employee
           </button>
@@ -1236,7 +1236,7 @@ export default function EmployeeProfileTab({
           <button 
             id="profile-pwd-reset"
             onClick={handleResetPassword}
-            className="px-3.5 py-1.5 text-[11px] font-bold text-slate-600 hover:text-slate-800 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-3xs"
+            className="px-3.5 py-1.5 text-[11px] font-bold text-slate-600 hover:text-slate-800 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all cursor-pointer shadow-xs"
           >
             Reset Password
           </button>
@@ -1244,7 +1244,7 @@ export default function EmployeeProfileTab({
       </div>
 
       {/* 2. EMPLOYEE SUMMARY TOP CARD (Tenure, Pay Grade, etc.) */}
-      <div id="profile-summary-header-card" className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm">
+      <div id="profile-summary-header-card" className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
           
           <div className="flex items-center gap-5">
@@ -1350,7 +1350,7 @@ export default function EmployeeProfileTab({
                 <div className="lg:col-span-6 space-y-6">
                   
                   {/* Card 1: Employment details */}
-                  <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-5">
+                  <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-5">
                     <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                       <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Employment details</h3>
                       {!isEditingSummary ? (
@@ -1467,7 +1467,7 @@ export default function EmployeeProfileTab({
                   </div>
 
                   {/* Card 2: Leave balance */}
-                  <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-5">
+                  <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-5">
                     <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-50 pb-3">Leave balance</h3>
                     
                     <div className="space-y-4">
@@ -1512,7 +1512,7 @@ export default function EmployeeProfileTab({
                 <div className="lg:col-span-6 space-y-6">
                   
                   {/* Card 1: Performance overview */}
-                  <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
+                  <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                     <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-50 pb-3">Performance overview</h3>
                     
                     <div className="space-y-3.5">
@@ -1575,7 +1575,7 @@ export default function EmployeeProfileTab({
                   </div>
 
                   {/* Card 2: HR Notes */}
-                  <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
+                  <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                     <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                       <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">HR notes</h3>
                       {!isEditingHRNotes ? (
@@ -1660,7 +1660,7 @@ export default function EmployeeProfileTab({
               <div id="subtab-personal-content" className="space-y-6">
                 
                 {/* Personal Information Grid */}
-                <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-5">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-5">
                   <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                     <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Personal information</h3>
                     {!isEditingPersonal ? (
@@ -1719,7 +1719,7 @@ export default function EmployeeProfileTab({
                 </div>
 
                 {/* Passport details */}
-                <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                   <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                     <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Passport details</h3>
                     <div className="flex items-center gap-2">
@@ -1761,7 +1761,7 @@ export default function EmployeeProfileTab({
                 </div>
 
                 {/* Current Address */}
-                <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                   <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                     <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Current address</h3>
                     {!isEditingAddress ? (
@@ -1835,7 +1835,7 @@ export default function EmployeeProfileTab({
               <div id="subtab-family-content" className="space-y-6">
                 
                 {/* 1. Family Members List Card */}
-                <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                   <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                     <div className="space-y-0.5">
                       <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Family members</h3>
@@ -1932,7 +1932,7 @@ export default function EmployeeProfileTab({
                 </div>
 
                 {/* 2. Next of Kin Emergency contact */}
-                <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                   <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                     <div className="space-y-0.5">
                       <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Next of kin / emergency contact</h3>
@@ -2016,7 +2016,7 @@ export default function EmployeeProfileTab({
               <div id="subtab-biometric-content" className="space-y-6">
                 
                 {/* 1. Device Registration Card */}
-                <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                   <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                     <div className="space-y-0.5">
                       <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Biometric device registration</h3>
@@ -2115,7 +2115,7 @@ export default function EmployeeProfileTab({
                 </div>
 
                 {/* 2. Attendance Settings Controls Card */}
-                <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                   <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-50 pb-3">Attendance settings</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs font-semibold">
@@ -2184,7 +2184,7 @@ export default function EmployeeProfileTab({
               <div id="subtab-payrate-content" className="space-y-6">
                 
                 {/* 1. Base Pay Rate */}
-                <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                   <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                     <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Base pay rate</h3>
                     {!isEditingPayRate ? (
@@ -2264,7 +2264,7 @@ export default function EmployeeProfileTab({
                 </div>
 
                 {/* 2. Allowances */}
-                <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                   <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                     <div className="space-y-0.5">
                       <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Allowances</h3>
@@ -2351,7 +2351,7 @@ export default function EmployeeProfileTab({
                 </div>
 
                 {/* 3. Deductions */}
-                <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                   <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                     <div className="space-y-0.5">
                       <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Deductions</h3>
@@ -2457,7 +2457,7 @@ export default function EmployeeProfileTab({
             {/* SUBTAB 6: Career Tab */}
             {activeTab === 'Career' && (
               <div id="subtab-career-content" className="space-y-6">
-                <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                   <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                     <div className="space-y-0.5">
                       <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Career history</h3>
@@ -2530,7 +2530,7 @@ export default function EmployeeProfileTab({
             {/* SUBTAB 7: Education Tab */}
             {activeTab === 'Education' && (
               <div id="subtab-education-content" className="space-y-6">
-                <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                   <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                     <div className="space-y-0.5">
                       <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Education</h3>
@@ -2607,7 +2607,7 @@ export default function EmployeeProfileTab({
             {/* SUBTAB 8: Documents Tab */}
             {activeTab === 'Documents' && (
               <div id="subtab-documents-content" className="space-y-6">
-                <div className="bg-white border border-slate-100 rounded-3xl p-6.5 shadow-sm space-y-4">
+                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                   <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                     <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Employee documents</h3>
                     <button 
@@ -2738,7 +2738,7 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Delete Employee Confirmation Dialog */}
       {showDeleteModal && (
         <div id="profile-delete-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-100 rounded-3xl p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">Archive Employee Record?</h4>
             <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">
               Are you sure you want to completely archive and revoke security clearance for <b>{employee.name}</b> ({employee.id})? This action is legally documented across active corporate ledgers.
@@ -2766,7 +2766,7 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Reset Password Dialog */}
       {showResetModal && (
         <div id="profile-reset-pwd-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-100 rounded-3xl p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">Regenerate Security Access</h4>
             <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">
               We generated a secure single-use temporary credentials profile for <b>{employee.name}</b>.
@@ -2804,7 +2804,7 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Document Upload Dialog */}
       {showUploadModal && (
         <div id="profile-upload-doc-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-100 rounded-3xl p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
                 <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -3328,7 +3328,7 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Add & Edit Allowance Modal */}
       {showAllowanceModal && (
         <div id="profile-allowance-modal-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-6 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
                 <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -3445,7 +3445,7 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Add & Edit Deduction Modal */}
       {showDeductionModal && (
         <div id="profile-deduction-modal-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-6 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
                 <h4 className="text-xs font-black text-slate-800 text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -3559,7 +3559,7 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Add & Edit Career Modal */}
       {showCareerModal && (
         <div id="profile-career-modal-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-6 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
                 <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -3663,7 +3663,7 @@ export default function EmployeeProfileTab({
       {/* PORTAL OVERLAY TRIGGER: Add & Edit Education Modal */}
       {showEducationModal && (
         <div id="profile-education-modal-overlay" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-6.5 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-6 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="space-y-0.5">
                 <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">

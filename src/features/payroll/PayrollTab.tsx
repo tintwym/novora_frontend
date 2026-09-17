@@ -454,6 +454,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
   // New states for User Request UI updates
   const [isCommitAllowancesModalOpen, setIsCommitAllowancesModalOpen] = useState(false);
+  const [commitBankAccount, setCommitBankAccount] = useState('corp-maybank');
 
   const [otPolicySettings, setOtPolicySettings] = useState({
     weekdayOtRate: '—',
@@ -1195,7 +1196,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
                   <button
                     onClick={() => setAllowanceModalOpen(true)}
-                    className="bg-novora hover:bg-opacity-95 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-tiny inline-flex items-center gap-1.5 self-end sm:self-auto cursor-pointer"
+                    className="bg-novora hover:bg-opacity-95 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-sm inline-flex items-center gap-1.5 self-end sm:self-auto cursor-pointer"
                   >
                     <Plus className="h-4 w-4" />
                     <span>New Allowance Type</span>
@@ -1309,16 +1310,20 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     }} className="space-y-3">
                       <div>
                         <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Employee Name</label>
-                        <select
+                        <SelectMenu
                           value={newTravelStaffName}
-                          onChange={(e) => setNewTravelStaffName(e.target.value)}
-                          className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-semibold text-slate-700"
-                        >
-                          <option value="">Select Employee...</option>
-                          {employees.map(emp => (
-                            <option key={emp.id} value={emp.name}>{emp.name} ({emp.id})</option>
-                          ))}
-                        </select>
+                          onChange={setNewTravelStaffName}
+                          placeholder="Select Employee..."
+                          preferUp
+                          triggerClassName="text-xs font-semibold text-slate-700 bg-white border-slate-200"
+                          options={[
+                            { value: '', label: 'Select Employee...' },
+                            ...employees.map(emp => ({
+                              value: emp.name,
+                              label: `${emp.name} (${emp.id})`,
+                            })),
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Claim Amount (SGD)</label>
@@ -1547,7 +1552,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   <button
                     type="button"
                     onClick={() => setBonusModalOpen(true)}
-                    className="bg-novora hover:bg-opacity-95 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-tiny inline-flex items-center gap-1.5 self-end sm:self-auto cursor-pointer"
+                    className="bg-novora hover:bg-opacity-95 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-sm inline-flex items-center gap-1.5 self-end sm:self-auto cursor-pointer"
                   >
                     <Plus className="h-4 w-4" />
                     <span>New Bonus Type</span>
@@ -1933,16 +1938,20 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       }} className="space-y-3">
                         <div>
                           <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Employee</label>
-                          <select
+                          <SelectMenu
                             value={newManualOtStaff}
-                            onChange={(e) => setNewManualOtStaff(e.target.value)}
-                            className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-semibold text-slate-700"
-                          >
-                            <option value="">Choose Employee...</option>
-                            {employees.map(emp => (
-                              <option key={emp.id} value={emp.name}>{emp.name}</option>
-                            ))}
-                          </select>
+                            onChange={setNewManualOtStaff}
+                            placeholder="Choose Employee..."
+                            preferUp
+                            triggerClassName="text-xs font-semibold text-slate-700 bg-white border-slate-200"
+                            options={[
+                              { value: '', label: 'Choose Employee...' },
+                              ...employees.map(emp => ({
+                                value: emp.name,
+                                label: emp.name,
+                              })),
+                            ]}
+                          />
                         </div>
                         <div>
                           <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">OT Hours Worked</label>
@@ -2141,16 +2150,20 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     }} className="space-y-3">
                       <div>
                         <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Target Employee</label>
-                        <select
+                        <SelectMenu
                           value={newOtReqStaff}
-                          onChange={(e) => setNewOtReqStaff(e.target.value)}
-                          className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-semibold text-slate-700"
-                        >
-                          <option value="">Choose Employee...</option>
-                          {employees.map(emp => (
-                            <option key={emp.id} value={emp.name}>{emp.name}</option>
-                          ))}
-                        </select>
+                          onChange={setNewOtReqStaff}
+                          placeholder="Choose Employee..."
+                          preferUp
+                          triggerClassName="text-xs font-semibold text-slate-700 bg-white border-slate-200"
+                          options={[
+                            { value: '', label: 'Choose Employee...' },
+                            ...employees.map(emp => ({
+                              value: emp.name,
+                              label: emp.name,
+                            })),
+                          ]}
+                        />
                       </div>
                       <div>
                         <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Overtime Duration (Hours)</label>
@@ -2309,7 +2322,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   <button
                     type="button"
                     onClick={() => setDepositModalOpen(true)}
-                    className="bg-novora hover:bg-opacity-95 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-tiny inline-flex items-center gap-1.5 cursor-pointer"
+                    className="bg-novora hover:bg-opacity-95 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-sm inline-flex items-center gap-1.5 cursor-pointer"
                   >
                     <Plus className="h-4 w-4" />
                     <span>New Deposit Type</span>
@@ -2443,7 +2456,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   <button
                     type="button"
                     onClick={() => setDeductionModalOpen(true)}
-                    className="bg-novora hover:bg-opacity-95 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-tiny inline-flex items-center gap-1.5 cursor-pointer self-end sm:self-auto"
+                    className="bg-novora hover:bg-opacity-95 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-sm inline-flex items-center gap-1.5 cursor-pointer self-end sm:self-auto"
                   >
                     <Plus className="h-4 w-4" />
                     <span>New Deduction Type</span>
@@ -2581,16 +2594,20 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   }} className="space-y-3">
                     <div>
                       <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Employee</label>
-                      <select
+                      <SelectMenu
                         value={newDedStaff}
-                        onChange={(e) => setNewDedStaff(e.target.value)}
-                        className="bg-white border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none font-semibold text-slate-700"
-                      >
-                        <option value="">Choose Employee...</option>
-                        {employees.map(emp => (
-                          <option key={emp.id} value={emp.name}>{emp.name}</option>
-                        ))}
-                      </select>
+                        onChange={setNewDedStaff}
+                        placeholder="Choose Employee..."
+                        preferUp
+                        triggerClassName="text-xs font-semibold text-slate-700 bg-white border-slate-200"
+                        options={[
+                          { value: '', label: 'Choose Employee...' },
+                          ...employees.map(emp => ({
+                            value: emp.name,
+                            label: emp.name,
+                          })),
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Deducted Amount (SGD)</label>
@@ -2685,7 +2702,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   <button
                     type="button"
                     onClick={() => setTaxModalOpen(true)}
-                    className="bg-novora hover:bg-opacity-95 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-tiny inline-flex items-center gap-1.5 cursor-pointer"
+                    className="bg-novora hover:bg-opacity-95 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-sm inline-flex items-center gap-1.5 cursor-pointer"
                   >
                     <Plus className="h-4 w-4" />
                     <span>New Tax Category</span>
@@ -3362,7 +3379,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         addToast('Downloaded employee ledger dataset successfully.', 'success');
                       }, 1200);
                     }}
-                    className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-white bg-novora hover:bg-opacity-95 rounded-xl transition-all shadow-tiny cursor-pointer whitespace-nowrap shrink-0"
+                    className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-white bg-novora hover:bg-opacity-95 rounded-xl transition-all shadow-sm cursor-pointer whitespace-nowrap shrink-0"
                   >
                     <FileSpreadsheet className="h-3.5 w-3.5" />
                     <span>Download Ledger</span>
@@ -4346,11 +4363,17 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             <div className="space-y-3 pt-1">
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Clearing Bank Fund</label>
-                <select className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-bold cursor-pointer text-slate-800">
-                  <option value="corp-maybank">Maybank Corporate Account - ******431</option>
-                  <option value="corp-cimb">CIMB Principal Treasury - ******980</option>
-                  <option value="corp-rhb">RHB Operating Reserves - ******102</option>
-                </select>
+                <SelectMenu
+                  value={commitBankAccount}
+                  onChange={setCommitBankAccount}
+                  preferUp
+                  triggerClassName="text-xs font-bold text-slate-800 bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'corp-maybank', label: 'Maybank Corporate Account - ******431' },
+                    { value: 'corp-cimb', label: 'CIMB Principal Treasury - ******980' },
+                    { value: 'corp-rhb', label: 'RHB Operating Reserves - ******102' },
+                  ]}
+                />
               </div>
             </div>
 

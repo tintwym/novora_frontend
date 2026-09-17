@@ -1326,18 +1326,20 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             <form onSubmit={handleRequestForOthersSubmit} className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 block uppercase">Employee *</label>
-                <select
+                <SelectMenu
                   value={rfoEmployee}
-                  onChange={(e) => setRfoEmployee(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-100 p-2.5 text-xs font-bold text-slate-700 rounded-xl focus:bg-white"
-                >
-                  <option value="">-- Select employee --</option>
-                  {employees.map(emp => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name} ({emp.id}) - {emp.department}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setRfoEmployee}
+                  placeholder="-- Select employee --"
+                  preferUp
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
+                  options={[
+                    { value: '', label: '-- Select employee --' },
+                    ...employees.map(emp => ({
+                      value: emp.id,
+                      label: `${emp.name} (${emp.id}) - ${emp.department}`,
+                    })),
+                  ]}
+                />
               </div>
 
               <div className="space-y-1">
@@ -1717,15 +1719,17 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
             <div className="flex items-center gap-3 flex-nowrap min-w-0">
               <span className="text-xs font-bold text-slate-500 whitespace-nowrap shrink-0">Selected employee profile:</span>
-              <select
+              <SelectMenu
                 value={profileSelectedEmpId}
-                onChange={(e) => setProfileSelectedEmpId(e.target.value)}
-                className="bg-white border border-slate-200 text-slate-700 text-xs font-bold p-2 rounded-xl focus:outline-none whitespace-nowrap shrink-0"
-              >
-                {employees.map(e => (
-                  <option key={e.id} value={e.id}>{e.name} ({e.id})</option>
-                ))}
-              </select>
+                onChange={setProfileSelectedEmpId}
+                aria-label="Employee profile"
+                className="w-auto shrink-0"
+                triggerClassName="bg-white border-slate-200 text-slate-700 text-xs font-bold p-2 rounded-xl"
+                options={employees.map(e => ({
+                  value: e.id,
+                  label: `${e.name} (${e.id})`,
+                }))}
+              />
               <span className="text-xs text-slate-400 font-bold italic">Leave &amp; time off policy breakdown</span>
             </div>
           </div>
@@ -1953,7 +1957,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">15 active</h3>
                 <span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">Across all units</span>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-slate-50 border border-slate-205 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center">
                 <Users className="h-5 w-5 text-slate-600" />
               </div>
             </div>
@@ -2196,7 +2200,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                             <td className="p-3 text-slate-500 text-[11px] font-semibold">{row.fromDate} to {row.toDate}</td>
                             <td className="p-3 text-slate-600 font-semibold">{row.paid}</td>
                             <td className="p-3 text-slate-500 italic text-[11px]">{row.rate}</td>
-                            <td className="p-3 text-slate-605 font-bold">{row.approvedBy}</td>
+                            <td className="p-3 text-slate-600 font-bold">{row.approvedBy}</td>
                             <td className="p-3 text-right pr-4">
                               <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-0.5 rounded-md font-bold text-[10px]">
                                 {row.status}
@@ -2357,7 +2361,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                       key={c.color}
                       type="button"
                       onClick={() => setNewTypeData({ ...newTypeData, color: c.color })}
-                      className={`h-6.5 w-6.5 rounded-full ${c.color} border-2 ${
+                      className={`h-6 w-6 rounded-full ${c.color} border-2 ${
                         newTypeData.color === c.color ? 'border-indigo-600 scale-110 shadow-sm' : 'border-transparent'
                       } cursor-pointer`}
                       title={c.name}
@@ -2503,16 +2507,19 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Leave Type</label>
-                  <select
+                  <SelectMenu
                     value={newPolicyData.type}
-                    onChange={(e) => setNewPolicyData({ ...newPolicyData, type: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 p-2.5 font-bold text-slate-700 rounded-xl"
-                  >
-                    {leaveTypes.map((type) => (
-                      <option key={type.id} value={type.name}>{type.name}</option>
-                    ))}
-                    <option value="Custom Policy Group">Custom Policy Group</option>
-                  </select>
+                    onChange={(v) => setNewPolicyData({ ...newPolicyData, type: v })}
+                    preferUp
+                    triggerClassName="font-bold text-slate-700 bg-slate-50 border-slate-200"
+                    options={[
+                      ...leaveTypes.map((type) => ({
+                        value: type.name,
+                        label: type.name,
+                      })),
+                      { value: 'Custom Policy Group', label: 'Custom Policy Group' },
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-1">
@@ -2615,7 +2622,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                         type="text"
                         value={newPolicyData.serviceBonusRange}
                         onChange={(e) => setNewPolicyData({ ...newPolicyData, serviceBonusRange: e.target.value })}
-                        className="w-full bg-white border border-slate-205 p-2 text-xs font-semibold text-slate-700 rounded-lg"
+                        className="w-full bg-white border border-slate-200 p-2 text-xs font-semibold text-slate-700 rounded-lg"
                         placeholder="e.g. 3-5 years service"
                       />
                     </div>
@@ -2625,7 +2632,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                         type="text"
                         value={newPolicyData.serviceBonusValue}
                         onChange={(e) => setNewPolicyData({ ...newPolicyData, serviceBonusValue: e.target.value })}
-                        className="w-full bg-white border border-slate-205 p-2 text-xs font-semibold text-slate-700 rounded-lg"
+                        className="w-full bg-white border border-slate-200 p-2 text-xs font-semibold text-slate-700 rounded-lg"
                         placeholder="e.g. +2 days"
                       />
                     </div>
@@ -2643,7 +2650,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                       type="text"
                       value={newPolicyData.ruleKey}
                       onChange={(e) => setNewPolicyData({ ...newPolicyData, ruleKey: e.target.value })}
-                      className="w-full bg-white border border-slate-205 p-2 text-xs font-semibold text-slate-700 rounded-lg"
+                      className="w-full bg-white border border-slate-200 p-2 text-xs font-semibold text-slate-700 rounded-lg"
                       placeholder="e.g. Count off / holidays"
                     />
                   </div>
@@ -2653,7 +2660,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                       type="text"
                       value={newPolicyData.ruleVal}
                       onChange={(e) => setNewPolicyData({ ...newPolicyData, ruleVal: e.target.value })}
-                      className="w-full bg-white border border-slate-205 p-2 text-xs font-semibold text-slate-700 rounded-lg"
+                      className="w-full bg-white border border-slate-200 p-2 text-xs font-semibold text-slate-700 rounded-lg"
                       placeholder="e.g. Excluded"
                     />
                   </div>

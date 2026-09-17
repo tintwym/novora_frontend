@@ -595,7 +595,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
               return (
                 <div 
                   key={plan.id}
-                  className={`bg-white border rounded-2xl p-6.5 shadow-xs transition-colors flex flex-col justify-between ${
+                  className={`bg-white border rounded-2xl p-6 shadow-xs transition-colors flex flex-col justify-between ${
                     isEnrolled ? 'border-novora bg-blue-50/5' : 'border-slate-100 hover:border-slate-200'
                   }`}
                 >
@@ -644,7 +644,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                       className={`text-xs font-extrabold px-4.5 py-2 rounded-xl transition-all select-none cursor-pointer ${
                         isEnrolled
                           ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200/50'
-                          : 'bg-novora text-white hover:bg-opacity-95 shadow-3xs'
+                          : 'bg-novora text-white hover:bg-opacity-95 shadow-xs'
                       }`}
                     >
                       {isEnrolled ? 'Cancel Coverage' : 'Request Enrollment'}
@@ -785,7 +785,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
 
             {/* Claims Ledger list across organization */}
             <div className="lg:col-span-2">
-              <div className="nv-card p-6.5 shadow-xs">
+              <div className="nv-card p-6 shadow-xs">
                 <div className="flex justify-between items-center mb-5">
                   <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">FSA Claims Database Receipts</h5>
                   <span className="text-[10px] font-bold font-mono text-slate-400">Total processed item list</span>
@@ -930,7 +930,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
 
           {/* List of registered dependents */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="nv-card p-6.5 shadow-xs">
+            <div className="nv-card p-6 shadow-xs">
               <div className="flex justify-between items-center mb-5">
                 <div>
                   <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Registered Dependents Schedule</h5>
@@ -1032,7 +1032,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
           </div>
 
           {/* Sync tables */}
-          <div className="nv-card p-6.5 shadow-xs">
+          <div className="nv-card p-6 shadow-xs">
             <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide mb-4">Benefit Line Items Transferred to Payroll Module</h5>
             
             <div className="overflow-x-auto">
@@ -1122,7 +1122,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
             </div>
           </div>
 
-          <div className="nv-card p-6.5 shadow-xs">
+          <div className="nv-card p-6 shadow-xs">
             <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide mb-5">Contracted Vendor Platforms</h5>
             
             <div className="space-y-4">
@@ -1177,7 +1177,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
           
           {/* Key Metric Indicators Row */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Total Monthly Premium</span>
                 <Coins className="h-4 w-4 text-indigo-500" />
@@ -1196,7 +1196,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
               </div>
             </div>
 
-            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Wallet FSA Usage</span>
                 <RefreshCw className="h-4 w-4 text-blue-500" />
@@ -1230,7 +1230,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
               </div>
             </div>
 
-            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Wellness Wallet Usage</span>
                 <HeartHandshake className="h-4 w-4 text-emerald-500" />
@@ -1264,7 +1264,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
               </div>
             </div>
 
-            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Covered Dependents</span>
                 <Users className="h-4 w-4 text-sky-500" />
@@ -1288,7 +1288,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             {/* Left Col: Claims Log Distribution and Category Breakdown (7 Cols) */}
-            <div className="lg:col-span-7 bg-white border border-slate-100 rounded-3xl p-6 shadow-3xs space-y-5">
+            <div className="lg:col-span-7 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-5">
               <div className="border-b border-slate-50 pb-3 flex justify-between items-center">
                 <div>
                   <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Claims Costing Analysis</h5>
@@ -1348,7 +1348,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
             {/* Right Col: Category Percentages & Target Cover Plans (5 Cols) */}
             <div className="lg:col-span-5 space-y-6">
               
-              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-3xs space-y-4">
+              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
                 <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Claims Category Ratios</h5>
                 
                 <div className="space-y-3">
@@ -1375,7 +1375,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
               </div>
 
               {/* Vendor Premium Analysis */}
-              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-3xs space-y-4">
+              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
                 <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Vendor Allocation Split</h5>
                 
                 <div className="space-y-3.5">

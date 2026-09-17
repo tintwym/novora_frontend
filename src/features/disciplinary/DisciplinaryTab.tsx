@@ -862,7 +862,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
         <div id="disciplinary-setup-view" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* Form Side - 7 cols */}
-          <form onSubmit={handleSaveCase} className="lg:col-span-7 bg-white border border-slate-100 rounded-2.5xl p-6 shadow-sm space-y-6">
+          <form onSubmit={handleSaveCase} className="lg:col-span-7 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-6">
             <div>
               <h3 className="text-sm font-bold text-slate-800 tracking-tight">Disciplinary Case Form</h3>
               <p className="text-[10.5px] font-semibold text-slate-400 mt-0.5">Create a formal incident log and configure standard warning actions</p>
@@ -1166,7 +1166,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 text-xs font-extrabold text-white bg-novora hover:bg-opacity-95 transition-all rounded-xl cursor-pointer shadow-tiny"
+                className="px-5 py-2.5 text-xs font-extrabold text-white bg-novora hover:bg-opacity-95 transition-all rounded-xl cursor-pointer shadow-sm"
               >
                 Save Disciplinary Case
               </button>
@@ -1215,7 +1215,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
           <div className="lg:col-span-5 space-y-6">
             
             {/* Warning Guide Card */}
-            <div className="bg-white border border-slate-100 rounded-2.5xl p-5 shadow-sm space-y-4">
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm space-y-4">
               <div>
                 <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
                   <ShieldAlert className="h-4.5 w-4.5 text-novora" />
@@ -1240,7 +1240,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
             </div>
 
             {/* Recent Cases Card */}
-            <div className="bg-white border border-slate-100 rounded-2.5xl p-5 shadow-sm space-y-4">
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
@@ -1333,7 +1333,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
           </div>
 
           {/* Case History Table */}
-          <div className="bg-white border border-slate-100 rounded-2.5xl overflow-hidden shadow-xs">
+          <div className="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-slate-700 min-w-225">
                 <thead>
@@ -1717,7 +1717,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                 <button
                   type="button"
                   onClick={() => addToast(`Exported Disciplinary ${disciplinaryReportType === 'detail' ? 'Detailed Logs' : 'Summary Balance'} Report successfully.`, 'success')}
-                  className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-extrabold text-white bg-novora hover:bg-opacity-95 rounded-xl transition-all shadow-tiny cursor-pointer whitespace-nowrap shrink-0"
+                  className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-extrabold text-white bg-novora hover:bg-opacity-95 rounded-xl transition-all shadow-sm cursor-pointer whitespace-nowrap shrink-0"
                 >
                   <FileSpreadsheet className="h-3.5 w-3.5" />
                   <span>Export</span>

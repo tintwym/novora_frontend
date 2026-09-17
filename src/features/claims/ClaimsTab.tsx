@@ -244,6 +244,10 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
   // Handle submit claim
   const handleSubmitClaim = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!selectedStaffName) {
+      addToast('Please select a claimant employee.', 'error')
+      return
+    }
     if (claimCategory.includes('--Select') || claimCategory === '-- Select category --' || !claimCategory) {
       addToast('Please select a valid claim category.', 'error')
       return
@@ -262,6 +266,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
         currency: claimCurrency || 'SGD',
         vendor: claimVendor || undefined,
         description: claimDesc || undefined,
+        employeeId: selectedStaffName || undefined,
       })
       setClaims((prev) => [mapClaim(created), ...prev.filter((c) => c.id !== created.id)])
       addToast(`Claim for ${claimCurrency} ${amount.toFixed(2)} submitted.`, 'success')
@@ -270,6 +275,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
       setClaimAmount('0.00')
       setClaimDesc('')
       setHasReceiptFile(false)
+      setSelectedStaffName('')
     } catch (err) {
       addToast(err instanceof ApiError ? err.message : 'Could not submit claim.', 'error')
     } finally {
@@ -2417,7 +2423,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
             </div>
 
             {/* Right Box: Receipt Voucher Replica preview */}
-            <div className="w-full md:w-87.5 bg-slate-100 border-t md:border-t-0 md:border-l border-slate-200 p-6 flex flex-col justify-between">
+            <div className="w-full md:w-[22rem] bg-slate-100 border-t md:border-t-0 md:border-l border-slate-200 p-6 flex flex-col justify-between">
               
               {/* Receipt Visual Body */}
               <div className="bg-white border text-center border-slate-200 p-5 rounded-2xl shadow-md rotate-1 hover:rotate-0 transition-all font-mono text-slate-700 text-xs space-y-4">
@@ -2532,7 +2538,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               ) : (
                 /* Regular review content */
                 <>
-                  <div className="bg-orange-50 text-orange-850 border border-orange-150 p-4 rounded-xl font-semibold flex items-start gap-2.5 leading-normal">
+                  <div className="bg-orange-50 text-orange-800 border border-orange-100 p-4 rounded-xl font-semibold flex items-start gap-2.5 leading-normal">
                     <AlertCircle className="h-4 w-4 text-orange-650 shrink-0 mt-0.5" />
                     <div>
                       <p className="font-bold text-orange-900">Irreversible Action Warning</p>

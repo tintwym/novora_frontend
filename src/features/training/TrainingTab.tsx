@@ -76,7 +76,7 @@ type TrainingSubTab =
 export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
   const [activeTab, setActiveTab] = useState<TrainingSubTab>('Course');
   const [searchQuery, setSearchQuery] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState('All training types');
+  const [departmentFilter, setDepartmentFilter] = useState('All types');
 
   // REPORTS STATES
   const [selectedReportType, setSelectedReportType] = useState<'compliance' | 'skills' | 'budget'>('compliance');
@@ -217,6 +217,8 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
   // REQUEST ON BEHALF INPUTS
   const [behalfEmpChoice, setBehalfEmpChoice] = useState<'individual' | 'all'>('individual');
   const [behalfSelectedEmps, setBehalfSelectedEmps] = useState<string[]>(['Sarah Lim']);
+  const [behalfScope, setBehalfScope] = useState('Individual employees');
+  const [behalfDept, setBehalfDept] = useState('');
   const [behalfCourse, setBehalfCourse] = useState('Leadership essentials');
   const [behalfLocation, setBehalfLocation] = useState('Training Room A');
   const [behalfContribution, setBehalfContribution] = useState('100% / Fixed SGD');
@@ -1251,17 +1253,30 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Submit for <span className="text-rose-500">*</span></label>
-                  <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-                    <option>Individual employees</option>
-                  </select>
+                  <SelectMenu
+                    value={behalfScope}
+                    onChange={setBehalfScope}
+                    preferUp
+                    triggerClassName="bg-slate-50 border-slate-200"
+                    options={[
+                      { value: 'Individual employees', label: 'Individual employees' },
+                    ]}
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Department</label>
-                  <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-                    <option>-- Select --</option>
-                    <option>Engineering</option>
-                    <option>HR</option>
-                  </select>
+                  <SelectMenu
+                    value={behalfDept}
+                    onChange={setBehalfDept}
+                    placeholder="-- Select --"
+                    preferUp
+                    triggerClassName="bg-slate-50 border-slate-200"
+                    options={[
+                      { value: '', label: '-- Select --' },
+                      { value: 'Engineering', label: 'Engineering' },
+                      { value: 'HR', label: 'HR' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -1294,15 +1309,21 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 <span className="text-[10.5px] uppercase text-slate-400 font-extrabold block">Training details</span>
                 <div className="space-y-1">
                   <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Course title <span className="text-rose-500">*</span></label>
-                  <select value={behalfCourse} onChange={e => setBehalfCourse(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
-                    {courses.length === 0 ? (
-                      <option value="">No courses loaded</option>
-                    ) : (
-                      courses.map((c) => (
-                        <option key={c.id} value={c.title}>{c.title}</option>
-                      ))
-                    )}
-                  </select>
+                  <SelectMenu
+                    value={behalfCourse}
+                    onChange={setBehalfCourse}
+                    preferUp
+                    placeholder={courses.length === 0 ? 'No courses loaded' : undefined}
+                    triggerClassName="bg-slate-50 border-slate-200"
+                    options={
+                      courses.length === 0
+                        ? [{ value: '', label: 'No courses loaded' }]
+                        : courses.map((c) => ({
+                            value: c.title,
+                            label: c.title,
+                          }))
+                    }
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

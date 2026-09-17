@@ -646,7 +646,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
           </div>
 
           {/* Micro Pulse Polls Section */}
-          <div className="nv-card p-6.5 shadow-xs">
+          <div className="nv-card p-6 shadow-xs">
             <div className="flex justify-between items-center mb-5 border-b border-slate-50 pb-4">
               <div>
                 <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Weekly Pulse Micro-Surveys</h5>
@@ -762,7 +762,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                   <div className={`p-4 rounded-xl transition-all ${simulatedAiVibe.color}`}>
                     <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-wider mb-1.5">
                       <span>⚡ AI Text Sentiment Pre-Check</span>
-                      <span className="bg-white px-2 py-0.5 rounded shadow-3xs">{simulatedAiVibe.category}</span>
+                      <span className="bg-white px-2 py-0.5 rounded shadow-xs">{simulatedAiVibe.category}</span>
                     </div>
                     <p className="text-[10.5px] font-semibold leading-relaxed">
                       {simulatedAiVibe.text}
@@ -901,7 +901,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                     <div className="shrink-0 flex md:flex-col justify-center items-center p-3.5 md:p-0 bg-slate-50 md:bg-transparent rounded-xl md:rounded-none gap-3">
                       <button
                         onClick={() => handleHeartSuggestion(entry.id, entry.engagementHearts)}
-                        className="p-3 bg-white border border-slate-100 hover:border-rose-200 text-slate-500 hover:text-rose-600 rounded-xl transition-all cursor-pointer shadow-3xs flex items-center gap-2"
+                        className="p-3 bg-white border border-slate-100 hover:border-rose-200 text-slate-500 hover:text-rose-600 rounded-xl transition-all cursor-pointer shadow-xs flex items-center gap-2"
                         title="Vouch / Agree with this issue"
                       >
                         <Heart className="h-4.5 w-4.5 text-rose-500 fill-rose-500" />
@@ -938,17 +938,16 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                   {/* Receiver selection */}
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Pick Recipient Colleague</label>
-                    <select
+                    <SelectMenu
                       value={shoutOutReceiverId}
-                      onChange={(e) => setShoutOutReceiverId(e.target.value)}
-                      className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 outline-none cursor-pointer focus:bg-white focus:border-slate-200 transition-all"
-                    >
-                      {employees.map(emp => (
-                        <option key={emp.id} value={emp.id}>
-                          {emp.name} ({emp.position} &bull; {emp.department})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setShoutOutReceiverId}
+                      preferUp
+                      triggerClassName="text-xs font-bold text-slate-700 bg-slate-50 border-slate-100"
+                      options={employees.map(emp => ({
+                        value: emp.id,
+                        label: `${emp.name} (${emp.position} · ${emp.department})`,
+                      }))}
+                    />
                   </div>
 
                   {/* Badge selection */}
@@ -962,7 +961,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                           onClick={() => setSelectedBadgeIndex(index)}
                           className={`p-2.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                             selectedBadgeIndex === index
-                              ? 'bg-blue-50/50 border-novora/40 shadow-3xs text-novora'
+                              ? 'bg-blue-50/50 border-novora/40 shadow-xs text-novora'
                               : 'bg-white border-slate-100 text-slate-600 hover:bg-slate-50/50'
                           }`}
                         >
@@ -1066,7 +1065,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
 
                       <button
                         onClick={() => handleClapShoutOut(card.id)}
-                        className="p-1.5 px-3 bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-novora rounded-lg border border-slate-100 transition-colors cursor-pointer text-[10.5px] font-black flex items-center gap-1.5 shadow-3xs"
+                        className="p-1.5 px-3 bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-novora rounded-lg border border-slate-100 transition-colors cursor-pointer text-[10.5px] font-black flex items-center gap-1.5 shadow-xs"
                         title="Cheer for this peer!"
                       >
                         <span>👏 Applause</span>
@@ -1227,7 +1226,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
 
             {/* Live active Action dockets */}
             <div className="lg:col-span-2 space-y-4">
-              <div className="nv-card p-6.5 shadow-xs">
+              <div className="nv-card p-6 shadow-xs">
                 <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide mb-4">Organizational Wellness & Action Planning logs</h5>
                 
                 <div className="space-y-3">
@@ -1314,7 +1313,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
           {/* Key Engagement KPI grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             
-            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Unified eNPS Rating</span>
                 <Smile className="h-4 w-4 text-emerald-500" />
@@ -1339,7 +1338,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
               </div>
             </div>
 
-            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Pulse Polls Casted</span>
                 <ClipboardList className="h-4 w-4 text-novora" />
@@ -1357,7 +1356,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
               </div>
             </div>
 
-            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Peer Appreciation</span>
                 <MessageSquare className="h-4 w-4 text-sky-500" />
@@ -1376,7 +1375,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
               </div>
             </div>
 
-            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-3xs">
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs">
               <div className="flex justify-between items-center text-slate-400">
                 <span className="text-[10px] font-black uppercase tracking-wider block">Action Plan Progress</span>
                 <Target className="h-4 w-4 text-pink-500" />
@@ -1402,7 +1401,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             {/* Left Aspect: AI Sentiment Analyser Matrix (7 Cols) */}
-            <div className="lg:col-span-7 bg-white border border-slate-100 rounded-3xl p-6 shadow-3xs space-y-5">
+            <div className="lg:col-span-7 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-5">
               <div className="border-b border-slate-50 pb-3 flex justify-between items-center">
                 <div>
                   <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Real-time Vibe & Sentiment Feed</h5>
@@ -1466,7 +1465,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
             {/* Right Aspect: eNPS Metrics Spread and Badges list (5 Cols) */}
             <div className="lg:col-span-5 space-y-6">
               
-              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-3xs space-y-4">
+              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
                 <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">eNPS Group Tally Weights</h5>
                 
                 <div className="space-y-3.5">
@@ -1503,7 +1502,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
               </div>
 
               {/* Badges Distribution Stats */}
-              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-3xs space-y-4">
+              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
                 <h5 className="text-[12.5px] font-black text-slate-800 uppercase tracking-wide">Shared Badges Distribution</h5>
                 
                 <div className="space-y-3">

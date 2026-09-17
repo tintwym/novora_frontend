@@ -533,7 +533,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
           
           {/* Quick Stats overview panel */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-3xs flex items-center gap-3">
+            <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-xs flex items-center gap-3">
               <span className="p-2 bg-blue-50 text-novora rounded-lg">
                 <BookOpen className="h-4 w-4" />
               </span>
@@ -543,7 +543,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
               </div>
             </div>
 
-            <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-3xs flex items-center gap-3">
+            <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-xs flex items-center gap-3">
               <span className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
                 <CheckCircle2 className="h-4 w-4" />
               </span>
@@ -553,7 +553,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
               </div>
             </div>
 
-            <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-3xs flex items-center gap-3">
+            <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-xs flex items-center gap-3">
               <span className="p-2 bg-sky-50 text-sky-600 rounded-lg">
                 <Award className="h-4 w-4" />
               </span>
@@ -563,7 +563,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
               </div>
             </div>
 
-            <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-3xs flex items-center gap-3">
+            <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-xs flex items-center gap-3">
               <span className="p-2 bg-rose-50 text-rose-600 rounded-lg">
                 <AlertTriangle className="h-4 w-4" />
               </span>
@@ -640,7 +640,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
               </button>
               <button
                 onClick={() => setIsLmsModalOpen(true)}
-                className="bg-novora hover:bg-opacity-95 text-white font-extrabold text-xs px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer transition-all shadow-3xs"
+                className="bg-novora hover:bg-opacity-95 text-white font-extrabold text-xs px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer transition-all shadow-xs"
               >
                 <Upload className="h-3.5 w-3.5" />
                 <span>Import SCORM/xAPI Packet</span>
@@ -692,21 +692,21 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleRegisterLmsDemoPreset('LinkedIn Learning')}
-                className="bg-white border-slate-100 text-slate-600 hover:border-blue-300 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 shadow-3xs"
+                className="bg-white border-slate-100 text-slate-600 hover:border-blue-300 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 shadow-xs"
               >
                 <span>Connect LinkedIn Learning</span>
                 <ExternalLink className="h-2.5 w-2.5 text-slate-400" />
               </button>
               <button
                 onClick={() => handleRegisterLmsDemoPreset('Coursera Enterprise')}
-                className="bg-white border-slate-100 text-slate-600 hover:border-indigo-300 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 shadow-3xs"
+                className="bg-white border-slate-100 text-slate-600 hover:border-indigo-300 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 shadow-xs"
               >
                 <span>Connect Coursera</span>
                 <ExternalLink className="h-2.5 w-2.5 text-slate-400" />
               </button>
               <button
                 onClick={() => handleRegisterLmsDemoPreset('Udemy Business')}
-                className="bg-white border-slate-100 text-slate-600 hover:border-red-350 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 shadow-3xs"
+                className="bg-white border-slate-100 text-slate-600 hover:border-red-350 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 shadow-xs"
               >
                 <span>Connect Udemy Business</span>
                 <ExternalLink className="h-2.5 w-2.5 text-slate-400" />
@@ -836,7 +836,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-novora text-white rounded-xl text-xs font-black shadow-3xs cursor-pointer"
+                      className="px-4 py-2 bg-novora text-white rounded-xl text-xs font-black shadow-xs cursor-pointer"
                     >
                       Unpack & Complete Import
                     </button>
@@ -937,7 +937,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                     ) : (
                       <button
                         onClick={() => handleEnrollCourse(course.id)}
-                        className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white hover:bg-blue-600 hover:text-white text-[10.5px] font-extrabold rounded-lg transition-all cursor-pointer shadow-3xs"
+                        className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white hover:bg-blue-600 hover:text-white text-[10.5px] font-extrabold rounded-lg transition-all cursor-pointer shadow-xs"
                       >
                         Enroll as Student
                       </button>
@@ -1060,7 +1060,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                   <div className="flex items-end">
                     <button
                       type="submit"
-                      className="w-full bg-novora hover:bg-opacity-95 text-white text-xs font-black py-2.5 rounded-xl cursor-pointer shadow-3xs"
+                      className="w-full bg-novora hover:bg-opacity-95 text-white text-xs font-black py-2.5 rounded-xl cursor-pointer shadow-xs"
                     >
                       Save Bundle
                     </button>
@@ -1101,7 +1101,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
           {/* Paths display roster */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {learningPaths.map((path) => (
-              <div key={path.id} className="nv-card p-6.5 shadow-xs hover:border-slate-200 transition-all flex flex-col justify-between">
+              <div key={path.id} className="nv-card p-6 shadow-xs hover:border-slate-200 transition-all flex flex-col justify-between">
                 <div>
                   
                   {/* Category top row */}
@@ -1241,7 +1241,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                   </button>
                   <button
                     onClick={() => handleCertRenewalProcess(rec.id)}
-                    className="px-3 py-1.5 bg-novora hover:bg-opacity-95 text-white rounded-lg text-[10px] font-black shadow-3xs cursor-pointer"
+                    className="px-3 py-1.5 bg-novora hover:bg-opacity-95 text-white rounded-lg text-[10px] font-black shadow-xs cursor-pointer"
                   >
                     Renew Overrides
                   </button>
@@ -1354,7 +1354,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                       onClick={() => handleInitializeQuizSession(quiz)}
                       className={`w-full text-left p-3.5 border rounded-2xl flex flex-col transition-all cursor-pointer ${
                         isCurated 
-                          ? 'bg-blue-50/50 border-novora/45 shadow-3xs'
+                          ? 'bg-blue-50/50 border-novora/45 shadow-xs'
                           : 'bg-slate-50/50 border-slate-100/80 hover:bg-slate-50 hover:border-slate-200'
                       }`}
                     >
@@ -1412,7 +1412,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                   {/* Main scoring card overlay if submitted */}
                   {quizScoreCard ? (
                     <div className="p-6 rounded-2xl text-center space-y-4 border max-w-lg mx-auto bg-slate-50/50 border-slate-100">
-                      <div className="inline-flex h-12 w-12 rounded-full items-center justify-center text-lg shadow-3xs font-black bg-white shrink-0">
+                      <div className="inline-flex h-12 w-12 rounded-full items-center justify-center text-lg shadow-xs font-black bg-white shrink-0">
                         {quizScoreCard.passed ? '🎉' : '❌'}
                       </div>
 
@@ -1508,7 +1508,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                         <button
                           type="button"
                           onClick={handleSubmitQuizAnswers}
-                          className="bg-novora hover:bg-opacity-95 text-white font-extrabold px-6 py-2 rounded-xl transition-all shadow-3xs cursor-pointer flex items-center gap-1.5"
+                          className="bg-novora hover:bg-opacity-95 text-white font-extrabold px-6 py-2 rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
                         >
                           <span>Request Test Grade</span>
                           <ArrowRight className="h-4 w-4" />
@@ -1520,7 +1520,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
 
                 </div>
               ) : (
-                <div className="nv-card p-10 text-center space-y-4 shadow-3xs">
+                <div className="nv-card p-10 text-center space-y-4 shadow-xs">
                   <Play className="h-10 w-10 text-novora mx-auto bg-blue-50 p-2.5 rounded-full inline-flex items-center shrink-0" />
                   
                   <div className="space-y-1">
@@ -1547,7 +1547,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Completion rate bar charts list */}
-            <div className="lg:col-span-2 nv-card p-6.5 shadow-xs flex flex-col justify-between">
+            <div className="lg:col-span-2 nv-card p-6 shadow-xs flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-start mb-4 border-b border-slate-50 pb-3">
                   <div>
@@ -1589,7 +1589,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
             </div>
 
             {/* Micro Telemetry Metrics */}
-            <div className="nv-card p-6.5 shadow-xs flex flex-col justify-between">
+            <div className="nv-card p-6 shadow-xs flex flex-col justify-between">
               <div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4">Training Efficiency KPI Metrics</span>
                 
