@@ -708,6 +708,7 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
 .nv-chevron-icon {
   flex-shrink: 0;
   color: #94a3b8;
+  display: block;
 }
 
 .nv-chevron-down--sm {
@@ -725,14 +726,47 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   height: 1rem;
 }
 
-.nv-chevron-down {
-  margin-inline-end: 0.125rem;
+/* Shared toolbar dropdown trigger — keeps icon/label/chevron evenly spaced */
+.nv-dd-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 2.25rem;
+  padding: 0 0.875rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 150ms ease, background-color 150ms ease;
 }
 
-button:has(> .nv-chevron-down:last-child):not(.nv-select-trigger),
-button:has(> .lucide-chevron-down:last-child):not(.nv-select-trigger) {
-  padding-inline-end: 1rem !important;
-  gap: 0.5rem;
+.nv-dd-trigger:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.nv-dd-trigger[aria-expanded='true'],
+.nv-dd-trigger.nv-dd-trigger--open {
+  border-color: color-mix(in srgb, var(--color-novora) 35%, #e2e8f0);
+  background: color-mix(in srgb, var(--color-novora) 5%, #fff);
+}
+
+.nv-dd-trigger > svg,
+.nv-dd-trigger > .nv-chevron-down,
+.nv-dd-trigger > .lucide {
+  flex-shrink: 0;
+}
+
+.nv-dd-trigger > span {
+  display: inline-block;
+  line-height: 1.25;
 }
 
 .nv-trailing-icon {
@@ -744,17 +778,21 @@ button:has(> .lucide-chevron-down:last-child):not(.nv-select-trigger) {
 }
 
 /* Custom dropdown anchor — menu always opens below trigger */
-.nv-dropdown-anchor {
+.nv-dropdown-anchor,
+.nv-dd-anchor {
   position: relative;
   display: block;
-  width: 100%;
   overflow: visible;
+}
+
+.nv-dropdown-anchor {
+  width: 100%;
 }
 
 .nv-dropdown-panel,
 .nv-dropdown-menu {
   position: absolute;
-  top: calc(100% + 0.5rem);
+  top: calc(100% + 0.375rem);
   z-index: 60;
   margin-top: 0;
 }
@@ -766,24 +804,30 @@ button:has(> .lucide-chevron-down:last-child):not(.nv-select-trigger) {
 
 .nv-dropdown-menu {
   min-width: 100%;
-  animation: nv-dropdown-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: nv-dropdown-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* Portaled menus: positioning handled by DropdownAnchor / SelectMenu */
+.nv-dropdown-portal {
+  filter: drop-shadow(0 8px 20px color-mix(in srgb, var(--color-novora-ink) 10%, transparent));
+}
+
 .nv-dropdown-portal .nv-dropdown-menu,
 .nv-dropdown-portal .nv-dropdown-panel {
-  position: static;
-  top: auto;
-  right: auto;
-  left: auto;
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
   z-index: auto;
-  min-width: 100%;
+  min-width: 0;
   width: max-content;
-  max-width: min(20rem, calc(100vw - 1.5rem));
+  max-width: min(20rem, calc(100vw - 1rem));
+  margin: 0;
+  animation: nv-dropdown-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .nv-dropdown-in {
-  animation: nv-dropdown-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: nv-dropdown-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .nv-dropdown-menu--right {
@@ -901,7 +945,7 @@ button:has(> .lucide-chevron-down:last-child):not(.nv-select-trigger) {
 @keyframes nv-dropdown-in {
   from {
     opacity: 0;
-    transform: translateY(0.375rem);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -951,14 +995,6 @@ button:has(> .lucide-chevron-down:last-child):not(.nv-select-trigger) {
 
 #novora-hrms-root .nv-select-wrap select {
   background-image: none !important;
-}
-
-#novora-hrms-root button:has(.nv-chevron-down):not(.nv-select-trigger),
-#novora-hrms-root button:has(.lucide-chevron-down):not(.nv-select-trigger),
-#app-topbar button:has(.nv-chevron-down):not(.nv-select-trigger),
-#app-topbar button:has(.lucide-chevron-down):not(.nv-select-trigger) {
-  padding-inline-end: 1rem !important;
-  gap: 0.5rem;
 }
 
 #novora-hrms-root select:not([multiple]):not([size]):disabled {

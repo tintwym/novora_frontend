@@ -226,6 +226,10 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
   const [deptFilter, setDeptFilter] = useState<string>('All departments');
   const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const [pipelinePosition, setPipelinePosition] = useState('All positions');
+  const [pipelineSource, setPipelineSource] = useState('All sources');
+  const [pipelinePositionOpen, setPipelinePositionOpen] = useState(false);
+  const [pipelineSourceOpen, setPipelineSourceOpen] = useState(false);
 
   // Interactive Reports Tab filters
   const [reportFilterDept, setReportFilterDept] = useState<string>('All departments');
@@ -877,7 +881,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 setExportDropdownOpen(false)
                 setDeptDropdownOpen(!deptDropdownOpen)
               }}
-              className="h-9 flex items-center gap-2 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 transition-colors rounded-xl cursor-pointer whitespace-nowrap"
+              className="nv-dd-trigger"
             >
               <span>{deptFilter}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
@@ -918,7 +922,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
               }}
               className="h-9 bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/20 font-bold text-xs text-slate-700 px-3.5 rounded-xl transition-all shadow-xs inline-flex items-center gap-2 cursor-pointer whitespace-nowrap"
             >
-              <Download className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+              <Download className="h-3.5 w-3.5 text-slate-500" />
               <span>Export</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
@@ -1283,18 +1287,78 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
             {/* Filter controls bar */}
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div id="position-dropdown" className="relative">
-                  <button className="h-9 inline-flex items-center gap-2 px-3.5 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0">
-                    <span className="whitespace-nowrap">Position: HR Business Partner</span>
+                <DropdownAnchor
+                  open={pipelinePositionOpen}
+                  onClose={() => setPipelinePositionOpen(false)}
+                  align="left"
+                >
+                  <button
+                    type="button"
+                    aria-expanded={pipelinePositionOpen}
+                    onClick={() => {
+                      setPipelineSourceOpen(false)
+                      setPipelinePositionOpen(!pipelinePositionOpen)
+                    }}
+                    className={`nv-dd-trigger ${pipelinePositionOpen ? 'nv-dd-trigger--open' : ''}`}
+                  >
+                    <span>Position: {pipelinePosition}</span>
                     <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
                   </button>
-                </div>
-                <div id="source-dropdown" className="relative">
-                  <button className="h-9 inline-flex items-center gap-2 px-3.5 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0">
-                    <span className="whitespace-nowrap">All sources</span>
+                  {pipelinePositionOpen ? (
+                    <div className="nv-dropdown-menu w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
+                      {['All positions', 'HR Business Partner', 'Software Engineer', 'Finance Analyst'].map((p) => (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => {
+                            setPipelinePosition(p)
+                            setPipelinePositionOpen(false)
+                            addToast(`Pipeline filtered by ${p}`, 'info')
+                          }}
+                          className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-novora transition-colors"
+                        >
+                          {p}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </DropdownAnchor>
+                <DropdownAnchor
+                  open={pipelineSourceOpen}
+                  onClose={() => setPipelineSourceOpen(false)}
+                  align="left"
+                >
+                  <button
+                    type="button"
+                    aria-expanded={pipelineSourceOpen}
+                    onClick={() => {
+                      setPipelinePositionOpen(false)
+                      setPipelineSourceOpen(!pipelineSourceOpen)
+                    }}
+                    className={`nv-dd-trigger ${pipelineSourceOpen ? 'nv-dd-trigger--open' : ''}`}
+                  >
+                    <span>{pipelineSource}</span>
                     <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
                   </button>
-                </div>
+                  {pipelineSourceOpen ? (
+                    <div className="nv-dropdown-menu w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
+                      {['All sources', 'LinkedIn', 'Referral', 'Agency', 'Careers page'].map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => {
+                            setPipelineSource(s)
+                            setPipelineSourceOpen(false)
+                            addToast(`Source filter: ${s}`, 'info')
+                          }}
+                          className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-novora transition-colors"
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </DropdownAnchor>
                 <button
                   type="button"
                   disabled={aiCandBusy || !selectedCandidateId}

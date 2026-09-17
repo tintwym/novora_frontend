@@ -717,7 +717,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                 setDeptDropdownOpen(false)
                 setYearDropdownOpen(!yearDropdownOpen)
               }}
-              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 whitespace-nowrap shrink-0"
+              className="nv-dd-trigger"
             >
               <span className="whitespace-nowrap">{selectedYear}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
@@ -753,7 +753,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                 setYearDropdownOpen(false)
                 setDeptDropdownOpen(!deptDropdownOpen)
               }}
-              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 whitespace-nowrap shrink-0"
+              className="nv-dd-trigger"
             >
               <span className="whitespace-nowrap">{selectedDept}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />

@@ -671,7 +671,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             <button
               type="button"
               onClick={() => { setYearDropdownOpen(!yearDropdownOpen); setDeptDropdownOpen(false); }}
-              className="h-9 bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 rounded-xl inline-flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-all whitespace-nowrap"
+              className="nv-dd-trigger"
             >
               <span>{selectedYear}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
@@ -701,7 +701,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             <button
               type="button"
               onClick={() => { setDeptDropdownOpen(!deptDropdownOpen); setYearDropdownOpen(false); }}
-              className="h-9 bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 rounded-xl inline-flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-all whitespace-nowrap"
+              className="nv-dd-trigger"
             >
               <span>{selectedDept}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
@@ -768,7 +768,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 <button
                   type="button"
                   onClick={() => setTypeFilterDropdown(!typeFilterDropdown)}
-                  className="h-9 bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 rounded-xl inline-flex items-center gap-1.5 select-none cursor-pointer whitespace-nowrap shrink-0"
+                  className="nv-dd-trigger"
                 >
                   <span className="whitespace-nowrap">{typeFilter}</span>
                   <ChevronDown className="nv-chevron-down nv-chevron-down--md" />

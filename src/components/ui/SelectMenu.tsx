@@ -40,6 +40,10 @@ type PanelPos = {
   maxHeight: number
 }
 
+function clamp(n: number, min: number, max: number) {
+  return Math.min(Math.max(n, min), max)
+}
+
 export default function SelectMenu({
   value,
   onChange,
@@ -71,17 +75,14 @@ export default function SelectMenu({
     const trigger = triggerRef.current
     if (!trigger) return
     const rect = trigger.getBoundingClientRect()
-    const gap = 8
-    const viewportPad = 12
-    const spaceBelow = window.innerHeight - rect.bottom - viewportPad
-    const spaceAbove = rect.top - viewportPad
+    const gap = 6
+    const pad = 8
+    const spaceBelow = window.innerHeight - rect.bottom - pad
+    const spaceAbove = rect.top - pad
     const openUp = preferUp ? spaceAbove > spaceBelow : spaceBelow < 180 && spaceAbove > spaceBelow
     const available = Math.max(120, (openUp ? spaceAbove : spaceBelow) - gap)
     const width = Math.max(rect.width, 160)
-    const left = Math.min(
-      Math.max(viewportPad, rect.left),
-      Math.max(viewportPad, window.innerWidth - width - viewportPad),
-    )
+    const left = clamp(rect.left, pad, window.innerWidth - width - pad)
 
     if (openUp) {
       setPos({
@@ -106,6 +107,9 @@ export default function SelectMenu({
       return
     }
     updatePosition()
+    const id = requestAnimationFrame(() => updatePosition())
+    return () => cancelAnimationFrame(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, preferUp, options.length])
 
   useEffect(() => {
@@ -138,24 +142,26 @@ export default function SelectMenu({
     }
     const onReposition = () => updatePosition()
 
-    document.addEventListener('mousedown', onPointerDown)
-    document.addEventListener('touchstart', onPointerDown)
+    // Defer so the opening click cannot immediately close the menu
+    const timer = window.setTimeout(() => {
+      document.addEventListener('click', onPointerDown, true)
+    }, 0)
     document.addEventListener('keydown', onKeyDown)
     window.addEventListener('resize', onReposition)
     window.addEventListener('scroll', onReposition, true)
 
     return () => {
+      window.clearTimeout(timer)
       window.removeEventListener(CLOSE_EVENT, closeSelf)
       window.removeEventListener('nv-dropdown-close', closeFromAnchor)
-      document.removeEventListener('mousedown', onPointerDown)
-      document.removeEventListener('touchstart', onPointerDown)
+      document.removeEventListener('click', onPointerDown, true)
       document.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('resize', onReposition)
       window.removeEventListener('scroll', onReposition, true)
     }
   }, [open, autoId])
 
-  const panelStyle: CSSProperties | undefined = pos
+  const panelStyle: CSSProperties = pos
     ? {
         position: 'fixed',
         top: pos.top ?? 'auto',
@@ -163,12 +169,20 @@ export default function SelectMenu({
         left: pos.left,
         width: pos.width,
         maxHeight: pos.maxHeight,
-        zIndex: 90,
+        zIndex: 200,
+        visibility: 'visible',
       }
-    : undefined
+    : {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        zIndex: 200,
+        visibility: 'hidden',
+        pointerEvents: 'none',
+      }
 
   const panel =
-    open && pos && mounted
+    open && mounted
       ? createPortal(
           <ul
             ref={panelRef}

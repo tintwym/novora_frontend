@@ -402,7 +402,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 setDeptDropdownOpen(false)
                 setMonthDropdownOpen(!monthDropdownOpen)
               }}
-              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0"
+              className="nv-dd-trigger"
             >
               <span className="whitespace-nowrap">{headerMonth}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
@@ -435,7 +435,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 setMonthDropdownOpen(false)
                 setDeptDropdownOpen(!deptDropdownOpen)
               }}
-              className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl cursor-pointer whitespace-nowrap shrink-0"
+              className="nv-dd-trigger"
             >
               <span className="whitespace-nowrap">{headerDept}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />

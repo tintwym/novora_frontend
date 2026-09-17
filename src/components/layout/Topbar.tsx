@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   Search,
   Bell,
@@ -12,6 +12,7 @@ import type { AuthSession } from '@/types'
 import { primaryRole, roleDisplayLabel } from '@/lib/roles'
 import { sidebarLabel } from '@/lib/navLabels'
 import { formatPersonDisplayName } from '@/lib/personName'
+import { DropdownAnchor } from '@/components/ui'
 import {
   ApiError,
   fetchMyNotifications,
@@ -81,8 +82,6 @@ export default function Topbar({
   const [profileOpen, setProfileOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [notifications, setNotifications] = useState<NotifyUi[]>([])
-  const profileRef = useRef<HTMLDivElement>(null)
-  const notifyRef = useRef<HTMLDivElement>(null)
 
   const displayName = formatPersonDisplayName(session?.fullName || 'pinky')
   const displayEmail = session?.email || 'pinky.sharma@novora.com'
@@ -111,20 +110,6 @@ export default function Topbar({
       void loadNotifications()
     }
   }, [notificationsOpen, loadNotifications])
-
-  useEffect(() => {
-    const onPointerDown = (event: MouseEvent) => {
-      const target = event.target as Node
-      if (profileRef.current && !profileRef.current.contains(target)) {
-        setProfileOpen(false)
-      }
-      if (notifyRef.current && !notifyRef.current.contains(target)) {
-        setNotificationsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', onPointerDown)
-    return () => document.removeEventListener('mousedown', onPointerDown)
-  }, [])
 
   const handleNotificationClick = async (id: string, itemTitle: string) => {
     try {
@@ -172,7 +157,11 @@ export default function Topbar({
           />
         </div>
 
-        <div id="topbar-notification-bell" className="relative" ref={notifyRef}>
+        <DropdownAnchor
+          open={notificationsOpen}
+          onClose={() => setNotificationsOpen(false)}
+          align="right"
+        >
           <button
             id="topbar-notification-btn"
             type="button"
@@ -192,10 +181,10 @@ export default function Topbar({
             )}
           </button>
 
-          {notificationsOpen && (
+          {notificationsOpen ? (
             <div
               id="topbar-notifications-dropdown"
-              className="absolute right-0 top-full mt-2.5 w-80 nv-card shadow-xl py-2 z-50 nv-dropdown-in"
+              className="nv-dropdown-menu w-80 nv-card shadow-xl py-2"
             >
               <div className="px-4 py-2.5 border-b border-slate-50 flex items-center justify-between">
                 <span className="font-bold text-slate-800 text-sm">Notifications</span>
@@ -230,10 +219,14 @@ export default function Topbar({
                 )}
               </div>
             </div>
-          )}
-        </div>
+          ) : null}
+        </DropdownAnchor>
 
-        <div id="topbar-user-profile" className="relative" ref={profileRef}>
+        <DropdownAnchor
+          open={profileOpen}
+          onClose={() => setProfileOpen(false)}
+          align="right"
+        >
           <button
             id="topbar-profile-btn"
             type="button"
@@ -257,10 +250,10 @@ export default function Topbar({
             />
           </button>
 
-          {profileOpen && (
+          {profileOpen ? (
             <div
               id="topbar-profile-dropdown"
-              className="absolute right-0 top-full mt-2.5 w-56 nv-card shadow-xl py-1.5 z-50 nv-dropdown-in"
+              className="nv-dropdown-menu w-56 nv-card shadow-xl py-1.5"
             >
               <div className="px-4 py-3 border-b border-slate-50">
                 <div className="font-bold text-xs text-slate-800 truncate">{displayName}</div>
@@ -279,14 +272,7 @@ export default function Topbar({
               <button
                 type="button"
                 className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors text-left cursor-pointer"
-                onMouseDown={(e) => {
-                  // Avoid document mousedown-outside closing the menu before click fires.
-                  e.preventDefault()
-                  e.stopPropagation()
-                }}
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
+                onClick={() => {
                   setProfileOpen(false)
                   void onLogout?.()
                 }}
@@ -295,8 +281,8 @@ export default function Topbar({
                 Sign Out
               </button>
             </div>
-          )}
-        </div>
+          ) : null}
+        </DropdownAnchor>
       </div>
     </header>
   )

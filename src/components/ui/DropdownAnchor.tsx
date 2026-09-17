@@ -24,17 +24,18 @@ type DropdownAnchorProps = {
 
 type PanelPos = {
   top: number
-  left?: number
-  right?: number
-  minWidth: number
+  left: number
   maxHeight: number
+}
+
+function clamp(n: number, min: number, max: number) {
+  return Math.min(Math.max(n, min), max)
 }
 
 /**
  * Wraps a custom dropdown trigger + menu.
  * - First child = trigger
  * - Remaining children (when open) = menu, portaled with fixed positioning
- * Closes on outside click / Escape and notifies peers via nv-dropdown-close.
  */
 export default function DropdownAnchor({
   open,
@@ -60,39 +61,32 @@ export default function DropdownAnchor({
 
   const updatePosition = () => {
     const root = rootRef.current
+    const menu = menuRef.current
     if (!root) return
+
     const rect = root.getBoundingClientRect()
-    const gap = 8
-    const pad = 12
+    const gap = 6
+    const pad = 8
     const spaceBelow = window.innerHeight - rect.bottom - pad
     const spaceAbove = rect.top - pad
-    const openUp = spaceBelow < 160 && spaceAbove > spaceBelow
+    const openUp = spaceBelow < 168 && spaceAbove > spaceBelow
     const available = Math.max(120, (openUp ? spaceAbove : spaceBelow) - gap)
-    const menuWidth = menuRef.current?.offsetWidth || Math.max(rect.width, 140)
+
+    const menuWidth = Math.max(menu?.offsetWidth ?? 0, rect.width, 160)
+    const left =
+      align === 'right'
+        ? clamp(rect.right - menuWidth, pad, window.innerWidth - menuWidth - pad)
+        : clamp(rect.left, pad, window.innerWidth - menuWidth - pad)
+
     const top = openUp
-      ? Math.max(pad, rect.top - Math.min(280, available) - gap)
+      ? clamp(rect.top - Math.min(menu?.offsetHeight || 200, available) - gap, pad, window.innerHeight - pad)
       : rect.bottom + gap
 
-    if (align === 'right') {
-      const right = Math.max(pad, window.innerWidth - rect.right)
-      setPos({
-        top,
-        right,
-        minWidth: Math.max(rect.width, 140),
-        maxHeight: Math.min(280, available),
-      })
-    } else {
-      const left = Math.min(
-        Math.max(pad, rect.left),
-        Math.max(pad, window.innerWidth - menuWidth - pad),
-      )
-      setPos({
-        top,
-        left,
-        minWidth: Math.max(rect.width, 140),
-        maxHeight: Math.min(280, available),
-      })
-    }
+    setPos({
+      top,
+      left,
+      maxHeight: Math.min(280, available),
+    })
   }
 
   useLayoutEffect(() => {
@@ -101,7 +95,6 @@ export default function DropdownAnchor({
       return
     }
     updatePosition()
-    // Second pass after menu paints so width-based left align is accurate
     const id = requestAnimationFrame(() => updatePosition())
     return () => cancelAnimationFrame(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -128,16 +121,18 @@ export default function DropdownAnchor({
     window.dispatchEvent(new CustomEvent('nv-dropdown-close', { detail: { root: rootRef.current } }))
     window.dispatchEvent(new CustomEvent('nv-selectmenu-close', { detail: { id: '__anchor__' } }))
 
-    document.addEventListener('mousedown', onPointerDown)
-    document.addEventListener('touchstart', onPointerDown)
+    // Defer so the opening click cannot immediately close the menu
+    const timer = window.setTimeout(() => {
+      document.addEventListener('click', onPointerDown, true)
+    }, 0)
     document.addEventListener('keydown', onKeyDown)
     window.addEventListener('resize', onReposition)
     window.addEventListener('scroll', onReposition, true)
 
     return () => {
+      window.clearTimeout(timer)
       window.removeEventListener('nv-dropdown-close', onPeerClose)
-      document.removeEventListener('mousedown', onPointerDown)
-      document.removeEventListener('touchstart', onPointerDown)
+      document.removeEventListener('click', onPointerDown, true)
       document.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('resize', onReposition)
       window.removeEventListener('scroll', onReposition, true)
@@ -145,25 +140,29 @@ export default function DropdownAnchor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
+  const menuStyle: CSSProperties = pos
+    ? {
+        position: 'fixed',
+        top: pos.top,
+        left: pos.left,
+        maxHeight: pos.maxHeight,
+        zIndex: 200,
+        visibility: 'visible',
+        pointerEvents: 'auto',
+      }
+    : {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        zIndex: 200,
+        visibility: 'hidden',
+        pointerEvents: 'none',
+      }
+
   const menu =
-    open && pos && mounted && menuNodes.length > 0
+    open && mounted && menuNodes.length > 0
       ? createPortal(
-          <div
-            ref={menuRef}
-            className="nv-dropdown-portal"
-            style={
-              {
-                position: 'fixed',
-                top: pos.top,
-                left: pos.left ?? 'auto',
-                right: pos.right ?? 'auto',
-                minWidth: pos.minWidth,
-                maxHeight: pos.maxHeight,
-                zIndex: 90,
-                overflow: 'auto',
-              } satisfies CSSProperties
-            }
-          >
+          <div ref={menuRef} className="nv-dropdown-portal" style={menuStyle}>
             {menuNodes}
           </div>,
           document.body,
@@ -171,7 +170,7 @@ export default function DropdownAnchor({
       : null
 
   return (
-    <div ref={rootRef} className={`relative shrink-0 ${className}`}>
+    <div ref={rootRef} className={`nv-dd-anchor relative shrink-0 ${className}`}>
       {trigger}
       {menu}
     </div>

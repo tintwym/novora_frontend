@@ -677,7 +677,7 @@ function WorkforceTrendChart({
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer"
+            className="nv-dd-trigger"
           >
             {filter}
             <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />

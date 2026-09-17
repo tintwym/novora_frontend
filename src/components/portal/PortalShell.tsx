@@ -252,17 +252,18 @@ export default function PortalShell() {
                     <button
                       id="dept-filter-btn"
                       type="button"
+                      aria-expanded={deptDropdownOpen}
                       onClick={() => {
                         setExportDropdownOpen(false)
                         setDeptDropdownOpen(!deptDropdownOpen)
                       }}
-                      className="h-9 inline-flex items-center gap-2 px-4 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 transition-colors rounded-xl cursor-pointer whitespace-nowrap shrink-0"
+                      className={`nv-dd-trigger ${deptDropdownOpen ? 'nv-dd-trigger--open' : ''}`}
                     >
-                      <span className="whitespace-nowrap">{deptFilterState}</span>
+                      <span>{deptFilterState}</span>
                       <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
                     </button>
 
-                    {deptDropdownOpen && (
+                    {deptDropdownOpen ? (
                       <div
                         id="dept-dropdown-menu"
                         className="nv-dropdown-menu w-48 nv-card shadow-lg py-1.5"
@@ -280,7 +281,7 @@ export default function PortalShell() {
                           ),
                         )}
                       </div>
-                    )}
+                    ) : null}
                   </DropdownAnchor>
 
                   <DropdownAnchor
@@ -291,18 +292,19 @@ export default function PortalShell() {
                     <button
                       id="export-options-btn"
                       type="button"
+                      aria-expanded={exportDropdownOpen}
                       onClick={() => {
                         setDeptDropdownOpen(false)
                         setExportDropdownOpen(!exportDropdownOpen)
                       }}
-                      className="h-9 inline-flex items-center gap-2 px-4 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-novora/35 hover:bg-novora/5 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
+                      className={`nv-dd-trigger ${exportDropdownOpen ? 'nv-dd-trigger--open' : ''}`}
                     >
-                      <Download className="h-4 w-4 text-slate-500 shrink-0" />
+                      <Download className="h-3.5 w-3.5 text-slate-500" />
                       <span>Export</span>
                       <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
                     </button>
 
-                    {exportDropdownOpen && (
+                    {exportDropdownOpen ? (
                       <div
                         id="export-dropdown-items"
                         className="nv-dropdown-menu w-44 nv-card shadow-lg py-1.5"
@@ -316,7 +318,7 @@ export default function PortalShell() {
                           onClick={() => triggerExport('Excel')}
                           className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                         >
-                          <FileSpreadsheet className="h-4.5 w-4.5 text-emerald-500 shrink-0" strokeWidth={2} />
+                          <FileSpreadsheet className="h-4 w-4 text-emerald-500 shrink-0" strokeWidth={2} />
                           <span>Export as Excel</span>
                         </button>
                         <button
@@ -325,7 +327,7 @@ export default function PortalShell() {
                           onClick={() => triggerExport('CSV')}
                           className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                         >
-                          <FileText className="h-4.5 w-4.5 text-blue-500 shrink-0" strokeWidth={2} />
+                          <FileText className="h-4 w-4 text-blue-500 shrink-0" strokeWidth={2} />
                           <span>Export as CSV</span>
                         </button>
                         <button
@@ -334,11 +336,11 @@ export default function PortalShell() {
                           onClick={() => triggerExport('PDF')}
                           className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
                         >
-                          <BookOpen className="h-4.5 w-4.5 text-rose-500 shrink-0" strokeWidth={2} />
+                          <BookOpen className="h-4 w-4 text-rose-500 shrink-0" strokeWidth={2} />
                           <span>Export as PDF</span>
                         </button>
                       </div>
-                    )}
+                    ) : null}
                   </DropdownAnchor>
                 </div>
               </div>
