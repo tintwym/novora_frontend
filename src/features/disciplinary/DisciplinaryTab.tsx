@@ -26,12 +26,14 @@ import {
   BarChart3,
   TrendingUp,
   Edit2,
+  Sparkles,
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import ModuleHeader from '@/components/ui/ModuleHeader';
 import {
   ApiError,
   createDisciplinaryCase,
+  fetchDisciplinaryAiLetter,
   fetchDisciplinaryCases,
   type DisciplinaryCaseRow,
 } from '@/services';
@@ -300,6 +302,55 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
   const [formActionDate, setFormActionDate] = useState('2026-06-14');
   const [formRepeatedAction, setFormRepeatedAction] = useState('First written warning');
   const [formExpectation, setFormExpectation] = useState('');
+  const [aiLetterBusy, setAiLetterBusy] = useState(false);
+  const [disciplinaryAiLetter, setDisciplinaryAiLetter] = useState<string | null>(null);
+  const [disciplinaryAiChronology, setDisciplinaryAiChronology] = useState<string | null>(null);
+
+  const handleAiDisciplinaryLetter = async () => {
+    if (aiLetterBusy) return;
+    const emp = employees.find((e) => e.id === formEmployeeId);
+    if (!emp) {
+      addToast('Select an employee before drafting the letter.', 'error');
+      return;
+    }
+    if (!formReason || !formDescription.trim()) {
+      addToast('Reason and incident description are required for AI draft.', 'error');
+      return;
+    }
+    setAiLetterBusy(true);
+    addToast('Drafting disciplinary letter with Gemini…', 'loading');
+    try {
+      const actionMeta = actions.find((a) => a.level === formWarningLevel);
+      const result = await fetchDisciplinaryAiLetter({
+        employeeName: emp.name,
+        department: formDepartment,
+        reason: formReason,
+        warningLevel: actionMeta?.name || formWarningLevel,
+        incidentDate: formDate,
+        location: formLocation,
+        description: formDescription,
+        existingExpectation: formExpectation,
+        issuedBy: formIssuedBy,
+      });
+      setDisciplinaryAiLetter(result.letter);
+      setDisciplinaryAiChronology(result.chronology);
+      if (!formExpectation.trim()) {
+        setFormExpectation(
+          'Maintain professional conduct consistent with company policy and manager guidance. Further breaches may escalate per the warning matrix.',
+        );
+      }
+      addToast(
+        result.source === 'gemini'
+          ? 'Letter draft ready — HR must review before issue.'
+          : 'Smart letter draft ready — HR must review before issue.',
+        'success',
+      );
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not draft disciplinary letter.', 'error');
+    } finally {
+      setAiLetterBusy(false);
+    }
+  };
   const [attachedFileName, setAttachedFileName] = useState('');
 
   // Auto-fill department based on selected employee in the form
@@ -1058,13 +1109,24 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
             </div>
 
             {/* Buttons row */}
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 flex-wrap">
+              <button
+                type="button"
+                disabled={aiLetterBusy}
+                onClick={() => void handleAiDisciplinaryLetter()}
+                className="px-5 py-2.5 text-xs font-extrabold text-novora bg-novora/5 border border-novora/25 hover:bg-novora/10 transition-all rounded-xl cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-60"
+              >
+                <Sparkles className={`h-3.5 w-3.5 ${aiLetterBusy ? 'animate-spin' : ''}`} />
+                {aiLetterBusy ? 'Drafting…' : 'AI Draft Letter'}
+              </button>
               <button
                 type="button"
                 onClick={() => {
                   setFormEmployeeId('');
                   setFormReason('');
                   setFormDescription('');
+                  setDisciplinaryAiLetter(null);
+                  setDisciplinaryAiChronology(null);
                   addToast('Setup session cancelled', 'info');
                 }}
                 className="px-5 py-2.5 text-xs font-extrabold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-all rounded-xl cursor-pointer"
@@ -1078,6 +1140,44 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                 Save Disciplinary Case
               </button>
             </div>
+
+            {(disciplinaryAiLetter || disciplinaryAiChronology) && (
+              <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50/40 p-4 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider inline-flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-novora" />
+                      AI draft — review before issue
+                    </h4>
+                    <p className="text-[10px] text-slate-500 mt-0.5">Not an automated people decision. Edit and approve before sending.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDisciplinaryAiLetter(null);
+                      setDisciplinaryAiChronology(null);
+                    }}
+                    className="text-[10px] font-bold text-slate-500 hover:text-slate-700 cursor-pointer"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+                {disciplinaryAiLetter && (
+                  <textarea
+                    rows={8}
+                    value={disciplinaryAiLetter}
+                    onChange={(e) => setDisciplinaryAiLetter(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-700 outline-none"
+                  />
+                )}
+                {disciplinaryAiChronology && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Chronology</p>
+                    <pre className="whitespace-pre-wrap text-[11px] text-slate-600 bg-white border border-slate-100 rounded-xl p-3">{disciplinaryAiChronology}</pre>
+                  </div>
+                )}
+              </div>
+            )}
           </form>
 
           {/* Guidelines Sidebar - 5 cols */}

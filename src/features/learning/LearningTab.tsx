@@ -38,8 +38,10 @@ import ModuleHeader from '@/components/ui/ModuleHeader';
 import {
   ApiError,
   enrollInTraining,
+  fetchCourseAiRecommendations,
   fetchTrainingEnrollments,
   fetchTrainings,
+  type CourseRecommendationResponse,
   type TrainingRow,
 } from '@/services';
 
@@ -141,6 +143,8 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
   // STATE 1: COURSE CATALOG (live trainings API)
   // -------------------------------------------------------------
   const [courses, setCourses] = useState<Course[]>([]);
+  const [aiCourseBusy, setAiCourseBusy] = useState(false);
+  const [courseAiRecs, setCourseAiRecs] = useState<CourseRecommendationResponse | null>(null);
 
   const loadCatalog = useCallback(async () => {
     try {
@@ -170,6 +174,32 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
 
   const [courseSearch, setCourseSearch] = useState('');
   const [courseCategoryFilter, setCourseCategoryFilter] = useState<string>('All');
+
+  const handleAiCourseRecommendations = async () => {
+    if (aiCourseBusy) return;
+    setAiCourseBusy(true);
+    addToast('Generating course recommendations with Gemini…', 'loading');
+    try {
+      const result = await fetchCourseAiRecommendations({
+        department: employees[0]?.department,
+        roleOrFocus: courseCategoryFilter !== 'All' ? courseCategoryFilter : 'General upskilling',
+        skillsGap: courseSearch || undefined,
+        catalogTitles: courses.slice(0, 40).map((c) => c.title),
+        categories: [...new Set(courses.map((c) => c.category))],
+      });
+      setCourseAiRecs(result);
+      addToast(
+        result.source === 'gemini'
+          ? 'Course recommendations ready — review before assigning.'
+          : 'Smart recommendations ready — review before assigning.',
+        'success',
+      );
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not recommend courses.', 'error');
+    } finally {
+      setAiCourseBusy(false);
+    }
+  };
   const [courseSourceFilter, setCourseSourceFilter] = useState<string>('All');
   
   // SCORM/xAPI Manifest package Simulation Upload State
@@ -595,6 +625,15 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
             {/* Quick action triggers */}
             <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
               <button
+                type="button"
+                disabled={aiCourseBusy}
+                onClick={() => void handleAiCourseRecommendations()}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-novora/25 bg-novora/5 px-3.5 py-2 text-xs font-extrabold text-novora hover:bg-novora/10 disabled:opacity-60 cursor-pointer"
+              >
+                <Sparkles className={`h-3.5 w-3.5 ${aiCourseBusy ? 'animate-spin' : ''}`} />
+                {aiCourseBusy ? 'Recommending…' : 'AI Recommend'}
+              </button>
+              <button
                 onClick={() => setIsLmsModalOpen(true)}
                 className="bg-novora hover:bg-opacity-95 text-white font-extrabold text-xs px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer transition-all shadow-3xs"
               >
@@ -604,6 +643,36 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
             </div>
 
           </div>
+
+          {courseAiRecs && (
+            <div className="rounded-2xl border border-novora/20 bg-novora/5 p-4 space-y-2.5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800 inline-flex items-center gap-1.5">
+                    <Sparkles className="h-4 w-4 text-novora" />
+                    AI course recommendations
+                  </h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{courseAiRecs.disclaimer}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCourseAiRecs(null)}
+                  className="text-[10px] font-bold text-slate-500 hover:text-slate-700 cursor-pointer"
+                >
+                  Dismiss
+                </button>
+              </div>
+              <p className="text-xs text-slate-600">{courseAiRecs.rationale}</p>
+              <ul className="space-y-1.5">
+                {courseAiRecs.recommendations.map((rec) => (
+                  <li key={rec} className="text-xs text-slate-700 flex gap-1.5">
+                    <span className="text-novora mt-0.5">•</span>
+                    <span>{rec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Quick LMS Integration Hub Presets Bar */}
           <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">

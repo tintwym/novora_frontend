@@ -34,6 +34,7 @@ import {
 import {
   ApiError,
   createPerformanceReview,
+  fetchPerformanceReviewAiDraft,
   fetchPerformanceReviews,
   listEmployees,
   type PerformanceReviewRow,
@@ -173,6 +174,40 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
   });
 
   const [evaluationsList, setEvaluationsList] = useState<UiEvaluation[]>([]);
+  const [appraiserNote, setAppraiserNote] = useState('');
+  const [aiNoteBusy, setAiNoteBusy] = useState(false);
+
+  const handleAiAppraiserNote = async () => {
+    if (aiNoteBusy) return;
+    setAiNoteBusy(true);
+    addToast('Drafting appraiser note with Gemini…', 'loading');
+    try {
+      const result = await fetchPerformanceReviewAiDraft({
+        employeeName: activeEval.employeeName,
+        reviewType: activeEval.reviewType,
+        reviewPeriod: activeEval.reviewPeriod,
+        reviewDate: activeEval.reviewDate,
+        codeQuality: String(activeEval.scores.codeQuality),
+        problemSolving: String(activeEval.scores.problemSolving),
+        systemDesign: String(activeEval.scores.systemDesign),
+        sprintsCompleted: String(activeEval.scores.sprintsCompleted),
+        bugsSla: String(activeEval.scores.bugsSLA),
+        attendance: String(activeEval.scores.attendance),
+        existingNote: appraiserNote,
+      });
+      setAppraiserNote(result.draft);
+      addToast(
+        result.source === 'gemini'
+          ? 'Appraiser note ready — review before sharing.'
+          : 'Smart appraiser note ready — review before sharing.',
+        'success',
+      );
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not draft appraiser note.', 'error');
+    } finally {
+      setAiNoteBusy(false);
+    }
+  };
 
   const loadReviews = useCallback(async () => {
     try {
@@ -1643,8 +1678,26 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                 </div>
 
                 <div className="bg-slate-55/30 border p-6 rounded-2xl text-xs space-y-3">
-                  <h4 className="text-sm font-extrabold text-slate-800 border-b pb-2">Appraiser note</h4>
-                  <textarea rows={3} placeholder="Notes and remarks from the appraiser about this evaluation period..." className="w-full bg-white border rounded-xl p-2.5 outline-none resize-none font-medium" />
+                  <div className="flex items-center justify-between gap-2 border-b pb-2">
+                    <h4 className="text-sm font-extrabold text-slate-800">Appraiser note</h4>
+                    <button
+                      type="button"
+                      disabled={aiNoteBusy}
+                      onClick={() => void handleAiAppraiserNote()}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-novora/25 bg-novora/5 px-3 py-1.5 text-[11px] font-bold text-novora hover:bg-novora/10 disabled:opacity-60 cursor-pointer"
+                    >
+                      <Sparkles className={`h-3.5 w-3.5 ${aiNoteBusy ? 'animate-spin' : ''}`} />
+                      {aiNoteBusy ? 'Drafting…' : 'AI Draft'}
+                    </button>
+                  </div>
+                  <textarea
+                    rows={4}
+                    value={appraiserNote}
+                    onChange={(e) => setAppraiserNote(e.target.value)}
+                    placeholder="Notes and remarks from the appraiser about this evaluation period..."
+                    className="w-full bg-white border rounded-xl p-2.5 outline-none resize-none font-medium"
+                  />
+                  <p className="text-[10px] text-slate-400">AI suggests a draft only — manager reviews before sharing.</p>
                 </div>
               </div>
             </div>

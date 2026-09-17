@@ -51,10 +51,13 @@ import {
   createRecruitmentInterview,
   createRecruitmentJob,
   createRecruitmentOffer,
+  fetchCandidateAiSummary,
   fetchRecruitmentCandidates,
   fetchRecruitmentInterviews,
+  fetchRecruitmentJdDraft,
   fetchRecruitmentJobs,
   fetchRecruitmentOffers,
+  type CandidateSummaryResponse,
   type RecruitmentCandidateRow,
   type RecruitmentInterviewRow,
   type RecruitmentJobRow,
@@ -242,6 +245,11 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
   const [selectedInterviewId, setSelectedInterviewId] = useState<string>('INT-01');
   const [selectedOfferId, setSelectedOfferId] = useState<string>('OFFER-001');
   const [selectedPreOnboardId, setSelectedPreOnboardId] = useState<string>('PRE-01');
+  const [candidateRows, setCandidateRows] = useState<RecruitmentCandidateRow[]>([]);
+  const [aiJdBusy, setAiJdBusy] = useState(false);
+  const [aiPostJdBusy, setAiPostJdBusy] = useState(false);
+  const [aiCandBusy, setAiCandBusy] = useState(false);
+  const [candidateAiSummary, setCandidateAiSummary] = useState<CandidateSummaryResponse | null>(null);
 
   const loadRecruitment = useCallback(async () => {
     setRecruitmentLoading(true)
@@ -254,6 +262,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
       ])
       const mappedCandidates = cands.map(mapCandidateRow)
       const byId = new Map(mappedCandidates.map((c) => [c.id, c]))
+      setCandidateRows(cands)
       setPostings(jobs.map(mapJobRow))
       setCandidates(mappedCandidates)
       setInterviews(ints.map((row) => mapInterviewRow(row, byId)))
@@ -300,6 +309,108 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
   useEffect(() => {
     void loadRecruitment()
   }, [loadRecruitment])
+
+  const handleAiJdDraft = async () => {
+    if (aiJdBusy) return
+    if (!reqForm.positionTitle.trim()) {
+      addToast('Enter a position title before drafting the JD.', 'error')
+      return
+    }
+    setAiJdBusy(true)
+    addToast('Drafting job description with Gemini…', 'loading')
+    try {
+      const result = await fetchRecruitmentJdDraft({
+        title: reqForm.positionTitle.trim(),
+        department: reqForm.department,
+        employmentType: reqForm.employmentType,
+        location: reqForm.workArrangement || 'On-site',
+        experience: reqForm.minExperience,
+        education: reqForm.minEducation,
+        skills: reqForm.skills.join(', '),
+        existingResponsibilities: reqForm.responsibilities,
+        niceToHave: reqForm.niceToHave,
+        salaryMin: reqForm.salaryMin,
+        salaryMax: reqForm.salaryMax,
+      })
+      setReqForm((prev) => ({ ...prev, responsibilities: result.draft }))
+      addToast(
+        result.source === 'gemini'
+          ? 'JD draft ready — review before publishing.'
+          : 'Smart JD draft ready — review before publishing.',
+        'success',
+      )
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not draft JD.', 'error')
+    } finally {
+      setAiJdBusy(false)
+    }
+  }
+
+  const handleAiPostJdDraft = async () => {
+    if (aiPostJdBusy) return
+    if (!newPost.position.trim()) {
+      addToast('Enter a position title before drafting the posting.', 'error')
+      return
+    }
+    setAiPostJdBusy(true)
+    addToast('Drafting posting summary with Gemini…', 'loading')
+    try {
+      const result = await fetchRecruitmentJdDraft({
+        title: newPost.position.trim(),
+        employmentType: newPost.employmentType,
+        location: newPost.arrangement,
+        skills: newPost.skills,
+        existingResponsibilities: newPost.description,
+        salaryMin: newPost.salaryMin,
+        salaryMax: newPost.salaryMax,
+      })
+      setNewPost((prev) => ({ ...prev, description: result.draft }))
+      addToast(
+        result.source === 'gemini'
+          ? 'Posting draft ready — review before publish.'
+          : 'Smart posting draft ready — review before publish.',
+        'success',
+      )
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not draft posting.', 'error')
+    } finally {
+      setAiPostJdBusy(false)
+    }
+  }
+
+  const handleAiCandidateSummary = async () => {
+    if (aiCandBusy) return
+    const row = candidateRows.find((c) => c.id === selectedCandidateId)
+    if (!row) {
+      addToast('Select a candidate first.', 'error')
+      return
+    }
+    setAiCandBusy(true)
+    addToast(`Summarising ${row.fullName} with Gemini…`, 'loading')
+    try {
+      const result = await fetchCandidateAiSummary({
+        fullName: row.fullName,
+        jobTitle: row.jobTitle || undefined,
+        stage: row.stage,
+        source: row.source || undefined,
+        notes: row.notes || undefined,
+        rating: row.rating != null ? String(row.rating) : undefined,
+        email: row.email,
+        phone: row.phone || undefined,
+      })
+      setCandidateAiSummary(result)
+      addToast(
+        result.source === 'gemini'
+          ? 'Candidate AI summary ready — review before deciding.'
+          : 'Smart candidate summary ready — review before deciding.',
+        'success',
+      )
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not summarise candidate.', 'error')
+    } finally {
+      setAiCandBusy(false)
+    }
+  }
 
   // Modal open states
   const [requisitionModalOpen, setRequisitionModalOpen] = useState(false);
@@ -1163,6 +1274,16 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     <ChevronDown className="nv-chevron-down nv-chevron-down--md" />
                   </button>
                 </div>
+                <button
+                  type="button"
+                  disabled={aiCandBusy || !selectedCandidateId}
+                  onClick={() => void handleAiCandidateSummary()}
+                  className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-novora bg-novora/5 border border-novora/25 rounded-xl cursor-pointer whitespace-nowrap shrink-0 hover:bg-novora/10 disabled:opacity-60"
+                  title="Summarise selected candidate with Gemini"
+                >
+                  <Sparkles className={`h-3.5 w-3.5 ${aiCandBusy ? 'animate-spin' : ''}`} />
+                  {aiCandBusy ? 'Summarising…' : 'AI Screen'}
+                </button>
               </div>
 
               <div className="relative w-64">
@@ -1176,6 +1297,63 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 />
               </div>
             </div>
+
+            {candidateAiSummary && (
+              <div className="rounded-2xl border border-novora/20 bg-novora/5 p-4 space-y-3 animate-in fade-in duration-300">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 inline-flex items-center gap-1.5">
+                      <Sparkles className="h-4 w-4 text-novora" />
+                      AI screening summary
+                    </h3>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{candidateAiSummary.disclaimer}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCandidateAiSummary(null)}
+                    className="text-[10px] font-bold text-slate-500 hover:text-slate-700 cursor-pointer"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+                <p className="text-xs text-slate-700 leading-relaxed">{candidateAiSummary.summary}</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 mb-1.5">Strengths</p>
+                    <ul className="space-y-1">
+                      {candidateAiSummary.strengths.map((s) => (
+                        <li key={s} className="text-[11px] text-slate-600 flex gap-1.5">
+                          <span className="text-emerald-500 mt-0.5">•</span>
+                          <span>{s}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1.5">Watch-outs</p>
+                    <ul className="space-y-1">
+                      {candidateAiSummary.risks.map((s) => (
+                        <li key={s} className="text-[11px] text-slate-600 flex gap-1.5">
+                          <span className="text-amber-500 mt-0.5">•</span>
+                          <span>{s}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-novora mb-1.5">Interview questions</p>
+                    <ul className="space-y-1">
+                      {candidateAiSummary.interviewQuestions.map((s) => (
+                        <li key={s} className="text-[11px] text-slate-600 flex gap-1.5">
+                          <span className="text-novora mt-0.5">•</span>
+                          <span>{s}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Kanban layout stage structure */}
             <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4 overflow-x-auto pb-4">
@@ -1196,6 +1374,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                           key={item.id}
                           onClick={() => {
                             setSelectedCandidateId(item.id);
+                            setCandidateAiSummary(null);
                             addToast(`Inspecting application file: ${item.name}`, 'info');
                           }}
                           className={`border rounded-xl p-3 cursor-pointer transition-all ${
@@ -2786,11 +2965,22 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     </div>
                   </div>
 
-                  {/* Job Description details textarea */}
                   <div className="border-t border-slate-100 pt-6">
-                    <h3 className="text-xs font-bold text-novora uppercase tracking-wider mb-4">
-                      Job Description
-                    </h3>
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <h3 className="text-xs font-bold text-novora uppercase tracking-wider">
+                        Job Description
+                      </h3>
+                      <button
+                        type="button"
+                        disabled={aiJdBusy}
+                        onClick={() => void handleAiJdDraft()}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-novora/25 bg-novora/5 px-3 py-1.5 text-[11px] font-bold text-novora hover:bg-novora/10 disabled:opacity-60 cursor-pointer transition-all"
+                        title="Draft JD with Gemini (review before publishing)"
+                      >
+                        <Sparkles className={`h-3.5 w-3.5 ${aiJdBusy ? 'animate-spin' : ''}`} />
+                        {aiJdBusy ? 'Drafting…' : 'AI Draft JD'}
+                      </button>
+                    </div>
                     <div className="space-y-4 text-xs">
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Key responsibilities *</label>
@@ -2801,6 +2991,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 outline-none focus:border-novora font-mono leading-relaxed font-semibold"
                           required
                         />
+                        <p className="mt-1.5 text-[10px] text-slate-400">AI suggests a draft only — you review before submitting.</p>
                       </div>
                       <div>
                         <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Nice-to-have / preferred</label>
@@ -3199,9 +3390,20 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Job Description Summary</label>
+                <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase">Job Description Summary</label>
+                  <button
+                    type="button"
+                    disabled={aiPostJdBusy}
+                    onClick={() => void handleAiPostJdDraft()}
+                    className="inline-flex items-center gap-1 rounded-lg border border-novora/25 bg-novora/5 px-2.5 py-1 text-[10px] font-bold text-novora hover:bg-novora/10 disabled:opacity-60 cursor-pointer"
+                  >
+                    <Sparkles className={`h-3 w-3 ${aiPostJdBusy ? 'animate-spin' : ''}`} />
+                    {aiPostJdBusy ? 'Drafting…' : 'AI Draft'}
+                  </button>
+                </div>
                 <textarea
-                  rows={2}
+                  rows={4}
                   placeholder="Key responsibilities, benefits, requirements..."
                   value={newPost.description}
                   onChange={(e) => setNewPost({ ...newPost, description: e.target.value })}

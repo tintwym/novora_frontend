@@ -34,7 +34,14 @@ import {
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import ModuleHeader from '@/components/ui/ModuleHeader';
-import { ApiError, createFeedPost, fetchFeed, type FeedPost } from '@/services';
+import {
+  ApiError,
+  createFeedPost,
+  fetchEngagementAiThemes,
+  fetchFeed,
+  type EngagementThemeResponse,
+  type FeedPost,
+} from '@/services';
 
 interface EngagementTabProps {
   employees: Employee[];
@@ -126,6 +133,38 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
   const [newOpinionCategory, setNewOpinionCategory] = useState('Office Amenities');
   
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
+  const [aiThemeBusy, setAiThemeBusy] = useState(false);
+  const [engagementThemes, setEngagementThemes] = useState<EngagementThemeResponse | null>(null);
+
+  const handleAiEngagementThemes = async () => {
+    if (aiThemeBusy) return;
+    if (suggestions.length === 0) {
+      addToast('Add some suggestions first to summarise themes.', 'info');
+      return;
+    }
+    setAiThemeBusy(true);
+    addToast('Summarising engagement themes with Gemini…', 'loading');
+    try {
+      const result = await fetchEngagementAiThemes({
+        comments: suggestions.slice(0, 40).map((s) => ({
+          category: s.category,
+          text: s.text,
+          vibe: s.vibe,
+        })),
+      });
+      setEngagementThemes(result);
+      addToast(
+        result.source === 'gemini'
+          ? 'Theme summary ready — aggregate only, no individuals named.'
+          : 'Smart theme summary ready — review before acting.',
+        'success',
+      );
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not summarise themes.', 'error');
+    } finally {
+      setAiThemeBusy(false);
+    }
+  };
 
   // Real-time AI Sentiment Analyzer computed variable
   const simulatedAiVibe = useMemo(() => {
@@ -745,10 +784,67 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
 
             {/* Public suggestions board */}
             <div className="lg:col-span-2 space-y-4">
-              <div className="bg-none p-1 flex justify-between items-center">
+              <div className="bg-none p-1 flex justify-between items-center gap-3 flex-wrap">
                 <span className="text-[11px] font-black text-slate-440 uppercase tracking-widest">Public suggestions Ledger</span>
-                <span className="text-xs text-slate-400 font-bold">{suggestions.length} submitted entries</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-400 font-bold">{suggestions.length} submitted entries</span>
+                  <button
+                    type="button"
+                    disabled={aiThemeBusy}
+                    onClick={() => void handleAiEngagementThemes()}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-novora/25 bg-novora/5 px-3 py-1.5 text-[11px] font-bold text-novora hover:bg-novora/10 disabled:opacity-60 cursor-pointer"
+                  >
+                    <Sparkles className={`h-3.5 w-3.5 ${aiThemeBusy ? 'animate-spin' : ''}`} />
+                    {aiThemeBusy ? 'Summarising…' : 'AI Themes'}
+                  </button>
+                </div>
               </div>
+
+              {engagementThemes && (
+                <div className="rounded-2xl border border-novora/20 bg-novora/5 p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-800 inline-flex items-center gap-1.5">
+                        <Sparkles className="h-4 w-4 text-novora" />
+                        Aggregate theme summary
+                      </h3>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{engagementThemes.disclaimer}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEngagementThemes(null)}
+                      className="text-[10px] font-bold text-slate-500 hover:text-slate-700 cursor-pointer"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-700 leading-relaxed">{engagementThemes.summary}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-novora mb-1.5">Themes</p>
+                      <ul className="space-y-1">
+                        {engagementThemes.themes.map((t) => (
+                          <li key={t} className="text-[11px] text-slate-600 flex gap-1.5">
+                            <span className="text-novora mt-0.5">•</span>
+                            <span>{t}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 mb-1.5">Suggested actions</p>
+                      <ul className="space-y-1">
+                        {engagementThemes.suggestedActions.map((t) => (
+                          <li key={t} className="text-[11px] text-slate-600 flex gap-1.5">
+                            <span className="text-emerald-500 mt-0.5">•</span>
+                            <span>{t}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-4">
                 {suggestions.map((entry) => (

@@ -22,6 +22,12 @@ export {
 export {
   fetchDashboardAiInsights,
   fetchHelpdeskAiDraft,
+  fetchRecruitmentJdDraft,
+  fetchCandidateAiSummary,
+  fetchPerformanceReviewAiDraft,
+  fetchCourseAiRecommendations,
+  fetchEngagementAiThemes,
+  fetchDisciplinaryAiLetter,
 } from './aiApi'
 export type {
   AiKpiHint,
@@ -29,6 +35,18 @@ export type {
   DashboardInsightResponse,
   HelpdeskDraftRequest,
   HelpdeskDraftResponse,
+  RecruitmentJdDraftRequest,
+  RecruitmentJdDraftResponse,
+  CandidateSummaryRequest,
+  CandidateSummaryResponse,
+  PerformanceReviewDraftRequest,
+  PerformanceReviewDraftResponse,
+  CourseRecommendationRequest,
+  CourseRecommendationResponse,
+  EngagementThemeRequest,
+  EngagementThemeResponse,
+  DisciplinaryLetterRequest,
+  DisciplinaryLetterResponse,
 } from './aiApi'
 export {
   fetchMyAttendance,
