@@ -1620,47 +1620,47 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                     </div>
                     <div>
                       <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Equipment Category</label>
-                      <select
+                      <SelectMenu
                         id="select-asset-cat"
                         value={formAssetCategory}
-                        onChange={e => setFormAssetCategory(e.target.value)}
-                        className="w-full text-xs border border-slate-200 outline-none p-2 rounded-xl focus:border-novora font-medium text-slate-700 bg-white cursor-pointer"
-                      >
-                        {categories.map(c => (
-                          <option key={c.id} value={c.name}>{c.name}</option>
-                        ))}
-                      </select>
+                        onChange={setFormAssetCategory}
+                        aria-label="Equipment category"
+                        triggerClassName="text-xs font-medium"
+                        options={categories.map((c) => ({ value: c.name, label: c.name }))}
+                      />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Custodian Employee</label>
-                      <select
+                      <SelectMenu
                         id="select-asset-custodian"
                         value={formAssetCustodian}
-                        onChange={e => setFormAssetCustodian(e.target.value)}
-                        className="w-full text-xs border border-slate-200 outline-none p-2 rounded-xl focus:border-novora font-medium text-slate-700 bg-white cursor-pointer"
-                      >
-                        <option value="Unassigned">Warehouse (Unassigned)</option>
-                        {employees.map(emp => (
-                          <option key={emp.id} value={emp.id}>{emp.name}</option>
-                        ))}
-                      </select>
+                        onChange={setFormAssetCustodian}
+                        aria-label="Custodian employee"
+                        triggerClassName="text-xs font-medium"
+                        options={[
+                          { value: 'Unassigned', label: 'Warehouse (Unassigned)' },
+                          ...employees.map((emp) => ({ value: emp.id, label: emp.name })),
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Asset physical status</label>
-                      <select
+                      <SelectMenu
                         id="select-asset-status"
                         value={formAssetStatus}
-                        onChange={e => setFormAssetStatus(e.target.value)}
+                        onChange={setFormAssetStatus}
                         disabled={formAssetCustodian !== 'Unassigned'}
-                        className="w-full text-xs border border-slate-200 outline-none p-2 rounded-xl focus:border-novora font-medium text-slate-700 bg-white disabled:opacity-50 cursor-pointer"
-                      >
-                        <option value="Available">Available</option>
-                        <option value="Maintenance">Maintenance / Workshop</option>
-                        <option value="Retired">Retired / Scrapped</option>
-                      </select>
+                        aria-label="Asset status"
+                        triggerClassName="text-xs font-medium"
+                        options={[
+                          { value: 'Available', label: 'Available' },
+                          { value: 'Maintenance', label: 'Maintenance / Workshop' },
+                          { value: 'Retired', label: 'Retired / Scrapped' },
+                        ]}
+                      />
                     </div>
                   </div>
 
@@ -1802,38 +1802,42 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                 <div className="space-y-3">
                   <div>
                     <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Select Available Hardware Item *</label>
-                    <select
+                    <SelectMenu
                       id="select-alloc-asset"
-                      required
                       value={formAllocAssetId}
-                      onChange={e => setFormAllocAssetId(e.target.value)}
-                      className="w-full text-xs border border-slate-200 outline-none p-2 rounded-xl focus:border-novora font-medium text-slate-700 bg-white cursor-pointer"
-                    >
-                      <option value="">-- Choose asset from stock --</option>
-                      {assets.map(a => (
-                        <option key={a.id} value={a.id}>
-                          [{a.id}] {a.name} ({a.category} - {a.status})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setFormAllocAssetId}
+                      aria-label="Allocation asset"
+                      placeholder="-- Choose asset from stock --"
+                      preferUp
+                      triggerClassName="text-xs font-medium"
+                      options={[
+                        { value: '', label: '-- Choose asset from stock --' },
+                        ...assets.map((a) => ({
+                          value: a.id,
+                          label: `[${a.id}] ${a.name} (${a.category} - ${a.status})`,
+                        })),
+                      ]}
+                    />
                   </div>
 
                   <div>
                     <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Recipient Employee *</label>
-                    <select
+                    <SelectMenu
                       id="select-alloc-employee"
-                      required
                       value={formAllocEmployeeId}
-                      onChange={e => setFormAllocEmployeeId(e.target.value)}
-                      className="w-full text-xs border border-slate-200 outline-none p-2 rounded-xl focus:border-novora font-medium text-slate-700 bg-white cursor-pointer"
-                    >
-                      <option value="">-- Choose target employee --</option>
-                      {employees.map(emp => (
-                        <option key={emp.id} value={emp.id}>
-                          {emp.name} ({emp.department})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setFormAllocEmployeeId}
+                      aria-label="Recipient employee"
+                      placeholder="-- Choose target employee --"
+                      preferUp
+                      triggerClassName="text-xs font-medium"
+                      options={[
+                        { value: '', label: '-- Choose target employee --' },
+                        ...employees.map((emp) => ({
+                          value: emp.id,
+                          label: `${emp.name} (${emp.department})`,
+                        })),
+                      ]}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
@@ -1898,55 +1902,62 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                 <div className="space-y-3">
                   <div>
                     <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Select Asset Damage target *</label>
-                    <select
+                    <SelectMenu
                       id="select-inc-asset"
-                      required
                       value={formIncAssetId}
-                      onChange={e => setFormIncAssetId(e.target.value)}
-                      className="w-full text-xs border border-slate-200 outline-none p-2 rounded-xl focus:border-novora font-medium text-slate-700 bg-white cursor-pointer"
-                    >
-                      <option value="">-- Choose asset --</option>
-                      {assets.map(a => (
-                        <option key={a.id} value={a.id}>
-                          [{a.id}] {a.name} ({a.category})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setFormIncAssetId}
+                      aria-label="Incident asset"
+                      placeholder="-- Choose asset --"
+                      preferUp
+                      triggerClassName="text-xs font-medium"
+                      options={[
+                        { value: '', label: '-- Choose asset --' },
+                        ...assets.map((a) => ({
+                          value: a.id,
+                          label: `[${a.id}] ${a.name} (${a.category})`,
+                        })),
+                      ]}
+                    />
                   </div>
 
                   <div>
                     <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Reporter / Designated Custodian *</label>
-                    <select
+                    <SelectMenu
                       id="select-inc-employee"
-                      required
                       value={formIncEmployeeId}
-                      onChange={e => setFormIncEmployeeId(e.target.value)}
-                      className="w-full text-xs border border-slate-200 outline-none p-2 rounded-xl focus:border-novora font-medium text-slate-700 bg-white cursor-pointer"
-                    >
-                      <option value="">-- Choose employee --</option>
-                      {employees.map(emp => (
-                        <option key={emp.id} value={emp.id}>
-                          {emp.name} ({emp.department})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setFormIncEmployeeId}
+                      aria-label="Incident reporter"
+                      placeholder="-- Choose employee --"
+                      preferUp
+                      triggerClassName="text-xs font-medium"
+                      options={[
+                        { value: '', label: '-- Choose employee --' },
+                        ...employees.map((emp) => ({
+                          value: emp.id,
+                          label: `${emp.name} (${emp.department})`,
+                        })),
+                      ]}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Issue Trigger Type</label>
-                      <select
+                      <SelectMenu
                         id="select-inc-type"
                         value={formIncType}
-                        onChange={e => setFormIncType(e.target.value)}
-                        className="w-full text-xs border border-slate-200 outline-none p-2 rounded-xl focus:border-novora font-medium text-slate-700 bg-white cursor-pointer"
-                      >
-                        <option value="Water Damage">Water Damage / Spill</option>
-                        <option value="Physical Drop / Screen Crack">Physical Drop / Crack</option>
-                        <option value="Processor CPU Overheating">Overheating</option>
-                        <option value="Stolen / Lost Hardware">Lost / Lost Item</option>
-                        <option value="SaaS Account Locked">SaaS Acc Blocked</option>
-                      </select>
+                        onChange={setFormIncType}
+                        aria-label="Incident type"
+                        preferUp
+                        triggerClassName="text-xs font-medium"
+                        options={[
+                          { value: 'Water Damage', label: 'Water Damage / Spill' },
+                          { value: 'Physical Drop / Screen Crack', label: 'Physical Drop / Crack' },
+                          { value: 'Processor CPU Overheating', label: 'Overheating' },
+                          { value: 'Stolen / Lost Hardware', label: 'Lost / Lost Item' },
+                          { value: 'SaaS Account Locked', label: 'SaaS Acc Blocked' },
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Estimated repair (RM)</label>
@@ -1979,16 +1990,19 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
 
                   <div>
                     <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Incident resolve level</label>
-                    <select
+                    <SelectMenu
                       id="select-inc-status"
                       value={formIncStatus}
-                      onChange={e => setFormIncStatus(e.target.value)}
-                      className="w-full text-xs border border-slate-200 outline-none p-2 rounded-xl focus:border-novora font-medium text-slate-700 bg-white cursor-pointer"
-                    >
-                      <option value="Log Only">Log Only / Minor scratches</option>
-                      <option value="Under Repair">Under Repair / In maintenance</option>
-                      <option value="Resolved">Resolved / Functional return</option>
-                    </select>
+                      onChange={setFormIncStatus}
+                      aria-label="Incident status"
+                      preferUp
+                      triggerClassName="text-xs font-medium"
+                      options={[
+                        { value: 'Log Only', label: 'Log Only / Minor scratches' },
+                        { value: 'Under Repair', label: 'Under Repair / In maintenance' },
+                        { value: 'Resolved', label: 'Resolved / Functional return' },
+                      ]}
+                    />
                   </div>
 
                   <div>
@@ -2030,48 +2044,49 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                 <div className="space-y-3">
                   <div>
                     <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Employee requesting *</label>
-                    <select
+                    <SelectMenu
                       id="select-req-employee"
-                      required
                       value={formReqEmployeeId}
-                      onChange={e => setFormReqEmployeeId(e.target.value)}
-                      className="w-full text-xs border border-slate-200 outline-none p-2 rounded-xl focus:border-novora font-medium text-slate-700 bg-white cursor-pointer"
-                    >
-                      {employees.map(emp => (
-                        <option key={emp.id} value={emp.id}>
-                          {emp.name} ({emp.department})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setFormReqEmployeeId}
+                      aria-label="Requesting employee"
+                      preferUp
+                      triggerClassName="text-xs font-medium"
+                      options={employees.map((emp) => ({
+                        value: emp.id,
+                        label: `${emp.name} (${emp.department})`,
+                      }))}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Asset category</label>
-                      <select
+                      <SelectMenu
                         id="select-req-category"
                         value={formReqCategory}
-                        onChange={e => setFormReqCategory(e.target.value)}
-                        className="w-full text-xs border border-slate-200 outline-none p-2 rounded-xl focus:border-novora font-medium text-slate-700 bg-white cursor-pointer"
-                      >
-                        {categories.map(cat => (
-                          <option key={cat.id} value={cat.name}>{cat.name}</option>
-                        ))}
-                      </select>
+                        onChange={setFormReqCategory}
+                        aria-label="Request category"
+                        preferUp
+                        triggerClassName="text-xs font-medium"
+                        options={categories.map((cat) => ({ value: cat.name, label: cat.name }))}
+                      />
                     </div>
                     <div>
                       <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Priority urgency</label>
-                      <select
+                      <SelectMenu
                         id="select-req-priority"
                         value={formReqPriority}
-                        onChange={e => setFormReqPriority(e.target.value)}
-                        className="w-full text-xs border border-slate-200 outline-none p-2 rounded-xl focus:border-novora font-medium text-slate-700 bg-white cursor-pointer"
-                      >
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
-                        <option value="Critical">Critical</option>
-                      </select>
+                        onChange={setFormReqPriority}
+                        aria-label="Request priority"
+                        preferUp
+                        triggerClassName="text-xs font-medium"
+                        options={[
+                          { value: 'Low', label: 'Low' },
+                          { value: 'Medium', label: 'Medium' },
+                          { value: 'High', label: 'High' },
+                          { value: 'Critical', label: 'Critical' },
+                        ]}
+                      />
                     </div>
                   </div>
 

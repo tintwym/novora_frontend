@@ -38,6 +38,7 @@ type PanelPos = {
   left: number
   width: number
   maxHeight: number
+  openUp: boolean
 }
 
 function clamp(n: number, min: number, max: number) {
@@ -66,6 +67,7 @@ export default function SelectMenu({
 
   const selected = options.find((opt) => opt.value === value)
   const label = selected?.label ?? placeholder
+  const isToolbar = triggerClassName.includes('nv-select-trigger--toolbar')
 
   useEffect(() => {
     setMounted(true)
@@ -79,7 +81,7 @@ export default function SelectMenu({
     const pad = 8
     const spaceBelow = window.innerHeight - rect.bottom - pad
     const spaceAbove = rect.top - pad
-    const openUp = preferUp ? spaceAbove > spaceBelow : spaceBelow < 180 && spaceAbove > spaceBelow
+    const openUp = preferUp ? spaceAbove > spaceBelow : spaceBelow < 200 && spaceAbove > spaceBelow
     const available = Math.max(120, (openUp ? spaceAbove : spaceBelow) - gap)
     const width = Math.max(rect.width, 168)
     const left = clamp(rect.left, pad, window.innerWidth - width - pad)
@@ -89,14 +91,16 @@ export default function SelectMenu({
         bottom: window.innerHeight - rect.top + gap,
         left,
         width,
-        maxHeight: Math.min(256, available),
+        maxHeight: Math.min(280, available),
+        openUp: true,
       })
     } else {
       setPos({
         top: rect.bottom + gap,
         left,
         width,
-        maxHeight: Math.min(256, available),
+        maxHeight: Math.min(280, available),
+        openUp: false,
       })
     }
   }
@@ -107,8 +111,8 @@ export default function SelectMenu({
       return
     }
     updatePosition()
-    const id = requestAnimationFrame(() => updatePosition())
-    return () => cancelAnimationFrame(id)
+    const frame = requestAnimationFrame(() => updatePosition())
+    return () => cancelAnimationFrame(frame)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, preferUp, options.length])
 
@@ -142,7 +146,6 @@ export default function SelectMenu({
     }
     const onReposition = () => updatePosition()
 
-    // Defer so the opening click cannot immediately close the menu
     const timer = window.setTimeout(() => {
       document.addEventListener('click', onPointerDown, true)
     }, 0)
@@ -168,15 +171,16 @@ export default function SelectMenu({
         bottom: pos.bottom ?? 'auto',
         left: pos.left,
         width: pos.width,
+        minWidth: pos.width,
         maxHeight: pos.maxHeight,
-        zIndex: 200,
+        zIndex: 320,
         visibility: 'visible',
       }
     : {
         position: 'fixed',
         top: 0,
         left: 0,
-        zIndex: 200,
+        zIndex: 320,
         visibility: 'hidden',
         pointerEvents: 'none',
       }
@@ -187,7 +191,7 @@ export default function SelectMenu({
           <ul
             ref={panelRef}
             role="listbox"
-            className="nv-select-panel nv-dropdown-in"
+            className={`nv-select-panel ${pos?.openUp ? 'nv-dropdown-in--up' : 'nv-dropdown-in'}`}
             style={panelStyle}
             aria-activedescendant={selected ? `${autoId}-${value}` : undefined}
           >
@@ -219,8 +223,16 @@ export default function SelectMenu({
         )
       : null
 
+  const rootClass = [
+    'nv-dropdown-anchor',
+    isToolbar || className.includes('w-auto') || className.includes('shrink-0') ? 'shrink-0' : 'w-full',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <div ref={rootRef} className={`nv-dropdown-anchor ${className}`}>
+    <div ref={rootRef} className={rootClass}>
       <button
         ref={triggerRef}
         id={id}

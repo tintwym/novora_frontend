@@ -25,7 +25,9 @@ type DropdownAnchorProps = {
 type PanelPos = {
   top: number
   left: number
+  width: number
   maxHeight: number
+  openUp: boolean
 }
 
 function clamp(n: number, min: number, max: number) {
@@ -72,7 +74,8 @@ export default function DropdownAnchor({
     const openUp = spaceBelow < 168 && spaceAbove > spaceBelow
     const available = Math.max(120, (openUp ? spaceAbove : spaceBelow) - gap)
 
-    const menuWidth = Math.max(menu?.offsetWidth ?? 0, rect.width, 160)
+    const measured = menu?.offsetWidth ?? 0
+    const menuWidth = Math.max(measured, rect.width, 160)
     const left =
       align === 'right'
         ? clamp(rect.right - menuWidth, pad, window.innerWidth - menuWidth - pad)
@@ -85,7 +88,9 @@ export default function DropdownAnchor({
     setPos({
       top,
       left,
+      width: menuWidth,
       maxHeight: Math.min(280, available),
+      openUp,
     })
   }
 
@@ -145,8 +150,11 @@ export default function DropdownAnchor({
         position: 'fixed',
         top: pos.top,
         left: pos.left,
+        width: pos.width,
+        minWidth: pos.width,
         maxHeight: pos.maxHeight,
-        zIndex: 200,
+        overflowY: 'auto',
+        zIndex: 320,
         visibility: 'visible',
         pointerEvents: 'auto',
       }
@@ -154,7 +162,7 @@ export default function DropdownAnchor({
         position: 'fixed',
         top: 0,
         left: 0,
-        zIndex: 200,
+        zIndex: 320,
         visibility: 'hidden',
         pointerEvents: 'none',
       }
@@ -162,7 +170,11 @@ export default function DropdownAnchor({
   const menu =
     open && mounted && menuNodes.length > 0
       ? createPortal(
-          <div ref={menuRef} className="nv-dropdown-portal" style={menuStyle}>
+          <div
+            ref={menuRef}
+            className={`nv-dropdown-portal ${pos?.openUp ? 'nv-dropdown-portal--up' : ''}`}
+            style={menuStyle}
+          >
             {menuNodes}
           </div>,
           document.body,

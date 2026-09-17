@@ -671,16 +671,19 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
 
             <div className="flex items-center gap-2.5">
               <span className="text-xs font-bold text-slate-400">Severity:</span>
-              <select
+              <SelectMenu
                 value={selectedSeverityFilter}
-                onChange={(e) => setSelectedSeverityFilter(e.target.value)}
-                className="bg-slate-50 border border-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl cursor-pointer"
-              >
-                <option value="All severity">All severity</option>
-                <option value="Minor">Minor</option>
-                <option value="Major">Major</option>
-                <option value="Gross misconduct">Gross misconduct</option>
-              </select>
+                onChange={setSelectedSeverityFilter}
+                aria-label="Severity filter"
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[8.5rem]"
+                options={[
+                  { value: 'All severity', label: 'All severity' },
+                  { value: 'Minor', label: 'Minor' },
+                  { value: 'Major', label: 'Major' },
+                  { value: 'Gross misconduct', label: 'Gross misconduct' },
+                ]}
+              />
             </div>
           </div>
 
@@ -773,18 +776,21 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
 
             <div className="flex items-center gap-2.5">
               <span className="text-xs font-bold text-slate-400">Action Type:</span>
-              <select
+              <SelectMenu
                 value={selectedActionLevelFilter}
-                onChange={(e) => setSelectedActionLevelFilter(e.target.value)}
-                className="bg-slate-50 border border-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl cursor-pointer"
-              >
-                <option value="All levels">All actions</option>
-                <option value="Verbal">Verbal warning</option>
-                <option value="Written">Written warning</option>
-                <option value="Suspension">Suspension</option>
-                <option value="Grade change">Grade change</option>
-                <option value="Dismissal">Dismissal</option>
-              </select>
+                onChange={setSelectedActionLevelFilter}
+                aria-label="Action type filter"
+                className="w-auto shrink-0"
+                triggerClassName="nv-select-trigger--toolbar min-w-[9rem]"
+                options={[
+                  { value: 'All levels', label: 'All actions' },
+                  { value: 'Verbal', label: 'Verbal warning' },
+                  { value: 'Written', label: 'Written warning' },
+                  { value: 'Suspension', label: 'Suspension' },
+                  { value: 'Grade change', label: 'Grade change' },
+                  { value: 'Dismissal', label: 'Dismissal' },
+                ]}
+              />
             </div>
           </div>
 
@@ -869,23 +875,24 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                   Employee <span className="text-rose-500">*</span>
                 </label>
-                <select
-                  required
+                <SelectMenu
                   value={formEmployeeId}
-                  onChange={(e) => setFormEmployeeId(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 p-2.5 text-xs font-bold rounded-xl focus:outline-none focus:bg-white focus:border-novora"
-                >
-                  <option value="">-- Select employee --</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name} ({emp.id})
-                    </option>
-                  ))}
-                </select>
+                  onChange={setFormEmployeeId}
+                  aria-label="Employee"
+                  placeholder="-- Select employee --"
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: '', label: '-- Select employee --' },
+                    ...employees.map((emp) => ({
+                      value: emp.id,
+                      label: `${emp.name} (${emp.id})`,
+                    })),
+                  ]}
+                />
               </div>
 
               {/* Department (auto updated) */}
-              <div className="space-y-1.55">
+              <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Department</label>
                 <input
                   type="text"
@@ -900,21 +907,22 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                   Disciplinary Reason <span className="text-rose-500">*</span>
                 </label>
-                <select
-                  required
+                <SelectMenu
                   value={formReason}
-                  onChange={(e) => setFormReason(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 p-2.5 text-xs font-bold rounded-xl focus:outline-none focus:bg-white focus:border-novora"
-                >
-                  <option value="">-- Select reason --</option>
-                  {reasons
-                    .filter((r) => r.status === 'Active')
-                    .map((r) => (
-                      <option key={r.id} value={r.name}>
-                        {r.name} [{r.severity}]
-                      </option>
-                    ))}
-                </select>
+                  onChange={setFormReason}
+                  aria-label="Disciplinary reason"
+                  placeholder="-- Select reason --"
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: '', label: '-- Select reason --' },
+                    ...reasons
+                      .filter((r) => r.status === 'Active')
+                      .map((r) => ({
+                        value: r.name,
+                        label: `${r.name} [${r.severity}]`,
+                      })),
+                  ]}
+                />
               </div>
 
               {/* Date of incident */}
@@ -1023,18 +1031,17 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                   Level of Disciplinary <span className="text-rose-500">*</span>
                 </label>
-                <select
-                  required
+                <SelectMenu
                   value={formWarningLevel}
-                  onChange={(e) => setFormWarningLevel(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 p-2.5 text-xs font-bold rounded-xl focus:outline-none focus:bg-white focus:border-novora"
-                >
-                  {actions.map((act) => (
-                    <option key={act.level} value={act.level}>
-                      {act.level} — {act.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setFormWarningLevel}
+                  aria-label="Disciplinary level"
+                  preferUp
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={actions.map((act) => ({
+                    value: act.level,
+                    label: `${act.level} — ${act.name}`,
+                  }))}
+                />
               </div>
 
               {/* Action issued by */}
@@ -1042,17 +1049,19 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                   Action Issued by <span className="text-rose-500">*</span>
                 </label>
-                <select
-                  required
+                <SelectMenu
                   value={formIssuedBy}
-                  onChange={(e) => setFormIssuedBy(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 p-2.5 text-xs font-bold rounded-xl focus:outline-none focus:bg-white"
-                >
-                  <option value="Nina Reza (Head of HR)">Nina Reza (Head of HR)</option>
-                  <option value="David Ng (Finance Director)">David Ng (Finance Director)</option>
-                  <option value="Malik Said (Tech Lead)">Malik Said (Tech Lead)</option>
-                  <option value="Johnathan Goh (COO)">Johnathan Goh (COO)</option>
-                </select>
+                  onChange={setFormIssuedBy}
+                  aria-label="Action issued by"
+                  preferUp
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'Nina Reza (Head of HR)', label: 'Nina Reza (Head of HR)' },
+                    { value: 'David Ng (Finance Director)', label: 'David Ng (Finance Director)' },
+                    { value: 'Malik Said (Tech Lead)', label: 'Malik Said (Tech Lead)' },
+                    { value: 'Johnathan Goh (COO)', label: 'Johnathan Goh (COO)' },
+                  ]}
+                />
               </div>
 
               {/* Action date */}
@@ -1072,17 +1081,17 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
               {/* If repeated next action */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">If Repeated, Next Action</label>
-                <select
+                <SelectMenu
                   value={formRepeatedAction}
-                  onChange={(e) => setFormRepeatedAction(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 p-2.5 text-xs font-bold rounded-xl focus:outline-none focus:bg-white"
-                >
-                  {actions.map((act) => (
-                    <option key={act.level} value={act.name}>
-                      {act.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setFormRepeatedAction}
+                  aria-label="Next action if repeated"
+                  preferUp
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={actions.map((act) => ({
+                    value: act.name,
+                    label: act.name,
+                  }))}
+                />
               </div>
 
               {/* Future expectation */}

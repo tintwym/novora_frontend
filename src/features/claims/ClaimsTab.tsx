@@ -130,7 +130,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
   const [claimVendor, setClaimVendor] = useState<string>('');
   const [claimCurrency, setClaimCurrency] = useState<string>('SGD');
   const [claimAmount, setClaimAmount] = useState<string>('0.00');
-  const [claimProject, setClaimProject] = useState<string>('-- Select (optional) --');
+  const [claimProject, setClaimProject] = useState<string>('');
   const [claimDesc, setClaimDesc] = useState<string>('');
   const [selectedStaffName, setSelectedStaffName] = useState<string>('');
   const [hasReceiptFile, setHasReceiptFile] = useState<boolean>(false);
@@ -647,16 +647,17 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Currency *</label>
-                  <select
+                  <SelectMenu
                     value={claimCurrency}
-                    onChange={(e) => setClaimCurrency(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 focus:border-novora rounded-xl px-3 py-2 outline-none cursor-pointer"
-                  >
-                    <option value="SGD">SGD</option>
-                    <option value="USD">USD</option>
-                    <option value="SGD">SGD</option>
-                    <option value="EUR">EUR</option>
-                  </select>
+                    onChange={setClaimCurrency}
+                    aria-label="Currency"
+                    triggerClassName="text-xs font-semibold"
+                    options={[
+                      { value: 'SGD', label: 'SGD' },
+                      { value: 'USD', label: 'USD' },
+                      { value: 'EUR', label: 'EUR' },
+                    ]}
+                  />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Amount *</label>
@@ -686,16 +687,19 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               {/* Project / cost centre */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Project / cost centre</label>
-                <select
+                <SelectMenu
                   value={claimProject}
-                  onChange={(e) => setClaimProject(e.target.value)}
-                  className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 focus:border-novora rounded-xl px-3 py-2 outline-none cursor-pointer"
-                >
-                  <option>-- Select (optional) --</option>
-                  <option value="Dept General Operations">Corporate Overhead &bull; General</option>
-                  <option value="SaaS Integration Audit">Internal Audit Tech Team</option>
-                  <option value="Sales Campaign Q2">Marketing Acquisition Launch 2026</option>
-                </select>
+                  onChange={setClaimProject}
+                  aria-label="Project cost centre"
+                  placeholder="-- Select (optional) --"
+                  triggerClassName="text-xs font-semibold"
+                  options={[
+                    { value: '', label: '-- Select (optional) --' },
+                    { value: 'Dept General Operations', label: 'Corporate Overhead · General' },
+                    { value: 'SaaS Integration Audit', label: 'Internal Audit Tech Team' },
+                    { value: 'Sales Campaign Q2', label: 'Marketing Acquisition Launch 2026' },
+                  ]}
+                />
               </div>
 
               {/* Description */}
@@ -1801,43 +1805,52 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
             {/* Filter Log Bar */}
             <div className="bg-slate-50/50 border border-slate-100 p-4.5 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between">
               <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <select
+                <SelectMenu
                   value={historyStatusFilter}
-                  onChange={(e) => setHistoryStatusFilter(e.target.value)}
-                  className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
-                >
-                  <option value="All status">All status</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
+                  onChange={setHistoryStatusFilter}
+                  aria-label="History status"
+                  className="w-auto shrink-0"
+                  triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
+                  options={[
+                    { value: 'All status', label: 'All status' },
+                    { value: 'Pending', label: 'Pending' },
+                    { value: 'Approved', label: 'Approved' },
+                    { value: 'Rejected', label: 'Rejected' },
+                  ]}
+                />
 
-                <select
+                <SelectMenu
                   value={historyCategoryFilter}
-                  onChange={(e) => setHistoryCategoryFilter(e.target.value)}
-                  className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer"
-                >
-                  <option value="All categories">All categories</option>
-                  <option value="Meal allowance">Meal allowance</option>
-                  <option value="Transport">Transport</option>
-                  <option value="Hotel / stay">Hotel / stay</option>
-                  <option value="Air ticket">Air ticket</option>
-                  <option value="Mileage">Mileage</option>
-                  <option value="Wellness">Wellness</option>
-                </select>
+                  onChange={setHistoryCategoryFilter}
+                  aria-label="History category"
+                  className="w-auto shrink-0"
+                  triggerClassName="nv-select-trigger--toolbar min-w-[9rem]"
+                  options={[
+                    { value: 'All categories', label: 'All categories' },
+                    { value: 'Meal allowance', label: 'Meal allowance' },
+                    { value: 'Transport', label: 'Transport' },
+                    { value: 'Hotel / stay', label: 'Hotel / stay' },
+                    { value: 'Air ticket', label: 'Air ticket' },
+                    { value: 'Mileage', label: 'Mileage' },
+                    { value: 'Wellness', label: 'Wellness' },
+                  ]}
+                />
 
-                <select
+                <SelectMenu
                   value={historyDeptFilter}
-                  onChange={(e) => setHistoryDeptFilter(e.target.value)}
-                  className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs text-slate-600 font-bold outline-none cursor-pointer font-sans"
-                >
-                  <option value="All departments">All departments</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Finance">Finance</option>
-                  <option value="HR">HR</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Operations">Operations</option>
-                </select>
+                  onChange={setHistoryDeptFilter}
+                  aria-label="History department"
+                  className="w-auto shrink-0"
+                  triggerClassName="nv-select-trigger--toolbar min-w-[9rem]"
+                  options={[
+                    { value: 'All departments', label: 'All departments' },
+                    { value: 'Engineering', label: 'Engineering' },
+                    { value: 'Finance', label: 'Finance' },
+                    { value: 'HR', label: 'HR' },
+                    { value: 'Marketing', label: 'Marketing' },
+                    { value: 'Operations', label: 'Operations' },
+                  ]}
+                />
 
                 <div className="relative">
                   <input

@@ -855,7 +855,7 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   padding-inline: 0.25rem 0.625rem;
 }
 
-/* Custom dropdown anchor — menu always opens below trigger */
+/* Custom dropdown anchor */
 .nv-dropdown-anchor,
 .nv-dd-anchor {
   position: relative;
@@ -865,10 +865,16 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
 }
 
 .nv-dropdown-anchor.w-auto,
-.nv-dropdown-anchor.shrink-0 {
+.nv-dropdown-anchor.shrink-0,
+.nv-dd-anchor {
   display: inline-block;
   width: auto;
   vertical-align: middle;
+}
+
+.nv-dropdown-anchor.w-full {
+  display: block;
+  width: 100%;
 }
 
 .nv-dropdown-panel,
@@ -894,7 +900,8 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   box-shadow:
     0 4px 6px color-mix(in srgb, var(--color-novora-ink) 4%, transparent),
     0 14px 36px color-mix(in srgb, var(--color-novora-ink) 10%, transparent) !important;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   animation: nv-dropdown-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -935,6 +942,15 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   filter: drop-shadow(0 12px 28px color-mix(in srgb, var(--color-novora-ink) 12%, transparent));
   transform-origin: top center;
   animation: nv-dropdown-portal-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 0.875rem;
+}
+
+.nv-dropdown-portal--up {
+  transform-origin: bottom center;
+  animation-name: nv-dropdown-portal-in-up;
 }
 
 .nv-dropdown-portal .nv-dropdown-menu,
@@ -944,12 +960,14 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   right: auto !important;
   left: auto !important;
   z-index: auto;
-  min-width: 0;
-  width: max-content;
-  max-width: min(20rem, calc(100vw - 1rem));
+  min-width: 100%;
+  width: 100%;
+  max-width: none;
   margin: 0;
   animation: none;
   filter: none;
+  box-shadow: none !important;
+  overflow: visible;
 }
 
 @keyframes nv-dropdown-portal-in {
@@ -963,8 +981,23 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   }
 }
 
+@keyframes nv-dropdown-portal-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .nv-dropdown-in {
   animation: nv-dropdown-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.nv-dropdown-in--up {
+  animation: nv-dropdown-in-up 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .nv-dropdown-menu--right {
@@ -1119,6 +1152,17 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   }
 }
 
+@keyframes nv-dropdown-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .nv-ai-panel {
   animation: nv-ai-panel-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -1156,34 +1200,31 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
 }
 
 /*
- * Native <select> — unified look across Payroll→Settings (and all portal modules).
- * Single custom chevron; do NOT force a tall min-height (breaks compact inline filters).
+ * Native <select> — clean closed-state chrome for remaining CRUD forms.
+ * Prefer SelectMenu in new work; this keeps natives usable until migrated.
  */
 #novora-hrms-root select:not([multiple]):not([size]) {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  padding-inline-end: 2rem !important;
+  padding-inline-end: 1.85rem;
   border-radius: 0.75rem;
   border: 1px solid var(--color-novora-border);
-  background-color: #ffffff !important;
+  background-color: #ffffff;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 0.65rem center;
+  background-position: right 0.6rem center;
   background-size: 0.875rem 0.875rem;
   color: #334155;
-  line-height: 1.25;
+  line-height: 1.3;
   cursor: pointer;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   box-shadow: 0 1px 1px color-mix(in srgb, var(--color-novora-ink) 2.5%, transparent);
   transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
 }
 
 #novora-hrms-root select:not([multiple]):not([size]):hover {
   border-color: #cbd5e1;
-  background-color: #fcfdff !important;
+  background-color: #fcfdff;
 }
 
 #novora-hrms-root select:not([multiple]):not([size]):focus,
@@ -1195,33 +1236,47 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
 
 #novora-hrms-root .nv-select-wrap select {
   background-image: none !important;
+  padding-inline-end: 0.75rem;
 }
 
 #novora-hrms-root select:not([multiple]):not([size]):disabled {
   cursor: not-allowed;
   opacity: 0.65;
-  background-color: #f8fafc !important;
+  background-color: #f8fafc;
 }
 
-/* Comfortable form / toolbar selects */
-#novora-hrms-root select.w-full:not([multiple]):not([size]),
-#novora-hrms-root select.h-9:not([multiple]):not([size]) {
-  min-height: 2.25rem;
-  padding-block: 0.5rem;
+/* Form fields — readable height without crushing compact chips */
+#novora-hrms-root select.w-full:not([multiple]):not([size]) {
+  min-height: 2.5rem;
+  padding-block: 0.55rem;
   padding-inline-start: 0.875rem;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 
 #novora-hrms-root select.h-9:not([multiple]):not([size]),
 #novora-hrms-root select.h-8:not([multiple]):not([size]) {
+  min-height: 2.25rem;
   height: 2.25rem;
   padding-block: 0;
+  padding-inline-start: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 #novora-hrms-root select.h-8:not([multiple]):not([size]) {
   min-height: 2rem;
   height: 2rem;
+}
+
+/* Modal / CRUD surfaces: keep selects readable and above clipped parents when using SelectMenu */
+#novora-hrms-root [class*='fixed'][class*='inset-0'] select:not([multiple]):not([size]),
+#novora-hrms-root .nv-modal select:not([multiple]):not([size]) {
+  min-height: 2.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding-block: 0.55rem;
+  padding-inline-start: 0.875rem;
 }
 
 html[data-theme='cyber-dark'] #novora-hrms-root select:not([multiple]):not([size]) {
@@ -1650,6 +1705,7 @@ html[data-theme='cyber-dark'] .nv-dropdown-menu > button.nv-dropdown-item--activ
   .nv-stagger > *,
   .nv-dropdown-portal,
   .nv-dropdown-in,
+  .nv-dropdown-in--up,
   .nv-ai-panel,
   .nv-select-panel {
     animation: none !important;

@@ -1288,33 +1288,36 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                 {/* 1. Choose target Employee */}
                 <div>
                   <label className="text-[10px] text-slate-400 font-extrabold block mb-1 uppercase">Associate Record</label>
-                  <select
-                    required
+                  <SelectMenu
                     value={selectedEmpId}
-                    onChange={(e) => setSelectedEmpId(e.target.value)}
-                    className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white focus:border-novora/30"
-                  >
-                    <option value="">-- Choose employee details --</option>
-                    {employees.map(emp => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.name} ({emp.position} - {emp.department})
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setSelectedEmpId}
+                    aria-label="Associate record"
+                    placeholder="-- Choose employee details --"
+                    triggerClassName="text-xs font-semibold bg-slate-50 border-slate-100"
+                    options={[
+                      { value: '', label: '-- Choose employee details --' },
+                      ...employees.map((emp) => ({
+                        value: emp.id,
+                        label: `${emp.name} (${emp.position} - ${emp.department})`,
+                      })),
+                    ]}
+                  />
                 </div>
 
                 {/* 2. Choose template format */}
                 <div>
                   <label className="text-[10px] text-slate-400 font-extrabold block mb-1 uppercase">Letter Format Template</label>
-                  <select
+                  <SelectMenu
                     value={selectedTemplate}
-                    onChange={(e) => setSelectedTemplate(e.target.value)}
-                    className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white"
-                  >
-                    <option value="Standard Employment Verification Letter">Standard Employment Verification Letter (Bank/Embassy Spec)</option>
-                    <option value="Salary Certificate">Salary Certificate (Consolidated base + allowances listing)</option>
-                    <option value="Performance Reference Letter">Performance Reference Letter (Inter-office relocation)</option>
-                  </select>
+                    onChange={setSelectedTemplate}
+                    aria-label="Letter template"
+                    triggerClassName="text-xs font-semibold bg-slate-50 border-slate-100"
+                    options={[
+                      { value: 'Standard Employment Verification Letter', label: 'Standard Employment Verification Letter (Bank/Embassy Spec)' },
+                      { value: 'Salary Certificate', label: 'Salary Certificate (Consolidated base + allowances listing)' },
+                      { value: 'Performance Reference Letter', label: 'Performance Reference Letter (Inter-office relocation)' },
+                    ]}
+                  />
                 </div>
 
                 {/* 3. Recipient Agency */}
@@ -1856,50 +1859,56 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
               {/* 1. Creator Contact employee */}
               <div>
                 <label className="text-[10px] text-slate-400 font-extrabold block mb-1 uppercase">Reporting Employee Client</label>
-                <select
-                  required
+                <SelectMenu
                   value={newCreatorId}
-                  onChange={(e) => setNewCreatorId(e.target.value)}
-                  className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white focus:ring-1 focus:ring-blue-105"
-                >
-                  <option value="">-- Select employee reporter --</option>
-                  {employees.map(emp => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name} ({emp.position} - {emp.department})
-                    </option>
-                  ))}
-                </select>
+                  onChange={setNewCreatorId}
+                  aria-label="Reporting employee"
+                  placeholder="-- Select employee reporter --"
+                  triggerClassName="text-xs font-semibold bg-slate-50 border-slate-100"
+                  options={[
+                    { value: '', label: '-- Select employee reporter --' },
+                    ...employees.map((emp) => ({
+                      value: emp.id,
+                      label: `${emp.name} (${emp.position} - ${emp.department})`,
+                    })),
+                  ]}
+                />
               </div>
 
               {/* 2. Topic Category and Priority */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] text-slate-400 font-extrabold block mb-1 uppercase">Inquiry Category</label>
-                  <select
+                  <SelectMenu
                     value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value as any)}
-                    className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white"
-                  >
-                    <option value="Payroll Discrepancy">Payroll Discrepancy</option>
-                    <option value="Document Request">Document Request</option>
-                    <option value="Tax Form Issue">Tax Form Issue</option>
-                    <option value="Benefits Inquiry">Benefits Inquiry</option>
-                    <option value="General Policy">General Policy</option>
-                  </select>
+                    onChange={(v) => setNewCategory(v as typeof newCategory)}
+                    aria-label="Inquiry category"
+                    triggerClassName="text-xs font-semibold bg-slate-50 border-slate-100"
+                    options={[
+                      { value: 'Payroll Discrepancy', label: 'Payroll Discrepancy' },
+                      { value: 'Document Request', label: 'Document Request' },
+                      { value: 'Tax Form Issue', label: 'Tax Form Issue' },
+                      { value: 'Benefits Inquiry', label: 'Benefits Inquiry' },
+                      { value: 'General Policy', label: 'General Policy' },
+                    ]}
+                  />
                 </div>
 
                 <div>
                   <label className="text-[10px] text-slate-400 font-extrabold block mb-1 uppercase">Filing Severity / Priority</label>
-                  <select
+                  <SelectMenu
                     value={newPriority}
-                    onChange={(e) => setNewPriority(e.target.value as any)}
-                    className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 cursor-pointer outline-none focus:bg-white"
-                  >
-                    <option value="Low">Low - Informational query (48h)</option>
-                    <option value="Medium">Medium - Standard (24h)</option>
-                    <option value="High">High - Impeding status (12h)</option>
-                    <option value="Critical">Critical - Severe discrepancy (4h)</option>
-                  </select>
+                    onChange={(v) => setNewPriority(v as typeof newPriority)}
+                    aria-label="Priority"
+                    preferUp
+                    triggerClassName="text-xs font-semibold bg-slate-50 border-slate-100"
+                    options={[
+                      { value: 'Low', label: 'Low - Informational query (48h)' },
+                      { value: 'Medium', label: 'Medium - Standard (24h)' },
+                      { value: 'High', label: 'High - Impeding status (12h)' },
+                      { value: 'Critical', label: 'Critical - Severe discrepancy (4h)' },
+                    ]}
+                  />
                 </div>
               </div>
 
