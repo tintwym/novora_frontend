@@ -28,6 +28,9 @@ export {
   fetchCourseAiRecommendations,
   fetchEngagementAiThemes,
   fetchDisciplinaryAiLetter,
+  fetchPayrollAiAnomalies,
+  fetchBenefitsAiTip,
+  fetchAssetsAiInsights,
 } from './aiApi'
 export type {
   AiKpiHint,
@@ -47,6 +50,12 @@ export type {
   EngagementThemeResponse,
   DisciplinaryLetterRequest,
   DisciplinaryLetterResponse,
+  PayrollAnomalyRequest,
+  PayrollAnomalyResponse,
+  BenefitsTipRequest,
+  BenefitsTipResponse,
+  AssetsInsightRequest,
+  AssetsInsightResponse,
 } from './aiApi'
 export {
   fetchMyAttendance,

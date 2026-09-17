@@ -669,7 +669,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             align="right"
           >
             <button
-              type="button"
+              type="button" aria-expanded={yearDropdownOpen}
               onClick={() => { setYearDropdownOpen(!yearDropdownOpen); setDeptDropdownOpen(false); }}
               className="nv-dd-trigger"
             >
@@ -699,7 +699,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             align="right"
           >
             <button
-              type="button"
+              type="button" aria-expanded={deptDropdownOpen}
               onClick={() => { setDeptDropdownOpen(!deptDropdownOpen); setYearDropdownOpen(false); }}
               className="nv-dd-trigger"
             >
@@ -766,7 +766,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 align="left"
               >
                 <button
-                  type="button"
+                  type="button" aria-expanded={typeFilterDropdown}
                   onClick={() => setTypeFilterDropdown(!typeFilterDropdown)}
                   className="nv-dd-trigger"
                 >

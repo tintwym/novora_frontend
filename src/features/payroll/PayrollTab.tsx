@@ -27,6 +27,7 @@ import {
   Percent,
   Clock,
   Paperclip,
+  Sparkles,
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import ModuleHeader from '@/components/ui/ModuleHeader';
@@ -45,6 +46,7 @@ import {
   fetchMyPayslips,
   fetchOtPolicies,
   fetchOvertimeRecords,
+  fetchPayrollAiAnomalies,
   fetchPayrollRunSummary,
   fetchTaxCategories,
   createOvertimeRecord,
@@ -57,6 +59,7 @@ import {
   type DepositTypeRow,
   type OtPolicyRow,
   type OvertimeRecordRow,
+  type PayrollAnomalyResponse,
   type PayrollRow,
   type PayrollRunSummary,
   type TaxCategoryRow,
@@ -254,6 +257,8 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
   const [myPayslips, setMyPayslips] = useState<PayrollRow[]>([])
   const [payrollSummary, setPayrollSummary] = useState<PayrollRunSummary | null>(null)
   const [payrollBusy, setPayrollBusy] = useState(false)
+  const [aiPayrollBusy, setAiPayrollBusy] = useState(false)
+  const [payrollAi, setPayrollAi] = useState<PayrollAnomalyResponse | null>(null)
 
   const refreshPayroll = useCallback(async () => {
     try {
@@ -3018,6 +3023,75 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     <strong className="text-slate-700 font-mono">{payrollSummary ? `${payrollSummary.draftCount}/${payrollSummary.processedCount}/${payrollSummary.paidCount}` : '—'} · rows {payrollRows.length}</strong>
                   </div>
                 </div>
+
+                <button
+                  type="button"
+                  disabled={aiPayrollBusy}
+                  onClick={() => {
+                    void (async () => {
+                      setAiPayrollBusy(true)
+                      addToast('Scanning payroll for QA notes…', 'loading')
+                      try {
+                        const result = await fetchPayrollAiAnomalies({
+                          payMonth,
+                          payYear,
+                          headcount: payrollSummary?.headcount ?? employees.length,
+                          totalNetPay: String(payrollSummary ? Number(payrollSummary.totalNetPay) : grandTotalGross),
+                          draftCount: payrollSummary?.draftCount ?? null,
+                          processedCount: payrollSummary?.processedCount ?? null,
+                          paidCount: payrollSummary?.paidCount ?? null,
+                          rowCount: payrollRows.length,
+                          sampleRows: payrollRows.slice(0, 8).map(
+                            (r) => `${r.employeeName}: net ${r.netPay} (${r.status})`,
+                          ),
+                        })
+                        setPayrollAi(result)
+                        addToast(
+                          result.source === 'gemini' ? 'AI payroll QA ready — review only.' : 'Heuristic payroll QA ready.',
+                          'success',
+                        )
+                      } catch (err) {
+                        addToast(err instanceof ApiError ? err.message : 'Could not run payroll AI QA.', 'error')
+                      } finally {
+                        setAiPayrollBusy(false)
+                      }
+                    })()
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-1.5 rounded-2xl border border-novora/25 bg-novora/5 py-3 text-xs font-extrabold text-novora hover:bg-novora/10 disabled:opacity-60 cursor-pointer"
+                >
+                  <Sparkles className={`h-3.5 w-3.5 ${aiPayrollBusy ? 'animate-spin' : ''}`} />
+                  {aiPayrollBusy ? 'Scanning…' : 'AI Payroll QA'}
+                </button>
+
+                {payrollAi && (
+                  <div className="nv-ai-panel rounded-2xl border border-novora/20 bg-novora/5 p-4 space-y-2 text-left">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h5 className="text-xs font-bold text-slate-800 inline-flex items-center gap-1.5">
+                          <Sparkles className="h-3.5 w-3.5 text-novora" />
+                          AI payroll QA
+                        </h5>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{payrollAi.disclaimer}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPayrollAi(null)}
+                        className="text-[10px] font-bold text-slate-500 hover:text-slate-700 cursor-pointer"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                    <p className="text-xs text-slate-600 font-medium">{payrollAi.summary}</p>
+                    <ul className="space-y-1">
+                      {payrollAi.findings.map((f) => (
+                        <li key={f} className="text-xs text-slate-700 flex gap-1.5">
+                          <span className="text-novora mt-0.5">•</span>
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 <button
                   type="button"

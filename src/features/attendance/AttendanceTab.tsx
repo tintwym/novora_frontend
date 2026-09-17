@@ -893,7 +893,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
             align="right"
           >
             <button
-              type="button"
+              type="button" aria-expanded={deptDropdownOpen}
               onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
               className="nv-dd-trigger"
             >

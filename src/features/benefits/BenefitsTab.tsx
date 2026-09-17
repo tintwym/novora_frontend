@@ -33,8 +33,10 @@ import {
   fetchBenefitEnrollments,
   fetchBenefitPlans,
   fetchMyBenefitEnrollments,
+  fetchBenefitsAiTip,
   type BenefitEnrollmentRow,
   type BenefitPlanRow,
+  type BenefitsTipResponse,
 } from '@/services';
 
 interface BenefitsTabProps {
@@ -148,6 +150,8 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
   // -------------------------------------------------------------
   const [plans, setPlans] = useState<BenefitPlan[]>([]);
   const [enrolledPlans, setEnrolledPlans] = useState<Record<string, string[]>>({});
+  const [aiBenefitBusy, setAiBenefitBusy] = useState(false);
+  const [benefitAi, setBenefitAi] = useState<BenefitsTipResponse | null>(null);
 
   const loadBenefits = useCallback(async () => {
     try {
@@ -482,13 +486,44 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider whitespace-nowrap shrink-0">Viewing Employee Profile:</span>
           <select
             value={selectedSubEmployee}
-            onChange={(e) => setSelectedSubEmployee(e.target.value)}
+            onChange={(e) => { setSelectedSubEmployee(e.target.value); setBenefitAi(null); }}
             className="text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl px-3 py-1.5 outline-none cursor-pointer hover:bg-slate-50 whitespace-nowrap shrink-0"
           >
             {employees.map(emp => (
               <option key={emp.id} value={emp.id}>{emp.name} ({emp.id})</option>
             ))}
           </select>
+          <button
+            type="button"
+            disabled={aiBenefitBusy || !selectedSubEmployee}
+            onClick={() => {
+              void (async () => {
+                const emp = employees.find((e) => e.id === selectedSubEmployee);
+                if (!emp) return;
+                setAiBenefitBusy(true);
+                addToast('Drafting benefits tip…', 'loading');
+                try {
+                  const enrolledIds = enrolledPlans[selectedSubEmployee] || [];
+                  const result = await fetchBenefitsAiTip({
+                    employeeName: emp.name,
+                    department: emp.department,
+                    availablePlans: plans.map((p) => `${p.name} (${p.category})`),
+                    enrolledPlans: plans.filter((p) => enrolledIds.includes(p.id)).map((p) => p.name),
+                  });
+                  setBenefitAi(result);
+                  addToast(result.source === 'gemini' ? 'AI benefits tip ready.' : 'Heuristic benefits tip ready.', 'success');
+                } catch (err) {
+                  addToast(err instanceof ApiError ? err.message : 'Could not draft benefits tip.', 'error');
+                } finally {
+                  setAiBenefitBusy(false);
+                }
+              })();
+            }}
+            className="h-9 inline-flex items-center gap-1.5 rounded-xl border border-novora/25 bg-novora/5 px-3 text-xs font-extrabold text-novora hover:bg-novora/10 disabled:opacity-60 cursor-pointer whitespace-nowrap"
+          >
+            <Sparkles className={`h-3.5 w-3.5 ${aiBenefitBusy ? 'animate-spin' : ''}`} />
+            {aiBenefitBusy ? 'Tips…' : 'AI Tip'}
+          </button>
         </div>
       </div>
 

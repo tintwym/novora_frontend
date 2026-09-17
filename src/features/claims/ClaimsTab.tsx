@@ -397,7 +397,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
             align="right"
           >
             <button
-              type="button"
+              type="button" aria-expanded={monthDropdownOpen}
               onClick={() => {
                 setDeptDropdownOpen(false)
                 setMonthDropdownOpen(!monthDropdownOpen)
@@ -430,7 +430,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
             align="right"
           >
             <button
-              type="button"
+              type="button" aria-expanded={deptDropdownOpen}
               onClick={() => {
                 setMonthDropdownOpen(false)
                 setDeptDropdownOpen(!deptDropdownOpen)

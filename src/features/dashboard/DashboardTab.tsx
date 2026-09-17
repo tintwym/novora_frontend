@@ -675,7 +675,7 @@ function WorkforceTrendChart({
       action={
         <DropdownAnchor open={open} onClose={() => setOpen(false)} align="right">
           <button
-            type="button"
+            type="button" aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
             className="nv-dd-trigger"
           >

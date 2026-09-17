@@ -146,6 +146,54 @@ export type DisciplinaryLetterResponse = {
   disclaimer: string
 }
 
+export type PayrollAnomalyRequest = {
+  payMonth?: number | null
+  payYear?: number | null
+  headcount?: number | null
+  totalNetPay?: string | null
+  draftCount?: number | null
+  processedCount?: number | null
+  paidCount?: number | null
+  rowCount?: number | null
+  sampleRows?: string[]
+}
+
+export type PayrollAnomalyResponse = {
+  findings: string[]
+  summary: string
+  source: string
+  disclaimer: string
+}
+
+export type BenefitsTipRequest = {
+  employeeName: string
+  department?: string
+  availablePlans?: string[]
+  enrolledPlans?: string[]
+}
+
+export type BenefitsTipResponse = {
+  tip: string
+  suggestions: string[]
+  source: string
+  disclaimer: string
+}
+
+export type AssetsInsightRequest = {
+  totalAssets?: number | null
+  availableCount?: number | null
+  inUseCount?: number | null
+  maintenanceCount?: number | null
+  flaggedItems?: string[]
+}
+
+export type AssetsInsightResponse = {
+  insights: string[]
+  summary: string
+  source: string
+  disclaimer: string
+}
+
 export async function fetchDashboardAiInsights(
   payload: DashboardInsightRequest,
 ): Promise<DashboardInsightResponse> {
@@ -213,6 +261,33 @@ export async function fetchDisciplinaryAiLetter(
   payload: DisciplinaryLetterRequest,
 ): Promise<DisciplinaryLetterResponse> {
   return apiRequest<DisciplinaryLetterResponse>('/api/admin/ai/disciplinary-letter', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function fetchPayrollAiAnomalies(
+  payload: PayrollAnomalyRequest,
+): Promise<PayrollAnomalyResponse> {
+  return apiRequest<PayrollAnomalyResponse>('/api/admin/ai/payroll-anomalies', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function fetchBenefitsAiTip(
+  payload: BenefitsTipRequest,
+): Promise<BenefitsTipResponse> {
+  return apiRequest<BenefitsTipResponse>('/api/admin/ai/benefits-tip', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function fetchAssetsAiInsights(
+  payload: AssetsInsightRequest,
+): Promise<AssetsInsightResponse> {
+  return apiRequest<AssetsInsightResponse>('/api/admin/ai/assets-insights', {
     method: 'POST',
     body: payload,
   })

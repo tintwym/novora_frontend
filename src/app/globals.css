@@ -764,6 +764,19 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   flex-shrink: 0;
 }
 
+.nv-dd-trigger > .nv-chevron-down,
+.nv-dd-trigger > .lucide-chevron-down {
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), color 150ms ease;
+}
+
+.nv-dd-trigger[aria-expanded='true'] > .nv-chevron-down,
+.nv-dd-trigger.nv-dd-trigger--open > .nv-chevron-down,
+.nv-dd-trigger[aria-expanded='true'] > .lucide-chevron-down,
+.nv-dd-trigger.nv-dd-trigger--open > .lucide-chevron-down {
+  transform: rotate(180deg);
+  color: var(--color-novora);
+}
+
 .nv-dd-trigger > span {
   display: inline-block;
   line-height: 1.25;
@@ -809,7 +822,9 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
 
 /* Portaled menus: positioning handled by DropdownAnchor / SelectMenu */
 .nv-dropdown-portal {
-  filter: drop-shadow(0 8px 20px color-mix(in srgb, var(--color-novora-ink) 10%, transparent));
+  filter: drop-shadow(0 10px 28px color-mix(in srgb, var(--color-novora-ink) 12%, transparent));
+  transform-origin: top center;
+  animation: nv-dropdown-portal-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .nv-dropdown-portal .nv-dropdown-menu,
@@ -823,11 +838,22 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
   width: max-content;
   max-width: min(20rem, calc(100vw - 1rem));
   margin: 0;
-  animation: nv-dropdown-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: none;
+}
+
+@keyframes nv-dropdown-portal-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .nv-dropdown-in {
-  animation: nv-dropdown-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: nv-dropdown-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .nv-dropdown-menu--right {
@@ -945,7 +971,22 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
 @keyframes nv-dropdown-in {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.nv-ai-panel {
+  animation: nv-ai-panel-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes nv-ai-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -1380,7 +1421,11 @@ html[data-theme='cyber-dark'] #novora-hrms-root select:not([multiple]):not([size
   .animate-soft-fade-up,
   .animate-in,
   .fade-in,
-  .nv-stagger > * {
+  .nv-stagger > *,
+  .nv-dropdown-portal,
+  .nv-dropdown-in,
+  .nv-ai-panel,
+  .nv-select-panel {
     animation: none !important;
   }
 }

@@ -876,7 +876,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
           >
             <button
               id="dept-filter-btn"
-              type="button"
+              type="button" aria-expanded={deptDropdownOpen}
               onClick={() => {
                 setExportDropdownOpen(false)
                 setDeptDropdownOpen(!deptDropdownOpen)
@@ -915,7 +915,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
           >
             <button
               id="export-options-btn"
-              type="button"
+              type="button" aria-expanded={exportDropdownOpen}
               onClick={() => {
                 setDeptDropdownOpen(false)
                 setExportDropdownOpen(!exportDropdownOpen)

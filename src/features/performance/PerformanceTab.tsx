@@ -712,7 +712,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
             align="right"
           >
             <button
-              type="button"
+              type="button" aria-expanded={yearDropdownOpen}
               onClick={() => {
                 setDeptDropdownOpen(false)
                 setYearDropdownOpen(!yearDropdownOpen)
@@ -748,7 +748,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
             align="right"
           >
             <button
-              type="button"
+              type="button" aria-expanded={deptDropdownOpen}
               onClick={() => {
                 setYearDropdownOpen(false)
                 setDeptDropdownOpen(!deptDropdownOpen)

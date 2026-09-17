@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   Package,
   Plus,
+  Sparkles,
   Search,
   Filter,
   Download,
@@ -34,7 +35,7 @@ import {
 } from 'lucide-react';
 import { createLocalId } from '@/lib/createLocalId';
 import ModuleHeader from '@/components/ui/ModuleHeader';
-import { ApiError, createAsset, fetchAssets, type AssetRow } from '@/services';
+import { ApiError, createAsset, fetchAssets, fetchAssetsAiInsights, type AssetRow, type AssetsInsightResponse } from '@/services';
 
 type UiAsset = {
   id: string;
@@ -87,6 +88,8 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
   // Available asset tabs
   const [activeSubTab, setActiveSubTab] = useState<'Registry' | 'Categories' | 'Allocations' | 'Requests' | 'Damages & Repair'>('Registry');
   const [searchQuery, setSearchQuery] = useState('');
+  const [aiAssetBusy, setAiAssetBusy] = useState(false);
+  const [assetAi, setAssetAi] = useState<AssetsInsightResponse | null>(null);
   const [categoryFilter, setCategoryFilter] = useState('All categories');
   const [statusFilter, setStatusFilter] = useState('All statuses');
 
@@ -898,6 +901,40 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
 
         {/* Global Tab Actions */}
         <div className="flex items-center gap-2 pb-2 sm:pb-0">
+          <button
+            id="btn-assets-ai-insights"
+            type="button"
+            disabled={aiAssetBusy}
+            onClick={() => {
+              void (async () => {
+                setAiAssetBusy(true);
+                addToast('Drafting asset insights…', 'loading');
+                try {
+                  const flagged = assets
+                    .filter((a) => /maint|damage|repair|retir/i.test(a.status + ' ' + (a.condition || '')))
+                    .slice(0, 6)
+                    .map((a) => `${a.name} — ${a.status}${a.condition ? ` (${a.condition})` : ''}`);
+                  const result = await fetchAssetsAiInsights({
+                    totalAssets: assets.length,
+                    availableCount,
+                    inUseCount: assets.filter((a) => a.status === 'In Use').length,
+                    maintenanceCount,
+                    flaggedItems: flagged,
+                  });
+                  setAssetAi(result);
+                  addToast(result.source === 'gemini' ? 'AI asset insights ready.' : 'Heuristic asset insights ready.', 'success');
+                } catch (err) {
+                  addToast(err instanceof ApiError ? err.message : 'Could not draft asset insights.', 'error');
+                } finally {
+                  setAiAssetBusy(false);
+                }
+              })();
+            }}
+            className="h-9 px-3 border border-novora/25 bg-novora/5 hover:bg-novora/10 rounded-xl text-novora text-[11px] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all whitespace-nowrap shrink-0 disabled:opacity-60"
+          >
+            <Sparkles className={`h-3.5 w-3.5 ${aiAssetBusy ? 'animate-spin' : ''}`} />
+            {aiAssetBusy ? 'Scanning…' : 'AI Insights'}
+          </button>
           <button
             id="btn-assets-export-csv"
             onClick={handleExportCSV}
