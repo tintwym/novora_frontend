@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import ModuleHeader from '@/components/ui/ModuleHeader';
+import PolicyAssistantPanel from './PolicyAssistantPanel';
 import { SelectMenu } from '@/components/ui';
 import {
   ApiError,
@@ -818,6 +819,14 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
           </div>
         </div>
       </div>
+
+      <PolicyAssistantPanel
+        onEscalate={(question) => {
+          setNewSubject(question.slice(0, 200));
+          setNewDescription(`I asked the HR Assistant: "${question}" but still need help.`);
+          setIsNewTicketModalOpen(true);
+        }}
+      />
 
       {/* ======================= SUBTAB SWITCHER RENDERERS ======================= */}
 

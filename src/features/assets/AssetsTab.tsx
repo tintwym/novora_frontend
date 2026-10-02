@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useCanUseHrAi } from '@/providers/AuthProvider';
 import {
   Package,
   Plus,
@@ -90,6 +91,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
   const [activeSubTab, setActiveSubTab] = useState<'Registry' | 'Categories' | 'Allocations' | 'Requests' | 'Damages & Repair'>('Registry');
   const [searchQuery, setSearchQuery] = useState('');
   const [aiAssetBusy, setAiAssetBusy] = useState(false);
+  const canUseHrAi = useCanUseHrAi();
   const [assetAi, setAssetAi] = useState<AssetsInsightResponse | null>(null);
   const [categoryFilter, setCategoryFilter] = useState('All categories');
   const [statusFilter, setStatusFilter] = useState('All statuses');
@@ -902,6 +904,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
 
         {/* Global Tab Actions */}
         <div className="flex items-center gap-2 pb-2 sm:pb-0">
+          {canUseHrAi && (
           <button
             id="btn-assets-ai-insights"
             type="button"
@@ -936,6 +939,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
             <Sparkles className={`h-3.5 w-3.5 ${aiAssetBusy ? 'animate-spin' : ''}`} />
             {aiAssetBusy ? 'Scanning…' : 'AI Insights'}
           </button>
+          )}
           <button
             id="btn-assets-export-csv"
             onClick={handleExportCSV}

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useCanUseHrAi } from '@/providers/AuthProvider';
 import { createLocalNumericId } from '@/lib/createLocalId'
 import {
   Award,
@@ -177,6 +178,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
   const [evaluationsList, setEvaluationsList] = useState<UiEvaluation[]>([]);
   const [appraiserNote, setAppraiserNote] = useState('');
   const [aiNoteBusy, setAiNoteBusy] = useState(false);
+  const canUseHrAi = useCanUseHrAi();
 
   const handleAiAppraiserNote = async () => {
     if (aiNoteBusy) return;
@@ -1772,6 +1774,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                 <div className="bg-slate-50/30 border p-6 rounded-2xl text-xs space-y-3">
                   <div className="flex items-center justify-between gap-2 border-b pb-2">
                     <h4 className="text-sm font-extrabold text-slate-800">Appraiser note</h4>
+                    {canUseHrAi && (
                     <button
                       type="button"
                       disabled={aiNoteBusy}
@@ -1781,6 +1784,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                       <Sparkles className={`h-3.5 w-3.5 ${aiNoteBusy ? 'animate-spin' : ''}`} />
                       {aiNoteBusy ? 'Drafting…' : 'AI Draft'}
                     </button>
+                    )}
                   </div>
                   <textarea
                     rows={4}

@@ -52,6 +52,12 @@ export function useAuth() {
   return ctx
 }
 
+/** HR co-pilot endpoints under /api/admin/ai are restricted to HR/admin roles on the backend. */
+export function useCanUseHrAi(): boolean {
+  const { session } = useAuth()
+  return canManageFullSystem(session?.roles)
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const [session, setSession] = useState<AuthSession | null>(null)

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCanUseHrAi } from '@/providers/AuthProvider';
 import { createLocalId } from '@/lib/createLocalId'
 import { 
   BookOpen, 
@@ -145,6 +146,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
   // -------------------------------------------------------------
   const [courses, setCourses] = useState<Course[]>([]);
   const [aiCourseBusy, setAiCourseBusy] = useState(false);
+  const canUseHrAi = useCanUseHrAi();
   const [courseAiRecs, setCourseAiRecs] = useState<CourseRecommendationResponse | null>(null);
 
   const loadCatalog = useCallback(async () => {
@@ -629,6 +631,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
 
             {/* Quick action triggers */}
             <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+              {canUseHrAi && (
               <button
                 type="button"
                 disabled={aiCourseBusy}
@@ -638,6 +641,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
                 <Sparkles className={`h-3.5 w-3.5 ${aiCourseBusy ? 'animate-spin' : ''}`} />
                 {aiCourseBusy ? 'Recommending…' : 'AI Recommend'}
               </button>
+              )}
               <button
                 onClick={() => setIsLmsModalOpen(true)}
                 className="bg-novora hover:bg-opacity-95 text-white font-extrabold text-xs px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer transition-all shadow-xs"

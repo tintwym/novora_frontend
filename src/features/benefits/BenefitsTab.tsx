@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useCanUseHrAi } from '@/providers/AuthProvider';
 import { createLocalId } from '@/lib/createLocalId'
 import { 
   HeartHandshake, 
@@ -152,6 +153,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
   const [plans, setPlans] = useState<BenefitPlan[]>([]);
   const [enrolledPlans, setEnrolledPlans] = useState<Record<string, string[]>>({});
   const [aiBenefitBusy, setAiBenefitBusy] = useState(false);
+  const canUseHrAi = useCanUseHrAi();
   const [benefitAi, setBenefitAi] = useState<BenefitsTipResponse | null>(null);
 
   const loadBenefits = useCallback(async () => {
@@ -501,6 +503,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
               label: `${emp.name} (${emp.id})`,
             }))}
           />
+          {canUseHrAi && (
           <button
             type="button"
             disabled={aiBenefitBusy || !selectedSubEmployee}
@@ -532,6 +535,7 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
             <Sparkles className={`h-3.5 w-3.5 ${aiBenefitBusy ? 'animate-spin' : ''}`} />
             {aiBenefitBusy ? 'Tips…' : 'AI Tip'}
           </button>
+          )}
         </div>
       </div>
 

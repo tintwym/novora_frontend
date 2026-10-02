@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useCanUseHrAi } from '@/providers/AuthProvider';
 import { createLocalId } from '@/lib/createLocalId'
 import { 
   Smile, 
@@ -135,6 +136,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
   
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const [aiThemeBusy, setAiThemeBusy] = useState(false);
+  const canUseHrAi = useCanUseHrAi();
   const [engagementThemes, setEngagementThemes] = useState<EngagementThemeResponse | null>(null);
 
   const handleAiEngagementThemes = async () => {
@@ -790,6 +792,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                 <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Public suggestions Ledger</span>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-400 font-bold">{suggestions.length} submitted entries</span>
+                  {canUseHrAi && (
                   <button
                     type="button"
                     disabled={aiThemeBusy}
@@ -799,6 +802,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                     <Sparkles className={`h-3.5 w-3.5 ${aiThemeBusy ? 'animate-spin' : ''}`} />
                     {aiThemeBusy ? 'Summarising…' : 'AI Themes'}
                   </button>
+                  )}
                 </div>
               </div>
 

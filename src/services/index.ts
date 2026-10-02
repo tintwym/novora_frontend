@@ -31,6 +31,7 @@ export {
   fetchPayrollAiAnomalies,
   fetchBenefitsAiTip,
   fetchAssetsAiInsights,
+  askPolicyAssistant,
 } from './aiApi'
 export type {
   AiKpiHint,
@@ -56,6 +57,7 @@ export type {
   BenefitsTipResponse,
   AssetsInsightRequest,
   AssetsInsightResponse,
+  PolicyQaResponse,
 } from './aiApi'
 export {
   fetchMyAttendance,

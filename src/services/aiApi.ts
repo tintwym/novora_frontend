@@ -194,6 +194,21 @@ export type AssetsInsightResponse = {
   disclaimer: string
 }
 
+export type PolicyQaResponse = {
+  answer: string
+  sources: string[]
+  source: string
+  disclaimer: string
+}
+
+/** Employee self-service: answers from the company's own HR settings. Available to all roles. */
+export async function askPolicyAssistant(question: string): Promise<PolicyQaResponse> {
+  return apiRequest<PolicyQaResponse>('/api/ai/policy-qa', {
+    method: 'POST',
+    body: { question },
+  })
+}
+
 export async function fetchDashboardAiInsights(
   payload: DashboardInsightRequest,
 ): Promise<DashboardInsightResponse> {
