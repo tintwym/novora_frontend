@@ -577,9 +577,9 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
           </div>
 
           {/* Filtering and Search Ribbon + Action Buttons */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col xl:flex-row items-center justify-between gap-4">
             
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
               {/* Search */}
               <div className="relative w-full sm:w-60">
                 <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
@@ -630,7 +630,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
             </div>
 
             {/* Quick action triggers */}
-            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+            <div className="flex flex-wrap items-center gap-2.5 w-full xl:w-auto justify-end">
               {canUseHrAi && (
               <button
                 type="button"

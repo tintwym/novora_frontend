@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createLocalId } from '@/lib/createLocalId'
 import {
   Clock,
@@ -130,9 +130,40 @@ function initialsFromName(name: string) {
     .toUpperCase() || '??'
 }
 
-function mapRosterEntries(entries: RosterEntryRow[]): RosterEmployee[] {
+function startOfWeek(date: Date): Date {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
+  return d
+}
+
+function addDays(date: Date, days: number): Date {
+  const d = new Date(date)
+  d.setDate(d.getDate() + days)
+  return d
+}
+
+function localIsoDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function currentMonthRange(): { start: string; end: string } {
+  const now = new Date()
+  const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  return {
+    start: fmt(new Date(now.getFullYear(), now.getMonth(), 1)),
+    end: fmt(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
+  }
+}
+
+function parseLocalDate(value: string): Date {
+  const [y, m, d] = value.slice(0, 10).split('-').map(Number)
+  return y && m && d ? new Date(y, m - 1, d) : new Date(value)
+}
+
+function mapRosterEntries(entries: RosterEntryRow[], weekStart?: Date): RosterEmployee[] {
   const dayKeys = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
   const byEmp = new Map<string, RosterEmployee>()
+  const weekEnd = weekStart ? addDays(weekStart, 7) : null
 
   for (const entry of entries) {
     let emp = byEmp.get(entry.employeeId)
@@ -154,8 +185,9 @@ function mapRosterEntries(entries: RosterEntryRow[]): RosterEmployee[] {
       }
       byEmp.set(entry.employeeId, emp)
     }
-    const d = new Date(entry.workDate)
+    const d = parseLocalDate(entry.workDate)
     if (Number.isNaN(d.getTime())) continue
+    if (weekStart && weekEnd && (d < weekStart || d >= weekEnd)) continue
     const key = dayKeys[d.getDay()] as keyof RosterEmployee['schedule']
     const statusUpper = (entry.status || 'PLANNED').toUpperCase()
     let status = 'Planned'
@@ -183,11 +215,12 @@ function formatRosterPunch(iso: string | null | undefined) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
-function mapAttendanceToTimesheet(log: AttendanceRosterLog) {
+function mapAttendanceToTimesheet(log: AttendanceRosterLog, directory: EmployeeDirectory) {
+  const person = directory.get(log.employeeId)
   return {
     id: log.id,
-    name: log.employeeId,
-    dept: '—',
+    name: person?.name || log.employeeId,
+    dept: person?.dept || '—',
     shift: log.status || 'Standard',
     start: log.workDate,
     end: log.workDate,
@@ -284,10 +317,14 @@ function mapOtPolicyToUi(policies: OtPolicyRow[]) {
   ]
 }
 
-function mapAttendanceToReport(log: AttendanceRosterLog) {
-  const name = log.employeeId
+type EmployeeDirectory = Map<string, { name: string; dept: string }>
+
+function mapAttendanceToReport(log: AttendanceRosterLog, directory: EmployeeDirectory) {
+  const person = directory.get(log.employeeId)
+  const name = person?.name || log.employeeId
   return {
     name,
+    dept: person?.dept || '—',
     initials: initialsFromName(name),
     date: log.workDate,
     shift: log.status || 'Standard',
@@ -413,7 +450,41 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
   const [rosterView, setRosterView] = useState<'Week' | 'Day' | 'Month'>('Week');
   
   // Roster / timesheets / shifts — loaded from catalog APIs (demo fallback until load)
-  const [rosterData, setRosterData] = useState<RosterEmployee[]>([]);
+  const [rosterEntries, setRosterEntries] = useState<RosterEntryRow[]>([]);
+  const [rosterWeekStart, setRosterWeekStart] = useState(() => startOfWeek(new Date()));
+  const rosterData = useMemo(() => mapRosterEntries(rosterEntries), [rosterEntries]);
+  const departmentDirectory = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const e of employees ?? []) {
+      const dept = String(e.department || '—');
+      map.set(String(e.id), dept);
+      if (e.apiId) map.set(e.apiId, dept);
+    }
+    return map;
+  }, [employees]);
+  const departmentFilterOptions = useMemo(() => {
+    const depts = new Set<string>();
+    for (const e of employees ?? []) if (e.department) depts.add(String(e.department));
+    return ['All departments', ...Array.from(depts).sort()];
+  }, [employees]);
+  const weekRoster = useMemo(
+    () =>
+      mapRosterEntries(rosterEntries, rosterWeekStart).map((emp) => ({
+        ...emp,
+        dept: departmentDirectory.get(emp.id) ?? emp.dept,
+      })),
+    [rosterEntries, rosterWeekStart, departmentDirectory],
+  );
+  const rosterWeekDays = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => addDays(rosterWeekStart, i)),
+    [rosterWeekStart],
+  );
+  const rosterPeriodLabel = useMemo(() => {
+    const end = addDays(rosterWeekStart, 6);
+    const fmt = (d: Date, withYear: boolean) =>
+      d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', ...(withYear ? { year: 'numeric' } : {}) });
+    return `${fmt(rosterWeekStart, rosterWeekStart.getFullYear() !== end.getFullYear())} – ${fmt(end, true)}`;
+  }, [rosterWeekStart]);
 
   // Timesheets Data
   const [timesheets, setTimesheets] = useState<
@@ -454,12 +525,48 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
 
   // Reports states
   const [reportType, setReportType] = useState<'detail' | 'summary'>('detail');
-  const [reportMonth, setReportMonth] = useState('May 2026');
+  const [reportMonth, setReportMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
   const [reportsFilterDept, setReportsFilterDept] = useState('All departments');
   const [reportsFilterEmp, setReportsFilterEmp] = useState('');
   const [reportsRows, setReportsRows] = useState<
-    { name: string; initials: string; date: string; shift: string; in: string; out: string; hrs: string; late: string; ot: string; status: string }[]
+    { name: string; dept: string; initials: string; date: string; shift: string; in: string; out: string; hrs: string; late: string; ot: string; status: string }[]
   >([]);
+  const [attendanceLogs, setAttendanceLogs] = useState<AttendanceRosterLog[]>([]);
+
+  const employeeDirectory = useMemo<EmployeeDirectory>(() => {
+    const map: EmployeeDirectory = new Map();
+    for (const e of employees ?? []) {
+      const entry = { name: e.name, dept: String(e.department || '—') };
+      map.set(String(e.id), entry);
+      if (e.apiId) map.set(e.apiId, entry);
+    }
+    return map;
+  }, [employees]);
+
+  useEffect(() => {
+    if (attendanceLogs.length === 0) return;
+    setTimesheets(attendanceLogs.map((log) => mapAttendanceToTimesheet(log, employeeDirectory)));
+    setReportsRows(attendanceLogs.map((log) => mapAttendanceToReport(log, employeeDirectory)));
+  }, [attendanceLogs, employeeDirectory]);
+
+  const reportMonthOptions = useMemo(() => {
+    const keys = new Set<string>();
+    const now = new Date();
+    keys.add(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
+    for (const log of attendanceLogs) {
+      if (/^\d{4}-\d{2}/.test(log.workDate)) keys.add(log.workDate.slice(0, 7));
+    }
+    return Array.from(keys)
+      .sort()
+      .reverse()
+      .map((key) => {
+        const [y, m] = key.split('-').map(Number);
+        return { value: key, label: new Date(y, m - 1, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) };
+      });
+  }, [attendanceLogs]);
 
   const loadCatalogAttendance = useCallback(async () => {
     try {
@@ -471,13 +578,8 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
       if (patterns.length > 0) {
         setShiftPatterns(patterns.map(mapShiftPatternRow))
       }
-      if (roster.length > 0) {
-        setRosterData(mapRosterEntries(roster))
-      }
-      if (attRoster.length > 0) {
-        setTimesheets(attRoster.map(mapAttendanceToTimesheet))
-        setReportsRows(attRoster.map(mapAttendanceToReport))
-      }
+      setRosterEntries(roster)
+      setAttendanceLogs(attRoster)
     } catch (err) {
       if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
         addToast('Could not load attendance catalog data.', 'error')
@@ -568,8 +670,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
   const [newTimesheet, setNewTimesheet] = useState({
     employeeId: '',
     shift: 'Standard shift',
-    start: '1 May 2026',
-    end: '31 May 2026',
+    ...currentMonthRange(),
     days: 22,
     dutyDays: 'Mon-Fri'
   });
@@ -749,9 +850,9 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
       addToast('Please select a valid employee record for the timesheet', 'error');
       return;
     }
-    const emp = rosterData.find(r => r.id === newTimesheet.employeeId);
+    const emp = employeeOptions.find(r => r.id === newTimesheet.employeeId);
     const empName = emp ? emp.name : 'Unknown';
-    const empDept = emp ? emp.dept : 'Engineering';
+    const empDept = emp ? emp.dept : '—';
 
     const createdRec = {
       id: createLocalId('att'),
@@ -771,8 +872,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
     setNewTimesheet({
       employeeId: '',
       shift: 'Standard shift',
-      start: '1 May 2026',
-      end: '31 May 2026',
+      ...currentMonthRange(),
       days: 22,
       dutyDays: 'Mon-Fri'
     });
@@ -845,10 +945,26 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
   };
 
   const handleExportRoster = () => {
-    addToast('Structuring and generating attendance roster sheets...', 'loading');
-    setTimeout(() => {
-      addToast('Export_Active_Roster_May2026.xlsx successfully compiled and downloaded.', 'success');
-    }, 1500);
+    if (weekRoster.length === 0) {
+      addToast('No roster entries for this week to export.', 'info');
+      return;
+    }
+    const dayKeys = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
+    const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+    const header = ['Employee', 'Department', ...rosterWeekDays.map(localIsoDate)];
+    const rows = weekRoster.map((emp) => [
+      emp.name,
+      emp.dept,
+      ...dayKeys.map((k) => `${emp.schedule[k].time} (${emp.schedule[k].status})`),
+    ]);
+    const csv = [header, ...rows].map((r) => r.map(escape).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `roster_${localIsoDate(rosterWeekStart)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    addToast('Roster exported as CSV.', 'success');
   };
 
   const handleTriggerTimesheetAction = (action: string) => {
@@ -906,7 +1022,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
             </button>
             {deptDropdownOpen && (
               <div className="nv-dropdown-menu w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
-                {['All departments', 'Engineering', 'HR', 'Marketing', 'Operations'].map((dept) => (
+                {departmentFilterOptions.map((dept) => (
                   <button
                     key={dept}
                     type="button"
@@ -1063,12 +1179,19 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="text-xs font-bold text-slate-500"> Roster Period: </span>
-                <span className="text-sm font-extrabold text-slate-800 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">5 – 11 May 2026</span>
+                <span className="text-sm font-extrabold text-slate-800 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">{rosterPeriodLabel}</span>
                 
                 <div id="roster-arrow-controls" className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white">
-                  <button className="p-2 hover:bg-slate-50 text-slate-500" onClick={() => addToast('Displaying preceding rosters', 'info')}><ChevronLeft className="h-4 w-4" /></button>
-                  <button className="p-2 hover:bg-slate-50 text-slate-500 border-l border-slate-100" onClick={() => addToast('Displaying following rosters', 'info')}><ChevronRight className="h-4 w-4" /></button>
+                  <button type="button" aria-label="Previous week" className="p-2 hover:bg-slate-50 text-slate-500 cursor-pointer" onClick={() => setRosterWeekStart((w) => addDays(w, -7))}><ChevronLeft className="h-4 w-4" /></button>
+                  <button type="button" aria-label="Next week" className="p-2 hover:bg-slate-50 text-slate-500 border-l border-slate-100 cursor-pointer" onClick={() => setRosterWeekStart((w) => addDays(w, 7))}><ChevronRight className="h-4 w-4" /></button>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setRosterWeekStart(startOfWeek(new Date()))}
+                  className="text-xs font-bold text-novora hover:underline cursor-pointer"
+                >
+                  This week
+                </button>
               </div>
 
               {/* Day Segment Controls */}
@@ -1099,17 +1222,20 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100">
                       <th className="p-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider min-w-[180px]">Employee Card</th>
-                      <th className="p-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">Mon 5</th>
-                      <th className="p-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">Tue 6</th>
-                      <th className="p-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">Wed 7</th>
-                      <th className="p-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">Thu 8</th>
-                      <th className="p-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center text-amber-600 bg-amber-50/20">Fri 9 <span className="block text-[8px] font-normal italic">half day</span></th>
-                      <th className="p-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">Sat 10</th>
-                      <th className="p-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">Sun 11</th>
+                      {rosterWeekDays.map((day) => (
+                        <th
+                          key={localIsoDate(day)}
+                          className={`p-3 text-[11px] font-bold uppercase tracking-wider text-center ${
+                            day.toDateString() === new Date().toDateString() ? 'text-novora' : 'text-slate-400'
+                          }`}
+                        >
+                          {day.toLocaleDateString('en-GB', { weekday: 'short' })} {day.getDate()}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {rosterData
+                    {weekRoster
                       .filter(emp => deptFilter === 'All departments' || emp.dept === deptFilter)
                       .map((emp) => (
                         <tr key={emp.id} className="hover:bg-slate-50/40 transition-colors">
@@ -1165,6 +1291,13 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                           })}
                         </tr>
                     ))}
+                    {weekRoster.length === 0 && (
+                      <tr>
+                        <td colSpan={8} className="p-8 text-center text-xs font-semibold text-slate-400">
+                          No shifts scheduled yet. Assign staff from the Shift Pattern tab.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -2104,13 +2237,8 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                   onChange={setReportsFilterDept}
                   className="w-auto shrink-0"
                   triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
-                  options={[
-                    { value: 'All departments', label: 'All departments' },
-                    { value: 'Engineering', label: 'Engineering' },
-                    { value: 'HR', label: 'HR' },
-                    { value: 'Marketing', label: 'Marketing' },
-                    { value: 'Operations', label: 'Operations' },
-                  ]}
+                  aria-label="Report department"
+                  options={departmentFilterOptions.map((d) => ({ value: d, label: d }))}
                 />
 
                                 <SelectMenu
@@ -2118,11 +2246,8 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                   onChange={setReportMonth}
                   className="w-auto shrink-0"
                   triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
-                  options={[
-                    { value: 'May 2026', label: 'May 2026' },
-                    { value: 'June 2026', label: 'June 2026' },
-                    { value: 'July 2026', label: 'July 2026' },
-                  ]}
+                  aria-label="Report month"
+                  options={reportMonthOptions}
                 />
               </div>
 
@@ -2155,13 +2280,8 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                   <tbody className="divide-y divide-slate-100 text-xs">
                     {reportsRows
                       .filter(row => {
-                        // Filter by department
-                        if (reportsFilterDept !== 'All departments') {
-                          // Let's match employee's department from rosterData or fallback
-                          const matchedEmp = rosterData.find(e => e.name.toLowerCase().startsWith(row.name.toLowerCase().substring(0, 5)));
-                          const empDept = matchedEmp ? matchedEmp.dept : 'Engineering';
-                          if (empDept !== reportsFilterDept) return false;
-                        }
+                        if (!row.date.startsWith(reportMonth)) return false;
+                        if (reportsFilterDept !== 'All departments' && row.dept !== reportsFilterDept) return false;
                         // Filter by search query
                         if (reportsFilterEmp.trim() !== '') {
                           if (!row.name.toLowerCase().includes(reportsFilterEmp.toLowerCase())) return false;

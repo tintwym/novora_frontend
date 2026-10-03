@@ -871,7 +871,7 @@ export default function SettingsTab({
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-5 max-w-6xl select-none">
+    <div className="flex flex-col lg:flex-row gap-5 max-w-5xl select-none">
       <SettingsSubNav activeSubTab={activeSubTab} setActiveSubTab={setActiveSubTab} />
       <div className="flex-1 min-w-0 space-y-6">
       {/* SECTION CONTAINER WITH BENTO BOX FEEL */}

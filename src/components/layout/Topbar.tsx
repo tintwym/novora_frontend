@@ -10,7 +10,6 @@ import {
 } from 'lucide-react'
 import type { AuthSession } from '@/types'
 import { primaryRole, roleDisplayLabel } from '@/lib/roles'
-import { sidebarLabel } from '@/lib/navLabels'
 import { formatPersonDisplayName } from '@/lib/personName'
 import { DropdownAnchor } from '@/components/ui'
 import {
@@ -40,10 +39,6 @@ function RoleIcon({ roles, className }: { roles: string[] | undefined; className
     return <Briefcase className={className} />
   }
   return <User className={className} />
-}
-
-function sectionTitle(tab: string): string {
-  return sidebarLabel(tab)
 }
 
 function relativeFrom(createdAt: string | null): string {
@@ -87,7 +82,6 @@ export default function Topbar({
   const displayEmail = session?.email || 'pinky.sharma@novora.com'
   const displayRole = roleDisplayLabel(session?.roles)
   const initial = displayName.trim().charAt(0).toUpperCase() || 'P'
-  const title = sectionTitle(activeTabName)
   const unreadCount = notifications.filter((n) => !n.read).length
 
   const loadNotifications = useCallback(async () => {
@@ -125,26 +119,20 @@ export default function Topbar({
   return (
     <header
       id="app-topbar"
-      className="sticky top-0 z-40 h-16 px-6 md:px-8 flex items-center justify-between shrink-0"
+      className="relative z-40 h-16 px-6 md:px-8 flex items-center justify-between gap-4 shrink-0"
     >
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="hidden sm:block h-8 w-1 rounded-full bg-gradient-to-b from-novora to-novora-sky shrink-0" />
-        <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--shell-muted)]">
-            Workspace
-          </p>
-          <h1
-            id="topbar-section-title"
-            className="nv-page-title text-base md:text-lg truncate leading-tight"
-            title={activeTabName}
-          >
-            {title}
-          </h1>
-        </div>
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        <h1
+          id="topbar-section-title"
+          className="text-base md:text-[19px] font-bold tracking-tight truncate"
+          title={activeTabName}
+        >
+          {activeTabName}
+        </h1>
       </div>
 
-      <div className="flex items-center gap-3 md:gap-4">
-        <div id="topbar-search-container" className="nv-search-wrap w-48 sm:w-64 md:w-80 hidden sm:block">
+      <div className="flex items-center gap-3 md:gap-4 shrink-0">
+        <div id="topbar-search-container" className="nv-search-wrap hidden md:block md:w-52 xl:w-80">
           <Search className="nv-search-icon h-4 w-4" aria-hidden />
           <input
             id="topbar-search-input"
@@ -241,7 +229,7 @@ export default function Topbar({
             <div className="h-7 w-7 bg-novora/10 border border-novora/20 rounded-lg flex items-center justify-center text-sm font-bold text-novora">
               {initial}
             </div>
-            <span className="text-xs font-bold text-[var(--shell-title)] tracking-tight max-w-28 truncate hidden md:inline">
+            <span className="text-xs font-bold text-[var(--shell-title)] tracking-tight max-w-28 truncate hidden xl:inline">
               {displayName}
             </span>
             <RoleIcon roles={session?.roles} className="h-3.5 w-3.5 text-slate-500 shrink-0 hidden sm:block" />

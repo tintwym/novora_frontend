@@ -57,7 +57,7 @@ export function accentColors(accent: AccentPreset): { novora: string; deep: stri
       return { novora: '#f59e0b', deep: '#d97706' }
     case 'Novora Blue':
     default:
-      return { novora: '#2563eb', deep: '#1d4ed8' }
+      return { novora: '#2f66e0', deep: '#2557cb' }
   }
 }
 

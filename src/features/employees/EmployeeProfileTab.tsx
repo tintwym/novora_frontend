@@ -1364,6 +1364,7 @@ export default function EmployeeProfileTab({
                       {!isEditingSummary ? (
                         <button 
                           onClick={() => setIsEditingSummary(true)}
+                          aria-label="Edit summary"
                           className="text-[10px] font-black text-novora hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
                         >
                           <Edit2 className="h-3 w-3" />
@@ -1589,6 +1590,7 @@ export default function EmployeeProfileTab({
                       {!isEditingHRNotes ? (
                         <button 
                           onClick={() => setIsEditingHRNotes(true)}
+                          aria-label="Edit HR notes"
                           className="text-[10px] font-black text-novora hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
                         >
                           <Edit2 className="h-3 w-3" />
@@ -1674,6 +1676,7 @@ export default function EmployeeProfileTab({
                     {!isEditingPersonal ? (
                       <button 
                         onClick={() => setIsEditingPersonal(true)}
+                        aria-label="Edit personal details"
                         className="text-[10px] font-black text-novora hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
                       >
                         <Edit2 className="h-3 w-3" />
@@ -1846,6 +1849,7 @@ export default function EmployeeProfileTab({
                       <button
                         type="button"
                         onClick={() => setIsEditingAddress(true)}
+                        aria-label="Edit address"
                         className="text-[10px] font-black text-novora hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
                         title="Edit address"
                       >
@@ -2268,6 +2272,7 @@ export default function EmployeeProfileTab({
                     {!isEditingPayRate ? (
                       <button 
                         onClick={() => setIsEditingPayRate(true)}
+                        aria-label="Edit pay rate"
                         className="text-[10px] font-black text-novora hover:bg-blue-50/50 hover:underline px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
                       >
                         <Edit2 className="h-3 w-3" />

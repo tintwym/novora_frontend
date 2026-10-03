@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createLocalId } from '@/lib/createLocalId'
 import {
   Briefcase,
@@ -255,6 +255,30 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
   const [aiPostJdBusy, setAiPostJdBusy] = useState(false);
   const [aiCandBusy, setAiCandBusy] = useState(false);
   const [candidateAiSummary, setCandidateAiSummary] = useState<CandidateSummaryResponse | null>(null);
+
+  const upcomingInterviewCount = useMemo(
+    () => interviews.filter((i) => i.status === 'Pending' || i.status === 'Confirmed').length,
+    [interviews],
+  );
+
+  const sourceBreakdown = useMemo(() => {
+    const colors = ['bg-blue-600', 'bg-novora', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-slate-400'];
+    const counts = new Map<string, number>();
+    for (const c of candidates) {
+      const raw = (c.source || 'other').replace(/_/g, ' ').trim();
+      const label = raw.charAt(0).toUpperCase() + raw.slice(1);
+      counts.set(label, (counts.get(label) ?? 0) + 1);
+    }
+    const total = candidates.length;
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, count], idx) => ({
+        label,
+        count,
+        pct: total > 0 ? Math.round((count / total) * 100) : 0,
+        color: colors[Math.min(idx, colors.length - 1)],
+      }));
+  }, [candidates]);
 
   const loadRecruitment = useCallback(async () => {
     setRecruitmentLoading(true)
@@ -856,9 +880,9 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 }`}
               >
                 <span>{tab}</span>
-                {isInterviewWithBadge && (
+                {isInterviewWithBadge && upcomingInterviewCount > 0 && (
                   <span className="bg-novora text-white text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
-                    5
+                    {upcomingInterviewCount}
                   </span>
                 )}
               </button>
@@ -1055,7 +1079,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
               <div className="nv-card p-5 shadow-xs flex items-center justify-between">
                 <div>
                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Total Applicants Listed</span>
-                  <p className="text-2xl font-extrabold text-novora mt-1">104</p>
+                  <p className="text-2xl font-extrabold text-novora mt-1">{candidates.length}</p>
                 </div>
                 <div className="h-10 w-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center">
                   <TrendingUp className="h-5 w-5" />
@@ -1076,7 +1100,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 />
               </div>
               <p className="text-[11px] font-bold text-slate-400">
-                Found {filteredRequisitions.length} requisition records template
+                Found {filteredRequisitions.length} requisition {filteredRequisitions.length === 1 ? 'record' : 'records'}
               </p>
             </div>
 
@@ -1229,53 +1253,25 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Applicant source breakdown %</h3>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
-                      <span>JobStreet.com</span>
-                      <span className="text-slate-900">62 applicants (45%)</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-blue-600 h-full rounded-full" style={{ width: '45%' }} />
-                    </div>
+                {sourceBreakdown.length === 0 ? (
+                  <p className="py-6 text-center text-xs text-slate-400">No applicants yet.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {sourceBreakdown.map((s) => (
+                      <div key={s.label}>
+                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
+                          <span>{s.label}</span>
+                          <span className="text-slate-900">
+                            {s.count} {s.count === 1 ? 'applicant' : 'applicants'} ({s.pct}%)
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                          <div className={`${s.color} h-full rounded-full`} style={{ width: `${s.pct}%` }} />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
-                      <span>LinkedIn Jobs</span>
-                      <span className="text-slate-900">33 applicants (28%)</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-novora h-full rounded-full" style={{ width: '28%' }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
-                      <span>Internal Referral Portal</span>
-                      <span className="text-slate-900">26 applicants (16%)</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full rounded-full" style={{ width: '16%' }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
-                      <span>Website careers page</span>
-                      <span className="text-slate-900">14 applicants (9%)</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-amber-500 h-full rounded-full" style={{ width: '9%' }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
-                      <span>Recruitment Agency partners</span>
-                      <span className="text-slate-900">12 applicants (2%)</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-rose-500 h-full rounded-full" style={{ width: '2%' }} />
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -1510,7 +1506,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     <p className="text-[11px] text-slate-400 font-semibold mt-1">Confirmed slots pending logs</p>
                   </div>
                   <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
-                    5 upcoming today
+                    {upcomingInterviewCount} upcoming
                   </span>
                 </div>
 

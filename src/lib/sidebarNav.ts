@@ -41,37 +41,27 @@ export type NavSection = {
   divider?: boolean
 }
 
-/** Three clean blocks: home, modules, system — no noisy section labels in the rail. */
+/** Single flat list in the original Novora order. */
 export const MAIN_NAV_SECTIONS: NavSection[] = [
   {
-    id: 'home',
-    items: [{ name: 'Dashboard', icon: LayoutDashboard }],
-  },
-  {
-    id: 'modules',
-    divider: true,
+    id: 'main',
     items: [
+      { name: 'Dashboard', icon: LayoutDashboard },
       { name: 'Employees Management', icon: Users },
       { name: 'Recruitment Management', icon: Briefcase },
       { name: 'On/Off-boarding Management', icon: UserPlus },
       { name: 'Attendance Management', icon: CalendarCheck2 },
       { name: 'Leave Management', icon: FileMinus },
+      { name: 'Disciplinary Management', icon: ShieldAlert },
       { name: 'Payroll Management', icon: CreditCard },
       { name: 'Claims Management', icon: Receipt },
       { name: 'Benefits Management', icon: HeartHandshake },
-      { name: 'Disciplinary Management', icon: ShieldAlert },
       { name: 'Helpdesk & Inquiries Management', icon: LifeBuoy },
       { name: 'Performance Management', icon: TrendingDown },
+      { name: 'Engagement Management', icon: Smile },
       { name: 'Training Management', icon: GraduationCap },
       { name: 'Learning Management', icon: BookOpen },
-      { name: 'Engagement Management', icon: Smile },
       { name: 'Assets Management', icon: Package },
-    ],
-  },
-  {
-    id: 'system',
-    divider: true,
-    items: [
       { name: 'Reports', icon: FileBarChart },
       { name: 'Settings', icon: Settings },
     ],

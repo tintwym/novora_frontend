@@ -190,6 +190,8 @@ export default function PortalShell() {
         activeTab={activeTab}
         setActiveTab={goToTab}
         roles={session.roles}
+        settingsSubTab={settingsSubTab}
+        setSettingsSubTab={setSettingsSubTab}
       />
 
       <main id="main-portal-contents" className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -211,9 +213,9 @@ export default function PortalShell() {
             <div id="employees-module-root" className="space-y-6">
               <div
                 id="employees-module-header"
-                className="nv-card flex flex-col md:flex-row md:items-center justify-between px-4 py-1.5 gap-3"
+                className="nv-card flex flex-col xl:flex-row xl:items-center justify-between px-4 py-1.5 gap-3"
               >
-                <div id="employees-navigation-tabs" className="flex items-center gap-2 select-none">
+                <div id="employees-navigation-tabs" className="flex items-center gap-2 select-none min-w-0 overflow-x-auto">
                   {(
                     [
                       'Employee Profile',
@@ -228,7 +230,7 @@ export default function PortalShell() {
                         id={`tab-${tab.replace(/\s+/g, '-').toLowerCase()}`}
                         key={tab}
                         onClick={() => handleSubTabChange(tab)}
-                        className={`text-sm font-semibold px-4.5 py-2.5 rounded-xl transition-all relative cursor-pointer ${
+                        className={`text-sm font-semibold px-4.5 py-2.5 rounded-xl transition-all relative cursor-pointer whitespace-nowrap shrink-0 ${
                           isActive
                             ? 'bg-blue-50 text-novora'
                             : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
@@ -242,7 +244,7 @@ export default function PortalShell() {
 
                 <div
                   id="employees-top-controls"
-                  className="flex items-center gap-3 self-end md:self-auto relative shrink-0 flex-nowrap"
+                  className="flex items-center gap-3 self-end xl:self-auto relative shrink-0 flex-nowrap"
                 >
                   <DropdownAnchor
                     open={deptDropdownOpen}
