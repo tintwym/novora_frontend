@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useCanUseHrAi } from '@/providers/AuthProvider';
+import { useCurrency } from '@/hooks/useCurrency';
 import {
   Package,
   Plus,
@@ -87,6 +88,7 @@ interface AssetsTabProps {
 }
 
 export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
+  const { currency, money, amount } = useCurrency();
   // Available asset tabs
   const [activeSubTab, setActiveSubTab] = useState<'Registry' | 'Categories' | 'Allocations' | 'Requests' | 'Damages & Repair'>('Registry');
   const [searchQuery, setSearchQuery] = useState('');
@@ -299,7 +301,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                       ...alc,
                       employeeId: formAssetCustodian,
                       employeeName: custName,
-                      checkoutDate: new Date().toISOString().split('T')[0]
+                      checkoutDate: new Date().toLocaleDateString('en-CA')
                     }
                   : alc
               )
@@ -314,7 +316,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                 assetName: formAssetName,
                 employeeId: formAssetCustodian,
                 employeeName: custName,
-                checkoutDate: new Date().toISOString().split('T')[0],
+                checkoutDate: new Date().toLocaleDateString('en-CA'),
                 dueDate: '2028-06-01',
                 condition: 'Good / Transferred',
                 status: 'Active'
@@ -355,7 +357,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
               assetName: mapped.name,
               employeeId: formAssetCustodian,
               employeeName: custName,
-              checkoutDate: formAssetPurchaseDate || new Date().toISOString().split('T')[0],
+              checkoutDate: formAssetPurchaseDate || new Date().toLocaleDateString('en-CA'),
               dueDate: '2028-06-01',
               condition: 'New Draft Intake',
               status: 'Active' as const,
@@ -513,7 +515,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
         employeeId: formIncEmployeeId,
         employeeName: matchedEmp.name,
         incidentType: formIncType,
-        reportedDate: new Date().toISOString().split('T')[0],
+        reportedDate: new Date().toLocaleDateString('en-CA'),
         costToRepair: costNum,
         payrollDeduction: formIncDeduct,
         status: formIncStatus as any,
@@ -554,7 +556,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
       assetRequested: formReqName,
       reason: formReqReason || 'For remote workflows task expansion',
       priority: formReqPriority,
-      requestDate: new Date().toISOString().split('T')[0],
+      requestDate: new Date().toLocaleDateString('en-CA'),
       status: 'Pending'
     };
 
@@ -590,7 +592,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
           assetName: availableMatch.name,
           employeeId: req.employeeId,
           employeeName: req.employeeName,
-          checkoutDate: new Date().toISOString().split('T')[0],
+          checkoutDate: new Date().toLocaleDateString('en-CA'),
           dueDate: '2028-06-01',
           condition: 'Allocated from Warehouse Stock',
           status: 'Active'
@@ -609,7 +611,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
         custodianId: req.employeeId,
         custodianName: req.employeeName,
         status: 'In Use' as const,
-        purchaseDate: new Date().toISOString().split('T')[0],
+        purchaseDate: new Date().toLocaleDateString('en-CA'),
         cost: 1500.00,
         location: 'Singapore HQ',
         notes: `Provisioned automatically from approved Request: ${req.id}`
@@ -624,7 +626,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
           assetName: req.assetRequested,
           employeeId: req.employeeId,
           employeeName: req.employeeName,
-          checkoutDate: new Date().toISOString().split('T')[0],
+          checkoutDate: new Date().toLocaleDateString('en-CA'),
           dueDate: '2028-06-01',
           condition: 'New Procurement Allocation',
           status: 'Active'
@@ -708,7 +710,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
     let rows: string[];
 
     if (activeSubTab === 'Registry') {
-      headers = 'Asset ID,Asset Name,Serial Tag,Category,Custodian,Status,Purchase Date,Value(RM),Location\n';
+      headers = `Asset ID,Asset Name,Serial Tag,Category,Custodian,Status,Purchase Date,Value(${currency}),Location\n`;
       rows = assets.map(a =>
         `"${a.id}","${a.name}","${a.serialNum}","${a.category}","${a.custodianName}","${a.status}","${a.purchaseDate}",${a.cost},"${a.location}"`
       );
@@ -728,7 +730,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
         `"${r.id}","${r.employeeName}","${r.category}","${r.assetRequested}","${r.requestDate}","${r.priority}","${r.status}"`
       );
     } else {
-      headers = 'Incident ID,Asset ID,Asset Name,Employee,Incident Type,Reported Date,Cost(RM),Payroll charge,Status\n';
+      headers = `Incident ID,Asset ID,Asset Name,Employee,Incident Type,Reported Date,Cost(${currency}),Payroll charge,Status\n`;
       rows = incidents.map(inc =>
         `"${inc.id}","${inc.assetId}","${inc.assetName}","${inc.employeeName}","${inc.incidentType}","${inc.reportedDate}",${inc.costToRepair},${inc.payrollDeduction},"${inc.status}"`
       );
@@ -737,14 +739,11 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
     const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(headers + rows.join('\n'));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', csvContent);
-    downloadAnchor.setAttribute('download', `Novora_Assets_${activeSubTab.replace(/\s+/g, '_')}_2026.csv`);
+    downloadAnchor.setAttribute('download', `Novora_Assets_${activeSubTab.replace(/\s+/g, '_')}_${new Date().toLocaleDateString('en-CA')}.csv`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     document.body.removeChild(downloadAnchor);
-
-    setTimeout(() => {
-      addToast('Data exported successfully!', 'success');
-    }, 1000);
+    addToast('Data exported as CSV.', 'success');
   };
 
   // EDIT SETTERS
@@ -831,7 +830,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
         <div id="metric-assets-total" className="bg-white border border-slate-100 p-5 rounded-2xl flex items-center justify-between shadow-xs">
           <div className="space-y-2">
             <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">Total Portfolio Value</span>
-            <h3 className="text-2xl font-extrabold text-slate-800 leading-none">RM {totalAssetsVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</h3>
+            <h3 className="text-2xl font-extrabold text-slate-800 leading-none">{money(totalAssetsVal)}</h3>
             <p className="text-[10px] font-semibold text-slate-400">{assets.length} items catalogued</p>
           </div>
           <div className="h-12 w-12 bg-blue-500/5 text-blue-500 rounded-2xl flex items-center justify-center">
@@ -1076,7 +1075,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                   <th className="py-3 px-4">Current Custodian</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4">Purchase Date</th>
-                  <th className="py-3 px-4 text-right">Value (RM)</th>
+                  <th className="py-3 px-4 text-right">Value ({currency})</th>
                   <th className="py-3 px-4 text-center">Actions</th>
                 </tr>
               </thead>
@@ -1132,7 +1131,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                         </td>
                         <td className="py-3.5 px-4 whitespace-nowrap text-slate-500">{asset.purchaseDate}</td>
                         <td className="py-3.5 px-4 text-right font-extrabold text-slate-700">
-                          {asset.cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {amount(asset.cost)}
                         </td>
                         <td className="py-3.5 px-4 whitespace-nowrap text-center">
                           <div className="flex items-center justify-center gap-2">
@@ -1388,7 +1387,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                   <th className="py-3 px-4">Custodian</th>
                   <th className="py-3 px-4">Incident Trigger</th>
                   <th className="py-3 px-4">Report Date</th>
-                  <th className="py-3 px-4 text-right">Est Repair (RM)</th>
+                  <th className="py-3 px-4 text-right">Est Repair ({currency})</th>
                   <th className="py-3 px-4">Payroll Ded.</th>
                   <th className="py-3 px-4">Resolve Level</th>
                   <th className="py-3 px-4 text-center">Actions</th>
@@ -1411,7 +1410,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                       <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">{inc.incidentType}</td>
                       <td className="py-3.5 px-4 whitespace-nowrap text-slate-500">{inc.reportedDate}</td>
                       <td className="py-3.5 px-4 text-right font-extrabold text-slate-700">
-                        {inc.costToRepair.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        {amount(inc.costToRepair)}
                       </td>
                       <td className="py-3.5 px-4 text-center whitespace-nowrap">
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase leading-none ${
@@ -1518,7 +1517,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                 </div>
                 <div className="flex justify-between items-center text-xs border-b border-slate-100 pb-2">
                   <span className="text-slate-400 font-bold uppercase text-[10px]">Financial Book Value</span>
-                  <span className="text-slate-800 font-extrabold">RM {detailDrawerItem.cost.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  <span className="text-slate-800 font-extrabold">{money(detailDrawerItem.cost)}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs border-b border-slate-100 pb-2">
                   <span className="text-slate-400 font-bold uppercase text-[10px]">Purchase / Audit intake</span>
@@ -1670,7 +1669,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Purchase Cost (RM)</label>
+                      <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Purchase Cost ({currency})</label>
                       <input
                         id="input-asset-cost"
                         type="number"
@@ -1964,7 +1963,7 @@ export default function AssetsTab({ employees, addToast }: AssetsTabProps) {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Estimated repair (RM)</label>
+                      <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Estimated repair ({currency})</label>
                       <input
                         id="input-inc-cost"
                         type="number"

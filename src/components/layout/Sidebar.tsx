@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, HelpCircle, PanelLeftClose, PanelLeftOpen, Search, Settings } from 'lucide-react';
 import type { SidebarTab } from '@/types';
 import { canAccessTab } from '@/lib/roles';
-import { MAIN_NAV_SECTIONS, SETTINGS_NAV_SECTIONS } from '@/lib/sidebarNav';
+import { MAIN_NAV_SECTIONS, SETTINGS_NAV_SECTIONS, navLabel } from '@/lib/sidebarNav';
 import BrandLockup from '@/components/brand/BrandLockup';
 import NovoraLogo from '@/components/brand/NovoraLogo';
 import SidebarTooltip from '@/components/layout/SidebarTooltip';
@@ -154,7 +154,7 @@ export default function Sidebar({
                           className="w-full flex items-center gap-3 px-3.5 py-2 hover:bg-[var(--sidebar-item-hover-bg)] text-[var(--sidebar-text)] hover:text-[var(--sidebar-text-hover)] transition-colors text-left cursor-pointer"
                         >
                           <ItemIcon className="h-4 w-4 text-[var(--sidebar-muted)] shrink-0" />
-                          <span className="text-[11.5px] font-bold">{item.name}</span>
+                          <span className="text-[11.5px] font-bold">{navLabel(item.name)}</span>
                         </button>
                       );
                     })}
@@ -226,11 +226,11 @@ export default function Sidebar({
               const Icon = item.icon;
               const isActive = activeTab === item.name;
               return (
-                <SidebarTooltip key={item.name} label={item.name} show={rail}>
+                <SidebarTooltip key={item.name} label={navLabel(item.name)} show={rail}>
                   <button
                     id={`nav-${item.name.replace(/\s+/g, '-').replace(/\//g, '').toLowerCase()}`}
                     type="button"
-                    title={rail ? item.name : undefined}
+                    title={rail ? navLabel(item.name) : undefined}
                     aria-current={isActive ? 'page' : undefined}
                     onClick={() => handleTabClick(item.name)}
                     className={`nv-sidebar-link ${isActive ? 'nv-sidebar-link--active' : ''} ${rail ? 'nv-sidebar-link--rail' : ''}`}
@@ -238,7 +238,7 @@ export default function Sidebar({
                     <span className="nv-sidebar-link-icon">
                       <Icon className="h-4 w-4" />
                     </span>
-                    {!rail && <span className="truncate">{item.name}</span>}
+                    {!rail && <span className="truncate">{navLabel(item.name)}</span>}
                   </button>
                 </SidebarTooltip>
               );

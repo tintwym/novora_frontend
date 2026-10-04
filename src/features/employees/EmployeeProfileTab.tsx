@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createLocalId, createLocalNumericId } from '@/lib/createLocalId'
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -15,6 +15,7 @@ import {
   FileText, 
   Calendar, 
   MapPin, 
+  Mail,
   MoreHorizontal,
   ArrowDown,
   Upload,
@@ -31,6 +32,8 @@ import {
 import type { Employee, EmploymentStatus } from '@/types';
 import { SelectMenu } from '@/components/ui';
 import { formatPersonDisplayName } from '@/lib/personName'
+import { useAuth } from '@/providers/AuthProvider'
+import { useCurrency } from '@/hooks/useCurrency'
 import {
   ApiError,
   addMyDocument,
@@ -48,7 +51,11 @@ import {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-type ProfileDoc = { id: string; name: string; type: string; uploaded: string; expiry: string };
+type ProfileDoc = { id: string; name: string; type: string; uploaded: string; expiry: string; url?: string };
+
+function formatUiDate(date: Date): string {
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
 
 function mapDocumentRow(row: DocumentRow): ProfileDoc {
   let uploaded = '—';
@@ -69,6 +76,7 @@ function mapDocumentRow(row: DocumentRow): ProfileDoc {
     type: row.docType || 'Document',
     uploaded,
     expiry: '—',
+    url: row.url || undefined,
   };
 }
 
@@ -108,9 +116,9 @@ function mapFamilyRow(row: FamilyMemberRow): ProfileFamily {
     name: row.name,
     relationship: row.relationship || '',
     dob: formatDobForUi(row.dateOfBirth),
-    nric: row.phone || '—',
+    nric: '',
     taxExempt: false,
-    passport: 'N/A',
+    passport: '',
   };
 }
 
@@ -128,6 +136,116 @@ function mapEducationRow(row: EducationRow): ProfileEducation {
     fieldOfStudy: row.fieldOfStudy || '',
     year,
     grade: row.grade || '',
+  };
+}
+
+type ProfileNok = { id: string; name: string; relationship: string; contactNo: string; address: string };
+
+type ProfileBiometricDevice = {
+  taNumber: string;
+  terminalName: string;
+  deviceType: string;
+  location: string;
+  status: 'Active' | 'Inactive';
+};
+
+type ProfileAllowance = {
+  id: string;
+  type: string;
+  amount: number;
+  frequency: string;
+  taxable: boolean;
+  status: 'Active' | 'Inactive';
+};
+
+type ProfileDeduction = {
+  id: string;
+  type: string;
+  amount: number;
+  frequency: string;
+  reference: string;
+  status: 'Active' | 'Inactive';
+};
+
+type ProfileCareer = { id: string; company: string; position: string; from: string; to: string; reason: string };
+
+function realValue(value: string | null | undefined): string {
+  const v = (value ?? '').trim();
+  return v === '—' || v === '-' ? '' : v;
+}
+
+function formatTenure(joinDate: string | undefined): string {
+  const raw = realValue(joinDate);
+  if (!raw) return '—';
+  const start = new Date(raw);
+  if (Number.isNaN(start.getTime())) return '—';
+  const now = new Date();
+  let months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+  if (now.getDate() < start.getDate()) months -= 1;
+  if (months < 0) return '—';
+  return `${Math.floor(months / 12)}y ${months % 12}m`;
+}
+
+function createProfileData(employee: Employee | null, companyName: string) {
+  const emergencyContact = realValue(employee?.emergencyContact);
+  const nokList: ProfileNok[] = emergencyContact
+    ? [{ id: 'emergency-contact', name: emergencyContact, relationship: '', contactNo: '', address: '' }]
+    : [];
+  return {
+    company: companyName,
+    jobType: (employee?.employmentStatus ?? 'Permanent') as EmploymentStatus,
+    positionStartDate: realValue(employee?.joinDate),
+    jobGrade: '',
+
+    hrNotes: '',
+    blacklisted: '',
+    autoClockIn: 'Disabled',
+
+    dob: '',
+    gender: '',
+    nationality: '',
+    nric: realValue(employee?.nric),
+    religion: '',
+    maritalStatus: '',
+    personalEmail: '',
+    mobileNo: realValue(employee?.mobile),
+    race: '',
+
+    passportEnabled: false,
+    passportNo: '',
+    passportCountry: '',
+    passportIssueDate: '',
+    passportExpiryDate: '',
+
+    addressLine1: realValue(employee?.address),
+    addressLine2: '',
+    city: '',
+    state: '',
+    postcode: '',
+    country: '',
+    sameAsPermanent: false,
+    perAddress: '',
+
+    familyMembers: [] as ProfileFamily[],
+    nokList,
+
+    biometricDevices: [] as ProfileBiometricDevice[],
+    biometricsEnabled: false,
+    autoClockSetting: false,
+    ignoreMissingSwipe: false,
+    ignoreRotaDeduction: false,
+    assignedShift: '',
+
+    payType: '',
+    basicSalary: 0,
+    payEffectiveDate: '',
+    bankAccount: '',
+    allowances: [] as ProfileAllowance[],
+    deductions: [] as ProfileDeduction[],
+
+    careerHistory: [] as ProfileCareer[],
+    educationList: [] as ProfileEducation[],
+    documentsList: [] as ProfileDoc[],
   };
 }
 
@@ -150,6 +268,7 @@ interface EmployeeProfileTabProps {
   onDeleteEmployee: (id: string) => void;
   onUpdateEmployee: (emp: Employee) => void;
   addToast: (text: string, type: 'success' | 'loading' | 'error' | 'info') => void;
+  employees?: Employee[];
 }
 
 type ProfileSubTab = 'Summary' | 'Personal' | 'Family' | 'Biometric' | 'Pay Rate' | 'Career' | 'Education' | 'Documents';
@@ -159,8 +278,19 @@ export default function EmployeeProfileTab({
   onBackToDirectory, 
   onDeleteEmployee, 
   onUpdateEmployee,
-  addToast
+  addToast,
+  employees = []
 }: EmployeeProfileTabProps) {
+  const managerName = employee?.reportsTo
+    ? employees.find((e) => e.id === employee.reportsTo || e.apiId === employee.reportsTo)?.name ?? employee.reportsTo
+    : null;
+  const { session } = useAuth();
+  const { currency, money } = useCurrency();
+  const companyName = session?.companyName ?? '';
+  const isSelf =
+    !!employee?.email &&
+    !!session?.email &&
+    employee.email.trim().toLowerCase() === session.email.trim().toLowerCase();
 
   // Active Sub Tab
   const [activeTab, setActiveTab] = useState<ProfileSubTab>('Summary');
@@ -181,71 +311,68 @@ export default function EmployeeProfileTab({
   const [previewingDoc, setPreviewingDoc] = useState<any>(null);
   const [generatedPassword, setGeneratedPassword] = useState('');
 
-  // Persisted dictionary to separate and save custom documents for each employee
-  const [employeeDocsMap, setEmployeeDocsMap] = useState<Record<string, Array<ProfileDoc>>>({});
-  const employeeDocsMapRef = useRef(employeeDocsMap);
-  useEffect(() => {
-    employeeDocsMapRef.current = employeeDocsMap;
-  }, [employeeDocsMap]);
-
-  // Load documents from API when employee changes
   const empId = employee?.id
   const empApiId = employee?.apiId
-  useEffect(() => {
-    if (!empId) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const rows = empApiId
-          ? await fetchEmployeeDocuments(empApiId)
-          : await fetchMyDocuments();
-        if (cancelled) return;
-        const mapped = rows.map(mapDocumentRow);
-        setProfileData((prev) => ({
-          ...prev,
-          documentsList: mapped.length ? mapped : prev.documentsList,
-        }));
-        setEmployeeDocsMap((prev) => ({
-          ...prev,
-          [empId]: mapped.length ? mapped : prev[empId] || [],
-        }));
-      } catch (err) {
-        if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
-          // Keep local defaults; soft-fail so profile still opens
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [empId, empApiId]);
+  const employeeKey = empApiId ?? empId ?? null
 
-  // Load family & education from API (prefer for everyone via /api/my/*)
+  const [profileData, setProfileData] = useState(() => createProfileData(employee, companyName));
+  const [profileKey, setProfileKey] = useState(employeeKey);
+  if (profileKey !== employeeKey) {
+    setProfileKey(employeeKey);
+    setProfileData(createProfileData(employee, companyName));
+    setIsEditingSummary(false);
+    setIsEditingPersonal(false);
+    setIsEditingAddress(false);
+    setIsEditingPayRate(false);
+    setIsEditingHRNotes(false);
+  }
+
+  // Load documents from API when employee changes
   useEffect(() => {
     if (!empId) return;
+    if (!empApiId && !isSelf) return;
     let cancelled = false;
     (async () => {
-      try {
-        const [familyRows, educationRows] = await Promise.all([
-          fetchMyFamily().catch(() => [] as FamilyMemberRow[]),
-          fetchMyEducation().catch(() => [] as EducationRow[]),
-        ]);
-        if (cancelled) return;
-        setProfileData((prev) => ({
-          ...prev,
-          familyMembers: familyRows.length ? familyRows.map(mapFamilyRow) : prev.familyMembers,
-          educationList: educationRows.length
-            ? educationRows.map(mapEducationRow)
-            : prev.educationList,
-        }));
-      } catch {
-        // soft-fail — keep demo defaults
-      }
+      const rows = await (empApiId ? fetchEmployeeDocuments(empApiId) : fetchMyDocuments()).catch(
+        () => [] as DocumentRow[],
+      );
+      if (cancelled || !rows.length) return;
+      const mapped = rows.map(mapDocumentRow);
+      setProfileData((prev) => ({
+        ...prev,
+        documentsList: [
+          ...mapped,
+          ...prev.documentsList.filter((doc) => !mapped.some((m) => m.id === doc.id)),
+        ],
+      }));
     })();
     return () => {
       cancelled = true;
     };
-  }, [empId]);
+  }, [empId, empApiId, isSelf]);
+
+  // Family & education endpoints only cover the signed-in user's own record
+  useEffect(() => {
+    if (!empId || !isSelf) return;
+    let cancelled = false;
+    (async () => {
+      const [familyRows, educationRows] = await Promise.all([
+        fetchMyFamily().catch(() => [] as FamilyMemberRow[]),
+        fetchMyEducation().catch(() => [] as EducationRow[]),
+      ]);
+      if (cancelled) return;
+      setProfileData((prev) => ({
+        ...prev,
+        familyMembers: familyRows.length ? familyRows.map(mapFamilyRow) : prev.familyMembers,
+        educationList: educationRows.length
+          ? educationRows.map(mapEducationRow)
+          : prev.educationList,
+      }));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [empId, isSelf]);
 
   // Document Upload Form local state
   const [docType, setDocType] = useState('Contract');
@@ -264,7 +391,7 @@ export default function EmployeeProfileTab({
     dob: '',
     nric: '',
     taxExempt: false,
-    passport: 'N/A'
+    passport: ''
   });
 
   const [showNokModal, setShowNokModal] = useState(false);
@@ -334,186 +461,8 @@ export default function EmployeeProfileTab({
     grade: ''
   });
 
-  // Local state for extended profile fields aligned directly to the screenshots parameters
-  const [profileData, setProfileData] = useState({
-    // Header Stats
-    tenure: '4y 3m',
-    payGrade: 'G-7',
-    leaveLeft: 12,
-    performanceScore: '92%',
-
-    // Summary - Employment details card
-    company: 'Novora',
-    jobType: 'Permanent' as EmploymentStatus,
-    positionStartDate: '1 Mar 2022',
-    jobGrade: 'G-7 / Sub B',
-
-    // Summary - Leave balance
-    annualLeaveUsed: 12,
-    annualLeaveMax: 16,
-    medicalLeaveUsed: 10,
-    medicalLeaveMax: 14,
-    emergencyLeaveUsed: 2,
-    emergencyLeaveMax: 3,
-
-    // Summary - Performance bars
-    prefTechnical: 92,
-    prefCommunication: 85,
-    prefTeamwork: 88,
-    prefPunctuality: 95,
-    prefLeadership: 78,
-    lastAppraisal: 'Dec 2024 — Grade A',
-    nextReview: 'Dec 2025',
-
-    // Summary - HR notes
-    hrNotes: 'Strong technical contributor. Nominated for tech lead role in Q3 2025. No disciplinary records. Eligible for promotion review.',
-    blacklisted: 'No',
-    autoClockIn: 'Disabled',
-
-    // Personal Subtab info
-    dob: '14 March 1991',
-    gender: 'Female',
-    nationality: 'Singaporean',
-    nric: 'S9103145A',
-    religion: 'Buddhism',
-    maritalStatus: 'Married',
-    personalEmail: 'sarah.lim@gmail.com',
-    mobileNo: '+65 9123 4567',
-    race: 'Chinese',
-
-    // Passport
-    passportEnabled: true,
-    passportNo: 'A12345678',
-    passportCountry: 'Singapore',
-    passportIssueDate: '10 Jan 2020',
-    passportExpiryDate: '9 Jan 2030',
-
-    // Address
-    addressLine1: '12 Marina Boulevard, #28-01',
-    addressLine2: 'Marina Bay',
-    city: 'Singapore',
-    state: 'Singapore',
-    postcode: '018982',
-    country: 'Singapore',
-    sameAsPermanent: true,
-    perAddress: '12 Marina Boulevard, #28-01, Marina Bay Financial Centre, Singapore 018982',
-
-    // Family Members
-    familyMembers: [
-      { id: '1', name: 'Lim Kah Fatt', relationship: 'Spouse', dob: '12 Jun 1988', nric: 'S8806121B', taxExempt: true, passport: 'N/A' },
-      { id: '2', name: 'Lim Zhi Xuan', relationship: 'Child', dob: '4 Feb 2018', nric: 'T1802045C', taxExempt: true, passport: 'N/A' },
-      { id: '3', name: 'Lim Mei Hua', relationship: 'Mother', dob: '8 Sep 1962', nric: 'S6209087D', taxExempt: false, passport: 'N/A' }
-    ],
-
-    // Next of Kin
-    nokList: [
-      { id: '1', name: 'Lim Kah Fatt', relationship: 'Spouse', contactNo: '+65 8765 4321', address: 'Same as employee' }
-    ],
-
-    // Biometrics Log
-    biometricDevices: [
-      { taNumber: 'TA-00451', terminalName: 'Main Lobby — Terminal 1', deviceType: 'Fingerprint', location: 'HQ Ground Floor', status: 'Active' },
-      { taNumber: 'TA-00452', terminalName: 'Level 3 — Terminal 2', deviceType: 'Face ID', location: 'Engineering Floor', status: 'Active' }
-    ],
-    biometricsEnabled: true,
-    autoClockSetting: false,
-    ignoreMissingSwipe: false,
-    ignoreRotaDeduction: false,
-    assignedShift: 'Standard — 9:00 AM to 6:00 PM',
-
-    // Pay Rate Tab Info
-    payType: 'Monthly',
-    currency: 'SGD (Singapore Dollar)',
-    basicSalary: 7500.00,
-    payEffectiveDate: '1 Mar 2024',
-    bankAccount: 'Maybank •••• 4521',
-
-    allowances: [
-      { id: '1', type: 'Transport allowance', amount: 300.00, frequency: 'Monthly', taxable: false, status: 'Active' },
-      { id: '2', type: 'Meal allowance', amount: 200.00, frequency: 'Monthly', taxable: false, status: 'Active' },
-      { id: '3', type: 'Phone allowance', amount: 150.00, frequency: 'Monthly', taxable: true, status: 'Active' }
-    ],
-
-    deductions: [
-      { id: '1', type: 'CPF (Employee)', amount: 825.00, frequency: 'Monthly', reference: '11%', status: 'Active' },
-      { id: '2', type: 'CPF MediSave', amount: 49.40, frequency: 'Monthly', reference: 'Statutory', status: 'Active' },
-      { id: '3', type: 'Income Tax (IRAS)', amount: 620.00, frequency: 'Monthly', reference: 'Est.', status: 'Active' }
-    ],
-
-    // Career History
-    careerHistory: [
-      { id: '1', company: 'Tech Solutions Pte. Ltd.', position: 'Junior Developer', from: 'Jun 2013', to: 'Dec 2016', reason: 'Career growth' },
-      { id: '2', company: 'Infineon Technologies', position: 'Software Engineer', from: 'Jan 2017', to: 'Dec 2020', reason: 'Better opportunity' }
-    ],
-
-    // Education
-    educationList: [
-      { id: '1', institution: 'National University of Singapore', qualification: "Bachelor's Degree", fieldOfStudy: 'Computer Science', year: '2013', grade: 'First Class' }
-    ],
-
-    // Documents
-    documentsList: [
-      { id: '1', name: 'Offer Letter', type: 'Contract', uploaded: '12 Jan 2021', expiry: '—' },
-      { id: '2', name: 'NRIC Copy', type: 'NRIC', uploaded: '12 Jan 2021', expiry: '—' },
-      { id: '3', name: 'Passport', type: 'Passport', uploaded: '10 Jan 2020', expiry: '9 Jan 2030' }
-    ]
-  });
-
   // Track state changes to allow overall saving
-  const [isStateModified, setIsStateModified] = useState(false);
-
-  // Sync profile data when selected employee changes (not when docs map updates —
-  // that would wipe in-progress edits after an upload).
-  useEffect(() => {
-    if (!employee) return;
-
-    const employeeId = employee.id;
-
-    const existingDocs = employeeDocsMapRef.current[employeeId] || [];
-
-    const timer = window.setTimeout(() => {
-      setProfileData(prev => ({
-        ...prev,
-        tenure: '—',
-        payGrade: '—',
-        leaveLeft: 0,
-        performanceScore: '—',
-        company: 'Novora',
-        jobType: employee.employmentStatus,
-        positionStartDate: employee.joinDate || '',
-        jobGrade: '—',
-        prefTechnical: 0,
-        prefCommunication: 0,
-        prefTeamwork: 0,
-        prefPunctuality: 0,
-        prefLeadership: 0,
-        dob: '',
-        gender: '',
-        nationality: '',
-        religion: '',
-        maritalStatus: '',
-        personalEmail: '',
-        mobileNo: employee.mobile || '',
-        race: '',
-        basicSalary: 0,
-        bankAccount: '',
-        documentsList: existingDocs,
-      }));
-
-      if (!employeeDocsMapRef.current[employeeId]) {
-        setEmployeeDocsMap(prev => ({
-          ...prev,
-          [employeeId]: existingDocs
-        }));
-      }
-
-      setIsStateModified(false);
-    }, 0);
-
-    return () => window.clearTimeout(timer);
-    // Intentionally omit full `employee` — syncing on the object would wipe in-progress edits.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [employee?.id, employee?.name, employee?.employmentStatus, employee?.mobile]);
+  const [, setIsStateModified] = useState(false);
 
   if (!employee) {
     return (
@@ -530,7 +479,7 @@ export default function EmployeeProfileTab({
     const updatedEmployee: Employee = {
       ...employee,
       employmentStatus: newJobType !== undefined ? newJobType : profileData.jobType,
-      mobile: newMobile !== undefined ? newMobile : profileData.mobileNo,
+      mobile: (newMobile !== undefined ? newMobile : profileData.mobileNo) || '—',
     };
     onUpdateEmployee(updatedEmployee);
     setIsStateModified(false);
@@ -554,7 +503,7 @@ export default function EmployeeProfileTab({
 
   const commitResetPassword = () => {
     setShowResetModal(false);
-    addToast(`Credentials successfully regenerated & locked.`, 'success');
+    addToast('Temporary password generated locally only — it has not been applied to the account or sent to the employee.', 'info');
   };
 
   const triggerDelete = () => {
@@ -629,7 +578,7 @@ export default function EmployeeProfileTab({
     }
 
     const formattedExpiry = hasExpiry && docExpiryDate 
-      ? new Date(docExpiryDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) 
+      ? formatUiDate(new Date(docExpiryDate)) 
       : '—';
 
     const name = docCustomName.trim() || selectedFile.name;
@@ -643,32 +592,35 @@ export default function EmployeeProfileTab({
     }
 
     let newDoc: ProfileDoc;
-    try {
-      const created = await addMyDocument({
+    if (isSelf) {
+      try {
+        const created = await addMyDocument({
+          name,
+          docType,
+          contentBase64,
+          url: contentBase64 ? undefined : 'novora://documents/pending',
+        });
+        newDoc = { ...mapDocumentRow(created), expiry: formattedExpiry };
+        addToast(`Document "${name}" uploaded successfully.`, 'success');
+      } catch (err) {
+        addToast(err instanceof ApiError ? err.message : 'Could not save document.', 'error');
+        return;
+      }
+    } else {
+      newDoc = {
+        id: createLocalId('doc'),
         name,
-        docType,
-        contentBase64,
-        url: contentBase64 ? undefined : 'novora://documents/pending',
-      });
-      newDoc = { ...mapDocumentRow(created), expiry: formattedExpiry };
-      addToast(`Document "${name}" uploaded successfully.`, 'success');
-    } catch (err) {
-      addToast(err instanceof ApiError ? err.message : 'Could not save document.', 'error');
-      return;
+        type: docType,
+        uploaded: formatUiDate(new Date()),
+        expiry: formattedExpiry,
+        url: `data:${selectedFile.type || 'application/octet-stream'};base64,${contentBase64}`,
+      };
+      addToast(`Document "${name}" added for this session only — it was not uploaded to the server.`, 'info');
     }
 
-    const updatedList = [...profileData.documentsList, newDoc];
-    
-    // Update local profileData
     setProfileData(prev => ({
       ...prev,
-      documentsList: updatedList
-    }));
-    
-    // Save to the long-term dictionary for this specific employee
-    setEmployeeDocsMap(prev => ({
-      ...prev,
-      [employee.id]: updatedList
+      documentsList: [...prev.documentsList, newDoc]
     }));
 
     setShowUploadModal(false);
@@ -681,6 +633,41 @@ export default function EmployeeProfileTab({
     setSelectedFile(null);
   };
 
+  const handleDownloadDoc = (doc: ProfileDoc) => {
+    if (!doc.url || !/^(https?:|data:|\/)/i.test(doc.url)) {
+      addToast(`No downloadable file is stored for "${doc.name}".`, 'info');
+      return;
+    }
+    const link = document.createElement('a');
+    link.href = doc.url;
+    link.download = doc.name;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.click();
+  };
+
+  const handleDeleteDoc = async (doc: ProfileDoc) => {
+    if (UUID_RE.test(doc.id)) {
+      if (!isSelf) {
+        addToast(`"${doc.name}" is stored on the server and can only be removed by the employee.`, 'error');
+        return;
+      }
+      try {
+        await deleteMyDocument(doc.id);
+      } catch (err) {
+        addToast(err instanceof ApiError ? err.message : 'Could not delete document.', 'error');
+        return;
+      }
+      addToast(`Document "${doc.name}" deleted.`, 'info');
+    } else {
+      addToast(`Document "${doc.name}" removed.`, 'info');
+    }
+    setProfileData(prev => ({
+      ...prev,
+      documentsList: prev.documentsList.filter(item => item.id !== doc.id)
+    }));
+  };
+
   // Open modal to add family member
   const handleAddFamilyMember = () => {
     setEditingFamilyMember(null);
@@ -690,7 +677,7 @@ export default function EmployeeProfileTab({
       dob: '',
       nric: '',
       taxExempt: false,
-      passport: 'N/A'
+      passport: ''
     });
     setShowFamilyModal(true);
   };
@@ -704,7 +691,7 @@ export default function EmployeeProfileTab({
       dob: member.dob,
       nric: member.nric,
       taxExempt: member.taxExempt,
-      passport: member.passport || 'N/A'
+      passport: member.passport || ''
     });
     setShowFamilyModal(true);
   };
@@ -727,8 +714,8 @@ export default function EmployeeProfileTab({
       updatedList = profileData.familyMembers.map(item => 
         item.id === editingFamilyMember.id ? { ...item, ...familyForm, name: familyForm.name.trim() } : item
       );
-      addToast(`Family member "${familyForm.name}" updated successfully.`, 'success');
-    } else {
+      addToast(`Family member "${familyForm.name}" updated for this session only.`, 'info');
+    } else if (isSelf) {
       try {
         const created = await createMyFamily({
           name: familyForm.name.trim(),
@@ -737,9 +724,9 @@ export default function EmployeeProfileTab({
         });
         const mapped = {
           ...mapFamilyRow(created),
-          nric: familyForm.nric || mapFamilyRow(created).nric,
+          nric: familyForm.nric,
           taxExempt: familyForm.taxExempt,
-          passport: familyForm.passport || 'N/A',
+          passport: familyForm.passport,
         };
         updatedList = [...profileData.familyMembers, mapped];
         addToast(`Family member "${familyForm.name}" added successfully.`, 'success');
@@ -747,6 +734,12 @@ export default function EmployeeProfileTab({
         addToast(err instanceof ApiError ? err.message : 'Could not add family member.', 'error');
         return;
       }
+    } else {
+      updatedList = [
+        ...profileData.familyMembers,
+        { id: createLocalId('fam'), ...familyForm, name: familyForm.name.trim() },
+      ];
+      addToast(`Family member "${familyForm.name}" added for this session only.`, 'info');
     }
 
     setProfileData(prev => ({
@@ -765,7 +758,7 @@ export default function EmployeeProfileTab({
       familyMembers: updatedList
     }));
     setIsStateModified(true);
-    addToast(`Family member "${name}" removed.`, 'info');
+    addToast(`Family member "${name}" removed for this session only.`, 'info');
   };
 
   // Next of Kin operations
@@ -807,7 +800,7 @@ export default function EmployeeProfileTab({
       updatedList = profileData.nokList.map(item => 
         item.id === editingNok.id ? { ...item, ...nokForm, name: nokForm.name.trim() } : item
       );
-      addToast(`Emergency contact "${nokForm.name}" updated successfully.`, 'success');
+      addToast(`Emergency contact "${nokForm.name}" updated for this session only.`, 'info');
     } else {
       const newNok = {
         id: createLocalId('nok'),
@@ -815,7 +808,7 @@ export default function EmployeeProfileTab({
         name: nokForm.name.trim()
       };
       updatedList = [...profileData.nokList, newNok];
-      addToast(`Emergency contact "${nokForm.name}" added successfully.`, 'success');
+      addToast(`Emergency contact "${nokForm.name}" added for this session only.`, 'info');
     }
 
     setProfileData(prev => ({
@@ -833,14 +826,14 @@ export default function EmployeeProfileTab({
       nokList: updatedList
     }));
     setIsStateModified(true);
-    addToast(`Emergency contact "${name}" removed.`, 'info');
+    addToast(`Emergency contact "${name}" removed for this session only.`, 'info');
   };
 
   // Biometric actions
   const handleAddBiometricDevice = () => {
     setEditingBiometricDevice(null);
     setBiometricForm({
-      taNumber: `TA-004${createLocalNumericId(100) % 900}`,
+      taNumber: '',
       terminalName: '',
       deviceType: 'Face ID',
       location: '',
@@ -877,7 +870,7 @@ export default function EmployeeProfileTab({
       updatedList = profileData.biometricDevices.map(item => 
         item.taNumber === editingBiometricDevice.taNumber ? { ...item, ...biometricForm, terminalName: biometricForm.terminalName.trim(), location: biometricForm.location.trim() } : item
       );
-      addToast(`Device "${biometricForm.terminalName}" updated successfully.`, 'success');
+      addToast(`Device "${biometricForm.terminalName}" updated for this session only.`, 'info');
     } else {
       const exists = profileData.biometricDevices.some(item => item.taNumber.toUpperCase() === biometricForm.taNumber.trim().toUpperCase());
       if (exists) {
@@ -891,7 +884,7 @@ export default function EmployeeProfileTab({
         location: biometricForm.location.trim()
       };
       updatedList = [...profileData.biometricDevices, newDev];
-      addToast(`Device "${biometricForm.terminalName}" registered successfully.`, 'success');
+      addToast(`Device "${biometricForm.terminalName}" added for this session only.`, 'info');
     }
 
     setProfileData(prev => ({
@@ -909,7 +902,7 @@ export default function EmployeeProfileTab({
       biometricDevices: updatedList
     }));
     setIsStateModified(true);
-    addToast(`Device "${terminalName}" removed.`, 'info');
+    addToast(`Device "${terminalName}" removed for this session only.`, 'info');
   };
 
   // Allowance actions
@@ -955,14 +948,14 @@ export default function EmployeeProfileTab({
       updatedList = profileData.allowances.map(item => 
         item.id === editingAllowance.id ? { ...item, ...allowanceForm, type: allowanceForm.type.trim() } : item
       );
-      addToast(`Allowance "${allowanceForm.type}" updated successfully.`, 'success');
+      addToast(`Allowance "${allowanceForm.type}" updated for this session only.`, 'info');
     } else {
       const newAllow = {
         ...allowanceForm,
         type: allowanceForm.type.trim()
       };
       updatedList = [...profileData.allowances, newAllow];
-      addToast(`Allowance "${allowanceForm.type}" added successfully.`, 'success');
+      addToast(`Allowance "${allowanceForm.type}" added for this session only.`, 'info');
     }
 
     setProfileData(prev => ({
@@ -980,7 +973,7 @@ export default function EmployeeProfileTab({
       allowances: updatedList
     }));
     setIsStateModified(true);
-    addToast(`Allowance "${type}" removed.`, 'info');
+    addToast(`Allowance "${type}" removed for this session only.`, 'info');
   };
 
   // Deduction actions
@@ -1026,14 +1019,14 @@ export default function EmployeeProfileTab({
       updatedList = profileData.deductions.map(item => 
         item.id === editingDeduction.id ? { ...item, ...deductionForm, type: deductionForm.type.trim() } : item
       );
-      addToast(`Deduction "${deductionForm.type}" updated successfully.`, 'success');
+      addToast(`Deduction "${deductionForm.type}" updated for this session only.`, 'info');
     } else {
       const newDed = {
         ...deductionForm,
         type: deductionForm.type.trim()
       };
       updatedList = [...profileData.deductions, newDed];
-      addToast(`Deduction "${deductionForm.type}" added successfully.`, 'success');
+      addToast(`Deduction "${deductionForm.type}" added for this session only.`, 'info');
     }
 
     setProfileData(prev => ({
@@ -1051,7 +1044,7 @@ export default function EmployeeProfileTab({
       deductions: updatedList
     }));
     setIsStateModified(true);
-    addToast(`Deduction "${type}" removed.`, 'info');
+    addToast(`Deduction "${type}" removed for this session only.`, 'info');
   };
 
   // Career history actions
@@ -1097,7 +1090,7 @@ export default function EmployeeProfileTab({
       updatedList = profileData.careerHistory.map(item => 
         item.id === editingCareer.id ? { ...item, ...careerForm, company: careerForm.company.trim(), position: careerForm.position.trim() } : item
       );
-      addToast(`Career entry at "${careerForm.company}" updated successfully.`, 'success');
+      addToast(`Career entry at "${careerForm.company}" updated for this session only.`, 'info');
     } else {
       const newCareer = {
         ...careerForm,
@@ -1105,7 +1098,7 @@ export default function EmployeeProfileTab({
         position: careerForm.position.trim()
       };
       updatedList = [...profileData.careerHistory, newCareer];
-      addToast(`Career entry at "${careerForm.company}" added successfully.`, 'success');
+      addToast(`Career entry at "${careerForm.company}" added for this session only.`, 'info');
     }
 
     setProfileData(prev => ({
@@ -1123,7 +1116,7 @@ export default function EmployeeProfileTab({
       careerHistory: updatedList
     }));
     setIsStateModified(true);
-    addToast(`Career entry at "${company}" removed.`, 'info');
+    addToast(`Career entry at "${company}" removed for this session only.`, 'info');
   };
 
   // Education actions
@@ -1169,7 +1162,20 @@ export default function EmployeeProfileTab({
       updatedList = profileData.educationList.map(item => 
         item.id === editingEducation.id ? { ...item, ...educationForm, institution: educationForm.institution.trim(), qualification: educationForm.qualification.trim() } : item
       );
-      addToast(`Education at "${educationForm.institution}" updated successfully.`, 'success');
+      addToast(`Education at "${educationForm.institution}" updated for this session only.`, 'info');
+    } else if (!isSelf) {
+      updatedList = [
+        ...profileData.educationList,
+        {
+          ...educationForm,
+          institution: educationForm.institution.trim(),
+          qualification: educationForm.qualification.trim(),
+          fieldOfStudy: educationForm.fieldOfStudy.trim(),
+          year: educationForm.year.trim(),
+          grade: educationForm.grade.trim(),
+        },
+      ];
+      addToast(`Education at "${educationForm.institution}" added for this session only.`, 'info');
     } else {
       const yearNum = educationForm.year.trim() ? parseInt(educationForm.year.trim(), 10) : undefined;
       try {
@@ -1209,7 +1215,7 @@ export default function EmployeeProfileTab({
       educationList: updatedList
     }));
     setIsStateModified(true);
-    addToast(`Education at "${institution}" removed.`, 'info');
+    addToast(`Education at "${institution}" removed for this session only.`, 'info');
   };
 
   // Payrate Math
@@ -1269,9 +1275,17 @@ export default function EmployeeProfileTab({
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2.5">
                 <h2 className="text-xl font-bold tracking-tight text-slate-800 leading-none">{formatPersonDisplayName(employee.name)}</h2>
-                <span className="bg-emerald-50 text-[#059669] border border-emerald-100/30 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 whitespace-nowrap shrink-0">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse items-center shrink-0" />
-                  Active
+                <span className={`px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 whitespace-nowrap shrink-0 border ${
+                  employee.status === 'Active'
+                    ? 'bg-emerald-50 text-[#059669] border-emerald-100/30'
+                    : employee.status === 'On Leave'
+                      ? 'bg-amber-50 text-amber-700 border-amber-100'
+                      : 'bg-slate-100 text-slate-500 border-slate-200'
+                }`}>
+                  <span className={`h-1.5 w-1.5 rounded-full items-center shrink-0 ${
+                    employee.status === 'Active' ? 'bg-emerald-500 animate-pulse' : employee.status === 'On Leave' ? 'bg-amber-500' : 'bg-slate-400'
+                  }`} />
+                  {employee.status || 'Active'}
                 </span>
               </div>
               
@@ -1280,15 +1294,17 @@ export default function EmployeeProfileTab({
                   <Shield className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                   {employee.id}
                 </span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" strokeWidth={2.2} />
-                  Singapore HQ
-                </span>
+                {employee.email && (
+                  <span className="flex items-center gap-1">
+                    <Mail className="h-3.5 w-3.5 text-slate-400 shrink-0" strokeWidth={2.2} />
+                    {employee.email}
+                  </span>
+                )}
               </div>
 
               <div className="text-[11.5px] font-semibold text-slate-400">
                 {employee.department} &middot; {employee.position}
-                <span className="ml-2 pl-2 border-l border-slate-200">Reports to: <b>David Ng</b></span>
+                {managerName && <span className="ml-2 pl-2 border-l border-slate-200">Reports to: <b>{managerName}</b></span>}
               </div>
             </div>
           </div>
@@ -1296,19 +1312,19 @@ export default function EmployeeProfileTab({
           {/* Stat summary grid with thin vertical separators */}
           <div className="grid grid-cols-4 gap-4 xl:w-fit xl:gap-8 bg-slate-50/50 p-4.5 rounded-2xl border border-slate-100/50">
             <div className="text-center px-2">
-              <span className="text-[15px] font-black text-slate-800 block">{profileData.tenure}</span>
+              <span className="text-[15px] font-black text-slate-800 block">{formatTenure(employee.joinDate)}</span>
               <span className="text-[9.5px] text-slate-400 font-extrabold uppercase tracking-wide block mt-0.5">Tenure</span>
             </div>
             <div className="text-center px-4 border-l border-slate-200/80">
-              <span className="text-[15px] font-black text-slate-800 block">{profileData.payGrade}</span>
+              <span className="text-[15px] font-black text-slate-800 block">{profileData.jobGrade || '—'}</span>
               <span className="text-[9.5px] text-slate-400 font-extrabold uppercase tracking-wide block mt-0.5">Pay Grade</span>
             </div>
             <div className="text-center px-4 border-l border-slate-200/80">
-              <span className="text-[15px] font-black text-slate-800 block">{profileData.leaveLeft}</span>
+              <span className="text-[15px] font-black text-slate-800 block">—</span>
               <span className="text-[9.5px] text-slate-400 font-extrabold uppercase tracking-wide block mt-0.5">Leave Left</span>
             </div>
             <div className="text-center px-2 border-l border-slate-200/80">
-              <span className="text-[15px] font-black text-slate-800 block">{profileData.performanceScore}</span>
+              <span className="text-[15px] font-black text-slate-800 block">—</span>
               <span className="text-[9.5px] text-slate-400 font-extrabold uppercase tracking-wide block mt-0.5">Performance</span>
             </div>
           </div>
@@ -1374,7 +1390,7 @@ export default function EmployeeProfileTab({
                           onClick={() => { 
                             setIsEditingSummary(false); 
                             triggerAutoSave(profileData.jobType); 
-                            addToast('Employment details successfully updated and saved.', 'success');
+                            addToast('Employment details updated for this session only.', 'info');
                           }}
                           className="text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-lg flex items-center gap-1 cursor-pointer"
                         >
@@ -1395,12 +1411,12 @@ export default function EmployeeProfileTab({
                         {isEditingSummary ? (
                           <input 
                             type="text" 
-                            value={profileData.company} 
+                            value={profileData.company || companyName} 
                             onChange={(e) => { setProfileData({...profileData, company: e.target.value}); setIsStateModified(true); }}
                             className="bg-slate-50 border border-slate-200 focus:outline-none focus:border-novora px-2 py-0.5 rounded text-xs w-48 text-right font-bold"
                           />
                         ) : (
-                          <span className="text-slate-800 font-bold">{profileData.company}</span>
+                          <span className="text-slate-800 font-bold">{profileData.company || companyName || '—'}</span>
                         )}
                       </div>
 
@@ -1435,14 +1451,20 @@ export default function EmployeeProfileTab({
 
                       <div className="flex justify-between py-1 border-b border-slate-50/70 items-center">
                         <span className="text-slate-400 font-medium">Employment status</span>
-                        <span className="bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide border border-emerald-100 inline-flex items-center whitespace-nowrap shrink-0">
-                          Active
+                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide border inline-flex items-center whitespace-nowrap shrink-0 ${
+                          employee.status === 'Active'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                            : employee.status === 'On Leave'
+                              ? 'bg-amber-50 text-amber-700 border-amber-100'
+                              : 'bg-slate-100 text-slate-500 border-slate-200'
+                        }`}>
+                          {employee.status || '—'}
                         </span>
                       </div>
 
                       <div className="flex justify-between py-1 border-b border-slate-50/70">
                         <span className="text-slate-400 font-medium">Join date</span>
-                        <span className="text-slate-800 font-bold">{employee.joinDate}</span>
+                        <span className="text-slate-800 font-bold">{realValue(employee.joinDate) || '—'}</span>
                       </div>
 
                       <div className="flex justify-between py-1 border-b border-slate-50/70">
@@ -1455,7 +1477,7 @@ export default function EmployeeProfileTab({
                             className="bg-slate-50 border border-slate-200 focus:outline-none focus:border-novora px-2 py-0.5 rounded text-xs text-right font-bold"
                           />
                         ) : (
-                          <span className="text-slate-800 font-bold">{profileData.positionStartDate}</span>
+                          <span className="text-slate-800 font-bold">{profileData.positionStartDate || '—'}</span>
                         )}
                       </div>
 
@@ -1469,7 +1491,7 @@ export default function EmployeeProfileTab({
                             className="bg-slate-50 border border-slate-200 focus:outline-none focus:border-novora px-2 py-0.5 rounded text-xs text-right font-bold"
                           />
                         ) : (
-                          <span className="text-slate-800 font-bold">{profileData.jobGrade}</span>
+                          <span className="text-slate-800 font-bold">{profileData.jobGrade || '—'}</span>
                         )}
                       </div>
                     </div>
@@ -1479,40 +1501,9 @@ export default function EmployeeProfileTab({
                   <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-5">
                     <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-50 pb-3">Leave balance</h3>
                     
-                    <div className="space-y-4">
-                      {/* Annual */}
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between text-xs font-bold">
-                          <span className="text-slate-500">Annual leave</span>
-                          <span className="text-slate-800 font-mono font-black">{profileData.annualLeaveUsed} / {profileData.annualLeaveMax} days</span>
-                        </div>
-                        <div className="w-full bg-slate-100 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50">
-                          <div className="bg-novora h-full rounded-full" style={{ width: `${(profileData.annualLeaveUsed / profileData.annualLeaveMax) * 100}%` }} />
-                        </div>
-                      </div>
-
-                      {/* Medical */}
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between text-xs font-bold">
-                          <span className="text-slate-500">Medical leave</span>
-                          <span className="text-slate-800 font-mono font-black">{profileData.medicalLeaveUsed} / {profileData.medicalLeaveMax} days</span>
-                        </div>
-                        <div className="w-full bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50">
-                          <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${(profileData.medicalLeaveUsed / profileData.medicalLeaveMax) * 100}%` }} />
-                        </div>
-                      </div>
-
-                      {/* Emergency */}
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between text-xs font-bold">
-                          <span className="text-slate-500">Emergency leave</span>
-                          <span className="text-slate-800 font-mono font-black">{profileData.emergencyLeaveUsed} / {profileData.emergencyLeaveMax} days</span>
-                        </div>
-                        <div className="w-full bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50">
-                          <div className="bg-amber-500 h-full rounded-full" style={{ width: `${(profileData.emergencyLeaveUsed / profileData.emergencyLeaveMax) * 100}%` }} />
-                        </div>
-                      </div>
-                    </div>
+                    <p className="py-6 text-center text-slate-400 font-bold text-[11px]">
+                      No leave balance recorded yet.
+                    </p>
                   </div>
 
                 </div>
@@ -1524,63 +1515,9 @@ export default function EmployeeProfileTab({
                   <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
                     <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-50 pb-3">Performance overview</h3>
                     
-                    <div className="space-y-3.5">
-                      {/* Tech skills */}
-                      <div className="flex items-center justify-between text-xs font-bold gap-4">
-                        <span className="text-slate-500 w-28 text-[11px]">Technical skills</span>
-                        <div className="flex-1 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50 items-center shrink-0">
-                          <div className="bg-novora h-full rounded-full" style={{ width: `${profileData.prefTechnical}%` }} />
-                        </div>
-                        <span className="text-slate-800 font-black font-mono w-10 text-right">{profileData.prefTechnical}%</span>
-                      </div>
-
-                      {/* Comm */}
-                      <div className="flex items-center justify-between text-xs font-bold gap-4">
-                        <span className="text-slate-500 w-28 text-[11px]">Communication</span>
-                        <div className="flex-1 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50 items-center shrink-0">
-                          <div className="bg-novora h-full rounded-full" style={{ width: `${profileData.prefCommunication}%` }} />
-                        </div>
-                        <span className="text-slate-800 font-black font-mono w-10 text-right">{profileData.prefCommunication}%</span>
-                      </div>
-
-                      {/* Teams */}
-                      <div className="flex items-center justify-between text-xs font-bold gap-4">
-                        <span className="text-slate-500 w-28 text-[11px]">Teamwork</span>
-                        <div className="flex-1 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50 items-center shrink-0">
-                          <div className="bg-novora h-full rounded-full" style={{ width: `${profileData.prefTeamwork}%` }} />
-                        </div>
-                        <span className="text-slate-800 font-black font-mono w-10 text-right">{profileData.prefTeamwork}%</span>
-                      </div>
-
-                      {/* Punc */}
-                      <div className="flex items-center justify-between text-xs font-bold gap-4">
-                        <span className="text-slate-500 w-28 text-[11px]">Punctuality</span>
-                        <div className="flex-1 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50 items-center shrink-0">
-                          <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${profileData.prefPunctuality}%` }} />
-                        </div>
-                        <span className="text-slate-800 font-black font-mono w-10 text-right">{profileData.prefPunctuality}%</span>
-                      </div>
-
-                      {/* Lead */}
-                      <div className="flex items-center justify-between text-xs font-bold gap-4">
-                        <span className="text-slate-500 w-28 text-[11px]">Leadership</span>
-                        <div className="flex-1 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50 items-center shrink-0">
-                          <div className="bg-indigo-400 h-full rounded-full" style={{ width: `${profileData.prefLeadership}%` }} />
-                        </div>
-                        <span className="text-slate-800 font-black font-mono w-10 text-right">{profileData.prefLeadership}%</span>
-                      </div>
-                    </div>
-
-                    <div className="border-t border-slate-50/80 pt-3 space-y-2 text-xs font-semibold">
-                      <div className="flex justify-between py-1">
-                        <span className="text-slate-400">Last appraisal</span>
-                        <span className="text-slate-800 font-bold">{profileData.lastAppraisal}</span>
-                      </div>
-                      <div className="flex justify-between py-1">
-                        <span className="text-slate-400">Next review</span>
-                        <span className="text-slate-800 font-bold">{profileData.nextReview}</span>
-                      </div>
-                    </div>
+                    <p className="py-6 text-center text-slate-400 font-bold text-[11px]">
+                      No performance appraisals recorded yet.
+                    </p>
                   </div>
 
                   {/* Card 2: HR Notes */}
@@ -1599,8 +1536,7 @@ export default function EmployeeProfileTab({
                         <button 
                           onClick={() => { 
                             setIsEditingHRNotes(false); 
-                            triggerAutoSave(); 
-                            addToast('HR notes updated and auto-saved.', 'success');
+                            addToast('HR notes updated for this session only.', 'info');
                           }}
                           className="text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-lg flex items-center gap-1 cursor-pointer"
                         >
@@ -1615,12 +1551,13 @@ export default function EmployeeProfileTab({
                         <textarea
                           value={profileData.hrNotes}
                           rows={3}
+                          placeholder="Add notes about this employee"
                           onChange={(e) => { setProfileData({...profileData, hrNotes: e.target.value}); setIsStateModified(true); }}
                           className="w-full bg-slate-50 border border-slate-200 focus:outline-none focus:border-novora p-2 rounded text-xs font-bold text-slate-800"
                         />
                       ) : (
-                        <p className="text-slate-600 leading-relaxed bg-slate-50/60 p-3 rounded-2xl border border-slate-100/50">
-                          {profileData.hrNotes}
+                        <p className={`leading-relaxed bg-slate-50/60 p-3 rounded-2xl border border-slate-100/50 ${profileData.hrNotes ? 'text-slate-600' : 'text-slate-400'}`}>
+                          {profileData.hrNotes || 'No HR notes recorded yet.'}
                         </p>
                       )}
 
@@ -1630,6 +1567,7 @@ export default function EmployeeProfileTab({
                         <SelectMenu
                             value={profileData.blacklisted}
                             onChange={(v) => { setProfileData({...profileData, blacklisted: v}); setIsStateModified(true); }}
+                            placeholder="Select…"
                             triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
                             options={[
                               { value: 'No', label: 'No' },
@@ -1637,7 +1575,7 @@ export default function EmployeeProfileTab({
                             ]}
                           />
                         ) : (
-                          <span className={profileData.blacklisted === 'Yes' ? 'text-rose-600 font-black' : 'text-slate-800 font-bold'}>{profileData.blacklisted}</span>
+                          <span className={profileData.blacklisted === 'Yes' ? 'text-rose-600 font-black' : 'text-slate-800 font-bold'}>{profileData.blacklisted || '—'}</span>
                         )}
                       </div>
 
@@ -1686,7 +1624,7 @@ export default function EmployeeProfileTab({
                         onClick={() => { 
                           setIsEditingPersonal(false); 
                           triggerAutoSave(undefined, profileData.mobileNo); 
-                          addToast('Personal details updated and auto-saved.', 'success');
+                          addToast('Personal details updated for this session only.', 'info');
                         }}
                         className="text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-lg flex items-center gap-1 cursor-pointer"
                       >
@@ -1703,6 +1641,7 @@ export default function EmployeeProfileTab({
                       { key: 'name', label: 'Full name', value: formatPersonDisplayName(employee.name), editable: false },
                       { key: 'dob', label: 'Date of birth', value: profileData.dob },
                       { key: 'nric', label: 'NRIC / ID No.', value: profileData.nric },
+                      { key: 'email', label: 'Work email', value: employee.email, editable: false },
                       { key: 'personalEmail', label: 'Personal email', value: profileData.personalEmail },
                       { key: 'mobileNo', label: 'Mobile no.', value: profileData.mobileNo },
                     ].map((field) => (
@@ -1833,7 +1772,7 @@ export default function EmployeeProfileTab({
                               className="bg-slate-50 border border-slate-200 focus:outline-none focus:border-novora px-2 py-1 rounded text-xs font-bold text-slate-800"
                             />
                           ) : (
-                            <span className="text-slate-800 font-bold block pt-0.5">{field.value}</span>
+                            <span className="text-slate-800 font-bold block pt-0.5">{field.value || '—'}</span>
                           )}
                         </div>
                       ))}
@@ -1860,8 +1799,7 @@ export default function EmployeeProfileTab({
                         type="button"
                         onClick={() => {
                           setIsEditingAddress(false);
-                          triggerAutoSave(undefined, profileData.mobileNo);
-                          addToast('Address updated and auto-saved.', 'success');
+                          addToast('Address updated for this session only.', 'info');
                         }}
                         className="text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-lg flex items-center gap-1 cursor-pointer"
                       >
@@ -1890,7 +1828,7 @@ export default function EmployeeProfileTab({
                             className="bg-slate-50 border border-slate-200 focus:outline-none focus:border-novora px-2 py-1 rounded text-xs font-bold text-slate-800"
                           />
                         ) : (
-                          <span className="text-slate-800 font-bold block pt-0.5">{field.value}</span>
+                          <span className="text-slate-800 font-bold block pt-0.5">{field.value || '—'}</span>
                         )}
                       </div>
                     ))}
@@ -1922,6 +1860,9 @@ export default function EmployeeProfileTab({
                     <div className="space-y-0.5">
                       <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Family members</h3>
                       <p className="text-[10px] text-slate-400">Manage dependents, spouses, children and tax status details</p>
+                      {realValue(employee.dependents) && (
+                        <p className="text-[10px] text-slate-500 font-bold">Dependents on record: {realValue(employee.dependents)}</p>
+                      )}
                     </div>
                     <button 
                       onClick={handleAddFamilyMember}
@@ -1949,7 +1890,7 @@ export default function EmployeeProfileTab({
                         {profileData.familyMembers.length === 0 ? (
                           <tr>
                             <td colSpan={7} className="py-8 text-center text-slate-400 font-bold text-[11px]">
-                              No family members registered. Click "Add member" to insert.
+                              No family members recorded yet.
                             </td>
                           </tr>
                         ) : (
@@ -1985,7 +1926,7 @@ export default function EmployeeProfileTab({
                                 </span>
                               </td>
                               <td className="py-3.5 font-mono text-slate-600">
-                                {fam.passport || 'N/A'}
+                                {fam.passport || '—'}
                               </td>
                               <td className="py-3.5 text-right">
                                 <div className="flex items-center justify-end gap-2 text-right">
@@ -2044,7 +1985,7 @@ export default function EmployeeProfileTab({
                         {profileData.nokList.length === 0 ? (
                           <tr>
                             <td colSpan={5} className="py-8 text-center text-slate-400 font-bold text-[11px]">
-                              No contacts listed. Click "Add kin" to insert.
+                              No emergency contacts recorded yet.
                             </td>
                           </tr>
                         ) : (
@@ -2055,7 +1996,7 @@ export default function EmployeeProfileTab({
                               </td>
                               <td className="py-3.5">
                                 <span className="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-full text-[9px] font-black uppercase inline-flex items-center whitespace-nowrap shrink-0">
-                                  {nok.relationship}
+                                  {nok.relationship || '—'}
                                 </span>
                               </td>
                               <td className="py-3.5 font-mono text-slate-600">
@@ -2147,7 +2088,7 @@ export default function EmployeeProfileTab({
                           {profileData.biometricDevices.length === 0 ? (
                             <tr>
                               <td colSpan={6} className="py-8 text-center text-slate-400 font-bold text-[11px]">
-                                No registered devices. Click "Add device" to register one.
+                                No biometric devices registered yet.
                               </td>
                             </tr>
                           ) : (
@@ -2193,6 +2134,11 @@ export default function EmployeeProfileTab({
                         </tbody>
                       </table>
                     </div>
+                  )}
+                  {!profileData.biometricsEnabled && (
+                    <p className="py-6 text-center text-slate-400 font-bold text-[11px]">
+                      Biometric access is not enabled for this employee.
+                    </p>
                   )}
                 </div>
 
@@ -2251,7 +2197,7 @@ export default function EmployeeProfileTab({
 
                       <div className="flex flex-col gap-1 pb-2 pl-6.5">
                         <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Assigned shift</span>
-                        <span className="text-slate-800 font-black block text-[12px]">{profileData.assignedShift}</span>
+                        <span className="text-slate-800 font-black block text-[12px]">{profileData.assignedShift || '—'}</span>
                       </div>
                     </div>
 
@@ -2281,8 +2227,7 @@ export default function EmployeeProfileTab({
                       <button 
                         onClick={() => { 
                           setIsEditingPayRate(false); 
-                          triggerAutoSave(); 
-                          addToast('Pay rates updated and auto-saved.', 'success');
+                          addToast('Pay rate updated for this session only.', 'info');
                         }}
                         className="text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-lg flex items-center gap-1 cursor-pointer"
                       >
@@ -2295,24 +2240,24 @@ export default function EmployeeProfileTab({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-5 text-xs font-semibold">
                     <div className="flex flex-col gap-1 pb-2 border-b border-slate-50">
                       <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Pay grade</span>
-                      <span className="text-slate-800 font-bold block pt-0.5">{profileData.payGrade} / Sub B</span>
+                      <span className="text-slate-800 font-bold block pt-0.5">{profileData.jobGrade || '—'}</span>
                     </div>
 
                     <div className="flex flex-col gap-1 pb-2 border-b border-slate-50">
                       <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Pay type</span>
-                      <span className="text-slate-800 font-bold block pt-0.5">{profileData.payType}</span>
+                      <span className="text-slate-800 font-bold block pt-0.5">{profileData.payType || '—'}</span>
                     </div>
 
                     <div className="flex flex-col gap-1 pb-2 border-b border-slate-50">
                       <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Currency</span>
-                      <span className="text-slate-800 font-bold block pt-0.5">{profileData.currency}</span>
+                      <span className="text-slate-800 font-bold block pt-0.5">{currency}</span>
                     </div>
 
                     <div className="flex flex-col gap-1 pb-2 border-b border-slate-50">
                       <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Basic salary</span>
                       {isEditingPayRate ? (
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-xs font-bold text-slate-500">RM</span>
+                          <span className="text-xs font-bold text-slate-500">{currency}</span>
                           <input 
                             type="number" 
                             value={profileData.basicSalary} 
@@ -2321,13 +2266,13 @@ export default function EmployeeProfileTab({
                           />
                         </div>
                       ) : (
-                        <span className="text-[#2F66E0] font-black block text-[13.5px] pt-0.5">SGD {profileData.basicSalary.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span className="text-[#2F66E0] font-black block text-[13.5px] pt-0.5">{profileData.basicSalary > 0 ? money(profileData.basicSalary) : '—'}</span>
                       )}
                     </div>
 
                     <div className="flex flex-col gap-1 pb-2 border-b border-slate-50">
                       <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide">Effective date</span>
-                      <span className="text-slate-800 font-bold block pt-0.5">{profileData.payEffectiveDate}</span>
+                      <span className="text-slate-800 font-bold block pt-0.5">{profileData.payEffectiveDate || '—'}</span>
                     </div>
 
                     <div className="flex flex-col gap-1 pb-2 border-b border-slate-50">
@@ -2340,7 +2285,7 @@ export default function EmployeeProfileTab({
                           className="bg-slate-50 border border-slate-200 mt-1 p-1 rounded text-xs select-none max-w-44 focus:outline-none font-mono"
                         />
                       ) : (
-                        <span className="font-mono text-slate-800 font-bold block pt-0.5">{profileData.bankAccount}</span>
+                        <span className="font-mono text-slate-800 font-bold block pt-0.5">{profileData.bankAccount || '—'}</span>
                       )}
                     </div>
                   </div>
@@ -2367,7 +2312,7 @@ export default function EmployeeProfileTab({
                       <thead>
                         <tr className="text-slate-400 font-extrabold pb-3 border-b border-slate-100 text-[10.5px] uppercase tracking-wider select-none">
                           <th className="pb-3 text-left">Allowance type</th>
-                          <th className="pb-3 text-left">Amount (SGD)</th>
+                          <th className="pb-3 text-left">Amount ({currency})</th>
                           <th className="pb-3 text-left">Frequency</th>
                           <th className="pb-3 text-left">Taxable</th>
                           <th className="pb-3 text-left">Status</th>
@@ -2378,7 +2323,7 @@ export default function EmployeeProfileTab({
                         {profileData.allowances.length === 0 ? (
                           <tr>
                             <td colSpan={6} className="py-8 text-center text-slate-400 font-bold text-[11px]">
-                              No allowances defined. Click "Add Allowance" to configure one.
+                              No allowances recorded yet.
                             </td>
                           </tr>
                         ) : (
@@ -2386,7 +2331,7 @@ export default function EmployeeProfileTab({
                             <tr key={allow.id || idx} className="hover:bg-slate-50/20">
                               <td className="py-3.5 font-bold text-slate-800">{allow.type}</td>
                               <td className="py-3.5 font-mono font-bold text-novora">
-                                SGD {allow.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                {money(allow.amount)}
                               </td>
                               <td className="py-3.5 text-slate-500 font-semibold">{allow.frequency}</td>
                               <td className="py-3.5">
@@ -2454,7 +2399,7 @@ export default function EmployeeProfileTab({
                       <thead>
                         <tr className="text-slate-400 font-extrabold pb-3 border-b border-slate-100 text-[10.5px] uppercase tracking-wider select-none">
                           <th className="pb-3 text-left">Deduction type</th>
-                          <th className="pb-3 text-left">Amount (SGD)</th>
+                          <th className="pb-3 text-left">Amount ({currency})</th>
                           <th className="pb-3 text-left">Frequency</th>
                           <th className="pb-3 text-left">Reference</th>
                           <th className="pb-3 text-left">Status</th>
@@ -2465,7 +2410,7 @@ export default function EmployeeProfileTab({
                         {profileData.deductions.length === 0 ? (
                           <tr>
                             <td colSpan={6} className="py-8 text-center text-slate-400 font-bold text-[11px]">
-                              No deductions defined. Click "Add Deduction" to configure one.
+                              No deductions recorded yet.
                             </td>
                           </tr>
                         ) : (
@@ -2473,7 +2418,7 @@ export default function EmployeeProfileTab({
                             <tr key={ded.id || idx} className="hover:bg-slate-50/20">
                               <td className="py-3.5 font-bold text-slate-800">{ded.type}</td>
                               <td className="py-3.5 font-mono font-bold text-rose-600">
-                                SGD {ded.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                {money(ded.amount)}
                               </td>
                               <td className="py-3.5 text-slate-500 font-semibold">{ded.frequency}</td>
                               <td className="py-3.5 text-slate-600 font-bold">{ded.reference || '—'}</td>
@@ -2529,7 +2474,7 @@ export default function EmployeeProfileTab({
                       <ArrowDown className="h-4.5 w-4.5 shrink-0" />
                     </span>
                     <span className="text-[#1d4ed8] font-black text-2xl font-mono tracking-tighter">
-                      SGD {estimatedNetPay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {money(estimatedNetPay)}
                     </span>
                   </div>
                 </div>
@@ -2571,7 +2516,7 @@ export default function EmployeeProfileTab({
                         {profileData.careerHistory.length === 0 ? (
                           <tr>
                             <td colSpan={6} className="py-8 text-center text-slate-400 font-bold text-[11px]">
-                              No career entries registered. Click "Add Career Entry" to create one.
+                              No career history recorded yet.
                             </td>
                           </tr>
                         ) : (
@@ -2644,7 +2589,7 @@ export default function EmployeeProfileTab({
                         {profileData.educationList.length === 0 ? (
                           <tr>
                             <td colSpan={6} className="py-8 text-center text-slate-400 font-bold text-[11px]">
-                              No education entries defined. Click "Add Education" to register academic history.
+                              No education records yet.
                             </td>
                           </tr>
                         ) : (
@@ -2656,7 +2601,7 @@ export default function EmployeeProfileTab({
                               <td className="py-3.5 font-mono text-slate-500">{edu.year}</td>
                               <td className="py-3.5">
                                 <span className="bg-[#ecfdf5] text-[#059669] px-2.5 py-0.5 rounded font-black text-[9.5px] uppercase tracking-wider border border-[#ecfdf5]">
-                                  {edu.grade || 'Pass'}
+                                  {edu.grade || '—'}
                                 </span>
                               </td>
                               <td className="py-3.5 text-right">
@@ -2716,7 +2661,7 @@ export default function EmployeeProfileTab({
                         <FileText className="h-6 w-6" />
                       </div>
                       <div className="space-y-1">
-                        <p className="text-xs font-black text-slate-700">No documents found</p>
+                        <p className="text-xs font-black text-slate-700">No documents uploaded yet.</p>
                         <p className="text-[10px] text-slate-400">Add official employee files, IDs, or forms for security audit tracking.</p>
                       </div>
                       <button
@@ -2774,29 +2719,7 @@ export default function EmployeeProfileTab({
                                     View
                                   </button>
                                   <button 
-                                    onClick={async () => {
-                                      if (UUID_RE.test(doc.id)) {
-                                        try {
-                                          await deleteMyDocument(doc.id);
-                                        } catch (err) {
-                                          addToast(
-                                            err instanceof ApiError ? err.message : 'Could not delete document.',
-                                            'error'
-                                          );
-                                          return;
-                                        }
-                                      }
-                                      const updated = profileData.documentsList.filter(item => item.id !== doc.id);
-                                      setProfileData(prev => ({
-                                        ...prev,
-                                        documentsList: updated
-                                      }));
-                                      setEmployeeDocsMap(prev => ({
-                                        ...prev,
-                                        [employee.id]: updated
-                                      }));
-                                      addToast(`Document "${doc.name}" deleted successfully.`, 'info');
-                                    }}
+                                    onClick={() => void handleDeleteDoc(doc)}
                                     className="p-1.5 text-slate-400 hover:text-rose-600 border border-slate-200 hover:border-rose-200 rounded-lg cursor-pointer transition-colors hover:bg-rose-50/40"
                                     title="Delete Document"
                                   >
@@ -3450,7 +3373,7 @@ export default function EmployeeProfileTab({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Amount (SGD) *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Amount ({currency}) *</label>
                   <input 
                     type="number" 
                     required
@@ -3567,7 +3490,7 @@ export default function EmployeeProfileTab({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Amount (SGD) *</label>
+                  <label className="text-[10.5px] font-black text-slate-700 uppercase tracking-wider block">Amount ({currency}) *</label>
                   <input 
                     type="number" 
                     required
@@ -3886,8 +3809,8 @@ export default function EmployeeProfileTab({
           : /male|^m$/i.test(String(profileData.gender || ''))
             ? 'M'
             : 'X'
-        const nricNo = profileData.nric || 'S0000000A'
-        const passportNo = profileData.passportNo || 'K0000000A'
+        const nricNo = profileData.nric || '—'
+        const passportNo = profileData.passportNo || '—'
         const issueDate = profileData.passportIssueDate || previewingDoc.uploaded
         const expiryDate =
           profileData.passportExpiryDate ||
@@ -3948,9 +3871,7 @@ export default function EmployeeProfileTab({
                 <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     type="button"
-                    onClick={() =>
-                      addToast(`Print queued for "${previewingDoc.name}".`, 'success')
-                    }
+                    onClick={() => window.print()}
                     className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-slate-100 rounded-lg cursor-pointer transition-colors"
                     title="Print"
                   >
@@ -3958,9 +3879,7 @@ export default function EmployeeProfileTab({
                   </button>
                   <button
                     type="button"
-                    onClick={() =>
-                      addToast(`Downloading "${previewingDoc.name}".`, 'success')
-                    }
+                    onClick={() => handleDownloadDoc(previewingDoc)}
                     className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-slate-100 rounded-lg cursor-pointer transition-colors"
                     title="Download"
                   >
@@ -4031,7 +3950,9 @@ export default function EmployeeProfileTab({
                           { label: 'Commencement', value: profileData.positionStartDate },
                           {
                             label: 'Basic monthly salary',
-                            value: `SGD ${Number(profileData.basicSalary || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                            value: profileData.basicSalary > 0
+                              ? money(profileData.basicSalary)
+                              : '',
                           },
                           { label: 'Employment status', value: employee?.employmentStatus },
                         ].map((row) => (
@@ -4045,9 +3966,8 @@ export default function EmployeeProfileTab({
                       </div>
 
                       <p className="text-slate-600 leading-relaxed text-[11px]">
-                        Benefits include health coverage,{' '}
-                        <span className="font-semibold">{profileData.leaveLeft} days</span> annual
-                        leave, and statutory CPF contributions (and SDL where applicable). Payroll is credited to{' '}
+                        Benefits include health coverage, annual leave per company policy,
+                        and statutory CPF contributions (and SDL where applicable). Payroll is credited to{' '}
                         <span className="font-semibold">{profileData.bankAccount || 'the registered account'}</span>.
                       </p>
 
@@ -4139,11 +4059,11 @@ export default function EmployeeProfileTab({
                                   { label: 'Sex', value: sexCode },
                                   {
                                     label: 'Nationality',
-                                    value: (profileData.nationality || 'SINGAPOREAN').toUpperCase(),
+                                    value: (profileData.nationality || '—').toUpperCase(),
                                   },
                                   {
                                     label: 'Authority',
-                                    value: (profileData.passportCountry || 'SINGAPORE').toUpperCase(),
+                                    value: (profileData.passportCountry || '—').toUpperCase(),
                                   },
                                   {
                                     label: 'Date of birth',
@@ -4153,7 +4073,7 @@ export default function EmployeeProfileTab({
                                     label: 'Date of expiration',
                                     value: String(expiryDate || '—').toUpperCase(),
                                   },
-                                  { label: 'Place of birth', value: 'SINGAPORE' },
+                                  { label: 'Place of birth', value: '—' },
                                   {
                                     label: 'Signature of Bearer',
                                     value: `${(givenNames[0] || personName[0] || 'J').toUpperCase()}. ${surname.charAt(0)}${surname.slice(1).toLowerCase()}`,
@@ -4348,7 +4268,7 @@ export default function EmployeeProfileTab({
                                   <p className="text-[7.5px] leading-none mb-0.5 text-[#777]">
                                     Country of Birth
                                   </p>
-                                  <p className="text-[11px] font-black uppercase text-black">Singapore</p>
+                                  <p className="text-[11px] font-black uppercase text-black">—</p>
                                 </div>
 
                                 <div

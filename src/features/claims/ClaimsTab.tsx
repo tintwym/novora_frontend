@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Receipt,
   CheckCircle,
@@ -37,6 +37,9 @@ import {
   fetchMyClaims,
   type ClaimRow,
 } from '@/services';
+import { dateStamp, downloadCsv, downloadNearestTableCsv } from '@/lib/csv';
+import { useCurrency } from '@/hooks/useCurrency';
+import { CURRENCY_OPTIONS } from '@/lib/currency';
 
 interface ClaimsTabProps {
   employees: any[];
@@ -62,16 +65,67 @@ interface Claim {
   pushStatus: 'Pushed' | 'Queued' | '—';
   description: string;
   hasAttachment: boolean;
+  decidedBy: string | null;
+  decidedAt: string | null;
+  createdAt: string | null;
+}
+
+
+const BAR_COLORS = ['bg-blue-600', 'bg-sky-500', 'bg-emerald-500', 'bg-amber-500', 'bg-pink-500', 'bg-slate-400'];
+
+const DEPARTMENT_BUDGETS: { label: string; department: string; cap: number; category?: string }[] = [
+  { label: 'Engineering travel budget', department: 'Engineering', cap: 10000 },
+  { label: 'Operations travel budget', department: 'Operations', cap: 6000 },
+  { label: 'Finance travel budget', department: 'Finance', cap: 4000 },
+  { label: 'Marketing entertainment budget', department: 'Marketing', cap: 2000, category: 'Entertainment' },
+];
+
+function claimPolicyFlag(category: string, amount: number): Claim['policyFlag'] {
+  if (category === 'Meal allowance' && amount > 30) return 'Over limit';
+  if (category === 'Transport' && amount > 200) return 'Over limit';
+  return 'Clear';
+}
+
+function monthKeyOf(d: Date): string {
+  return d.toLocaleDateString('en-CA').slice(0, 7);
+}
+
+function monthLabelOf(key: string): string {
+  const [y, m] = key.split('-').map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+function recentMonthKeys(count: number): string[] {
+  const now = new Date();
+  return Array.from({ length: count }, (_, i) => monthKeyOf(new Date(now.getFullYear(), now.getMonth() - i, 1)));
+}
+
+function groupClaimTotals(rows: Claim[], keyOf: (c: Claim) => string) {
+  const map = new Map<string, { label: string; amount: number; count: number; flags: number }>();
+  for (const c of rows) {
+    const label = keyOf(c) || '—';
+    const entry = map.get(label) || { label, amount: 0, count: 0, flags: 0 };
+    entry.amount += c.myrEquivalent;
+    entry.count += 1;
+    if (c.policyFlag !== 'Clear') entry.flags += 1;
+    map.set(label, entry);
+  }
+  return Array.from(map.values()).sort((a, b) => b.amount - a.amount);
+}
+
+function initialsOf(name: string): string {
+  return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
 }
 
 export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTabProps) {
   const isAdmin = canManageFullSystem(roles)
+  const { currency, money, amount: fmtAmount } = useCurrency()
   // Navigation sub-tabs
   const [activeSubTab, setActiveSubTab] = useState<'Submit Claim' | 'Approval' | 'Policy & Compliance' | 'Payroll Integration' | 'Analytics & Reports' | 'Claim History'>('Submit Claim');
   const [claimsBusy, setClaimsBusy] = useState(false);
 
   // Interactive filters (global / header scoped)
-  const [headerMonth, setHeaderMonth] = useState<string>('May 2026');
+  const [headerMonth, setHeaderMonth] = useState<string>(() => monthKeyOf(new Date()));
   const [headerDept, setHeaderDept] = useState<string>('All departments');
   
   // Controls dropdown states
@@ -92,16 +146,19 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
       category: row.category,
       date: row.claimDate,
       amount: Number(row.amount),
-      currency: row.currency || 'SGD',
-      myrEquivalent: Number(row.amount),
+      currency: row.currency || currency,
+      myrEquivalent: (row.currency || currency) === currency ? Number(row.amount) : 0,
       vendor: row.vendor || '—',
       approvalChain: row.decidedBy || 'Manager',
-      policyFlag: 'Clear',
+      policyFlag: claimPolicyFlag(row.category, Number(row.amount)),
       status,
       payrollMonth: '—',
       pushStatus: status === 'Approved' ? 'Queued' : '—',
       description: row.description || '—',
       hasAttachment: false,
+      decidedBy: row.decidedBy,
+      decidedAt: row.decidedAt,
+      createdAt: row.createdAt,
     }
   }
 
@@ -126,19 +183,21 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
 
   // Submit Claim tab states
   const [claimCategory, setClaimCategory] = useState<string>('-- Select category --');
-  const [claimDate, setClaimDate] = useState<string>('2026-05-06');
+  const [claimDate, setClaimDate] = useState<string>(() => new Date().toLocaleDateString('en-CA'));
   const [claimVendor, setClaimVendor] = useState<string>('');
-  const [claimCurrency, setClaimCurrency] = useState<string>('SGD');
+  const [claimCurrency, setClaimCurrency] = useState<string>(currency);
   const [claimAmount, setClaimAmount] = useState<string>('0.00');
   const [claimProject, setClaimProject] = useState<string>('');
   const [claimDesc, setClaimDesc] = useState<string>('');
   const [selectedStaffName, setSelectedStaffName] = useState<string>('');
   const [hasReceiptFile, setHasReceiptFile] = useState<boolean>(false);
   const [sendEmailNotification, setSendEmailNotification] = useState<boolean>(true);
+
+  useEffect(() => {
+    setClaimCurrency(currency);
+  }, [currency]);
   
-  // Scanning OCR animation states
-  const [isOcrScanning, setIsOcrScanning] = useState<boolean>(false);
-  const [ocrProgress, setOcrProgress] = useState<number>(0);
+  const receiptInputRef = useRef<HTMLInputElement>(null);
 
   // Approval filters
   const [approvalStatusFilter, setApprovalStatusFilter] = useState<string>('All status');
@@ -165,43 +224,25 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
   // Meal daily limit threshold check
   const calculatedMyrEquivalent = () => {
     const amt = parseFloat(claimAmount) || 0;
-    if (claimCurrency === 'USD') return parseFloat((amt * 4.68).toFixed(2));
-    if (claimCurrency === 'SGD') return parseFloat((amt * 3.47).toFixed(2));
-    if (claimCurrency === 'EUR') return parseFloat((amt * 5.12).toFixed(2));
-    return amt;
+    return claimCurrency === currency ? amt : 0;
   };
 
   const myrEquiv = calculatedMyrEquivalent();
+  const equivalentText = (c: { currency: string; myrEquivalent: number }) =>
+    c.currency === currency ? money(c.myrEquivalent, 2) : '—';
   const mealLimitAlert = claimCategory === 'Meal allowance' && myrEquiv > 30.00;
   const transportLimitAlert = claimCategory === 'Transport' && myrEquiv > 200.00;
 
-  // Handle OCR receipt simulation
-  const handleScanReceipt = () => {
-    setIsOcrScanning(true);
-    setOcrProgress(0);
-    addToast('Initializing neural OCR engine...', 'info');
-
-    const interval = setInterval(() => {
-      setOcrProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setIsOcrScanning(false);
-            setClaimCategory('Meal allowance');
-            setClaimDate('2026-05-06');
-            setClaimVendor('Nando\'s Cafe Pte. Ltd.');
-            setClaimCurrency('SGD');
-            setClaimAmount('42.00');
-            setClaimDesc('Project wrap-up lunch assessment with product partners.');
-            setHasReceiptFile(true);
-            setSelectedStaffName('Ahmad L');
-            addToast('Receipt scanned! Extracted SGD 42.00 from Nando\'s on 06/05/2026.', 'success');
-          }, 300);
-          return 100;
-        }
-        return prev + 20;
-      });
-    }, 200);
+  const handleReceiptSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      addToast('Receipt file is larger than 10MB.', 'error');
+      return;
+    }
+    setHasReceiptFile(true);
+    addToast('Receipt attached. Please enter the claim details.', 'info');
   };
 
   // Interactive UI Modal States
@@ -263,13 +304,13 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
         category: claimCategory,
         claimDate,
         amount,
-        currency: claimCurrency || 'SGD',
+        currency: claimCurrency || currency,
         vendor: claimVendor || undefined,
         description: claimDesc || undefined,
-        employeeId: selectedStaffName || undefined,
+        employeeId: employees.find((emp) => emp.id === selectedStaffName)?.apiId || undefined,
       })
       setClaims((prev) => [mapClaim(created), ...prev.filter((c) => c.id !== created.id)])
-      addToast(`Claim for ${claimCurrency} ${amount.toFixed(2)} submitted.`, 'success')
+      addToast(`Claim for ${claimCurrency} ${fmtAmount(amount, 2)} submitted.`, 'success')
       setClaimCategory('-- Select category --')
       setClaimVendor('')
       setClaimAmount('0.00')
@@ -322,29 +363,66 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
   };
 
   const executePayrollPush = () => {
-    setIsPushingInProgress(true);
-    setPushProgressPct(15);
-    
-    const interval = setInterval(() => {
-      setPushProgressPct((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setClaims(prevClaims => prevClaims.map(c => {
-              if (c.status === 'Approved' && c.pushStatus === 'Queued') {
-                return { ...c, pushStatus: 'Pushed' };
-              }
-              return c;
-            }));
-            setIsPushingInProgress(false);
-            setIsPayrollPushModalOpen(false);
-            addToast('Synchronized claim reimbursements with bank credit files successfully.', 'success');
-          }, 350);
-          return 100;
-        }
-        return prev + 25;
-      });
-    }, 300);
+    setIsPayrollPushModalOpen(false);
+    addToast('Payroll integration is not connected yet. Approved claims remain queued.', 'info');
+  };
+
+  const handleExportClaims = () => {
+    const ok = downloadCsv(
+      `claims_${dateStamp()}`,
+      ['ID', 'Employee', 'Department', 'Category', 'Date', 'Vendor', 'Currency', 'Amount', 'Policy flag', 'Status'],
+      claims.map((c) => [c.id, c.empName, c.department, c.category, c.date, c.vendor, c.currency, c.amount.toFixed(2), c.policyFlag, c.status]),
+    );
+    addToast(ok ? `Exported ${claims.length} claims as CSV.` : 'Nothing to export yet.', ok ? 'success' : 'info');
+  };
+
+  const approvalRows = claims.filter(c => {
+    const matchesStatus = approvalStatusFilter === 'All status' || c.status === approvalStatusFilter;
+    const matchesCategory = approvalCategoryFilter === 'All categories' || c.category === approvalCategoryFilter;
+    const matchesDept = approvalDeptFilter === 'All departments' || c.department === approvalDeptFilter;
+    const matchesDate = approvalDateFilter === '' || c.date === approvalDateFilter;
+    return matchesStatus && matchesCategory && matchesDept && matchesDate;
+  });
+
+  const historyRows = claims.filter(c => {
+    const matchesStatus = historyStatusFilter === 'All status' || c.status === historyStatusFilter;
+    const matchesCategory = historyCategoryFilter === 'All categories' || c.category === historyCategoryFilter;
+    const matchesDept = historyDeptFilter === 'All departments' || c.department === historyDeptFilter;
+    const matchesSearch = c.empName.toLowerCase().includes(historySearchQuery.toLowerCase());
+    return matchesStatus && matchesCategory && matchesDept && matchesSearch;
+  });
+
+  const headerMonthLabel = monthLabelOf(headerMonth);
+  const monthClaims = claims.filter(c => (c.date || '').slice(0, 7) === headerMonth);
+  const monthTotal = monthClaims.reduce((acc, c) => acc + c.myrEquivalent, 0);
+  const thisYear = new Date().getFullYear();
+  const ytdTotal = claims.filter(c => (c.date || '').startsWith(String(thisYear))).reduce((acc, c) => acc + c.myrEquivalent, 0);
+  const lastYtdCutoff = `${thisYear - 1}-${new Date().toLocaleDateString('en-CA').slice(5)}`;
+  const lastYtdTotal = claims
+    .filter(c => (c.date || '').startsWith(String(thisYear - 1)) && c.date <= lastYtdCutoff)
+    .reduce((acc, c) => acc + c.myrEquivalent, 0);
+  const ytdChangePct = lastYtdTotal > 0 ? Math.round(((ytdTotal - lastYtdTotal) / lastYtdTotal) * 100) : null;
+  const monthFlagged = monthClaims.filter(c => c.policyFlag !== 'Clear');
+  const categorySpend = groupClaimTotals(monthClaims, c => c.category);
+  const departmentSpend = groupClaimTotals(monthClaims, c => c.department);
+  const topClaimants = groupClaimTotals(monthClaims, c => c.empName).slice(0, 5);
+  const maxCategorySpend = Math.max(1, ...categorySpend.map(c => c.amount));
+  const maxDepartmentSpend = Math.max(1, ...departmentSpend.map(d => d.amount));
+  const auditTrail = claims
+    .filter(c => c.status !== 'Pending')
+    .sort((a, b) => (b.decidedAt || b.date).localeCompare(a.decidedAt || a.date))
+    .slice(0, 4);
+  const fxClaims = claims.filter(c => c.currency !== currency).slice(0, 5);
+  const [headerYear, headerMonthNum] = headerMonth.split('-').map(Number);
+  const formatLongDate = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const payrollCutoffLabel = formatLongDate(new Date(headerYear, headerMonthNum - 1, 25));
+  const nextPayrollLabel = formatLongDate(new Date(headerYear, headerMonthNum, 0));
+  const formatDateTime = (value: string | null, fallback: string) => {
+    if (!value) return fallback;
+    const d = new Date(value);
+    return Number.isNaN(d.getTime())
+      ? fallback
+      : d.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -396,7 +474,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
         {/* Global top level controllers aligned on the right, integrated into the navigation grid */}
         <div id="claims-upper-actions" className="flex items-center gap-2.5 ml-auto sm:ml-0 font-sans text-slate-700 shrink-0 flex-nowrap">
           
-          {/* May 2026 / period selector */}
+          {/* Period selector */}
           <DropdownAnchor
             open={monthDropdownOpen}
             onClose={() => setMonthDropdownOpen(false)}
@@ -410,12 +488,12 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               }}
               className={`nv-dd-trigger ${monthDropdownOpen ? 'nv-dd-trigger--open' : ''}`}
             >
-              <span className="whitespace-nowrap">{headerMonth}</span>
+              <span className="whitespace-nowrap">{headerMonthLabel}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {monthDropdownOpen && (
               <div className="nv-dropdown-menu w-32">
-                {['May 2026', 'Apr 2026', 'Mar 2026'].map((m) => (
+                {recentMonthKeys(3).map((m) => (
                   <button
                     key={m}
                     type="button"
@@ -423,7 +501,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     onClick={() => { setHeaderMonth(m); setMonthDropdownOpen(false); }}
                     className={headerMonth === m ? 'nv-dropdown-item--active' : ''}
                   >
-                    {m}
+                    {monthLabelOf(m)}
                   </button>
                 ))}
               </div>
@@ -467,7 +545,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
           {/* Export utility */}
           <button
             type="button"
-            onClick={() => addToast('Exporting active claims ledger...', 'loading')}
+            onClick={handleExportClaims}
             className="nv-toolbar-btn"
           >
             <Download className="h-4 w-4" />
@@ -491,37 +569,32 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               {/* Receipt Capture Box */}
               <div className="nv-card p-6 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Receipt capture & OCR</h3>
+                  <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Receipt capture</h3>
                   <div className="flex gap-1">
                     <span className="bg-slate-50 text-[10px] font-semibold text-slate-500 px-2 py-0.5 rounded-md">Mobile upload</span>
-                    <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-md">OCR scan</span>
                   </div>
                 </div>
 
                 <div className="border border-dashed border-slate-200 rounded-xl p-8 text-center bg-slate-50/50 flex flex-col items-center justify-center min-h-48 relative overflow-hidden group">
-                  {isOcrScanning ? (
-                    <div className="space-y-3 w-full max-w-xs">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto items-center shrink-0"></div>
-                      <p className="text-xs font-bold text-slate-700">Extracting transaction meta...</p>
-                      <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                        <div className="bg-indigo-500 h-1.5 transition-all duration-300" style={{ width: `${ocrProgress}%` }}></div>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="h-10 w-10 bg-white border border-slate-100 rounded-full flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform shadow-xs mb-3 shrink-0">
-                        <Paperclip className="h-5 w-5" />
-                      </div>
-                      <p className="text-xs font-bold text-slate-800">Snap or upload receipt</p>
-                      <p className="text-[10px] font-medium text-slate-400 mt-1">JPG, PNG, PDF &bull; max 10MB</p>
-                      <button
-                        onClick={handleScanReceipt}
-                        className="mt-4 bg-novora hover:bg-blue-600 text-white text-[11px] font-black tracking-wide px-4 py-1.5 rounded-lg transition-colors cursor-pointer uppercase"
-                      >
-                        Scan receipt
-                      </button>
-                    </>
-                  )}
+                  <div className="h-10 w-10 bg-white border border-slate-100 rounded-full flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform shadow-xs mb-3 shrink-0">
+                    <Paperclip className="h-5 w-5" />
+                  </div>
+                  <p className="text-xs font-bold text-slate-800">{hasReceiptFile ? 'Receipt attached' : 'Snap or upload receipt'}</p>
+                  <p className="text-[10px] font-medium text-slate-400 mt-1">JPG, PNG, PDF &bull; max 10MB</p>
+                  <input
+                    ref={receiptInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,application/pdf"
+                    className="hidden"
+                    onChange={handleReceiptSelected}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => receiptInputRef.current?.click()}
+                    className="mt-4 bg-novora hover:bg-blue-600 text-white text-[11px] font-black tracking-wide px-4 py-1.5 rounded-lg transition-colors cursor-pointer uppercase"
+                  >
+                    {hasReceiptFile ? 'Replace receipt' : 'Attach receipt'}
+                  </button>
                 </div>
               </div>
 
@@ -540,6 +613,9 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
+                      {claims.length === 0 && (
+                        <tr><td colSpan={5} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                      )}
                       {claims.slice(0, 5).map((claim) => (
                         <tr key={claim.id} className="hover:bg-slate-50/20">
                           <td className="py-3 font-semibold text-slate-800">
@@ -632,6 +708,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Claim date *</label>
                   <input
                     type="date"
+                    aria-label="Claim date"
                     value={claimDate}
                     onChange={(e) => setClaimDate(e.target.value)}
                     className="w-full text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 focus:border-novora rounded-xl px-3 py-1.5 outline-none"
@@ -658,11 +735,11 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     onChange={setClaimCurrency}
                     aria-label="Currency"
                     triggerClassName="text-xs font-semibold"
-                    options={[
-                      { value: 'SGD', label: 'SGD' },
-                      { value: 'USD', label: 'USD' },
-                      { value: 'EUR', label: 'EUR' },
-                    ]}
+                    options={
+                      CURRENCY_OPTIONS.some((o) => o.value === currency)
+                        ? CURRENCY_OPTIONS
+                        : [{ value: currency, label: currency }, ...CURRENCY_OPTIONS]
+                    }
                   />
                 </div>
                 <div>
@@ -677,9 +754,9 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">SGD equiv.</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{currency} equiv.</label>
                   <div className="w-full text-xs font-black text-slate-500 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5">
-                    {claimCurrency === 'SGD' ? 'Auto-converted' : `SGD ${myrEquiv.toFixed(2)}`}
+                    {claimCurrency === currency ? money(myrEquiv, 2) : 'Converted by finance on approval'}
                   </div>
                 </div>
               </div>
@@ -687,7 +764,11 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               {/* Exchange rate info badge */}
               <div className="bg-blue-50 border border-blue-100/50 rounded-xl p-3 text-[11px] font-semibold text-novora flex items-center gap-2">
                 <span className="h-1.5 w-1.5 bg-novora rounded-full animate-ping items-center shrink-0"></span>
-                <span>Live exchange rate: 1 USD = 4.68 SGD &bull; 1 SGD = 3.47 SGD &bull; 1 EUR = 5.12 SGD (updated 1 min ago)</span>
+                <span>
+                  {claimCurrency === currency
+                    ? `Claim is in the company currency (${currency}).`
+                    : `Foreign-currency claim: no live exchange rate is connected, so limits and totals in ${currency} exclude it until finance converts it.`}
+                </span>
               </div>
 
               {/* Project / cost centre */}
@@ -725,7 +806,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 <div className="flex items-center gap-2">
                   <span className="bg-indigo-100 text-indigo-700 text-[10px] font-black px-2 py-0.5 rounded uppercase">Receipt attachment</span>
                   <span className="text-[10px] font-bold text-slate-500">
-                    {hasReceiptFile ? '✓ Receipt attached' : 'Upload receipt (required for claims > SGD 50)'}
+                    {hasReceiptFile ? '✓ Receipt attached' : `Upload receipt (required for claims > ${currency} 50)`}
                   </span>
                 </div>
                 {hasReceiptFile && (
@@ -747,7 +828,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     <span>Policy alert: Meal allowance daily limit exceeded</span>
                   </div>
                   <p className="leading-relaxed text-amber-700">
-                    Meal allowance daily limit is SGD 30.00. Your claim of SGD {myrEquiv.toFixed(2)} exceeds the limit by SGD {(myrEquiv - 30).toFixed(2)}. Additional approval required.
+                    Meal allowance daily limit is {money(30, 2)}. Your claim of {money(myrEquiv, 2)} exceeds the limit by {money(myrEquiv - 30, 2)}. Additional approval required.
                   </p>
                 </div>
               )}
@@ -759,7 +840,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     <span>Policy alert: Transport daily limit exceeded</span>
                   </div>
                   <p className="leading-relaxed text-amber-700">
-                    Transport daily limit is SGD 200.00. Your claim of SGD {myrEquiv.toFixed(2)} exceeds the limit by SGD {(myrEquiv - 200).toFixed(2)}. Additional approval required.
+                    Transport daily limit is {money(200, 2)}. Your claim of {money(myrEquiv, 2)} exceeds the limit by {money(myrEquiv - 200, 2)}. Additional approval required.
                   </p>
                 </div>
               )}
@@ -783,7 +864,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 <button
                   type="button"
                   onClick={() => {
-                    addToast('Draft claims are saved temporarily in memory.', 'info');
+                    addToast('Drafts are not saved yet. Your entries stay in this form until you submit.', 'info');
                   }}
                   className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 transition-colors rounded-xl text-xs font-bold text-slate-700 cursor-pointer"
                 >
@@ -926,14 +1007,10 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                  {claims
-                    .filter(c => {
-                      const matchesStatus = approvalStatusFilter === 'All status' || c.status === approvalStatusFilter;
-                      const matchesCategory = approvalCategoryFilter === 'All categories' || c.category === approvalCategoryFilter;
-                      const matchesDept = approvalDeptFilter === 'All departments' || c.department === approvalDeptFilter;
-                      const matchesDate = approvalDateFilter === '' || c.date === approvalDateFilter;
-                      return matchesStatus && matchesCategory && matchesDept && matchesDate;
-                    })
+                  {approvalRows.length === 0 && (
+                    <tr><td colSpan={8} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                  )}
+                  {approvalRows
                     .map((claim) => (
                       <tr key={claim.id} className="hover:bg-slate-50/30">
                         <td className="p-4 pl-6 whitespace-nowrap">
@@ -961,8 +1038,8 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                           {new Date(claim.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                         </td>
                         <td className="p-4 whitespace-nowrap font-bold text-slate-800">
-                          SGD {claim.myrEquivalent.toFixed(2)}
-                          {claim.currency !== 'SGD' && (
+                          {equivalentText(claim)}
+                          {claim.currency !== currency && (
                             <span className="block text-[9px] text-slate-400 font-semibold">{claim.currency} {claim.amount.toFixed(2)}</span>
                           )}
                         </td>
@@ -1035,6 +1112,10 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Category spend limits</h3>
                   <button
                     onClick={() => {
+                      if (spendLimits.length === 0) {
+                        addToast('No category spend limits are configured yet.', 'info');
+                        return;
+                      }
                       setSelectedSpendLimitIdx(0);
                       setIsEditSpendLimitsModalOpen(true);
                       addToast('Select a category row to modify specific spending caps.', 'info');
@@ -1133,45 +1214,28 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               <div className="nv-card p-6 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Policy flags &mdash; this month</h3>
-                  <span className="bg-red-100 text-red-700 text-[10px] font-black px-2 py-0.5 rounded-md">8 flags</span>
+                  <span className="bg-red-100 text-red-700 text-[10px] font-black px-2 py-0.5 rounded-md">{monthFlagged.length} flags</span>
                 </div>
 
                 <div className="space-y-4 text-xs font-semibold">
-                  <div className="flex items-start gap-3 p-3 bg-red-50/20 border border-red-100 rounded-xl">
-                    <div className="h-2 w-2 rounded-full bg-amber-500 mt-1 shrink-0 items-center" />
-                    <div className="flex-1">
-                      <p className="text-slate-800 font-bold">Meal limit exceeded</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Ahmad L &bull; SGD 42.00 vs SGD 30 limit</p>
-                    </div>
-                    <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-2 py-0.5 rounded uppercase">Pending</span>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 bg-red-50/20 border border-red-100 rounded-xl">
-                    <div className="h-2 w-2 rounded-full bg-red-650 mt-1 shrink-0 items-center" />
-                    <div className="flex-1">
-                      <p className="text-slate-800 font-bold">Duplicate submission</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Zara N &bull; Same vendor + date as 28 Apr</p>
-                    </div>
-                    <span className="bg-red-100 text-red-800 text-[9px] font-black px-2 py-0.5 rounded uppercase">Blocked</span>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 bg-red-50/20 border border-red-100 rounded-xl">
-                    <div className="h-2 w-2 rounded-full bg-blue-500 mt-1 shrink-0 items-center" />
-                    <div className="flex-1">
-                      <p className="text-slate-800 font-bold">Late submission</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Raj K &bull; Receipt dated 28 Feb, submitted 5 May</p>
-                    </div>
-                    <span className="bg-indigo-100 text-indigo-800 text-[9px] font-black px-2 py-0.5 rounded uppercase">Review</span>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 bg-indigo-50/10 border border-indigo-100 rounded-xl">
-                    <div className="h-2 w-2 rounded-full bg-amber-500 mt-1 shrink-0 items-center" />
-                    <div className="flex-1">
-                      <p className="text-slate-800 font-bold">Over category cap</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Maya T &bull; Air ticket SGD 1,280 needs Finance review</p>
-                    </div>
-                    <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-2 py-0.5 rounded uppercase">Escalated</span>
-                  </div>
+                  {monthFlagged.length === 0 ? (
+                    <p className="text-xs text-slate-400 text-center py-4">No policy flags this month.</p>
+                  ) : (
+                    monthFlagged.slice(0, 6).map((c) => (
+                      <div key={c.id} className="flex items-start gap-3 p-3 bg-red-50/20 border border-red-100 rounded-xl">
+                        <div className="h-2 w-2 rounded-full bg-amber-500 mt-1 shrink-0 items-center" />
+                        <div className="flex-1">
+                          <p className="text-slate-800 font-bold">{c.category === 'Meal allowance' ? 'Meal limit exceeded' : 'Transport limit exceeded'}</p>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            {c.empName} &bull; {c.currency} {c.amount.toFixed(2)} vs {currency} {c.category === 'Meal allowance' ? '30' : '200'} limit
+                          </p>
+                        </div>
+                        <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase ${
+                          c.status === 'Pending' ? 'bg-amber-100 text-amber-800' : c.status === 'Rejected' ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'
+                        }`}>{c.status}</span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -1179,49 +1243,25 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               <div className="nv-card p-6 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Audit trail &mdash; recent actions</h3>
-                  <button onClick={() => addToast('Opening full systems audit ledger...', 'info')} className="text-slate-500 hover:text-slate-700 text-xs font-bold">Full log</button>
+                  <button onClick={() => setActiveSubTab('Claim History')} className="text-slate-500 hover:text-slate-700 text-xs font-bold">Full log</button>
                 </div>
 
                 <div className="space-y-4 text-xs">
-                  <div className="flex gap-3">
-                    <div className="h-2.5 w-2.5 bg-emerald-500 rounded-full mt-1 shrink-0 items-center" />
-                    <div>
-                      <span className="block text-[10px] text-slate-400 font-bold">6 May 10:42</span>
-                      <p className="font-semibold text-slate-700 mt-0.5">
-                        <strong className="text-slate-900 font-bold">David Ng</strong> approved SGD 120.00 transport &mdash; Nadia Chen
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <div className="h-2.5 w-2.5 bg-red-500 rounded-full mt-1 shrink-0 items-center" />
-                    <div>
-                      <span className="block text-[10px] text-slate-400 font-bold">6 May 09:15</span>
-                      <p className="font-semibold text-slate-700 mt-0.5">
-                        <strong className="text-slate-900 font-bold">Kevin Lim</strong> rejected SGD 55.00 meal &mdash; Sarah Lim (over limit)
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <div className="h-2.5 w-2.5 bg-amber-500 rounded-full mt-1 shrink-0 items-center" />
-                    <div>
-                      <span className="block text-[10px] text-slate-400 font-bold">5 May 16:30</span>
-                      <p className="font-semibold text-slate-700 mt-0.5">
-                        <strong className="text-slate-900 font-bold">System</strong> flagged duplicate &mdash; Zara Nor meal submission blocked
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <div className="h-2.5 w-2.5 bg-emerald-500 rounded-full mt-1 shrink-0 items-center" />
-                    <div>
-                      <span className="block text-[10px] text-slate-400 font-bold">4 May 11:00</span>
-                      <p className="font-semibold text-slate-700 mt-0.5">
-                        <strong className="text-slate-900 font-bold">Nina Reza</strong> approved SGD 450.00 hotel &mdash; Raj Kumar (step 1/2)
-                      </p>
-                    </div>
-                  </div>
+                  {auditTrail.length === 0 ? (
+                    <p className="text-xs text-slate-400 text-center py-4">No approval decisions recorded yet.</p>
+                  ) : (
+                    auditTrail.map((c) => (
+                      <div key={c.id} className="flex gap-3">
+                        <div className={`h-2.5 w-2.5 rounded-full mt-1 shrink-0 items-center ${c.status === 'Approved' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                        <div>
+                          <span className="block text-[10px] text-slate-400 font-bold">{formatDateTime(c.decidedAt, c.date)}</span>
+                          <p className="font-semibold text-slate-700 mt-0.5">
+                            <strong className="text-slate-900 font-bold">{c.decidedBy || 'Approver'}</strong> {c.status === 'Approved' ? 'approved' : 'rejected'} {c.currency} {c.amount.toFixed(2)} {c.category.toLowerCase()} &mdash; {c.empName}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -1238,43 +1278,43 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
             <div className="lg:col-span-4 space-y-6">
               
               <div className="nv-card p-6 shadow-xs space-y-5">
-                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest border-b border-slate-50 pb-3.5">Payroll push status &mdash; May 2026</h3>
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest border-b border-slate-50 pb-3.5">Payroll push status &mdash; {headerMonthLabel}</h3>
                 
                 <div className="space-y-4 text-xs font-semibold">
                   <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
                     <span className="text-slate-500">Total approved claims</span>
                     <span className="font-extrabold text-novora">
-                      SGD {claims.filter(c => c.status === 'Approved').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
+                      {money(claims.filter(c => c.status === 'Approved').reduce((acc, curr) => acc + curr.myrEquivalent, 0))}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
                     <span className="text-slate-500">Pushed to payroll</span>
                     <span className="font-extrabold text-emerald-600">
-                      SGD {claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Pushed').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
+                      {money(claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Pushed').reduce((acc, curr) => acc + curr.myrEquivalent, 0))}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
                     <span className="text-slate-500">Awaiting push</span>
                     <span className="font-extrabold text-amber-600">
-                      SGD {claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Queued').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
+                      {money(claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Queued').reduce((acc, curr) => acc + curr.myrEquivalent, 0))}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
                     <span className="text-slate-500">Payroll cut-off</span>
-                    <span className="text-slate-800 font-bold">25 May 2026</span>
+                    <span className="text-slate-800 font-bold">{payrollCutoffLabel}</span>
                   </div>
 
                   <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
                     <span className="text-slate-500">Next payroll date</span>
-                    <span className="text-slate-800 font-bold">31 May 2026</span>
+                    <span className="text-slate-800 font-bold">{nextPayrollLabel}</span>
                   </div>
 
                   <div className="flex justify-between items-center pt-2.5">
                     <span className="text-slate-500">Integration status</span>
-                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-150 rounded-md text-[10px] px-2.5 py-0.5 font-bold">Connected</span>
+                    <span className="bg-slate-50 text-slate-500 border border-slate-150 rounded-md text-[10px] px-2.5 py-0.5 font-bold">Not connected</span>
                   </div>
                 </div>
               </div>
@@ -1290,31 +1330,23 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                         <th className="pb-2">Orig.</th>
                         <th className="pb-2">Orig. amt</th>
                         <th className="pb-2">Rate</th>
-                        <th className="pb-2 text-right">SGD equiv.</th>
+                        <th className="pb-2 text-right">{currency} equiv.</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-[11px] text-slate-700">
-                      <tr>
-                        <td className="py-2.5 font-bold text-slate-800">Maya T</td>
-                        <td className="py-2.5">USD</td>
-                        <td className="py-2.5">$280.00</td>
-                        <td className="py-2.5">4.68</td>
-                        <td className="py-2.5 text-right font-black text-slate-900">SGD 1,310.40</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2.5 font-bold text-slate-800">Raj K</td>
-                        <td className="py-2.5">SGD</td>
-                        <td className="py-2.5">$130.00</td>
-                        <td className="py-2.5">3.47</td>
-                        <td className="py-2.5 text-right font-black text-slate-900">SGD 451.10</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2.5 font-bold text-slate-800">Sarah L</td>
-                        <td className="py-2.5">EUR</td>
-                        <td className="py-2.5">&euro;45.00</td>
-                        <td className="py-2.5">5.12</td>
-                        <td className="py-2.5 text-right font-black text-slate-900">SGD 230.40</td>
-                      </tr>
+                      {fxClaims.length === 0 ? (
+                        <tr><td colSpan={5} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                      ) : (
+                        fxClaims.map((c) => (
+                          <tr key={c.id}>
+                            <td className="py-2.5 font-bold text-slate-800">{c.empName}</td>
+                            <td className="py-2.5">{c.currency}</td>
+                            <td className="py-2.5">{c.amount.toFixed(2)}</td>
+                            <td className="py-2.5">—</td>
+                            <td className="py-2.5 text-right font-black text-slate-900">{equivalentText(c)}</td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1334,7 +1366,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => addToast('Fetching pending ledger sheets...', 'info')}
+                    onClick={handlePushToPayroll}
                     className="px-3.5 py-1.5 border border-slate-100 text-xs font-bold rounded-lg text-slate-600 bg-white"
                   >
                     Preview batch
@@ -1354,12 +1386,15 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     <tr className="text-slate-400 font-bold text-[10px] tracking-wider uppercase border-b border-slate-100 pb-2">
                       <th className="pb-3">Employee</th>
                       <th className="pb-3">Category</th>
-                      <th className="pb-3">Amount (SGD)</th>
+                      <th className="pb-3">Amount ({currency})</th>
                       <th className="pb-3">Approved by</th>
                       <th className="pb-3 text-right">Push status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                    {!claims.some(c => c.status === 'Approved') && (
+                      <tr><td colSpan={5} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                    )}
                     {claims
                       .filter(c => c.status === 'Approved')
                       .map((claim) => (
@@ -1373,7 +1408,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                             </div>
                           </td>
                           <td className="py-3.5 text-slate-500">{claim.category}</td>
-                          <td className="py-3.5 font-bold text-slate-900">{claim.myrEquivalent.toFixed(2)}</td>
+                          <td className="py-3.5 font-bold text-slate-900">{equivalentText(claim)}</td>
                           <td className="py-3.5 text-slate-400 font-mono text-[10.5px]">
                             {claim.approvalChain.split(' \u2192 ').pop()}
                           </td>
@@ -1392,9 +1427,9 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
 
               {/* Total queued banner */}
               <div className="bg-blue-50/50 border border-blue-55 rounded-xl p-4 flex justify-between items-center text-sm font-black text-slate-700 mt-5">
-                <span className="text-slate-500 text-xs">Total queued for May 2026 payroll</span>
+                <span className="text-slate-500 text-xs">Total queued for {headerMonthLabel} payroll</span>
                 <span className="text-xl text-novora font-black">
-                  SGD {claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Queued').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
+                  {money(claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Queued').reduce((acc, curr) => acc + curr.myrEquivalent, 0))}
                 </span>
               </div>
             </div>
@@ -1411,27 +1446,29 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total claimed &mdash; YTD</span>
-                  <span className="text-emerald-500 text-xs font-bold inline-flex items-center gap-0.5">
-                    <TrendingUp className="h-3 w-3" /> +12% vs last year
-                  </span>
+                  {ytdChangePct !== null && (
+                    <span className="text-emerald-500 text-xs font-bold inline-flex items-center gap-0.5">
+                      <TrendingUp className="h-3 w-3" /> {ytdChangePct >= 0 ? '+' : ''}{ytdChangePct}% vs last year
+                    </span>
+                  )}
                 </div>
-                <p className="text-2xl font-black text-slate-800 mt-2">SGD 48,230</p>
+                <p className="text-2xl font-black text-slate-800 mt-2">{money(ytdTotal)}</p>
               </div>
 
               <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Claimed &mdash; May 2026</span>
-                  <span className="text-amber-600 text-xs font-semibold">94% of monthly budget</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Claimed &mdash; {headerMonthLabel}</span>
+                  <span className="text-amber-600 text-xs font-semibold">{monthClaims.length} claims</span>
                 </div>
-                <p className="text-2xl font-black text-slate-800 mt-2">SGD 14,820</p>
+                <p className="text-2xl font-black text-slate-800 mt-2">{money(monthTotal)}</p>
               </div>
 
               <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Policy flags &mdash; May</span>
-                  <span className="text-red-500 text-[10px] font-bold">4 blocked &bull; 4 escalated</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Policy flags &mdash; {headerMonthLabel}</span>
+                  <span className="text-red-500 text-[10px] font-bold">{monthFlagged.filter(c => c.status === 'Pending').length} pending review</span>
                 </div>
-                <p className="text-2xl font-black text-red-650 mt-2">8</p>
+                <p className="text-2xl font-black text-red-650 mt-2">{monthFlagged.length}</p>
               </div>
             </div>
 
@@ -1440,24 +1477,20 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               
               {/* Spend by category */}
               <div className="nv-card p-6 shadow-xs space-y-4">
-                <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b border-slate-50 pb-2">Spend by category &mdash; May 2026</h3>
+                <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b border-slate-50 pb-2">Spend by category &mdash; {headerMonthLabel}</h3>
                 
                 <div className="space-y-3.5">
-                  {[
-                    { label: 'Air ticket', amount: 'SGD 5,840', pct: 85, color: 'bg-blue-600' },
-                    { label: 'Hotel / stay', amount: 'SGD 4,320', pct: 65, color: 'bg-sky-500' },
-                    { label: 'Transport', amount: 'SGD 2,240', pct: 40, color: 'bg-emerald-500' },
-                    { label: 'Meal', amount: 'SGD 1,820', pct: 30, color: 'bg-amber-500' },
-                    { label: 'Mileage', amount: 'SGD 720', pct: 15, color: 'bg-pink-500' },
-                    { label: 'Others', amount: 'SGD 480', pct: 10, color: 'bg-slate-400' }
-                  ].map((cat, i) => (
-                    <div key={i} className="text-xs font-bold text-slate-700">
+                  {categorySpend.length === 0 && (
+                    <p className="text-xs text-slate-400">No claims this month.</p>
+                  )}
+                  {categorySpend.map((cat, i) => (
+                    <div key={cat.label} className="text-xs font-bold text-slate-700">
                       <div className="flex justify-between mb-1">
                         <span>{cat.label}</span>
-                        <span className="font-black text-slate-900">{cat.amount}</span>
+                        <span className="font-black text-slate-900">{money(cat.amount)}</span>
                       </div>
                       <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                        <div className={`${cat.color} h-2.5 rounded-full`} style={{ width: `${cat.pct}%` }}></div>
+                        <div className={`${BAR_COLORS[i % BAR_COLORS.length]} h-2.5 rounded-full`} style={{ width: `${Math.round((cat.amount / maxCategorySpend) * 100)}%` }}></div>
                       </div>
                     </div>
                   ))}
@@ -1469,20 +1502,17 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b border-slate-50 pb-2">Spend by department</h3>
                 
                 <div className="space-y-3.5 text-xs font-bold text-slate-700">
-                  {[
-                    { label: 'Engineering', amount: 'SGD 6,480', pct: 90, color: 'bg-blue-600' },
-                    { label: 'Operations', amount: 'SGD 4,950', pct: 75, color: 'bg-emerald-500' },
-                    { label: 'Finance', amount: 'SGD 2,700', pct: 45, color: 'bg-sky-500' },
-                    { label: 'Marketing', amount: 'SGD 1,800', pct: 30, color: 'bg-amber-500' },
-                    { label: 'HR', amount: 'SGD 890', pct: 15, color: 'bg-pink-500' }
-                  ].map((dept, i) => (
-                    <div key={i}>
+                  {departmentSpend.length === 0 && (
+                    <p className="text-xs text-slate-400 font-medium">No claims this month.</p>
+                  )}
+                  {departmentSpend.map((dept, i) => (
+                    <div key={dept.label}>
                       <div className="flex justify-between mb-1">
                         <span>{dept.label}</span>
-                        <span className="text-slate-900 font-black">{dept.amount}</span>
+                        <span className="text-slate-900 font-black">{money(dept.amount)}</span>
                       </div>
                       <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                        <div className={`${dept.color} h-2.5 rounded-full`} style={{ width: `${dept.pct}%` }}></div>
+                        <div className={`${BAR_COLORS[i % BAR_COLORS.length]} h-2.5 rounded-full`} style={{ width: `${Math.round((dept.amount / maxDepartmentSpend) * 100)}%` }}></div>
                       </div>
                     </div>
                   ))}
@@ -1498,55 +1528,35 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b border-slate-50 pb-2">Budget tracking &mdash; travel &amp; entertainment</h3>
                 
                 <div className="space-y-4 text-xs font-semibold text-slate-700">
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="font-bold text-slate-800">Engineering travel budget</span>
-                      <span className="font-extrabold">SGD 6,480 / SGD 10,000</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-blue-600 h-2 rounded-full items-center shrink-0" style={{ width: '65%' }}></div>
-                    </div>
-                    <span className="block text-[10px] text-slate-400 mt-1">65% used &bull; SGD 3,520 remaining</span>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="font-bold text-slate-800">Operations travel budget</span>
-                      <span className="font-extrabold">SGD 4,950 / SGD 6,000</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-amber-500 h-2 rounded-full items-center shrink-0" style={{ width: '83%' }}></div>
-                    </div>
-                    <span className="block text-[10px] text-slate-400 mt-1">83% used &bull; SGD 1,050 remaining</span>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="font-bold text-slate-800">Finance travel budget</span>
-                      <span className="font-extrabold">SGD 2,700 / SGD 4,000</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-sky-600 h-2 rounded-full items-center shrink-0" style={{ width: '68%' }}></div>
-                    </div>
-                    <span className="block text-[10px] text-slate-400 mt-1">68% used &bull; SGD 1,300 remaining</span>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between mb-1 flex-wrap gap-1">
-                      <span className="font-bold text-slate-800">Marketing entertainment budget</span>
-                      <span className="font-extrabold text-red-650">SGD 1,800 / SGD 2,000 &bull; alert!</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-red-55 h-2 rounded-full items-center shrink-0" style={{ width: '90%' }}></div>
-                    </div>
-                    <span className="block text-[10px] text-red-500 mt-1">90% used &bull; SGD 200 remaining &mdash; alert!</span>
-                  </div>
+                  {DEPARTMENT_BUDGETS.map((budget) => {
+                    const spent = monthClaims
+                      .filter(c => c.department === budget.department && (!budget.category || c.category === budget.category))
+                      .reduce((acc, c) => acc + c.myrEquivalent, 0);
+                    const pct = Math.min(100, Math.round((spent / budget.cap) * 100));
+                    const alert = pct >= 90;
+                    return (
+                      <div key={budget.label}>
+                        <div className="flex justify-between mb-1 flex-wrap gap-1">
+                          <span className="font-bold text-slate-800">{budget.label}</span>
+                          <span className={`font-extrabold ${alert ? 'text-red-650' : ''}`}>
+                            {money(spent)} / {money(budget.cap, 0)}{alert ? ' \u2022 alert!' : ''}
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                          <div className={`${alert ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-blue-600'} h-2 rounded-full items-center shrink-0`} style={{ width: `${pct}%` }}></div>
+                        </div>
+                        <span className={`block text-[10px] mt-1 ${alert ? 'text-red-500' : 'text-slate-400'}`}>
+                          {pct}% used &bull; {money(Math.max(0, budget.cap - spent))} remaining
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Top claimants */}
               <div className="nv-card p-6 shadow-xs space-y-4">
-                <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b border-slate-50 pb-2">Top claimants &mdash; May 2026</h3>
+                <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b border-slate-50 pb-2">Top claimants &mdash; {headerMonthLabel}</h3>
                 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
@@ -1554,55 +1564,30 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                       <tr className="text-slate-400 font-bold text-[10px] tracking-wider uppercase border-b border-slate-100 pb-2">
                         <th className="pb-2.5">Employee</th>
                         <th className="pb-2.5">No. claims</th>
-                        <th className="pb-2.5">Total (SGD)</th>
+                        <th className="pb-2.5">Total ({currency})</th>
                         <th className="pb-2.5 text-right">Flags</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                      <tr>
-                        <td className="py-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="bg-amber-100 text-amber-700 h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center shrink-0">MT</span>
-                            <span className="font-bold text-slate-800">Maya Tan</span>
-                          </div>
-                        </td>
-                        <td className="py-2.5 text-slate-500">6 claims</td>
-                        <td className="py-2.5 font-bold text-novora">3,820.00</td>
-                        <td className="py-2.5 text-right"><span className="bg-red-105 text-red-700 text-[10px] px-2 py-0.5 rounded font-black">1</span></td>
-                      </tr>
-                      <tr>
-                        <td className="py-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="bg-novora/10 text-novora h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center shrink-0">RK</span>
-                            <span className="font-bold text-slate-800">Raj Kumar</span>
-                          </div>
-                        </td>
-                        <td className="py-2.5 text-slate-500">5 claims</td>
-                        <td className="py-2.5 font-bold text-novora">2,410.00</td>
-                        <td className="py-2.5 text-right"><span className="bg-slate-100 text-slate-400 text-[10px] px-2 py-0.5 rounded font-bold">0</span></td>
-                      </tr>
-                      <tr>
-                        <td className="py-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="bg-emerald-100 text-emerald-800 h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center shrink-0">SL</span>
-                            <span className="font-bold text-slate-800">Sarah Lim</span>
-                          </div>
-                        </td>
-                        <td className="py-2.5 text-slate-500">4 claims</td>
-                        <td className="py-2.5 font-bold text-novora">1,650.00</td>
-                        <td className="py-2.5 text-right"><span className="bg-red-105 text-red-700 text-[10px] px-2 py-0.5 rounded font-black">1</span></td>
-                      </tr>
-                      <tr>
-                        <td className="py-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="bg-sky-100 text-sky-700 h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center shrink-0">NC</span>
-                            <span className="font-bold text-slate-800">Nadia Chen</span>
-                          </div>
-                        </td>
-                        <td className="py-2.5 text-slate-500">3 claims</td>
-                        <td className="py-2.5 font-bold text-novora">980.00</td>
-                        <td className="py-2.5 text-right"><span className="bg-slate-100 text-slate-400 text-[10px] px-2 py-0.5 rounded font-bold">0</span></td>
-                      </tr>
+                      {topClaimants.length === 0 ? (
+                        <tr><td colSpan={4} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                      ) : (
+                        topClaimants.map((row) => (
+                          <tr key={row.label}>
+                            <td className="py-2.5">
+                              <div className="flex items-center gap-2">
+                                <span className="bg-novora/10 text-novora h-6 w-6 rounded-full font-black text-[9px] flex items-center justify-center shrink-0">{initialsOf(row.label)}</span>
+                                <span className="font-bold text-slate-800">{row.label}</span>
+                              </div>
+                            </td>
+                            <td className="py-2.5 text-slate-500">{row.count} {row.count === 1 ? 'claim' : 'claims'}</td>
+                            <td className="py-2.5 font-bold text-novora">{fmtAmount(row.amount)}</td>
+                            <td className="py-2.5 text-right">
+                              <span className={`text-[10px] px-2 py-0.5 rounded font-black ${row.flags > 0 ? 'bg-red-105 text-red-700' : 'bg-slate-100 text-slate-400'}`}>{row.flags}</span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1619,19 +1604,16 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => {
-                      addToast('Compiling print-ready document catalog...', 'loading');
-                      setTimeout(() => addToast('PDF Claims Register generated. Download started.', 'success'), 1200);
-                    }}
+                    onClick={() => window.print()}
                     className="px-3 py-1.5 border border-slate-100 rounded-lg text-slate-600 bg-white hover:bg-slate-50 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
                   >
                     <Printer className="h-3.5 w-3.5" />
                     <span>Print PDF Ledger</span>
                   </button>
                   <button
-                    onClick={() => {
-                      addToast('Generating XLS spreadsheets database...', 'loading');
-                      setTimeout(() => addToast('Completed! Claims Workbook.xlsx downloaded.', 'success'), 1200);
+                    onClick={(e) => {
+                      const n = downloadNearestTableCsv(e.currentTarget, `claims_ledger_${dateStamp()}`);
+                      addToast(n ? `Exported ${n} rows as CSV.` : 'Nothing to export yet.', n ? 'success' : 'info');
                     }}
                     className="px-3 py-1.5 border border-slate-100 rounded-lg text-slate-600 bg-white hover:bg-slate-50 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
                   >
@@ -1697,7 +1679,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   <div className="relative">
                     <input
                       type="text"
-                      placeholder="e.g. Sarah"
+                      placeholder="Search by name"
                       value={repQuery}
                       onChange={(e) => { setRepQuery(e.target.value); setIsReportGenerated(true); }}
                       className="bg-white border border-slate-200 rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-slate-700 font-medium outline-none w-full"
@@ -1731,11 +1713,11 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                       </div>
                       <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                         <span className="block text-[9px] font-bold text-slate-400 uppercase">Sum Ledger</span>
-                        <span className="text-base font-black text-novora mt-1 block">SGD {totalSum.toFixed(2)}</span>
+                        <span className="text-base font-black text-novora mt-1 block">{money(totalSum, 2)}</span>
                       </div>
                       <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                         <span className="block text-[9px] font-bold text-slate-400 uppercase">Average Ticket</span>
-                        <span className="text-base font-black text-slate-800 mt-1 block">SGD {averageClaim.toFixed(2)}</span>
+                        <span className="text-base font-black text-slate-800 mt-1 block">{money(averageClaim, 2)}</span>
                       </div>
                       <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                         <span className="block text-[9px] font-bold text-slate-400 uppercase">Policy Violations</span>
@@ -1753,7 +1735,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                             <th className="p-3">Category</th>
                             <th className="p-3">Date</th>
                             <th className="p-3">Vendor / Merchant</th>
-                            <th className="p-3">Amount (SGD)</th>
+                            <th className="p-3">Amount ({currency})</th>
                             <th className="p-3 text-center">Flag</th>
                             <th className="p-3 text-right pr-4">Status</th>
                           </tr>
@@ -1776,7 +1758,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                                 <td className="p-3 text-[11px]">{c.category}</td>
                                 <td className="p-3 text-slate-500">{c.date}</td>
                                 <td className="p-3 text-slate-500 font-sans">{c.vendor}</td>
-                                <td className="p-3 font-bold text-slate-900">SGD {c.myrEquivalent.toFixed(2)}</td>
+                                <td className="p-3 font-bold text-slate-900">{equivalentText(c)}</td>
                                 <td className="p-3 text-center">
                                   <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
                                     c.policyFlag === 'Clear' ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'
@@ -1875,16 +1857,16 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
 
               <div className="flex gap-2">
                 <button
-                  onClick={() => {
-                    addToast('Generating complete ledger document...', 'loading');
-                    setTimeout(() => addToast('PDF exported successfully.', 'success'), 1200);
-                  }}
+                  onClick={() => window.print()}
                   className="text-slate-700 hover:text-slate-800 text-xs font-bold px-3 py-1.5 bg-white border border-slate-100 rounded-xl"
                 >
                   Generate PDF
                 </button>
                 <button
-                  onClick={() => addToast('Exporting to XLSX formats...', 'info')}
+                  onClick={(e) => {
+                    const n = downloadNearestTableCsv(e.currentTarget, `claim_history_${dateStamp()}`);
+                    addToast(n ? `Exported ${n} rows as CSV.` : 'Nothing to export yet.', n ? 'success' : 'info');
+                  }}
                   className="bg-novora text-white hover:bg-blue-700 text-xs font-black px-4 py-1.5 rounded-xl cursor-pointer"
                 >
                   Export
@@ -1901,7 +1883,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     <th className="p-4">Category</th>
                     <th className="p-4">Claim date</th>
                     <th className="p-4">Vendor</th>
-                    <th className="p-4">Amount (SGD)</th>
+                    <th className="p-4">Amount ({currency})</th>
                     <th className="p-4">Approved by</th>
                     <th className="p-4">Payroll month</th>
                     <th className="p-4">Status</th>
@@ -1909,14 +1891,10 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                  {claims
-                    .filter(c => {
-                      const matchesStatus = historyStatusFilter === 'All status' || c.status === historyStatusFilter;
-                      const matchesCategory = historyCategoryFilter === 'All categories' || c.category === historyCategoryFilter;
-                      const matchesDept = historyDeptFilter === 'All departments' || c.department === historyDeptFilter;
-                      const matchesSearch = c.empName.toLowerCase().includes(historySearchQuery.toLowerCase());
-                      return matchesStatus && matchesCategory && matchesDept && matchesSearch;
-                    })
+                  {historyRows.length === 0 && (
+                    <tr><td colSpan={9} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                  )}
+                  {historyRows
                     .map((claim) => (
                       <tr key={claim.id} className="hover:bg-slate-50/20">
                         <td className="p-4 pl-6">
@@ -1942,7 +1920,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                           {claim.vendor}
                         </td>
                         <td className="p-4 font-bold text-slate-900">
-                          {claim.myrEquivalent.toFixed(2)}
+                          {equivalentText(claim)}
                         </td>
                         <td className="p-4 text-slate-400 font-mono text-[10.5px]">
                           {claim.status === 'Approved' ? (
@@ -2013,7 +1991,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
 
             <div className="p-6 space-y-5 text-xs text-slate-700">
               <p className="text-slate-500 font-semibold leading-relaxed">
-                Configure tier boundaries and approval workflows based on the total claim value (SGD equivalent). Changes will affect any claim submitted from this point onward.
+                Configure tier boundaries and approval workflows based on the total claim value ({currency} equivalent). Changes will affect any claim submitted from this point onward.
               </p>
 
               <div className="space-y-4">
@@ -2103,7 +2081,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
       )}
 
       {/* MODAL 2: EDIT SPEND LIMITS */}
-      {isEditSpendLimitsModalOpen && selectedSpendLimitIdx !== null && (
+      {isEditSpendLimitsModalOpen && selectedSpendLimitIdx !== null && spendLimits[selectedSpendLimitIdx] && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
             <div className="bg-slate-50 px-6 py-4.5 border-b border-slate-100 flex justify-between items-center">
@@ -2146,7 +2124,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                         updated[selectedSpendLimitIdx].daily = e.target.value;
                         setSpendLimits(updated);
                       }}
-                      placeholder="e.g. SGD 200"
+                      placeholder={`e.g. ${currency} 200`}
                       className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-200 rounded-lg px-3 py-2 focus:border-novora outline-none"
                     />
                   </div>
@@ -2160,7 +2138,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                         updated[selectedSpendLimitIdx].monthly = e.target.value;
                         setSpendLimits(updated);
                       }}
-                      placeholder="e.g. SGD 2,000"
+                      placeholder={`e.g. ${currency} 2,000`}
                       className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-200 rounded-lg px-3 py-2 focus:border-novora outline-none"
                     />
                   </div>
@@ -2176,7 +2154,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                       updated[selectedSpendLimitIdx].receiptReq = e.target.value;
                       setSpendLimits(updated);
                     }}
-                    placeholder="e.g. Always, or > SGD 50"
+                    placeholder={`e.g. Always, or > ${currency} 50`}
                     className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-200 rounded-lg px-3 py-2 focus:border-novora outline-none"
                   />
                 </div>
@@ -2282,9 +2260,9 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     { id: 2, label: 'Detect duplicate submissions (same vendor + date + amount)', enabled: true },
                     { id: 3, label: 'Block claims submitted more than 30 days after receipt date', enabled: true },
                     { id: 4, label: 'Require receipt attachment for claims above threshold', enabled: true },
-                    { id: 5, label: 'Auto-convert foreign currency at live exchange rate', enabled: true },
+                    { id: 5, label: 'Auto-convert foreign currency at live exchange rate (not connected yet)', enabled: false },
                     { id: 6, label: 'Hold claims from employees on notice period', enabled: true },
-                    { id: 7, label: 'Notify HR on claims exceeding SGD 1,000', enabled: true }
+                    { id: 7, label: `Notify HR on claims exceeding ${currency} 1,000`, enabled: true }
                   ]);
                   addToast('Reset to default system validator settings.', 'info');
                 }}
@@ -2357,8 +2335,8 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   <p className="font-mono font-bold text-slate-700 text-[12px]">{selectedClaimDetail.currency} {selectedClaimDetail.amount.toFixed(2)}</p>
                 </div>
                 <div>
-                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">SGD rate equivalent</span>
-                  <p className="font-extrabold text-slate-900 text-[13px]">SGD {selectedClaimDetail.myrEquivalent.toFixed(2)}</p>
+                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{currency} rate equivalent</span>
+                  <p className="font-extrabold text-slate-900 text-[13px]">{equivalentText(selectedClaimDetail)}</p>
                 </div>
                 <div>
                   <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Compliance rating</span>
@@ -2387,7 +2365,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     <div className="absolute -left-1.25 top-1.5 h-2 w-2 rounded-full bg-emerald-500 items-center shrink-0" />
                     <div>
                       <p className="font-bold text-slate-800 text-[11.5px]">Claim Entry Registered</p>
-                      <p className="text-[10px] text-slate-400 font-medium">{selectedClaimDetail.date} 09:00 &bull; Initiated by claimant</p>
+                      <p className="text-[10px] text-slate-400 font-medium">{formatDateTime(selectedClaimDetail.createdAt, selectedClaimDetail.date)} &bull; Initiated by claimant</p>
                     </div>
                   </div>
 
@@ -2401,7 +2379,11 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     }`} />
                     <div>
                       <p className="font-bold text-slate-800 text-[11.5px]">Manager Level Assessment</p>
-                      <p className="text-[10px] text-slate-400 font-medium">Assigned Route: {selectedClaimDetail.approvalChain.split(' → ')[0]}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">
+                        {selectedClaimDetail.decidedBy
+                          ? `${selectedClaimDetail.decidedBy} \u2022 ${formatDateTime(selectedClaimDetail.decidedAt, '')}`
+                          : 'Awaiting approver decision'}
+                      </p>
                     </div>
                   </div>
 
@@ -2412,7 +2394,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     <div>
                       <p className="font-bold text-slate-800 text-[11.5px]">Final Ledger Audit & Completion</p>
                       <p className="text-[10px] text-slate-400 font-medium">
-                        {selectedClaimDetail.status === 'Approved' ? `Approved \u2014 Queued for month ${selectedClaimDetail.payrollMonth}` : 
+                        {selectedClaimDetail.status === 'Approved' ? 'Approved \u2014 queued for payroll' : 
                          selectedClaimDetail.status === 'Rejected' ? 'Rejected and archived' : 'Awaiting general finance verify'}
                       </p>
                     </div>
@@ -2429,9 +2411,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               <div className="bg-white border text-center border-slate-200 p-5 rounded-2xl shadow-md rotate-1 hover:rotate-0 transition-all font-mono text-slate-700 text-xs space-y-4">
                 <div className="border-b border-dashed border-slate-300 pb-3">
                   <h4 className="font-black tracking-widest text-novora/90 text-[12px] uppercase">★★★ RECEIPT PROOF ★★★</h4>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-wide mt-1">{selectedClaimDetail.vendor || 'RETAIL SUPP'}</p>
-                  <p className="text-[9px] text-slate-400 mt-0.5">SINGAPORE</p>
-                </div>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wide mt-1">{selectedClaimDetail.vendor || '—'}</p>                </div>
 
                 <div className="space-y-1.5 text-left text-[11px]">
                   <div className="flex justify-between">
@@ -2457,28 +2437,27 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     <span>SUB-TOTAL:</span>
                     <span>{selectedClaimDetail.amount.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-[11px]">
-                    <span>SALES TAX (6%):</span>
-                    <span>{(selectedClaimDetail.amount * 0.06).toFixed(2)}</span>
-                  </div>
                   <div className="flex justify-between font-black text-slate-900 border-t border-slate-200 pt-1.5 text-[13px]">
                     <span>TOTAL AMT:</span>
                     <span>{selectedClaimDetail.currency} {(selectedClaimDetail.amount).toFixed(2)}</span>
                   </div>
                 </div>
 
-                <div className="bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md py-1 px-2.5 text-[9px] font-black flex items-center justify-center gap-1">
-                  <span>● RECEIPT SECURELY ATTACHED</span>
-                </div>
+                {selectedClaimDetail.hasAttachment ? (
+                  <div className="bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md py-1 px-2.5 text-[9px] font-black flex items-center justify-center gap-1">
+                    <span>● RECEIPT ATTACHED</span>
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 text-slate-500 border border-slate-200 rounded-md py-1 px-2.5 text-[9px] font-black flex items-center justify-center gap-1">
+                    <span>NO RECEIPT FILE ON RECORD</span>
+                  </div>
+                )}
               </div>
 
               {/* Utility buttons */}
               <div className="mt-6 md:mt-0 space-y-2.5">
                 <button
-                  onClick={() => {
-                    addToast(`Preparing printing spool for transaction ${selectedClaimDetail.id}...`, 'loading');
-                    setTimeout(() => addToast('Document triggered to standard spool queue.', 'success'), 1000);
-                  }}
+                  onClick={() => window.print()}
                   className="w-full text-xs font-bold py-2 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center gap-2 cursor-pointer transition-colors"
                 >
                   <Printer className="h-4 w-4 text-slate-400" />
@@ -2541,9 +2520,9 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   <div className="bg-orange-50 text-orange-800 border border-orange-100 p-4 rounded-xl font-semibold flex items-start gap-2.5 leading-normal">
                     <AlertCircle className="h-4 w-4 text-orange-650 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-bold text-orange-900">Irreversible Action Warning</p>
+                      <p className="font-bold text-orange-900">Payroll integration not connected</p>
                       <p className="text-[11px] text-orange-800 mt-0.5">
-                        Closing this batch will permanently tag these items status as <strong>Pushed</strong>. These records will be committed to the employee payslips for the next pay cycle.
+                        Review the queued reimbursements below. Transfers to payroll are not available yet, so these claims will stay <strong>Queued</strong>.
                       </p>
                     </div>
                   </div>
@@ -2577,7 +2556,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                         .map(c => (
                           <div key={c.id} className="flex justify-between items-center text-[11.5px]">
                             <span>{c.empName} &bull; <span className="text-slate-400 font-normal">{c.category}</span></span>
-                            <span className="font-bold text-slate-800 font-mono">SGD {c.myrEquivalent.toFixed(2)}</span>
+                            <span className="font-bold text-slate-800 font-mono">{equivalentText(c)}</span>
                           </div>
                         ))}
                     </div>
@@ -2585,7 +2564,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                     <div className="border-t border-slate-200 pt-2 flex justify-between items-center font-black text-slate-900 text-[13px]">
                       <span>AGGREGATED WAGES VALUE</span>
                       <span className="text-novora">
-                        SGD {claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Queued').reduce((acc, curr) => acc + curr.myrEquivalent, 0).toFixed(2)}
+                        {money(claims.filter(c => c.status === 'Approved' && c.pushStatus === 'Queued').reduce((acc, curr) => acc + curr.myrEquivalent, 0))}
                       </span>
                     </div>
                   </div>

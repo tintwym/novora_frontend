@@ -127,18 +127,18 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
   const [activeSubTab, setActiveSubTab] = useState<OnOffSubTab>('Tasks & Checklists');
 
   // Selected employee target context
-  const [selectedSubEmployee, setSelectedSubEmployee] = useState<string>(employees[0]?.id || 'EMP-001');
+  const [selectedSubEmployee, setSelectedSubEmployee] = useState<string>(employees[0]?.id || '');
   const currentEmployeeObj = employees.find(e => e.id === selectedSubEmployee) || employees[0];
 
   // -------------------------------------------------------------
   // STATE 1: PRE-ONBOARDING PORTAL STATE
   // -------------------------------------------------------------
   const [preBoardingDocs, setPreBoardingDocs] = useState<PreBoardingDoc[]>([
-    { id: 'DOC01', name: 'National Registration IC / Passport Copy', category: 'Legal Proof', status: 'Approved', uploadedAt: '2026-06-10', isRequired: true },
-    { id: 'DOC02', name: 'Digital Non-Disclosure Agreement (NDA)', category: 'Legal Proof', status: 'Verification Required', uploadedAt: '2026-06-14', isRequired: true },
+    { id: 'DOC01', name: 'National Registration IC / Passport Copy', category: 'Legal Proof', status: 'Pending Upload', isRequired: true },
+    { id: 'DOC02', name: 'Digital Non-Disclosure Agreement (NDA)', category: 'Legal Proof', status: 'Pending Upload', isRequired: true },
     { id: 'DOC03', name: 'Standard General Employment Offer Contract', category: 'Contract', status: 'Pending Upload', isRequired: true },
     { id: 'DOC04', name: 'Medical Fitness Check Certificate', category: 'Health Clearance', status: 'Pending Upload', isRequired: false },
-    { id: 'DOC05', name: 'Post-Secondary Education Degrees & Transcripts', category: 'Credentials', status: 'Approved', uploadedAt: '2026-06-11', isRequired: true }
+    { id: 'DOC05', name: 'Post-Secondary Education Degrees & Transcripts', category: 'Credentials', status: 'Pending Upload', isRequired: true }
   ]);
   const [newDocName, setNewDocName] = useState('');
   const [newDocCategory, setNewDocCategory] = useState('Legal Proof');
@@ -151,7 +151,11 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [newChecklistTask, setNewChecklistTask] = useState('');
   const [newChecklistDept, setNewChecklistDept] = useState<'IT Operations' | 'HR Compliance' | 'Finance Payroll' | 'Security Assets' | 'Engineering department' | 'HR Administration'>('IT Operations');
-  const [newChecklistDueDate, setNewChecklistDueDate] = useState('2026-06-25');
+  const [newChecklistDueDate, setNewChecklistDueDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 14);
+    return d.toLocaleDateString('en-CA');
+  });
 
   const loadOnboardingTasks = useCallback(async () => {
     try {
@@ -181,7 +185,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
     { id: 1, title: 'Novora Professional Code of Conduct & Workplace Safety', category: 'Policy', text: 'Our professional Code of Conduct forms the cornerstone of Novora organizational structure. We practice transparency, mutual respect, and active accountability. In-office presence requires adhering to the 10:00 AM check-in attendance option, while respecting quiet collaboration hours between 2:00 PM and 4:00 PM.' },
     { id: 2, title: 'Remote Work & Flexible Scheduling Standards', category: 'Guide', text: 'All active officers are entitled to remote work choices based on direct department clearances. Under benefits management, ensure your remote health budget is configured before the 3rd week of each fiscal quarter. Claim reimbursement submissions are managed via the Claims Management tab.' },
     { id: 3, title: 'Novora Healthcare Insurance Tiering Explained', category: 'Policy', text: 'Our health assets comprise Gold Premium Plus medical options. This includes a co-pay share of 10/90%, dental clinic checkouts, and fully subsidized annual wellness consultations. If you must enroll partners or dependents, submit the request in the Benefits Management portal.' },
-    { id: 4, title: 'Claims Submission & Office Lodging Policies', category: 'Guide', text: 'Official business expense reimbursements are structured via tiered routing rules. Single claim items of RM 500.00 or above require dual manager clearance on the Approval matrix. Ensure all receipts are uploaded as crystal clear PDFs with invoice numbers visible.' }
+    { id: 4, title: 'Claims Submission & Office Lodging Policies', category: 'Guide', text: 'Official business expense reimbursements are structured via tiered routing rules. Larger single claim items require dual manager clearance on the Approval matrix. Ensure all receipts are uploaded as crystal clear PDFs with invoice numbers visible.' }
   ];
 
   // -------------------------------------------------------------
@@ -222,12 +226,12 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
       name: newDocName,
       category: newDocCategory,
       status: 'Verification Required',
-      uploadedAt: new Date().toISOString().split('T')[0],
+      uploadedAt: new Date().toLocaleDateString('en-CA'),
       isRequired: true
     };
     setPreBoardingDocs([...preBoardingDocs, newDoc]);
     setNewDocName('');
-    addToast(`Doc file "${newDoc.name}" uploaded. Sent to Compliance verification.`, 'success');
+    addToast(`"${newDoc.name}" added to the checklist for verification.`, 'success');
   };
 
   const handleApproveDoc = (id: string, name: string) => {
@@ -244,7 +248,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
     }
     setPreBoardingDocs(prev => prev.map(d => {
       if (d.category === 'Contract' || d.id === 'DOC03') {
-        return { ...d, status: 'Approved', uploadedAt: new Date().toISOString().split('T')[0] };
+        return { ...d, status: 'Approved', uploadedAt: new Date().toLocaleDateString('en-CA') };
       }
       return d;
     }));
@@ -686,6 +690,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                   <label className="text-[10px] text-slate-400 font-bold block mb-1">Target Due Date</label>
                   <input
                     type="date"
+                    aria-label="Target due date"
                     value={newChecklistDueDate}
                     onChange={(e) => setNewChecklistDueDate(e.target.value)}
                     className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2.5 outline-none focus:bg-white focus:border-slate-200 cursor-pointer"

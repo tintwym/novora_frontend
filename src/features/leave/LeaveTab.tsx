@@ -45,6 +45,7 @@ import {
   type LeaveRequest as ApiLeaveRequest,
   type LeaveTypeRow,
 } from '@/services';
+import { dateStamp, downloadCsv, downloadNearestTableCsv } from '@/lib/csv';
 
 interface LeaveTabProps {
   employees: Employee[];
@@ -177,6 +178,67 @@ function codeFromName(name: string) {
   return name.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 30) || 'LEAVE'
 }
 
+function todayIso() {
+  return new Date().toLocaleDateString('en-CA')
+}
+
+function monthLabel(key: string) {
+  const [y, m] = key.split('-').map(Number)
+  if (!y || !m) return key
+  return new Date(y, m - 1, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+}
+
+function monthsBetween(from: string, to: string) {
+  const keys: string[] = []
+  let [y, m] = from.slice(0, 7).split('-').map(Number)
+  const end = to.slice(0, 7)
+  if (!y || !m) return keys
+  for (let i = 0; i < 24; i++) {
+    const key = `${y}-${String(m).padStart(2, '0')}`
+    keys.push(key)
+    if (key >= end) break
+    m += 1
+    if (m > 12) { m = 1; y += 1 }
+  }
+  return keys
+}
+
+function overlapsMonth(from: string, to: string, key: string) {
+  return from.slice(0, 7) <= key && (to || from).slice(0, 7) >= key
+}
+
+function overlapsYear(from: string, to: string, year: string) {
+  return from.slice(0, 4) <= year && (to || from).slice(0, 4) >= year
+}
+
+function leaveCategory(type: string): 'annual' | 'sick' | 'unpaid' | 'other' {
+  if (/sick|medical/i.test(type)) return 'sick'
+  if (/unpaid/i.test(type)) return 'unpaid'
+  if (/annual/i.test(type)) return 'annual'
+  return 'other'
+}
+
+function formatServicePeriod(joinDate: string) {
+  const start = new Date(joinDate)
+  if (!joinDate || Number.isNaN(start.getTime())) return '—'
+  const now = new Date()
+  let months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth())
+  if (now.getDate() < start.getDate()) months -= 1
+  if (months < 0) return 'Not started'
+  const years = Math.floor(months / 12)
+  const rest = months % 12
+  const parts = []
+  if (years > 0) parts.push(`${years} year${years === 1 ? '' : 's'}`)
+  parts.push(`${rest} month${rest === 1 ? '' : 's'}`)
+  return parts.join(' ')
+}
+
+function formatDays(n: number) {
+  return `${Number.isInteger(n) ? n : n.toFixed(1)} day${n === 1 ? '' : 's'}`
+}
+
+const BALANCE_BAR_COLORS = ['bg-blue-500', 'bg-emerald-500', 'bg-amber-500', 'bg-sky-500', 'bg-indigo-500', 'bg-rose-500']
+
 function mapLeaveTypeRow(row: LeaveTypeRow): LeaveType {
   return {
     id: row.id,
@@ -217,7 +279,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
   const [leaveBalances, setLeaveBalances] = useState<LeaveBalance[]>([]);
 
   // Year & Department Header Filter States
-  const [selectedYear, setSelectedYear] = useState<string>('2026');
+  const [selectedYear, setSelectedYear] = useState<string>(() => String(new Date().getFullYear()));
   const [selectedDept, setSelectedDept] = useState<string>('All departments');
   const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
   const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
@@ -267,20 +329,9 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
 
   // Reports states for Leave Tab
   const [leaveReportType, setLeaveReportType] = useState<'detail' | 'summary'>('detail');
-  const [leaveReportMonth, setLeaveReportMonth] = useState('May 2026');
+  const [leaveReportMonth, setLeaveReportMonth] = useState(() => todayIso().slice(0, 7));
   const [leaveReportsFilterDept, setLeaveReportsFilterDept] = useState('All departments');
   const [leaveReportsFilterEmp, setLeaveReportsFilterEmp] = useState('');
-
-  const [leaveSummaryRows] = useState<{
-    employeeId: string;
-    name: string;
-    dept: string;
-    annual: number;
-    sick: number;
-    unpaid: number;
-    total: number;
-    balance: string;
-  }[]>([]);
 
   const handleCreateLeavePolicy = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -323,12 +374,13 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
 
   // Requests state — loaded from API
   const [requests, setRequests] = useState<LeaveRequestRecord[]>([]);
+  const [myEmployeeIds, setMyEmployeeIds] = useState<string[]>([]);
 
   // Request form state (By Day)
   const [reqFormType, setReqFormType] = useState<'day' | 'hour'>('day');
   const [reqType, setReqType] = useState('Annual Leave');
-  const [reqFromDate, setReqFromDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [reqToDate, setReqToDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [reqFromDate, setReqFromDate] = useState(todayIso);
+  const [reqToDate, setReqToDate] = useState(todayIso);
   const [reqReason, setReqReason] = useState('');
   const [reqNotify, setReqNotify] = useState(true);
   const [firstDayHalf, setFirstDayHalf] = useState('Full day');
@@ -337,14 +389,14 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
   // Request for others form state
   const [rfoEmployee, setRfoEmployee] = useState('');
   const [rfoType, setRfoType] = useState('Annual Leave');
-  const [rfoFromDate, setRfoFromDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [rfoToDate, setRfoToDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [rfoFromDate, setRfoFromDate] = useState(todayIso);
+  const [rfoToDate, setRfoToDate] = useState(todayIso);
   const [rfoSession, setRfoSession] = useState('Full day');
   const [rfoReason, setRfoReason] = useState('');
   const [rfoNotify, setRfoNotify] = useState(true);
 
   // Employee profile view state
-  const [profileSelectedEmpId, setProfileSelectedEmpId] = useState('EMP-001');
+  const [profileSelectedEmpId, setProfileSelectedEmpId] = useState('');
 
   // Filter and searches
   const [searchHistory, setSearchHistory] = useState('');
@@ -354,8 +406,169 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
   // Tab count
   const pendingCount = requests.filter(r => r.status === 'Pending').length;
 
+  const findEmployee = useCallback(
+    (employeeId: string) => employees.find((e) => e.apiId === employeeId || e.id === employeeId),
+    [employees],
+  )
+
+  const enrichedRequests = useMemo(
+    () => requests.map((r) => ({ ...r, dept: findEmployee(r.employeeId)?.department || r.dept })),
+    [requests, findEmployee],
+  )
+
+  const myIdSet = useMemo(() => new Set(myEmployeeIds), [myEmployeeIds])
+
+  const deptOptions = useMemo(() => {
+    const set = new Set<string>()
+    for (const e of employees) if (e.department) set.add(e.department)
+    for (const r of enrichedRequests) if (r.dept && r.dept !== '—') set.add(r.dept)
+    return ['All departments', ...Array.from(set).sort((a, b) => a.localeCompare(b))]
+  }, [employees, enrichedRequests])
+
+  const yearOptions = useMemo(() => {
+    const current = new Date().getFullYear()
+    const set = new Set<string>([String(current - 1), String(current), String(current + 1)])
+    for (const r of requests) {
+      if (r.fromDate) set.add(r.fromDate.slice(0, 4))
+      if (r.toDate) set.add(r.toDate.slice(0, 4))
+    }
+    return Array.from(set).filter((y) => /^\d{4}$/.test(y)).sort()
+  }, [requests])
+
+  const deptScopedRequests = useMemo(
+    () => enrichedRequests.filter((r) => selectedDept === 'All departments' || r.dept === selectedDept),
+    [enrichedRequests, selectedDept],
+  )
+
+  const scopedRequests = useMemo(
+    () => deptScopedRequests.filter((r) => overlapsYear(r.fromDate, r.toDate, selectedYear)),
+    [deptScopedRequests, selectedYear],
+  )
+
+  const reportMonthOptions = useMemo(() => {
+    const set = new Set<string>([todayIso().slice(0, 7)])
+    for (const r of requests) {
+      if (r.fromDate) for (const key of monthsBetween(r.fromDate, r.toDate || r.fromDate)) set.add(key)
+    }
+    return Array.from(set)
+      .sort((a, b) => b.localeCompare(a))
+      .map((key) => ({ value: key, label: monthLabel(key) }))
+  }, [requests])
+
+  const historyTypeOptions = useMemo(() => {
+    const set = new Set<string>()
+    for (const t of leaveTypeRows) set.add(t.name)
+    for (const r of requests) set.add(r.type)
+    return ['All types', ...Array.from(set).sort((a, b) => a.localeCompare(b))]
+  }, [leaveTypeRows, requests])
+
+  const leaveKpis = useMemo(() => {
+    const approved = scopedRequests.filter((r) => r.status === 'Accepted')
+    const annual = approved.filter((r) => leaveCategory(r.type) === 'annual')
+    const sick = approved.filter((r) => leaveCategory(r.type) === 'sick')
+    return {
+      approvedDays: approved.reduce((s, r) => s + r.days, 0),
+      approvedCount: approved.length,
+      pending: scopedRequests.filter((r) => r.status === 'Pending').length,
+      annualDays: annual.reduce((s, r) => s + r.days, 0),
+      annualPeople: new Set(annual.map((r) => r.employeeId)).size,
+      sickDays: sick.reduce((s, r) => s + r.days, 0),
+      sickCount: sick.length,
+    }
+  }, [scopedRequests])
+
+  const deptMatrixRows = useMemo(() => {
+    const rows = new Map<string, { dept: string; employees: number; annual: number; sick: number; unpaid: number; pending: number; total: number }>()
+    const ensure = (dept: string) => {
+      const key = dept && dept !== '—' ? dept : 'Unassigned'
+      let row = rows.get(key)
+      if (!row) {
+        row = { dept: key, employees: 0, annual: 0, sick: 0, unpaid: 0, pending: 0, total: 0 }
+        rows.set(key, row)
+      }
+      return row
+    }
+    for (const e of employees) {
+      if (selectedDept !== 'All departments' && e.department !== selectedDept) continue
+      ensure(e.department).employees += 1
+    }
+    for (const r of scopedRequests) {
+      const row = ensure(r.dept)
+      if (r.status === 'Pending') row.pending += 1
+      if (r.status !== 'Accepted') continue
+      row.total += r.days
+      const cat = leaveCategory(r.type)
+      if (cat === 'annual') row.annual += r.days
+      else if (cat === 'sick') row.sick += r.days
+      else if (cat === 'unpaid') row.unpaid += r.days
+    }
+    return Array.from(rows.values()).sort((a, b) => a.dept.localeCompare(b.dept))
+  }, [employees, scopedRequests, selectedDept])
+
+  const leaveSummaryRows = useMemo(() => {
+    const myRemaining = leaveBalances
+      .filter((b) => String(b.balanceYear) === selectedYear)
+      .reduce((s, b) => s + Number(b.remainingDays), 0)
+    const hasMyBalance = leaveBalances.some((b) => String(b.balanceYear) === selectedYear)
+    const rows = new Map<string, { key: string; employeeId: string; name: string; dept: string; annual: number; sick: number; unpaid: number; total: number; mine: boolean }>()
+    for (const e of employees) {
+      if (selectedDept !== 'All departments' && e.department !== selectedDept) continue
+      rows.set(e.apiId || e.id, {
+        key: e.apiId || e.id,
+        employeeId: e.id,
+        name: e.name,
+        dept: e.department,
+        annual: 0,
+        sick: 0,
+        unpaid: 0,
+        total: 0,
+        mine: myIdSet.has(e.apiId || '') || myIdSet.has(e.id),
+      })
+    }
+    for (const r of scopedRequests) {
+      const emp = findEmployee(r.employeeId)
+      const key = emp ? emp.apiId || emp.id : r.employeeId
+      let row = rows.get(key)
+      if (!row) {
+        row = { key, employeeId: emp?.id || r.employeeId, name: r.name, dept: r.dept, annual: 0, sick: 0, unpaid: 0, total: 0, mine: myIdSet.has(r.employeeId) }
+        rows.set(key, row)
+      }
+      if (r.status !== 'Accepted') continue
+      row.total += r.days
+      const cat = leaveCategory(r.type)
+      if (cat === 'annual') row.annual += r.days
+      else if (cat === 'sick') row.sick += r.days
+      else if (cat === 'unpaid') row.unpaid += r.days
+    }
+    return Array.from(rows.values())
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((row) => ({ ...row, balance: row.mine && hasMyBalance ? formatDays(myRemaining) : '—' }))
+  }, [employees, scopedRequests, leaveBalances, selectedYear, selectedDept, myIdSet, findEmployee])
+
+  const historyRows = useMemo(
+    () =>
+      scopedRequests
+        .filter((r) => r.name.toLowerCase().includes(searchHistory.toLowerCase()))
+        .filter((r) => historyTypeFilter === 'All types' || r.type === historyTypeFilter),
+    [scopedRequests, searchHistory, historyTypeFilter],
+  )
+
+  const myRequests = useMemo(
+    () => (isAdmin ? requests.filter((r) => myIdSet.has(r.employeeId)) : requests),
+    [requests, myIdSet, isAdmin],
+  )
+
+  const otherRecentRequests = useMemo(
+    () =>
+      requests
+        .filter((r) => !myIdSet.has(r.employeeId))
+        .sort((a, b) => b.fromDate.localeCompare(a.fromDate))
+        .slice(0, 6),
+    [requests, myIdSet],
+  )
+
   const leaveReportsRows = useMemo(() => {
-    return requests.map((r) => {
+    return deptScopedRequests.map((r) => {
       const leaveMeta = leaveTypeRows.find(
         (t) => t.name.toLowerCase() === r.type.toLowerCase() || t.code.toLowerCase() === r.type.toLowerCase(),
       )
@@ -378,7 +591,28 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
           : '—',
       }
     })
-  }, [requests, leaveTypeRows])
+  }, [deptScopedRequests, leaveTypeRows])
+
+  const filteredReportRows = useMemo(
+    () =>
+      leaveReportsRows.filter((row) => {
+        const matchesMonth = overlapsMonth(row.fromDate, row.toDate, leaveReportMonth)
+        const matchesDept = leaveReportsFilterDept === 'All departments' || row.dept === leaveReportsFilterDept
+        const matchesEmp = row.name.toLowerCase().includes(leaveReportsFilterEmp.toLowerCase())
+        return matchesMonth && matchesDept && matchesEmp
+      }),
+    [leaveReportsRows, leaveReportMonth, leaveReportsFilterDept, leaveReportsFilterEmp],
+  )
+
+  const filteredSummaryRows = useMemo(
+    () =>
+      leaveSummaryRows.filter((row) => {
+        const matchesDept = leaveReportsFilterDept === 'All departments' || row.dept === leaveReportsFilterDept;
+        const matchesEmp = row.name.toLowerCase().includes(leaveReportsFilterEmp.toLowerCase());
+        return matchesDept && matchesEmp;
+      }),
+    [leaveSummaryRows, leaveReportsFilterDept, leaveReportsFilterEmp],
+  )
 
   const loadLeaveRequests = useCallback(async () => {
     setLeaveLoading(true)
@@ -396,9 +630,11 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
         for (const row of [...mine, ...pending]) {
           byId.set(row.id, mapApiLeave(row))
         }
+        setMyEmployeeIds(Array.from(new Set(mine.map((r) => r.employeeId))))
         setRequests(Array.from(byId.values()))
       } else {
         const mine = await fetchMyLeave()
+        setMyEmployeeIds(Array.from(new Set(mine.map((r) => r.employeeId))))
         setRequests(mine.map(mapApiLeave))
       }
     } catch (err) {
@@ -416,15 +652,34 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
   }, [loadLeaveRequests])
 
   // Selected employee metadata
-  const selectedProfileEmp = employees.find(e => e.id === profileSelectedEmpId) || {
-    id: 'EMP-0021',
-    name: 'Sarah Lim Wei Ling',
-    department: 'Engineering' as const,
-    position: 'Senior Developer',
-    employmentStatus: 'Permanent' as const,
-    status: 'Active' as const,
-    joinDate: '12 Jan 2021',
-  };
+  const selectedProfileEmp = employees.find(e => e.id === profileSelectedEmpId) ?? employees[0] ?? null;
+
+  const profileRequests = useMemo(() => {
+    if (!selectedProfileEmp) return [];
+    return requests
+      .filter((r) => r.employeeId === selectedProfileEmp.apiId || r.employeeId === selectedProfileEmp.id)
+      .sort((a, b) => b.fromDate.localeCompare(a.fromDate));
+  }, [requests, selectedProfileEmp]);
+
+  const profileEntitlements = useMemo(() => {
+    const year = String(new Date().getFullYear());
+    return leaveTypeRows
+      .filter((t) => t.active)
+      .map((t) => {
+        const used = profileRequests
+          .filter((r) => r.status === 'Accepted' && overlapsYear(r.fromDate, r.toDate, year))
+          .filter((r) => r.type.toLowerCase() === t.name.toLowerCase() || r.type.toLowerCase() === t.code.toLowerCase())
+          .reduce((s, r) => s + r.days, 0);
+        return {
+          id: t.id,
+          name: t.name,
+          entitled: t.daysAllowed,
+          used,
+          balance: t.daysAllowed - used,
+          carry: t.carryForward ? String(t.maxCarryDays || 0) : '—',
+        };
+      });
+  }, [leaveTypeRows, profileRequests]);
 
   const handleCreateLeaveType = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -523,6 +778,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
         reason: reqReason.trim() || undefined,
       })
       setRequests((prev) => [mapApiLeave(created), ...prev.filter((r) => r.id !== created.id)])
+      setMyEmployeeIds((prev) => (prev.includes(created.employeeId) ? prev : [...prev, created.employeeId]))
       setReqReason('')
       addToast('Leave request submitted for review.', 'success')
       setActiveSubTab('Leave history')
@@ -678,11 +934,11 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             </button>
             {yearDropdownOpen && (
               <div className="nv-dropdown-menu w-32 bg-white border border-slate-100 rounded-xl shadow-xl py-1">
-                {['2025', '2026', '2027'].map(year => (
+                {yearOptions.map(year => (
                   <button
                     key={year}
                     type="button"
-                    onClick={() => { setSelectedYear(year); setYearDropdownOpen(false); addToast(`Fiscal view target changed to ${year}`, 'info'); }}
+                    onClick={() => { setSelectedYear(year); setYearDropdownOpen(false); addToast(`Leave history and reports now show ${year}`, 'info'); }}
                     className="w-full text-left text-xs font-bold px-4 py-2 hover:bg-slate-50 text-slate-700"
                   >
                     {year}
@@ -708,11 +964,11 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             </button>
             {deptDropdownOpen && (
               <div className="nv-dropdown-menu w-48 bg-white border border-slate-100 rounded-xl shadow-xl py-1">
-                {['All departments', 'Engineering', 'HR', 'Finance', 'Marketing', 'Operations'].map(dept => (
+                {deptOptions.map(dept => (
                   <button
                     key={dept}
                     type="button"
-                    onClick={() => { setSelectedDept(dept); setDeptDropdownOpen(false); addToast(`Leave database filtered by ${dept}`, 'info'); }}
+                    onClick={() => { setSelectedDept(dept); setDeptDropdownOpen(false); addToast(`Leave history and reports filtered by ${dept}`, 'info'); }}
                     className="w-full text-left text-xs font-bold px-4 py-2 hover:bg-slate-50 text-slate-700"
                   >
                     {dept}
@@ -724,7 +980,14 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
 
           {/* Export Button */}
           <button
-            onClick={() => addToast('Exporting corporate leave report...', 'loading')}
+            onClick={() => {
+              const ok = downloadCsv(
+                `leave_requests_${selectedYear}_${dateStamp()}`,
+                ['ID', 'Employee', 'Department', 'Leave type', 'From', 'To', 'Days', 'Reason', 'Status'],
+                scopedRequests.map((r) => [r.id, r.name, r.dept, r.type, r.fromDate, r.toDate, r.days, r.reason, r.status]),
+              );
+              addToast(ok ? `Exported ${scopedRequests.length} leave requests as CSV.` : 'Nothing to export yet.', ok ? 'success' : 'info');
+            }}
             className="h-9 bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3.5 rounded-xl inline-flex items-center gap-2 hover:bg-slate-50 transition-all cursor-pointer whitespace-nowrap shrink-0"
           >
             <Download className="h-3.5 w-3.5 shrink-0" />
@@ -989,7 +1252,8 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                   if (selectedAttachments.length === 0) {
                     addToast('No selected files for batch processing', 'error');
                   } else {
-                    addToast(`Manual attachment complete for ${selectedAttachments.length} records`, 'success');
+                    setAttachmentRecords(prev => prev.map(a => selectedAttachments.includes(a.id) ? { ...a, attached: true } : a));
+                    addToast(`Marked ${selectedAttachments.length} records as attached`, 'success');
                   }
                 }}
                 className="bg-novora text-white hover:bg-opacity-95 text-xs font-bold px-4.5 py-1.5 rounded-xl cursor-pointer"
@@ -1233,42 +1497,25 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
               <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Leave balance overview</h3>
               <div className="space-y-3.5">
-                <div>
-                  <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                    <span>Annual leave</span>
-                    <span>12 / 16 days</span>
-                  </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-blue-500 h-full rounded-full" style={{ width: '75%' }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                    <span>Medical leave</span>
-                    <span>10 / 14 days</span>
-                  </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: '71%' }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                    <span>Emergency leave</span>
-                    <span>2 / 3 days</span>
-                  </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-amber-500 h-full rounded-full" style={{ width: '66%' }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                    <span>Replacement leave</span>
-                    <span>1 / 1 day</span>
-                  </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-sky-500 h-full rounded-full" style={{ width: '100%' }} />
-                  </div>
-                </div>
+                {leaveBalances.length === 0 && (
+                  <p className="text-xs font-medium text-slate-400">No leave balances yet.</p>
+                )}
+                {leaveBalances.map((b, idx) => {
+                  const total = Number(b.totalDays);
+                  const remaining = Number(b.remainingDays);
+                  const pct = total > 0 ? Math.max(0, Math.min(100, Math.round((remaining / total) * 100))) : 0;
+                  return (
+                    <div key={b.id}>
+                      <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                        <span>{b.leaveType}</span>
+                        <span>{remaining} / {total} {total === 1 ? 'day' : 'days'}</span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div className={`${BALANCE_BAR_COLORS[idx % BALANCE_BAR_COLORS.length]} h-full rounded-full`} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -1285,7 +1532,10 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {requests.slice(0, 4).map((r) => (
+                    {myRequests.length === 0 && (
+                      <tr><td colSpan={4} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                    )}
+                    {myRequests.slice(0, 4).map((r) => (
                       <tr key={r.id} className="hover:bg-slate-50/40">
                         <td className="p-3 pl-4 font-bold text-slate-800">{r.type}</td>
                         <td className="p-3 font-semibold text-slate-500">{r.dateStr}</td>
@@ -1447,7 +1697,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
 
           {/* Right panel - Behalf History */}
           <div className="lg:col-span-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
-            <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Requested time offs (on behalf)</h3>
+            <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Recent time offs (other employees)</h3>
             <div className="nv-card overflow-hidden">
               <table className="w-full text-left text-xs text-slate-600">
                 <thead className="bg-[#f8fafc] border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -1460,42 +1710,26 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  <tr className="hover:bg-slate-50/40">
-                    <td className="p-3 pl-4 font-bold text-slate-850">Sarah L</td>
-                    <td className="p-3 font-semibold text-slate-600">Annual</td>
-                    <td className="p-3 text-slate-500">3-5 May</td>
-                    <td className="p-3 text-center font-mono font-bold text-slate-600">3</td>
-                    <td className="p-3 text-right pr-4">
-                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-md font-bold text-[10px]">Accepted</span>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-slate-50/40">
-                    <td className="p-3 pl-4 font-bold text-slate-850">Maya T</td>
-                    <td className="p-3 font-semibold text-slate-600">Medical</td>
-                    <td className="p-3 text-slate-500">1 May</td>
-                    <td className="p-3 text-center font-mono font-bold text-slate-600">1</td>
-                    <td className="p-3 text-right pr-4">
-                      <span className="bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 rounded-md font-bold text-[10px]">Pending</span>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-slate-50/40">
-                    <td className="p-3 pl-4 font-bold text-slate-855">Ahmad L</td>
-                    <td className="p-3 font-semibold text-slate-600">Emergency</td>
-                    <td className="p-3 text-slate-500">28 Apr</td>
-                    <td className="p-3 text-center font-mono font-bold text-slate-600">1</td>
-                    <td className="p-3 text-right pr-4">
-                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-md font-bold text-[10px]">Accepted</span>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-slate-50/40">
-                    <td className="p-3 pl-4 font-bold text-slate-850">Nadia C</td>
-                    <td className="p-3 font-semibold text-slate-600">Annual</td>
-                    <td className="p-3 text-slate-500">21-22 Apr</td>
-                    <td className="p-3 text-center font-mono font-bold text-slate-600">2</td>
-                    <td className="p-3 text-right pr-4">
-                      <span className="bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 rounded-md font-bold text-[10px]">Pending</span>
-                    </td>
-                  </tr>
+                  {otherRecentRequests.length === 0 && (
+                    <tr><td colSpan={5} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                  )}
+                  {otherRecentRequests.map((r) => (
+                    <tr key={r.id} className="hover:bg-slate-50/40">
+                      <td className="p-3 pl-4 font-bold text-slate-850">{r.name}</td>
+                      <td className="p-3 font-semibold text-slate-600">{r.type}</td>
+                      <td className="p-3 text-slate-500">{r.dateStr}</td>
+                      <td className="p-3 text-center font-mono font-bold text-slate-600">{r.days}</td>
+                      <td className="p-3 text-right pr-4">
+                        <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
+                          r.status === 'Accepted'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                            : r.status === 'Pending'
+                            ? 'bg-amber-50 text-amber-700 border border-amber-100'
+                            : 'bg-rose-50 text-rose-700 border border-rose-100'
+                        }`}>{r.status}</span>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -1517,7 +1751,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             </div>
 
             <button
-              onClick={() => addToast('Approval log reset successfully', 'info')}
+              onClick={() => addToast('No approval filters are applied.', 'info')}
               className="text-slate-500 hover:text-slate-800 font-bold text-xs cursor-pointer hover:underline"
             >
               Reset Filters
@@ -1540,6 +1774,9 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
+                {requests.length === 0 && (
+                  <tr><td colSpan={9} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                )}
                 {requests.map((r) => (
                   <tr key={r.id} className="hover:bg-slate-50/50">
                     <td className="p-4 pl-6 font-bold text-slate-800">{r.name}</td>
@@ -1631,29 +1868,27 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 onChange={setHistoryTypeFilter}
                 className="w-auto shrink-0"
                 triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
-                options={[
-                  { value: 'All types', label: 'All types' },
-                  { value: 'Annual', label: 'Annual' },
-                  { value: 'Medical', label: 'Medical' },
-                  { value: 'Emergency', label: 'Emergency' },
-                ]}
+                options={historyTypeOptions.map((t) => ({ value: t, label: t }))}
               />
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => addToast('Opening statement log', 'info')}
+                onClick={() => addToast('Leave card generation is not available yet.', 'info')}
                 className="text-xs font-bold text-novora hover:underline"
               >
                 Leave card generate
               </button>
               <button
                 type="button"
-                onClick={() => addToast('Exporting active table layout', 'success')}
+                onClick={(e) => {
+                  const n = downloadNearestTableCsv(e.currentTarget, `leave_history_${selectedYear}_${dateStamp()}`);
+                  addToast(n ? `Exported ${n} rows as CSV.` : 'Nothing to export yet.', n ? 'success' : 'info');
+                }}
                 className="bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-opacity-95"
               >
-                Export PDF
+                Export CSV
               </button>
             </div>
           </div>
@@ -1673,13 +1908,10 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {requests
-                  .filter(r => r.name.toLowerCase().includes(searchHistory.toLowerCase()))
-                  .filter(r => {
-                    if (historyTypeFilter === 'All types') return true;
-                    return r.type.includes(historyTypeFilter);
-                  })
-                  .map((r) => (
+                {historyRows.length === 0 && (
+                  <tr><td colSpan={8} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                )}
+                {historyRows.map((r) => (
                     <tr key={r.id} className="hover:bg-slate-50/50">
                       <td className="p-4 pl-6 font-bold text-slate-800">{r.name}</td>
                       <td className="p-4">
@@ -1720,7 +1952,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             <div className="flex items-center gap-3 flex-nowrap min-w-0">
               <span className="text-xs font-bold text-slate-500 whitespace-nowrap shrink-0">Selected employee profile:</span>
               <SelectMenu
-                value={profileSelectedEmpId}
+                value={selectedProfileEmp?.id ?? ''}
                 onChange={setProfileSelectedEmpId}
                 aria-label="Employee profile"
                 className="w-auto shrink-0"
@@ -1734,20 +1966,23 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             </div>
           </div>
 
+          {!selectedProfileEmp ? (
+            <p className="text-xs font-medium text-slate-400">No employees yet.</p>
+          ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left panel - User card + Entitlement table */}
             <div className="lg:col-span-6 space-y-6">
               <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
                 <div className="flex items-center gap-4.5">
                   <div className="h-14 w-14 bg-novora text-white rounded-2xl flex items-center justify-center text-xl font-bold font-mono">
-                    {selectedProfileEmp.name ? selectedProfileEmp.name.charAt(0) : 'S'}
+                    {selectedProfileEmp.name ? selectedProfileEmp.name.charAt(0) : '?'}
                   </div>
                   <div>
                     <h3 className="text-base font-extrabold text-slate-850 tracking-tight">
                       {selectedProfileEmp.name}
                     </h3>
                     <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">
-                      {selectedProfileEmp.id} &bull; {selectedProfileEmp.department} &bull; {selectedProfileEmp.position || 'FTE Staff'}
+                      {selectedProfileEmp.id} &bull; {selectedProfileEmp.department || '—'} &bull; {selectedProfileEmp.position || '—'}
                     </p>
                   </div>
                 </div>
@@ -1755,19 +1990,19 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4 text-xs">
                   <div>
                     <span className="text-slate-400 font-bold block mb-0.5">Employment type</span>
-                    <span className="text-slate-800 font-extrabold">{selectedProfileEmp.employmentStatus || 'Permanent'}</span>
+                    <span className="text-slate-800 font-extrabold">{selectedProfileEmp.employmentStatus || '—'}</span>
                   </div>
                   <div>
                     <span className="text-slate-400 font-bold block mb-0.5">Join date</span>
-                    <span className="text-slate-800 font-extrabold">{selectedProfileEmp.joinDate || '12-Jan-2021'}</span>
+                    <span className="text-slate-800 font-extrabold">{selectedProfileEmp.joinDate || '—'}</span>
                   </div>
                   <div>
                     <span className="text-slate-400 font-bold block mb-0.5">Service period</span>
-                    <span className="text-slate-800 font-extrabold">4 years 3 months</span>
+                    <span className="text-slate-800 font-extrabold">{formatServicePeriod(selectedProfileEmp.joinDate)}</span>
                   </div>
                   <div>
                     <span className="text-slate-400 font-bold block mb-0.5">Leave year tenure</span>
-                    <span className="text-slate-800 font-extrabold">Jan - Dec 2026</span>
+                    <span className="text-slate-800 font-extrabold">Jan - Dec {new Date().getFullYear()}</span>
                   </div>
                 </div>
               </div>
@@ -1787,56 +2022,21 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      <tr>
-                        <td className="p-3 pl-4 font-bold text-slate-800 flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full bg-blue-500 items-center shrink-0" />
-                          <span>Annual</span>
-                        </td>
-                        <td className="p-3 text-center font-bold text-slate-600">18</td>
-                        <td className="p-3 text-center font-bold text-rose-500">6</td>
-                        <td className="p-3 text-center font-black text-emerald-600">12</td>
-                        <td className="p-3 text-right pr-4 font-bold text-slate-400">2</td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 pl-4 font-bold text-slate-800 flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full bg-emerald-500 items-center shrink-0" />
-                          <span>Medical</span>
-                        </td>
-                        <td className="p-3 text-center font-bold text-slate-600">14</td>
-                        <td className="p-3 text-center font-bold text-rose-500">4</td>
-                        <td className="p-3 text-center font-black text-emerald-600">10</td>
-                        <td className="p-3 text-right pr-4 font-bold text-slate-400">0</td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 pl-4 font-bold text-slate-850 flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full bg-amber-500 items-center shrink-0" />
-                          <span>Emergency</span>
-                        </td>
-                        <td className="p-3 text-center font-bold text-slate-600">3</td>
-                        <td className="p-3 text-center font-bold text-rose-500">1</td>
-                        <td className="p-3 text-center font-black text-emerald-600">2</td>
-                        <td className="p-3 text-right pr-4 font-bold text-slate-400">0</td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 pl-4 font-bold text-slate-800 flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full bg-sky-500 items-center shrink-0" />
-                          <span>Replacement</span>
-                        </td>
-                        <td className="p-3 text-center font-bold text-slate-600">1</td>
-                        <td className="p-3 text-center font-bold text-rose-500">0</td>
-                        <td className="p-3 text-center font-black text-emerald-600">1</td>
-                        <td className="p-3 text-right pr-4 font-bold text-slate-400">0</td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 pl-4 font-bold text-slate-800 flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full bg-teal-500 items-center shrink-0" />
-                          <span>Hour leave</span>
-                        </td>
-                        <td className="p-3 text-center text-slate-500 font-mono font-bold">16h</td>
-                        <td className="p-3 text-center text-rose-500 font-mono font-bold">4h</td>
-                        <td className="p-3 text-center text-emerald-600 font-mono font-black">12h</td>
-                        <td className="p-3 text-right pr-4 font-bold text-slate-400">0</td>
-                      </tr>
+                      {profileEntitlements.length === 0 && (
+                        <tr><td colSpan={5} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                      )}
+                      {profileEntitlements.map((row, idx) => (
+                        <tr key={row.id}>
+                          <td className="p-3 pl-4 font-bold text-slate-800 flex items-center gap-1.5">
+                            <span className={`h-2 w-2 rounded-full ${BALANCE_BAR_COLORS[idx % BALANCE_BAR_COLORS.length]} items-center shrink-0`} />
+                            <span>{row.name}</span>
+                          </td>
+                          <td className="p-3 text-center font-bold text-slate-600">{row.entitled}</td>
+                          <td className="p-3 text-center font-bold text-rose-500">{row.used}</td>
+                          <td className="p-3 text-center font-black text-emerald-600">{row.balance}</td>
+                          <td className="p-3 text-right pr-4 font-bold text-slate-400">{row.carry}</td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -1848,34 +2048,19 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
               <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
                 <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Applied policies</h3>
                 <div className="space-y-3.5 text-xs">
-                  <div className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
-                    <span className="font-bold text-slate-800">Annual leave policy</span>
-                    <span className="bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-lg text-[10px]">Applied</span>
-                  </div>
-                  <div className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
-                    <span className="font-semibold text-slate-600">Service leave bonus</span>
-                    <span className="text-novora font-black text-[11px]">+2 days (3-5 yrs)</span>
-                  </div>
-                  <div className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
-                    <span className="font-semibold text-slate-600">Medical leave policy</span>
-                    <span className="bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-lg text-[10px]">Applied</span>
-                  </div>
-                  <div className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
-                    <span className="font-semibold text-slate-600">Emergency leave policy</span>
-                    <span className="bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-lg text-[10px]">Applied</span>
-                  </div>
-                  <div className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
-                    <span className="font-semibold text-slate-600">Maternity leave</span>
-                    <span className="bg-slate-100 text-slate-500 font-bold px-2 py-0.5 rounded-lg text-[10px]">Not attached</span>
-                  </div>
-                  <div className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
-                    <span className="font-semibold text-slate-600">Replacement leave</span>
-                    <span className="bg-amber-5 text-amber-700 font-bold px-2 py-0.5 rounded-lg text-[10px] bg-amber-50 border border-amber-100">Manual attached</span>
-                  </div>
-                  <div className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
-                    <span className="font-semibold text-slate-600">Unpaid leave</span>
-                    <span className="bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-lg text-[10px]">Applied</span>
-                  </div>
+                  {leaveTypeRows.length === 0 && (
+                    <p className="text-xs font-medium text-slate-400">No leave policies yet.</p>
+                  )}
+                  {leaveTypeRows.map((t) => (
+                    <div key={t.id} className="flex justify-between items-center bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl">
+                      <span className="font-semibold text-slate-600">{t.name} policy</span>
+                      {t.active ? (
+                        <span className="bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-lg text-[10px]">Active</span>
+                      ) : (
+                        <span className="bg-slate-100 text-slate-500 font-bold px-2 py-0.5 rounded-lg text-[10px]">Inactive</span>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -1893,44 +2078,32 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      <tr>
-                        <td className="p-3 pl-4 font-bold text-slate-800">Annual</td>
-                        <td className="p-3 font-semibold text-slate-500">12-14 May</td>
-                        <td className="p-3 text-center font-mono font-bold text-slate-600">3</td>
-                        <td className="p-3 text-right pr-4">
-                          <span className="bg-amber-50 text-amber-705 border border-amber-100 px-2.5 py-0.5 rounded-md font-bold text-[10px]">Pending</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 pl-4 font-bold text-slate-800">Annual</td>
-                        <td className="p-3 font-semibold text-slate-500">21-22 Apr</td>
-                        <td className="p-3 text-center font-mono font-bold text-slate-600">2</td>
-                        <td className="p-3 text-right pr-4">
-                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-0.5 rounded-md font-bold text-[10px]">Accepted</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 pl-4 font-bold text-slate-800">Medical</td>
-                        <td className="p-3 font-semibold text-slate-500">3 Mar</td>
-                        <td className="p-3 text-center font-mono font-bold text-slate-600">2</td>
-                        <td className="p-3 text-right pr-4">
-                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-0.5 rounded-md font-bold text-[10px]">Accepted</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 pl-4 font-bold text-slate-800">Emergency</td>
-                        <td className="p-3 font-semibold text-slate-500">10 Feb</td>
-                        <td className="p-3 text-center font-mono font-bold text-slate-600">1</td>
-                        <td className="p-3 text-right pr-4">
-                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-0.5 rounded-md font-bold text-[10px]">Accepted</span>
-                        </td>
-                      </tr>
+                      {profileRequests.length === 0 && (
+                        <tr><td colSpan={4} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                      )}
+                      {profileRequests.slice(0, 4).map((r) => (
+                        <tr key={r.id}>
+                          <td className="p-3 pl-4 font-bold text-slate-800">{r.type}</td>
+                          <td className="p-3 font-semibold text-slate-500">{r.dateStr}</td>
+                          <td className="p-3 text-center font-mono font-bold text-slate-600">{r.days}</td>
+                          <td className="p-3 text-right pr-4">
+                            <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${
+                              r.status === 'Accepted'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                                : r.status === 'Pending'
+                                ? 'bg-amber-50 text-amber-700 border border-amber-100'
+                                : 'bg-rose-50 text-rose-700 border border-rose-100'
+                            }`}>{r.status}</span>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
               </div>
             </div>
           </div>
+          )}
         </div>
       )}
 
@@ -1942,9 +2115,9 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 nv-stagger">
             <div className="nv-card p-4 shadow-sm flex items-center justify-between">
               <div className="space-y-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Absence Outrate</span>
-                <h3 className="text-xl font-extrabold text-novora tracking-tight">4.8%</h3>
-                <span className="text-[9px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">&darr; 0.6% this month</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Approved Leave</span>
+                <h3 className="text-xl font-extrabold text-novora tracking-tight">{formatDays(leaveKpis.approvedDays)}</h3>
+                <span className="text-[9px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">{leaveKpis.approvedCount} approved in {selectedYear}</span>
               </div>
               <div className="h-10 w-10 rounded-xl bg-blue-50 border border-blue-105 flex items-center justify-center">
                 <Clock className="h-5 w-5 text-novora" />
@@ -1954,8 +2127,8 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             <div className="nv-card p-4 shadow-sm flex items-center justify-between">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Requests</span>
-                <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">15 active</h3>
-                <span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">Across all units</span>
+                <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">{leaveKpis.pending} pending</h3>
+                <span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">Awaiting approval &middot; {selectedDept}</span>
               </div>
               <div className="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center">
                 <Users className="h-5 w-5 text-slate-600" />
@@ -1965,8 +2138,8 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             <div className="nv-card p-4 shadow-sm flex items-center justify-between">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Annual Time-off</span>
-                <h3 className="text-xl font-extrabold text-indigo-600 tracking-tight">56.5 days</h3>
-                <span className="text-[9px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">18 FTEs involved</span>
+                <h3 className="text-xl font-extrabold text-indigo-600 tracking-tight">{formatDays(leaveKpis.annualDays)}</h3>
+                <span className="text-[9px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">{leaveKpis.annualPeople} {leaveKpis.annualPeople === 1 ? 'employee' : 'employees'} involved</span>
               </div>
               <div className="h-10 w-10 rounded-xl bg-indigo-50 border border-indigo-105 flex items-center justify-center">
                 <FileText className="h-5 w-5 text-indigo-500" />
@@ -1975,9 +2148,9 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
 
             <div className="nv-card p-4 shadow-sm flex items-center justify-between">
               <div className="space-y-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Medical Leave Rate</span>
-                <h3 className="text-xl font-extrabold text-emerald-600 tracking-tight">14.0 days</h3>
-                <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">All Doctor certified</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Medical / Sick Leave</span>
+                <h3 className="text-xl font-extrabold text-emerald-600 tracking-tight">{formatDays(leaveKpis.sickDays)}</h3>
+                <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">{leaveKpis.sickCount} approved {leaveKpis.sickCount === 1 ? 'request' : 'requests'}</span>
               </div>
               <div className="h-10 w-10 rounded-xl bg-emerald-50 border border-emerald-105 flex items-center justify-center">
                 <CheckCircle className="h-5 w-5 text-emerald-500" />
@@ -1992,7 +2165,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 <Network className="h-4 w-4 text-novora" />
                 <span>Departmental Time Off &amp; Leave Utilization Matrix</span>
               </h4>
-              <p className="text-[10px] font-semibold text-slate-400 mt-0.5">Aggregate leave behaviors, average sick leaves, and standard compliance ratings by department</p>
+              <p className="text-[10px] font-semibold text-slate-400 mt-0.5">Approved leave days by department in {selectedYear}; average is approved days per employee</p>
             </div>
 
             <div className="bg-white border border-slate-100 rounded-xl overflow-x-auto">
@@ -2000,70 +2173,33 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <th className="p-3 pl-4">Department Unit</th>
-                    <th className="p-3">FTE size</th>
+                    <th className="p-3">Employees</th>
                     <th className="p-3 text-center">Annual used</th>
                     <th className="p-3 text-center">Medical taken</th>
                     <th className="p-3 text-center">Unpaid recorded</th>
-                    <th className="p-3 text-center">Accrued balance avg</th>
-                    <th className="p-3 pr-4 text-right">Utilization Assessment</th>
+                    <th className="p-3 text-center">Pending requests</th>
+                    <th className="p-3 pr-4 text-right">Avg days / employee</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium">
-                  <tr className="hover:bg-slate-50/40">
-                    <td className="p-3 pl-4 font-bold text-slate-800">Engineering &amp; Dev</td>
-                    <td className="p-3 text-slate-500">14 FTEs</td>
-                    <td className="p-3 text-center font-mono text-slate-600">32 days</td>
-                    <td className="p-3 text-center font-mono text-emerald-600">8 days</td>
-                    <td className="p-3 text-center font-mono text-rose-500">2 days</td>
-                    <td className="p-3 text-center font-mono text-indigo-500">14 days</td>
-                    <td className="p-3 pr-4 text-right">
-                      <span className="bg-blue-50 text-blue-700 border border-blue-105 px-2.5 py-0.5 rounded-md font-extrabold text-[10px]">Optimal / 94.2%</span>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-slate-50/40">
-                    <td className="p-3 pl-4 font-bold text-slate-800">Human Resources (HR)</td>
-                    <td className="p-3 text-slate-500">4 FTEs</td>
-                    <td className="p-3 text-center font-mono text-slate-600">6 days</td>
-                    <td className="p-3 text-center font-mono text-emerald-600">2 days</td>
-                    <td className="p-3 text-center font-mono text-slate-400">0 days</td>
-                    <td className="p-3 text-center font-mono text-indigo-500">16 days</td>
-                    <td className="p-3 pr-4 text-right">
-                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-0.5 rounded-md font-extrabold text-[10px]">Excellent / 98.5%</span>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-slate-50/40">
-                    <td className="p-3 pl-4 font-bold text-slate-800">Marketing &amp; Sales</td>
-                    <td className="p-3 text-slate-500">8 FTEs</td>
-                    <td className="p-3 text-center font-mono text-slate-600">18 days</td>
-                    <td className="p-3 text-center font-mono text-emerald-600">1 day</td>
-                    <td className="p-3 text-center font-mono text-rose-500">4 days</td>
-                    <td className="p-3 text-center font-mono text-indigo-500">12 days</td>
-                    <td className="p-3 pr-4 text-right">
-                      <span className="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-md font-extrabold text-[10px]">Moderate / 86.0%</span>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-slate-50/40">
-                    <td className="p-3 pl-4 font-bold text-slate-800">Finance &amp; Audit</td>
-                    <td className="p-3 text-slate-500">3 FTEs</td>
-                    <td className="p-3 text-center font-mono text-slate-600">4 days</td>
-                    <td className="p-3 text-center font-mono text-emerald-600">3 days</td>
-                    <td className="p-3 text-center font-mono text-slate-400">0 days</td>
-                    <td className="p-3 text-center font-mono text-indigo-500">15 days</td>
-                    <td className="p-3 pr-4 text-right">
-                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-0.5 rounded-md font-extrabold text-[10px]">Excellent / 97.8%</span>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-slate-50/40">
-                    <td className="p-3 pl-4 font-bold text-slate-800">Operations &amp; Admin</td>
-                    <td className="p-3 text-slate-500">12 FTEs</td>
-                    <td className="p-3 text-center font-mono text-slate-600">28 days</td>
-                    <td className="p-3 text-center font-mono text-emerald-600">6 days</td>
-                    <td className="p-3 text-center font-mono text-rose-500">5 days</td>
-                    <td className="p-3 text-center font-mono text-indigo-500">11 days</td>
-                    <td className="p-3 pr-4 text-right">
-                      <span className="bg-blue-50 text-blue-700 border border-blue-105 px-2.5 py-0.5 rounded-md font-extrabold text-[10px]">Optimal / 91.0%</span>
-                    </td>
-                  </tr>
+                  {deptMatrixRows.length === 0 && (
+                    <tr><td colSpan={7} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                  )}
+                  {deptMatrixRows.map((row) => (
+                    <tr key={row.dept} className="hover:bg-slate-50/40">
+                      <td className="p-3 pl-4 font-bold text-slate-800">{row.dept}</td>
+                      <td className="p-3 text-slate-500">{row.employees}</td>
+                      <td className="p-3 text-center font-mono text-slate-600">{formatDays(row.annual)}</td>
+                      <td className="p-3 text-center font-mono text-emerald-600">{formatDays(row.sick)}</td>
+                      <td className={`p-3 text-center font-mono ${row.unpaid > 0 ? 'text-rose-500' : 'text-slate-400'}`}>{formatDays(row.unpaid)}</td>
+                      <td className="p-3 text-center font-mono text-indigo-500">{row.pending}</td>
+                      <td className="p-3 pr-4 text-right">
+                        <span className="bg-blue-50 text-blue-700 border border-blue-105 px-2.5 py-0.5 rounded-md font-extrabold text-[10px]">
+                          {row.employees > 0 ? formatDays(row.total / row.employees) : '—'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -2113,14 +2249,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 onChange={setLeaveReportsFilterDept}
                 className="w-auto shrink-0"
                 triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
-                options={[
-                  { value: 'All departments', label: 'All departments' },
-                  { value: 'Engineering', label: 'Engineering' },
-                  { value: 'HR', label: 'HR' },
-                  { value: 'Finance', label: 'Finance' },
-                  { value: 'Marketing', label: 'Marketing' },
-                  { value: 'Operations', label: 'Operations' },
-                ]}
+                options={deptOptions.map((d) => ({ value: d, label: d }))}
               />
 
               {/* Month Selector */}
@@ -2129,19 +2258,15 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 onChange={setLeaveReportMonth}
                 className="w-auto shrink-0"
                 triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
-                options={[
-                  { value: 'January 2026', label: 'January 2026' },
-                  { value: 'February 2026', label: 'February 2026' },
-                  { value: 'March 2026', label: 'March 2026' },
-                  { value: 'April 2026', label: 'April 2026' },
-                  { value: 'May 2026', label: 'May 2026' },
-                  { value: 'June 2026', label: 'June 2026' },
-                ]}
+                options={reportMonthOptions}
               />
 
               {/* Export report button */}
               <button
-                onClick={() => addToast(`Exported ${leaveReportType === 'detail' ? 'Detailed' : 'Summary'} Leave Report for ${leaveReportMonth}`, 'success')}
+                onClick={(e) => {
+                  const n = downloadNearestTableCsv(e.currentTarget, `leave_report_${dateStamp()}`);
+                  addToast(n ? `Exported ${n} rows as CSV.` : 'Nothing to export yet.', n ? 'success' : 'info');
+                }}
                 className="bg-novora text-white hover:bg-opacity-95 text-xs font-extrabold px-3.5 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer ml-auto sm:ml-0"
               >
                 <FileSpreadsheet className="h-4 w-4" />
@@ -2155,14 +2280,8 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             {leaveReportType === 'detail' ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Detailed Time-Off Logs - {leaveReportMonth}</h4>
-                  <span className="text-[10px] font-bold text-slate-400">Showing {
-                    leaveReportsRows.filter(row => {
-                      const matchesDept = leaveReportsFilterDept === 'All departments' || row.dept === leaveReportsFilterDept;
-                      const matchesEmp = row.name.toLowerCase().includes(leaveReportsFilterEmp.toLowerCase());
-                      return matchesDept && matchesEmp;
-                    }).length
-                  } log indices</span>
+                  <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Detailed Time-Off Logs - {monthLabel(leaveReportMonth)}</h4>
+                  <span className="text-[10px] font-bold text-slate-400">Showing {filteredReportRows.length} {filteredReportRows.length === 1 ? 'record' : 'records'}</span>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -2182,12 +2301,10 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-medium">
-                      {leaveReportsRows
-                        .filter(row => {
-                          const matchesDept = leaveReportsFilterDept === 'All departments' || row.dept === leaveReportsFilterDept;
-                          const matchesEmp = row.name.toLowerCase().includes(leaveReportsFilterEmp.toLowerCase());
-                          return matchesDept && matchesEmp;
-                        })
+                      {filteredReportRows.length === 0 && (
+                        <tr><td colSpan={10} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                      )}
+                      {filteredReportRows
                         .map(row => (
                           <tr key={row.id} className="hover:bg-slate-50/40">
                             <td className="p-3 pl-4 text-slate-400 font-bold font-mono">{row.id}</td>
@@ -2216,7 +2333,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Employee Time-Off Balances Summary</h4>
-                  <span className="text-[10px] font-bold text-slate-400">Total FTE Balance roster</span>
+                  <span className="text-[10px] font-bold text-slate-400">Approved days in {selectedYear}</span>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -2234,14 +2351,12 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-medium">
-                      {leaveSummaryRows
-                        .filter(row => {
-                          const matchesDept = leaveReportsFilterDept === 'All departments' || row.dept === leaveReportsFilterDept;
-                          const matchesEmp = row.name.toLowerCase().includes(leaveReportsFilterEmp.toLowerCase());
-                          return matchesDept && matchesEmp;
-                        })
+                      {filteredSummaryRows.length === 0 && (
+                        <tr><td colSpan={8} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                      )}
+                      {filteredSummaryRows
                         .map(row => (
-                          <tr key={row.employeeId} className="hover:bg-slate-50/40">
+                          <tr key={row.key} className="hover:bg-slate-50/40">
                             <td className="p-3 pl-4 text-slate-400 font-bold font-mono">{row.employeeId}</td>
                             <td className="p-3 font-extrabold text-slate-850">{row.name}</td>
                             <td className="p-3 text-slate-500 font-semibold">{row.dept}</td>

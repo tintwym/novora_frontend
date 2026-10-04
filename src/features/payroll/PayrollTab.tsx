@@ -66,6 +66,8 @@ import {
   type PayrollRunSummary,
   type TaxCategoryRow,
 } from '@/services';
+import { dateStamp, downloadNearestTableCsv } from '@/lib/csv';
+import { useCurrency } from '@/hooks/useCurrency';
 
 // Sub Tabs Definitions
 export type PayrollMainTab =
@@ -251,10 +253,35 @@ function mapOtPolicySettings(policies: OtPolicyRow[]) {
   }
 }
 
+function periodLabel(year: number, month: number) {
+  return new Date(year, month - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' })
+}
+
+function monthDuration(year: number, month: number) {
+  const monthName = new Date(year, month - 1, 1).toLocaleString('en-US', { month: 'long' })
+  const lastDay = new Date(year, month, 0).getDate()
+  return {
+    name: `Monthly (${periodLabel(year, month)})`,
+    start: `1 ${monthName} ${year}`,
+    end: `${lastDay} ${monthName} ${year}`,
+    payDate: `${lastDay} ${monthName} ${year}`,
+  }
+}
+
+function nextMonthShortRange() {
+  const d = new Date()
+  const next = new Date(d.getFullYear(), d.getMonth() + 1, 1)
+  const monthName = next.toLocaleString('en-US', { month: 'short' })
+  const lastDay = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate()
+  return { start: `1 ${monthName}`, end: `${lastDay} ${monthName}` }
+}
+
 export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
+  const { currency, money, amount } = useCurrency()
   const now = new Date()
-  const [payYear] = useState(now.getFullYear())
-  const [payMonth] = useState(now.getMonth() + 1)
+  const [payYear, setPayYear] = useState(now.getFullYear())
+  const [payMonth, setPayMonth] = useState(now.getMonth() + 1)
+  const activePeriodLabel = periodLabel(payYear, payMonth)
   const [payrollRows, setPayrollRows] = useState<PayrollRow[]>([])
   const [myPayslips, setMyPayslips] = useState<PayrollRow[]>([])
   const [payrollSummary, setPayrollSummary] = useState<PayrollRunSummary | null>(null)
@@ -454,7 +481,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
   // New states for User Request UI updates
   const [isCommitAllowancesModalOpen, setIsCommitAllowancesModalOpen] = useState(false);
-  const [commitBankAccount, setCommitBankAccount] = useState('corp-maybank');
+  const [taxAuditAt, setTaxAuditAt] = useState<string | null>(null);
 
   const [otPolicySettings, setOtPolicySettings] = useState({
     weekdayOtRate: '—',
@@ -489,8 +516,8 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
   const [isCreateDurationModalOpen, setIsCreateDurationModalOpen] = useState(false);
   const [newDurationName, setNewDurationName] = useState('');
-  const [newDurationStart, setNewDurationStart] = useState('1 Jun');
-  const [newDurationEnd, setNewDurationEnd] = useState('30 Jun');
+  const [newDurationStart, setNewDurationStart] = useState(() => nextMonthShortRange().start);
+  const [newDurationEnd, setNewDurationEnd] = useState(() => nextMonthShortRange().end);
   const [newDurationStatus, setNewDurationStatus] = useState('Draft');
 
   const [isEditActiveDurationModalOpen, setIsEditActiveDurationModalOpen] = useState(false);
@@ -549,14 +576,11 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
   }[]>([]);
 
   // Payment Active duration setup state
-  const [paymentDuration, setPaymentDuration] = useState({
-    name: 'Monthly (May 2026)',
-    start: '1 May 2026',
-    end: '31 May 2026',
-    payDate: '31 May 2026',
+  const [paymentDuration, setPaymentDuration] = useState(() => ({
+    ...monthDuration(now.getFullYear(), now.getMonth() + 1),
     basis: '26 working days / month',
     status: 'Current period'
-  });
+  }));
 
   const [pastDurations, setPastDurations] = useState<{
     name: string;
@@ -584,7 +608,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
   const [newDepositName, setNewDepositName] = useState('');
   const [newDepositCode, setNewDepositCode] = useState('');
-  const [newDepositBasis, setNewDepositBasis] = useState('Fixed SGD 100');
+  const [newDepositBasis, setNewDepositBasis] = useState(`Fixed ${currency} 100`);
 
   const [newDeductionName, setNewDeductionName] = useState('');
   const [newDeductionType, setNewDeductionType] = useState('Statutory');
@@ -597,7 +621,6 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
   // Reports view state variables
   const [reportsDept, setReportsDept] = useState('All departments');
   const [reportsSearch, setReportsSearch] = useState('');
-  const [reportsPeriod, setReportsPeriod] = useState('May 2026');
   const [payrollPeriodOpen, setPayrollPeriodOpen] = useState(false);
   const [payrollDeptOpen, setPayrollDeptOpen] = useState(false);
   // Dynamic state changes
@@ -809,7 +832,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
       setRunSuccessful(true)
       await refreshPayroll()
       addToast(
-        `Payroll run complete for ${payMonth}/${payYear}: ${summary.headcount} employees, net $${Number(summary.totalNetPay).toLocaleString()}.`,
+        `Payroll run complete for ${payMonth}/${payYear}: ${summary.headcount} employees, net ${money(Number(summary.totalNetPay))}.`,
         'success',
       )
     } catch (err) {
@@ -827,47 +850,74 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
   };
 
   // Compute stats for Payroll Ledger Reports
-  const payrollCostDetails = employees.map((emp) => {
-    // Generate static deterministic amounts for demo realism
-    const codeNum = parseInt(emp.id.replace(/\D/g, ''), 10) || 5;
-    const baseSalary = 3000 + (codeNum % 10) * 450;
-    const allowanceVal = 150 + (codeNum % 5) * 80;
-    const otVal = (codeNum % 4) * 120;
-    const grossVal = baseSalary + allowanceVal + otVal;
-    
-    // Deductions
-    const epf = Math.round(baseSalary * 0.11);
-    const socso = Math.round(baseSalary * 0.005);
-    const pcb = Math.round((baseSalary - epf) * 0.05);
-    const totalDeductions = epf + socso + pcb;
-    const netSalary = grossVal - totalDeductions;
+  const employeeLookup = new Map<string, Employee>();
+  for (const emp of employees) {
+    employeeLookup.set(emp.id, emp);
+    if (emp.apiId) employeeLookup.set(emp.apiId, emp);
+  }
+
+  const payrollCostDetails = payrollRows.map((row) => {
+    const emp = employeeLookup.get(row.employeeId) ?? employeeLookup.get(row.employeeCode);
+    const baseSalary = Number(row.basicSalary) || 0;
+    const allowanceVal = Number(row.allowances) || 0;
+    const otVal = Number(row.overtimePay) || 0;
+    const bonusVal = Number(row.bonus) || 0;
+    const grossVal = baseSalary + allowanceVal + otVal + bonusVal;
+    const deductionVal = Number(row.deductions) || 0;
+    const taxVal = Number(row.tax) || 0;
+    const netSalary = Number(row.netPay) || 0;
+    const status = (row.status || '').toLowerCase();
+    const issues: string[] = [];
+    if (baseSalary <= 0) issues.push('Missing basic salary');
+    if (netSalary <= 0) issues.push('Non-positive net pay');
 
     return {
-      employee: emp,
+      id: row.id,
+      name: row.employeeName || emp?.name || row.employeeCode || row.employeeId,
+      code: row.employeeCode || emp?.id || row.employeeId,
+      department: emp?.department ?? 'Unassigned',
+      status,
       baseSalary,
       allowanceVal,
       otVal,
+      bonusVal,
       grossVal,
-      epf,
-      socso,
-      pcb,
-      totalDeductions,
-      netSalary
+      deductionVal,
+      taxVal,
+      totalDeductions: deductionVal + taxVal,
+      netSalary,
+      issues,
+      prepStatus: status === 'paid' ? 'Paid' : issues.length ? 'Needs Audit' : 'Ready',
     };
   });
 
+  const departmentOptions = [
+    'All departments',
+    ...Array.from(new Set(employees.map((e) => e.department).filter(Boolean))).sort(),
+  ];
+
+  const periodOptions = (() => {
+    const seen = new Map<string, { year: number; month: number }>();
+    for (let i = 0; i < 3; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      seen.set(`${d.getFullYear()}-${d.getMonth() + 1}`, { year: d.getFullYear(), month: d.getMonth() + 1 });
+    }
+    for (const r of myPayslips) {
+      seen.set(`${r.payYear}-${r.payMonth}`, { year: r.payYear, month: r.payMonth });
+    }
+    return Array.from(seen.values()).sort((a, b) => b.year - a.year || b.month - a.month);
+  })();
+
   // Department scores
-  const departmentsList = ['Engineering', 'Finance', 'HR', 'Marketing', 'Operations'] as const;
-  const deptMatrix = departmentsList.map((dept) => {
-    const subset = payrollCostDetails.filter(p => p.employee.department === dept);
+  const deptMatrix = Array.from(new Set(payrollCostDetails.map((p) => p.department))).sort().map((dept) => {
+    const subset = payrollCostDetails.filter(p => p.department === dept);
     const count = subset.length;
     const totalBase = subset.reduce((sum, current) => sum + current.baseSalary, 0);
-    const totalAllowances = subset.reduce((sum, current) => sum + current.allowanceVal, 0);
-    const totalOt = subset.reduce((sum, current) => sum + current.otVal, 0);
     const totalDeducts = subset.reduce((sum, current) => sum + current.totalDeductions, 0);
-    const totalGross = totalBase + totalAllowances + totalOt;
-    const totalNet = totalGross - totalDeducts;
-    
+    const totalGross = subset.reduce((sum, current) => sum + current.grossVal, 0);
+    const totalNet = subset.reduce((sum, current) => sum + current.netSalary, 0);
+    const pendingDrafts = subset.some((p) => p.status !== 'processed' && p.status !== 'paid');
+
     return {
       name: dept,
       headcount: count,
@@ -875,14 +925,15 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
       totalGross,
       totalNet,
       totalDeducts,
-      budgetCompliance: totalGross > 15000 ? 'Review Needed' : 'Healthy Budget'
+      budgetCompliance: pendingDrafts ? 'Drafts Pending' : 'Processed'
     };
   });
 
   // Filtered ledger rows
   const filteredLedger = payrollCostDetails.filter(row => {
-    const matchesDept = reportsDept === 'All departments' || row.employee.department === reportsDept;
-    const matchesSearch = row.employee.name.toLowerCase().includes(reportsSearch.toLowerCase()) || row.employee.id.toLowerCase().includes(reportsSearch.toLowerCase());
+    const matchesDept = reportsDept === 'All departments' || row.department === reportsDept;
+    const q = reportsSearch.toLowerCase();
+    const matchesSearch = row.name.toLowerCase().includes(q) || row.code.toLowerCase().includes(q);
     return matchesDept && matchesSearch;
   });
 
@@ -891,6 +942,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
   const grandTotalDeductions = payrollCostDetails.reduce((sum, r) => sum + r.totalDeductions, 0);
   const grandTotalNet = payrollCostDetails.reduce((sum, r) => sum + r.netSalary, 0);
   const avgNetPay = payrollCostDetails.length > 0 ? Math.round(grandTotalNet / payrollCostDetails.length) : 0;
+  const grandTotalAllowances = payrollCostDetails.reduce((sum, r) => sum + r.allowanceVal, 0);
+  const grandTotalOt = payrollCostDetails.reduce((sum, r) => sum + r.otVal, 0);
+  const formatMoney = (n: number) => amount(n);
 
   return (
     <div id="payroll-panel-view" className="space-y-6 animate-in fade-in duration-150">
@@ -944,26 +998,31 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               }}
               className={`nv-dd-trigger ${payrollPeriodOpen ? 'nv-dd-trigger--open' : ''}`}
             >
-              <span>{reportsPeriod}</span>
+              <span>{activePeriodLabel}</span>
               <ChevronDown className="nv-chevron-down nv-chevron-down--sm" />
             </button>
             {payrollPeriodOpen ? (
               <div className="nv-dropdown-menu w-36">
-                {['May 2026', 'April 2026', 'March 2026'].map((period) => (
-                  <button
-                    key={period}
-                    type="button"
-                    aria-selected={reportsPeriod === period}
-                    onClick={() => {
-                      setReportsPeriod(period)
-                      setPayrollPeriodOpen(false)
-                      addToast(`Transitioned ledger review cycle to active ${period}`, 'info')
-                    }}
-                    className={reportsPeriod === period ? 'nv-dropdown-item--active' : ''}
-                  >
-                    {period}
-                  </button>
-                ))}
+                {periodOptions.map(({ year, month }) => {
+                  const label = periodLabel(year, month)
+                  const isActive = year === payYear && month === payMonth
+                  return (
+                    <button
+                      key={`${year}-${month}`}
+                      type="button"
+                      aria-selected={isActive}
+                      onClick={() => {
+                        setPayYear(year)
+                        setPayMonth(month)
+                        setPayrollPeriodOpen(false)
+                        addToast(`Loading payroll for ${label}`, 'info')
+                      }}
+                      className={isActive ? 'nv-dropdown-item--active' : ''}
+                    >
+                      {label}
+                    </button>
+                  )
+                })}
               </div>
             ) : null}
           </DropdownAnchor>
@@ -987,7 +1046,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             </button>
             {payrollDeptOpen ? (
               <div className="nv-dropdown-menu w-44">
-                {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map((dept) => (
+                {departmentOptions.map((dept) => (
                   <button
                     key={dept}
                     type="button"
@@ -1010,11 +1069,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
           {/* Export utility */}
           <button
             type="button"
-            onClick={() => {
-              addToast('Packaging and validating current payroll roster schedules...', 'loading');
-              setTimeout(() => {
-                addToast('Comprehensive ledger exported as NovoraPayroll_Ledger_May2026.xlsx', 'success');
-              }, 1500);
+            onClick={(e) => {
+              const n = downloadNearestTableCsv(e.currentTarget, `payroll_ledger_${dateStamp()}`);
+              addToast(n ? `Exported ${n} rows as CSV.` : 'Nothing to export yet.', n ? 'success' : 'info');
             }}
             className="nv-toolbar-btn"
           >
@@ -1210,7 +1267,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-4 pl-6">Allowance name</th>
                         <th className="p-4">Policy type</th>
-                        <th className="p-4">Amount (SGD)</th>
+                        <th className="p-4">Amount ({currency})</th>
                         <th className="p-4">Deduction amt</th>
                         <th className="p-4 text-center">Taxable</th>
                         <th className="p-4 text-center">On payslip</th>
@@ -1326,7 +1383,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Claim Amount (SGD)</label>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Claim Amount ({currency})</label>
                         <input
                           type="number" step="0.01" placeholder="e.g. 150.00"
                           value={newTravelAmt}
@@ -1365,7 +1422,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                             <th className="p-3 pl-5">Claimant</th>
                             <th className="p-3">Purpose</th>
                             <th className="p-3 font-mono">Date</th>
-                            <th className="p-3 text-center">Amount (SGD)</th>
+                            <th className="p-3 text-center">Amount ({currency})</th>
                             <th className="p-3 pr-5 text-right">Status</th>
                           </tr>
                         </thead>
@@ -1492,35 +1549,35 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-3 pl-5">Staff member</th>
                         <th className="p-3">Unit Department</th>
-                        <th className="p-3 text-center">Approved Transport</th>
-                        <th className="p-3 text-center">Approved Meals</th>
-                        <th className="p-3 text-center">Special Bonus Allowance</th>
-                        <th className="p-3 text-center font-bold">Total (SGD)</th>
+                        <th className="p-3 text-center">Allowances</th>
+                        <th className="p-3 text-center">Overtime</th>
+                        <th className="p-3 text-center">Bonus</th>
+                        <th className="p-3 text-center font-bold">Total ({currency})</th>
                         <th className="p-3 pr-5 text-right">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                      {employees.slice(0, 4).map((emp, i) => {
-                        const trClaim = (i % 2 === 0) ? 300 : 0;
-                        const mealClaim = 200;
-                        const specClaim = (i === 1) ? 150 : 0;
-                        const total = trClaim + mealClaim + specClaim;
+                      {payrollCostDetails.map((row) => {
+                        const total = row.allowanceVal + row.otVal + row.bonusVal;
                         return (
-                          <tr key={emp.id} className="hover:bg-slate-50/50">
-                            <td className="p-3 pl-5 font-bold text-slate-800">{emp.name}</td>
-                            <td className="p-3 text-slate-500">{emp.department}</td>
-                            <td className="p-3 text-center font-mono text-slate-600">{trClaim > 0 ? `${trClaim}.00` : '—'}</td>
-                            <td className="p-3 text-center font-mono text-slate-600">{mealClaim}.00</td>
-                            <td className="p-3 text-center font-mono text-indigo-500">{specClaim > 0 ? `${specClaim}.00` : '—'}</td>
-                            <td className="p-3 text-center font-mono font-black text-slate-800">{total}.00</td>
+                          <tr key={row.id} className="hover:bg-slate-50/50">
+                            <td className="p-3 pl-5 font-bold text-slate-800">{row.name}</td>
+                            <td className="p-3 text-slate-500">{row.department}</td>
+                            <td className="p-3 text-center font-mono text-slate-600">{row.allowanceVal > 0 ? formatMoney(row.allowanceVal) : '—'}</td>
+                            <td className="p-3 text-center font-mono text-slate-600">{row.otVal > 0 ? formatMoney(row.otVal) : '—'}</td>
+                            <td className="p-3 text-center font-mono text-indigo-500">{row.bonusVal > 0 ? formatMoney(row.bonusVal) : '—'}</td>
+                            <td className="p-3 text-center font-mono font-black text-slate-800">{formatMoney(total)}</td>
                             <td className="p-3 pr-5 text-right">
-                              <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-0.5 rounded text-[10px] font-bold">
-                                Approved
+                              <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-0.5 rounded text-[10px] font-bold uppercase">
+                                {row.status || '—'}
                               </span>
                             </td>
                           </tr>
                         );
                       })}
+                      {payrollCostDetails.length === 0 && (
+                        <tr><td colSpan={7} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1668,14 +1725,18 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50 p-4 border border-slate-200 rounded-3xl">
                   <div>
-                    <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Calculated May 2026 Bonus disbursement</h4>
+                    <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Calculated {activePeriodLabel} Bonus disbursement</h4>
                     <p className="text-[10.5px] font-medium text-slate-400">Ledger details with corresponding KPI achievement benchmarks.</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => {
+                      if (bonusPayments.length === 0) {
+                        addToast('No bonus payment rows to approve yet.', 'info');
+                        return;
+                      }
                       setBonusPayments(bonusPayments.map(p => ({ ...p, status: 'Paid' })));
-                      addToast('Fulfillment releases posted successfully to May 2026 payroll.', 'success');
+                      addToast(`Marked ${bonusPayments.length} bonus rows as paid in this view.`, 'success');
                     }}
                     className="bg-novora hover:bg-opacity-95 text-white text-xs font-bold px-4 py-2 rounded-xl cursor-pointer"
                   >
@@ -1700,7 +1761,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           <td className="p-3 pl-5 font-bold text-slate-800">{p.empName}</td>
                           <td className="p-3 text-slate-500">{p.dept}</td>
                           <td className="p-3 font-bold text-novora">{p.scale}</td>
-                          <td className="p-3 font-mono font-extrabold text-slate-900">SGD {p.amount}</td>
+                          <td className="p-3 font-mono font-extrabold text-slate-900">{money(Number(p.amount))}</td>
                           <td className="p-3 pr-5 text-right">
                             <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold border ${
                               p.status === 'Paid'
@@ -1712,6 +1773,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           </td>
                         </tr>
                       ))}
+                      {bonusPayments.length === 0 && (
+                        <tr><td colSpan={5} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1844,7 +1908,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </div>
                 </div>
 
-                {/* Right Side: Attached employees (430 employees) */}
+                {/* Right Side: Attached employees */}
                 <div className="lg:col-span-3 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -1927,7 +1991,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           id: createLocalId('MN'),
                           empName: newManualOtStaff,
                           hrs: hrsCalculated,
-                          rate: `SGD ${rateNum.toFixed(2)}/hr`,
+                          rate: `${money(rateNum)}/hr`,
                           total: hrsCalculated * rateNum,
                           date: new Date().toISOString().split('T')[0]
                         };
@@ -1963,7 +2027,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Per Hour Rate (SGD)</label>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Per Hour Rate ({currency})</label>
                           <input
                             type="number" step="0.5" placeholder="25.00"
                             value={newManualOtRate}
@@ -1997,7 +2061,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                                 <td className="p-3 font-mono text-slate-400">{entry.date}</td>
                                 <td className="p-3 text-slate-800">{entry.hrs} hours</td>
                                 <td className="p-3 text-slate-500">{entry.rate}</td>
-                                <td className="p-3 pr-5 text-right font-mono font-bold text-emerald-600">SGD {entry.total.toFixed(2)}</td>
+                                <td className="p-3 pr-5 text-right font-mono font-bold text-emerald-600">{money(entry.total)}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -2590,7 +2654,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     setNewDedStaff('');
                     setNewDedAmt('');
                     setNewDedReason('');
-                    addToast(`Deduction of SGD ${amtParsed.toFixed(2)} applied for ${newDedStaff}.`, 'success');
+                    addToast(`Deduction of ${money(amtParsed)} applied for ${newDedStaff}.`, 'success');
                   }} className="space-y-3">
                     <div>
                       <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Employee</label>
@@ -2610,7 +2674,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Deducted Amount (SGD)</label>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Deducted Amount ({currency})</label>
                       <input
                         type="number" step="1" placeholder="e.g. 150"
                         value={newDedAmt}
@@ -2654,7 +2718,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                               <td className="p-3 pl-5 font-bold text-slate-800">{item.empName}</td>
                               <td className="p-3 font-mono text-slate-400">{item.date}</td>
                               <td className="p-3 text-slate-500 max-w-xs truncate font-medium">{item.reason}</td>
-                              <td className="p-3 pr-5 text-right font-mono font-bold text-rose-600">- SGD {numVal.toFixed(2)}</td>
+                              <td className="p-3 pr-5 text-right font-mono font-bold text-rose-600">- {money(numVal)}</td>
                               <td className="p-3 pr-5 text-right font-bold">
                                 <div className="inline-flex gap-2">
                                   <button
@@ -2764,7 +2828,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <div className="space-y-4 text-xs font-semibold">
                 <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center bg-slate-50/30 hover:bg-slate-50 transition-all cursor-pointer animate-none"
                      onClick={() => {
-                       const docName = prompt('Enter government gazette circular or tax advisory file name (e.g. Budget_2026_Tax_Reform_Rates.pdf):');
+                       const docName = prompt(`Enter government gazette circular or tax advisory file name (e.g. Budget_${now.getFullYear()}_Tax_Reform_Rates.pdf):`);
                        if (docName) {
                          const n = { id: createLocalId('ATT-T'), label: docName, date: new Date().toISOString().split('T')[0], size: '2.5 MB', uploader: 'Corporate Controller' };
                          setTaxAttachments([n, ...taxAttachments]);
@@ -2828,7 +2892,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     </div>
                     <div className="flex justify-between pt-1.5">
                       <span>Exempt Threshold Level</span>
-                      <strong className="text-slate-800 text-indigo-650">SGD 3,000 / month</strong>
+                      <strong className="text-slate-800 text-indigo-650">{money(3000, 0)} / month</strong>
                     </div>
                   </div>
                 </div>
@@ -2839,12 +2903,21 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   <div className="pt-2">
                     <button
                       type="button"
-                      onClick={() => addToast('Pushed policy check parameters to cloud registry.', 'success')}
+                      onClick={() => {
+                        const active = taxes.filter((t) => t.status === 'Active').length;
+                        setTaxAuditAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                        addToast(
+                          taxes.length
+                            ? `Reviewed ${taxes.length} tax categories: ${active} active, ${taxes.length - active} inactive.`
+                            : 'No tax categories configured yet.',
+                          taxes.length ? 'success' : 'info',
+                        );
+                      }}
                       className="bg-novora hover:bg-opacity-95 text-white font-bold px-4 py-2 rounded-xl cursor-pointer"
                     >
                       Audit Withholding Standards
                     </button>
-                    <p className="text-[10px] text-slate-400 mt-2 font-medium">Latest synchronization audit completed: Today, 10:43 UTC</p>
+                    <p className="text-[10px] text-slate-400 mt-2 font-medium">{taxAuditAt ? `Last reviewed today at ${taxAuditAt}` : 'Not reviewed in this session.'}</p>
                   </div>
                 </div>
               </div>
@@ -3000,6 +3073,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                             </tr>
                           );
                         })}
+                        {pastDurations.length === 0 && (
+                          <tr><td colSpan={4} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -3013,10 +3089,24 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <div className="space-y-4">
                 <div className="flex bg-slate-50 border border-slate-200 p-4 rounded-xl justify-between items-center text-xs">
                   <div>
-                    <h4 className="font-extrabold text-slate-800 text-[12px] uppercase tracking-widest">May 2026 Pre-disbursement Checklist</h4>
+                    <h4 className="font-extrabold text-slate-800 text-[12px] uppercase tracking-widest">{activePeriodLabel} Pre-disbursement Checklist</h4>
                     <p className="text-[10.5px] text-slate-500 font-medium">Verify employee data and payment classifications below before performing the final month-end payroll run.</p>
                   </div>
-                  <button type="button" onClick={() => addToast('Pushed payroll parameters check to external accounting system.', 'success')} className="bg-novora hover:bg-opacity-95 text-white font-bold py-1.5 px-3 rounded-lg cursor-pointer">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (payrollCostDetails.length === 0) {
+                        addToast(`No payroll rows for ${activePeriodLabel} to validate yet.`, 'info');
+                        return;
+                      }
+                      const flagged = payrollCostDetails.filter((r) => r.issues.length > 0).length;
+                      addToast(
+                        `Validated ${payrollCostDetails.length} payroll rows for ${activePeriodLabel}: ${flagged} need attention.`,
+                        flagged ? 'info' : 'success',
+                      );
+                    }}
+                    className="bg-novora hover:bg-opacity-95 text-white font-bold py-1.5 px-3 rounded-lg cursor-pointer"
+                  >
                     Validate Roster
                   </button>
                 </div>
@@ -3026,40 +3116,41 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <th className="p-3 pl-5">Staff Member</th>
-                        <th className="p-3">Compliance Taxes</th>
-                        <th className="p-3">Banking Routing</th>
-                        <th className="p-3 text-center">Approved Claims</th>
+                        <th className="p-3">Tax Withheld</th>
+                        <th className="p-3">Deductions</th>
+                        <th className="p-3 text-center">Allowances &amp; OT</th>
                         <th className="p-3 pr-5 text-right font-bold">Preparation Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-slate-700">
-                      <tr className="hover:bg-slate-50/50">
-                        <td className="p-3 pl-5 font-bold text-slate-800">Ahmad L</td>
-                        <td className="p-3">Standard IRAS / CPF 11%</td>
-                        <td className="p-3 font-mono">Maybank ******431</td>
-                        <td className="p-3 text-center text-emerald-600 font-extrabold">SGD 120.00</td>
-                        <td className="p-3 pr-5 text-right">
-                          <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-100">Ready</span>
-                        </td>
-                      </tr>
-                      <tr className="hover:bg-slate-50/50">
-                        <td className="p-3 pl-5 font-bold text-slate-800">Fatimah H</td>
-                        <td className="p-3">Standard IRAS / CPF 11%</td>
-                        <td className="p-3 font-mono">CIMB Bank ******980</td>
-                        <td className="p-3 text-center text-slate-400 italic">None</td>
-                        <td className="p-3 pr-5 text-right">
-                          <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-100">Ready</span>
-                        </td>
-                      </tr>
-                      <tr className="hover:bg-slate-50/50">
-                        <td className="p-3 pl-5 font-bold text-slate-800">Johnathan D</td>
-                        <td className="p-3">Standard IRAS / CPF 11%</td>
-                        <td className="p-3 font-mono">Public Bank ******103</td>
-                        <td className="p-3 text-center text-emerald-600 font-extrabold">SGD 340.00</td>
-                        <td className="p-3 pr-5 text-right">
-                          <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded text-[10px] font-bold border border-amber-100">Needs Audit</span>
-                        </td>
-                      </tr>
+                      {payrollCostDetails.map((row) => {
+                        const extras = row.allowanceVal + row.otVal;
+                        return (
+                          <tr key={row.id} className="hover:bg-slate-50/50">
+                            <td className="p-3 pl-5 font-bold text-slate-800">{row.name}</td>
+                            <td className="p-3 font-mono">{money(row.taxVal)}</td>
+                            <td className="p-3 font-mono">{money(row.deductionVal)}</td>
+                            {extras > 0 ? (
+                              <td className="p-3 text-center text-emerald-600 font-extrabold">{money(extras)}</td>
+                            ) : (
+                              <td className="p-3 text-center text-slate-400 italic">None</td>
+                            )}
+                            <td className="p-3 pr-5 text-right">
+                              <span
+                                title={row.issues.join(', ') || undefined}
+                                className={row.prepStatus === 'Needs Audit'
+                                  ? 'bg-amber-50 text-amber-700 px-2 py-0.5 rounded text-[10px] font-bold border border-amber-100'
+                                  : 'bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-100'}
+                              >
+                                {row.prepStatus}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {payrollCostDetails.length === 0 && (
+                        <tr><td colSpan={5} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -3071,7 +3162,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <div className="space-y-6 text-xs max-w-xl mx-auto border border-slate-200 bg-white p-6 rounded-3xl">
                 <div className="text-center space-y-2">
                   <Calculator className="h-10 w-10 text-blue-600 mx-auto" />
-                  <h4 className="text-sm font-bold text-slate-800 uppercase tracking-widest">Execute May 2026 Month-End Run</h4>
+                  <h4 className="text-sm font-bold text-slate-800 uppercase tracking-widest">Execute {activePeriodLabel} Month-End Run</h4>
                   <p className="text-slate-500 max-w-sm mx-auto font-medium lead-relaxed">
                     Once executed, this action lock monthly calculations parameters, record progressive taxing logs, and disburse digital payslips to active employees.
                   </p>
@@ -3084,7 +3175,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </div>
                   <div className="flex justify-between border-b border-gutter py-2">
                     <span>Estimated Net Payroll</span>
-                    <strong className="text-slate-900 font-mono">SGD {(payrollSummary ? Number(payrollSummary.totalNetPay) : grandTotalGross).toLocaleString()}</strong>
+                    <strong className="text-slate-900 font-mono">{money(payrollSummary ? Number(payrollSummary.totalNetPay) : grandTotalNet)}</strong>
                   </div>
                   <div className="flex justify-between pt-1">
                     <span>Draft / Processed / Paid</span>
@@ -3104,7 +3195,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           payMonth,
                           payYear,
                           headcount: payrollSummary?.headcount ?? employees.length,
-                          totalNetPay: String(payrollSummary ? Number(payrollSummary.totalNetPay) : grandTotalGross),
+                          totalNetPay: String(payrollSummary ? Number(payrollSummary.totalNetPay) : grandTotalNet),
                           draftCount: payrollSummary?.draftCount ?? null,
                           processedCount: payrollSummary?.processedCount ?? null,
                           paidCount: payrollSummary?.paidCount ?? null,
@@ -3200,7 +3291,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           </td>
                           <td className="p-3">{row.employeeName}</td>
                           <td className="p-3 font-mono font-bold text-slate-900">
-                            SGD {Number(row.netPay).toLocaleString()}
+                            {money(Number(row.netPay))}
                           </td>
                           <td className="p-3 uppercase text-[10px] font-extrabold">{row.status}</td>
                           <td className="p-3 pr-5 text-right">
@@ -3243,8 +3334,8 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <div className="nv-card p-4 shadow-sm flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gross Payout</span>
-                    <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">SGD {grandTotalGross.toLocaleString()}</h3>
-                    <span className="text-[9px] font-bold text-indigo-500 bg-indigo-55/60 px-2 py-0.5 rounded-md border border-indigo-110">Basic + Allowance + OT</span>
+                    <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">{money(grandTotalGross)}</h3>
+                    <span className="text-[9px] font-bold text-indigo-500 bg-indigo-55/60 px-2 py-0.5 rounded-md border border-indigo-110">Basic + Allowance + OT + Bonus</span>
                   </div>
                   <div className="h-10 w-10 rounded-xl bg-blue-50 border border-blue-105 flex items-center justify-center">
                     <Coins className="h-5 w-5 text-novora" />
@@ -3254,7 +3345,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <div className="nv-card p-4 shadow-sm flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Net Disbursements</span>
-                    <h3 className="text-xl font-extrabold text-emerald-600 tracking-tight">SGD {grandTotalNet.toLocaleString()}</h3>
+                    <h3 className="text-xl font-extrabold text-emerald-600 tracking-tight">{money(grandTotalNet)}</h3>
                     <span className="text-[9px] font-bold text-emerald-500 bg-emerald-55/60 px-2 py-0.5 rounded-md border border-emerald-100">Transferred basic sum</span>
                   </div>
                   <div className="h-10 w-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
@@ -3265,8 +3356,8 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <div className="nv-card p-4 shadow-sm flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Withholding &amp; Taxes</span>
-                    <h3 className="text-xl font-extrabold text-rose-600 tracking-tight">SGD {grandTotalDeductions.toLocaleString()}</h3>
-                    <span className="text-[9px] font-bold text-rose-500 bg-rose-55/60 px-2 py-0.5 rounded-md border border-rose-110">CPF + CDAC + IRAS</span>
+                    <h3 className="text-xl font-extrabold text-rose-600 tracking-tight">{money(grandTotalDeductions)}</h3>
+                    <span className="text-[9px] font-bold text-rose-500 bg-rose-55/60 px-2 py-0.5 rounded-md border border-rose-110">Deductions + Tax</span>
                   </div>
                   <div className="h-10 w-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center">
                     <Percent className="h-5 w-5 text-rose-500" />
@@ -3276,7 +3367,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <div className="nv-card p-4 shadow-sm flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Avg Paycheck</span>
-                    <h3 className="text-xl font-extrabold text-indigo-600 tracking-tight">SGD {avgNetPay.toLocaleString()}</h3>
+                    <h3 className="text-xl font-extrabold text-indigo-600 tracking-tight">{money(avgNetPay)}</h3>
                     <span className="text-[9px] font-bold text-indigo-500 bg-indigo-55/60 px-2 py-0.5 rounded-md border border-indigo-110">Average salary net</span>
                   </div>
                   <div className="h-10 w-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
@@ -3306,20 +3397,20 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                         <th className="p-3 text-center">Withholdings</th>
                         <th className="p-3 text-center">Total Gross Paid</th>
                         <th className="p-3 text-center">Total Net Paid</th>
-                        <th className="p-3 pr-4 text-right">Budget Status</th>
+                        <th className="p-3 pr-4 text-right">Run Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                       {deptMatrix.map((dept) => {
-                        const isAlert = dept.budgetCompliance === 'Review Needed';
+                        const isAlert = dept.budgetCompliance === 'Drafts Pending';
                         return (
                           <tr key={dept.name} className="hover:bg-slate-50/40">
                             <td className="p-3 pl-4 font-bold text-slate-800">{dept.name}</td>
                             <td className="p-3 text-slate-500">{dept.headcount} staff</td>
-                            <td className="p-3 text-center font-mono font-bold">SGD {dept.avgBasic.toLocaleString()}</td>
-                            <td className="p-3 text-center font-mono text-rose-500">SGD {dept.totalDeducts.toLocaleString()}</td>
-                            <td className="p-3 text-center font-mono text-slate-800 font-extrabold">SGD {dept.totalGross.toLocaleString()}</td>
-                            <td className="p-3 text-center font-mono text-emerald-600 font-extrabold">SGD {dept.totalNet.toLocaleString()}</td>
+                            <td className="p-3 text-center font-mono font-bold">{money(dept.avgBasic)}</td>
+                            <td className="p-3 text-center font-mono text-rose-500">{money(dept.totalDeducts)}</td>
+                            <td className="p-3 text-center font-mono text-slate-800 font-extrabold">{money(dept.totalGross)}</td>
+                            <td className="p-3 text-center font-mono text-emerald-600 font-extrabold">{money(dept.totalNet)}</td>
                             <td className="p-3 pr-4 text-right">
                               <span className={`border px-2.5 py-0.5 rounded-md font-extrabold text-[10px] ${
                                 isAlert
@@ -3332,6 +3423,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                           </tr>
                         );
                       })}
+                      {deptMatrix.length === 0 && (
+                        <tr><td colSpan={7} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -3357,27 +3451,18 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     aria-label="Department filter"
                     className="w-auto shrink-0"
                     triggerClassName="nv-select-trigger--toolbar min-w-[9rem]"
-                    options={[
-                      { value: 'All departments', label: 'All departments' },
-                      { value: 'Engineering', label: 'Engineering' },
-                      { value: 'Finance', label: 'Finance' },
-                      { value: 'HR', label: 'HR' },
-                      { value: 'Marketing', label: 'Marketing' },
-                      { value: 'Operations', label: 'Operations' },
-                    ]}
+                    options={departmentOptions.map((d) => ({ value: d, label: d }))}
                   />
                 </div>
 
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-slate-400 bg-white border px-2 py-0.5 rounded text-right shrink-0">
-                    Showing {filteredLedger.length} of {employees.length} entries
+                    Showing {filteredLedger.length} of {payrollCostDetails.length} entries
                   </span>
                   <button
-                    onClick={() => {
-                      addToast('Compiling custom breakdown report values...', 'loading');
-                      setTimeout(() => {
-                        addToast('Downloaded employee ledger dataset successfully.', 'success');
-                      }, 1200);
+                    onClick={(e) => {
+                      const n = downloadNearestTableCsv(e.currentTarget, `payroll_employee_ledger_${dateStamp()}`);
+                      addToast(n ? `Exported ${n} rows as CSV.` : 'Nothing to export yet.', n ? 'success' : 'info');
                     }}
                     className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-white bg-novora hover:bg-opacity-95 rounded-xl transition-all shadow-sm cursor-pointer whitespace-nowrap shrink-0"
                   >
@@ -3395,31 +3480,34 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       <th className="p-3 pl-5">Employee Name</th>
                       <th className="p-3 text-center">Basic Salary</th>
                       <th className="p-3 text-center">Allowance sum</th>
-                      <th className="p-3 text-center">OT Payout</th>
+                      <th className="p-3 text-center">OT &amp; Bonus</th>
                       <th className="p-3 text-center font-bold text-slate-800">Gross Salary</th>
-                      <th className="p-3 text-center text-red-500">CPF (Employee)</th>
-                      <th className="p-3 text-center text-red-500">MediSave &amp; IRAS</th>
+                      <th className="p-3 text-center text-red-500">Deductions</th>
+                      <th className="p-3 text-center text-red-500">Tax</th>
                       <th className="p-3 text-center font-bold text-slate-800">Total Deductions</th>
                       <th className="p-3 pr-5 text-right font-extrabold text-emerald-700">Net Paid Salary</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                     {filteredLedger.map((row) => (
-                      <tr key={row.employee.id} className="hover:bg-slate-50/40">
+                      <tr key={row.id} className="hover:bg-slate-50/40">
                         <td className="p-3 pl-5">
-                          <span className="font-bold text-slate-800 block">{row.employee.name}</span>
-                          <span className="text-[9.5px] font-mono text-slate-400 block mt-0.5">{row.employee.id} &bull; {row.employee.department}</span>
+                          <span className="font-bold text-slate-800 block">{row.name}</span>
+                          <span className="text-[9.5px] font-mono text-slate-400 block mt-0.5">{row.code} &bull; {row.department}</span>
                         </td>
-                        <td className="p-3 text-center font-mono font-semibold">SGD {row.baseSalary.toLocaleString()}</td>
-                        <td className="p-3 text-center font-mono text-indigo-500">+SGD {row.allowanceVal}</td>
-                        <td className="p-3 text-center font-mono text-indigo-500">+SGD {row.otVal}</td>
-                        <td className="p-3 text-center font-mono font-bold text-slate-800 bg-slate-50/30">SGD {row.grossVal.toLocaleString()}</td>
-                        <td className="p-3 text-center font-mono text-rose-500">-SGD {row.epf}</td>
-                        <td className="p-3 text-center font-mono text-rose-500">-SGD {row.socso + row.pcb}</td>
-                        <td className="p-3 text-center font-mono font-semibold text-rose-600 bg-rose-50/10">SGD {row.totalDeductions}</td>
-                        <td className="p-3 pr-5 text-right font-mono font-extrabold text-emerald-600 bg-emerald-50/10">SGD {row.netSalary.toLocaleString()}</td>
+                        <td className="p-3 text-center font-mono font-semibold">{money(row.baseSalary)}</td>
+                        <td className="p-3 text-center font-mono text-indigo-500">+{money(row.allowanceVal)}</td>
+                        <td className="p-3 text-center font-mono text-indigo-500">+{money(row.otVal + row.bonusVal)}</td>
+                        <td className="p-3 text-center font-mono font-bold text-slate-800 bg-slate-50/30">{money(row.grossVal)}</td>
+                        <td className="p-3 text-center font-mono text-rose-500">-{money(row.deductionVal)}</td>
+                        <td className="p-3 text-center font-mono text-rose-500">-{money(row.taxVal)}</td>
+                        <td className="p-3 text-center font-mono font-semibold text-rose-600 bg-rose-50/10">{money(row.totalDeductions)}</td>
+                        <td className="p-3 pr-5 text-right font-mono font-extrabold text-emerald-600 bg-emerald-50/10">{money(row.netSalary)}</td>
                       </tr>
                     ))}
+                    {filteredLedger.length === 0 && (
+                      <tr><td colSpan={9} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -3464,25 +3552,19 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               {simStep >= 1 && (
                 <div className="text-indigo-600 font-semibold flex items-center gap-1.5">
                   <CheckCircle className="h-3 w-3 shrink-0" />
-                  <span>Verified employee attendance locks: OK</span>
+                  <span>Generating payroll drafts for {activePeriodLabel}</span>
                 </div>
               )}
               {simStep >= 2 && (
                 <div className="text-indigo-600 font-semibold flex items-center gap-1.5">
                   <CheckCircle className="h-3 w-3 shrink-0" />
-                  <span>Basic salary fractions scaled to hours: CALC</span>
-                </div>
-              )}
-              {simStep >= 3 && (
-                <div className="text-indigo-600 font-semibold flex items-center gap-1.5">
-                  <CheckCircle className="h-3 w-3 shrink-0" />
-                  <span>Government brackets &amp; CPF schedules locked: OK</span>
+                  <span>Drafts generated; processing payroll month</span>
                 </div>
               )}
               {simStep >= 4 && (
                 <div className="text-emerald-700 font-bold flex items-center gap-1.5">
                   <CheckCircle className="h-4 w-4 shrink-0 text-emerald-500" />
-                  <span>Salary disbursement ledger compiled!</span>
+                  <span>Payroll processed{payrollSummary ? ` for ${payrollSummary.headcount} employees` : ''}</span>
                 </div>
               )}
             </div>
@@ -3540,7 +3622,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Proposed Value (SGD)</label>
+                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Proposed Value ({currency})</label>
                 <input
                   type="text"
                   placeholder="e.g. 150.00"
@@ -3693,7 +3775,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Amount basis</label>
                 <input
                   type="text"
-                  placeholder="e.g. Fixed SGD 150"
+                  placeholder={`e.g. Fixed ${currency} 150`}
                   value={newDepositBasis}
                   onChange={(e) => setNewDepositBasis(e.target.value)}
                   className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-semibold"
@@ -3760,7 +3842,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. SGD 50.00/month"
+                  placeholder={`e.g. ${money(50)}/month`}
                   value={newDeductionRate}
                   onChange={(e) => setNewDeductionRate(e.target.value)}
                   className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-semibold"
@@ -3887,7 +3969,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Proposed Value (SGD)</label>
+                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Proposed Value ({currency})</label>
                 <input
                   type="text"
                   required
@@ -4083,7 +4165,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Fixed SGD 150"
+                  placeholder={`e.g. Fixed ${currency} 150`}
                   value={editingDeposit.amountBasis}
                   onChange={(e) => setEditingDeposit({ ...editingDeposit, amountBasis: e.target.value })}
                   className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-semibold text-slate-800"
@@ -4187,7 +4269,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. SGD 50.00/month"
+                  placeholder={`e.g. ${money(50)}/month`}
                   value={editingDeduction.amountRate}
                   onChange={(e) => setEditingDeduction({ ...editingDeduction, amountRate: e.target.value })}
                   className="bg-slate-50 border border-slate-200 text-xs p-2.5 rounded-xl w-full focus:outline-none focus:bg-white font-semibold text-slate-800"
@@ -4338,42 +4420,32 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
             <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-widest border-b pb-2">Commit Approved Allowances</h3>
             
             <p className="text-slate-600 text-xs leading-relaxed font-semibold">
-              You are about to lock and commit all transport, meal, and special bonus allowances to the active month's payslips. This action is final and will freeze further edits for this cycle.
+              Review the allowance and overtime totals on the {activePeriodLabel} payroll rows. Allowances are applied to payslips when the payroll run is generated and processed.
             </p>
 
             <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-2 text-xs">
               <div className="flex justify-between text-slate-500 font-semibold">
                 <span>Active Target Roster</span>
-                <span className="font-bold text-slate-800">435 Employees</span>
+                <span className="font-bold text-slate-800">{payrollCostDetails.length} Employees</span>
               </div>
               <div className="flex justify-between text-slate-500 font-semibold">
-                <span>Approved Transport Allowance</span>
-                <span className="font-bold text-slate-800">SGD 18,250.00</span>
+                <span>Allowances on payroll</span>
+                <span className="font-bold text-slate-800">{money(grandTotalAllowances)}</span>
               </div>
               <div className="flex justify-between text-slate-500 font-semibold">
-                <span>Approved Meal Allowance</span>
-                <span className="font-bold text-slate-800">SGD 12,400.00</span>
+                <span>Overtime pay on payroll</span>
+                <span className="font-bold text-slate-800">{money(grandTotalOt)}</span>
               </div>
               <div className="flex justify-between text-slate-500 border-t border-slate-200 pt-2 font-bold text-slate-800">
-                <span>Grand Committed Total</span>
-                <span className="text-novora">SGD 30,650.00</span>
+                <span>Grand Total</span>
+                <span className="text-novora">{money(grandTotalAllowances + grandTotalOt)}</span>
               </div>
             </div>
 
             <div className="space-y-3 pt-1">
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Clearing Bank Fund</label>
-                <SelectMenu
-                  value={commitBankAccount}
-                  onChange={setCommitBankAccount}
-                  preferUp
-                  triggerClassName="text-xs font-bold text-slate-800 bg-slate-50 border-slate-200"
-                  options={[
-                    { value: 'corp-maybank', label: 'Maybank Corporate Account - ******431' },
-                    { value: 'corp-cimb', label: 'CIMB Principal Treasury - ******980' },
-                    { value: 'corp-rhb', label: 'RHB Operating Reserves - ******102' },
-                  ]}
-                />
+                <p className="text-[11px] text-slate-400 font-medium">No clearing bank accounts configured.</p>
               </div>
             </div>
 
@@ -4389,7 +4461,12 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                 type="button"
                 onClick={() => {
                   setIsCommitAllowancesModalOpen(false);
-                  addToast('Committed all approved allowances to monthly payroll pay slips. Bank lock established.', 'success');
+                  addToast(
+                    payrollCostDetails.length
+                      ? `Reviewed ${payrollCostDetails.length} payroll rows for ${activePeriodLabel} (${money(grandTotalAllowances)} allowances). They are applied when the payroll run is processed.`
+                      : `No payroll rows for ${activePeriodLabel} yet. Run payroll to apply allowances.`,
+                    'info',
+                  );
                 }}
                 className="flex-1 bg-novora hover:bg-opacity-95 text-white text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer"
               >
@@ -4699,7 +4776,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Deducted Amount (SGD)</label>
+                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Deducted Amount ({currency})</label>
                 <input
                   type="number"
                   required
@@ -4784,9 +4861,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
                   options={[
                     { value: 'No Limit', label: 'No Limit (Fully Taxable)' },
-                    { value: 'SGD 1,200 annually', label: 'SGD 1,200 annually' },
-                    { value: 'SGD 3,000 annually', label: 'SGD 3,000 annually' },
-                    { value: 'SGD 5,000 annually', label: 'SGD 5,000 annually' },
+                    ...[1200, 3000, 5000].map((n) => ({ value: `${money(n, 0)} annually`, label: `${money(n, 0)} annually` })),
                     { value: 'Exempt from tax', label: 'Exempt from tax' },
                   ]}
                 />

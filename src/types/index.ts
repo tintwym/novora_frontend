@@ -63,6 +63,7 @@ export interface AuthSession {
     plan: string
     status: string
     trialExpiresAt: string | null
+    currency: string
   } | null
 }
 

@@ -92,9 +92,11 @@ function toPascalSyllables(token: string): string {
       .map((b) => titleCaseWord(b))
       .join('')
   }
-  return segmentCompactName(token)
-    .map((p) => titleCaseWord(p))
-    .join('')
+  const parts = segmentCompactName(token)
+  if (parts.length < 2 || !parts.every((p) => SYLLABLES.includes(p))) {
+    return titleCaseWord(token)
+  }
+  return parts.map((p) => titleCaseWord(p)).join('')
 }
 
 /** Prefer a readable layout for chrome (topbar, greetings, biometric). */

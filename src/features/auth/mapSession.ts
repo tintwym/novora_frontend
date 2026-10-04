@@ -1,6 +1,7 @@
 import type { AuthResponse } from '@/services'
 import type { AuthSession } from '@/types'
 import { formatPersonDisplayName } from '@/lib/personName'
+import { DEFAULT_CURRENCY } from '@/lib/currency'
 
 export function toAuthSession(response: AuthResponse, fallbackName?: string): AuthSession {
   const emailLocal = response.email.split('@')[0] || 'User'
@@ -20,6 +21,7 @@ export function toAuthSession(response: AuthResponse, fallbackName?: string): Au
           plan: response.organization.plan,
           status: response.organization.status,
           trialExpiresAt: response.organization.trialExpiresAt,
+          currency: response.organization.currency || DEFAULT_CURRENCY,
         }
       : null,
   }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createLocalId } from '@/lib/createLocalId'
 import {
   FileBarChart,
@@ -46,7 +46,41 @@ import {
 import type { Employee } from '@/types';
 import { SelectMenu } from '@/components/ui';
 import ModuleHeader from '@/components/ui/ModuleHeader';
-import { ApiError, fetchReportSummary, type ReportSummary } from '@/services';
+import {
+  ApiError,
+  fetchAdminClaims,
+  fetchAdminHelpdeskTickets,
+  fetchAdminLeaveOverview,
+  fetchAdminOnboardingTasks,
+  fetchAdminPayroll,
+  fetchAdminPendingLeave,
+  fetchAssets,
+  fetchAttendanceRoster,
+  fetchBenefitEnrollments,
+  fetchDisciplinaryCases,
+  fetchPerformanceReviews,
+  fetchRecruitmentCandidates,
+  fetchRecruitmentJobs,
+  fetchReportSummary,
+  fetchTrainings,
+  type AssetRow,
+  type AttendanceRosterLog,
+  type BenefitEnrollmentRow,
+  type ClaimRow,
+  type DisciplinaryCaseRow,
+  type HelpdeskTicketRow,
+  type LeaveOverviewRow,
+  type LeaveRequest,
+  type OnboardingTaskRow,
+  type PayrollRow,
+  type PerformanceReviewRow,
+  type RecruitmentCandidateRow,
+  type RecruitmentJobRow,
+  type ReportSummary,
+  type TrainingRow,
+} from '@/services';
+import { useCurrency } from '@/hooks/useCurrency';
+import { formatAmount, formatMoney } from '@/lib/currency';
 
 interface ReportsTabProps {
   employees: Employee[];
@@ -64,6 +98,17 @@ interface ReportSchedule {
   format: string;
   time: string;
   recipients: string;
+}
+
+interface RecentActivity {
+  id: string;
+  name: string;
+  user: string;
+  timestamp: string;
+  success: boolean;
+  fileName: string;
+  fileType: string;
+  content: string;
 }
 
 const MODULE_METADATA = [
@@ -85,515 +130,771 @@ const MODULE_METADATA = [
   { name: 'Assets', icon: Package, category: 'Core HR', desc: 'Devices & asset logs' },
 ];
 
-const MODULE_REPORTS_DATA: Record<string, {
-  totalRecords: string;
-  lastUpdated: string;
-  autoRun: string;
-  stats: { label: string; value: string; trend: string; positive: boolean }[];
-  reports: { title: string; description: string; tag: string }[];
-  distribution: { title: string; items: { label: string; value: string; percent: number; colorClass: string }[] };
-  managementBrief: {
-    strategicFocus: string;
-    riskIndex: 'Low' | 'Medium' | 'High' | 'Critical';
-    costImpact: string;
-    actionableDirectives: string[];
-  }
-}> = {
+const MODULE_BRIEFS: Record<string, { strategicFocus: string; actionableDirectives: string[] }> = {
   Employee: {
-    totalRecords: '154 Active profiles',
-    lastUpdated: 'Today 18:30',
-    autoRun: 'Active (Daily)',
-    stats: [
-      { label: 'Active Headcount', value: '154 Staff', trend: '+4% from last month', positive: true },
-      { label: 'Avg Tenure', value: '3.8 Years', trend: '+0.2y YoY growth', positive: true },
-      { label: 'Monthly Turnover', value: '1.2%', trend: '-0.3% improvement', positive: true }
-    ],
-    reports: [
-      { title: 'Global Staff Census & Registry', description: 'Comprehensive directory including active status, join dates, and roles.', tag: 'CENSUS' },
-      { title: 'Workforce Diversity & Demographics Audit', description: 'Breakdown of gender balance, origin statistics, and age demographics.', tag: 'DIVERSITY' },
-      { title: 'Tenure & Contract Allocation Profile', description: 'Detailed view of staff contract classifications and average historical retention.', tag: 'TENURE' }
-    ],
-    distribution: {
-      title: 'Employment Type Distribution',
-      items: [
-        { label: 'Full-Time Employees', value: '131', percent: 85, colorClass: 'bg-novora' },
-        { label: 'Part-Time & Flex-Staff', value: '15', percent: 10, colorClass: 'bg-emerald-500' },
-        { label: 'Contractors / External', value: '8', percent: 5, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Workforce distribution alignment & tenure stability tracking.',
-      riskIndex: 'Low',
-      costImpact: 'Optimized headcount allocation limiting turnover leakage.',
-      actionableDirectives: [
-        'Review potential department succession pipelines for technical roles nearing 5 years avg tenure.',
-        'Track contract staff conversion metrics to control high-fee contractor budgets.',
-        'Verify remote work ratios relative to local physical seat booking configurations.'
-      ]
-    }
+    strategicFocus: 'Workforce distribution alignment & tenure stability tracking.',
+    actionableDirectives: [
+      'Review department succession pipelines for long-tenured technical roles.',
+      'Track contract staff conversion to control contractor budgets.',
+      'Keep employment status and department data current in employee profiles.'
+    ]
   },
   Recruitment: {
-    totalRecords: '342 Candidate applications',
-    lastUpdated: 'Just now',
-    autoRun: 'Active (Realtime)',
-    stats: [
-      { label: 'Open Requisitions', value: '12 Positions', trend: '2 filled this week', positive: true },
-      { label: 'Active Pipeline', value: '84 Applicants', trend: '+15 new this week', positive: true },
-      { label: 'Average Time-to-Hire', value: '24 Days', trend: '-3 days optimized', positive: true }
-    ],
-    reports: [
-      { title: 'Recruitment Funnel Conversion Flow', description: 'Detailed funnel metrics from sourcing, technical screen to final offers.', tag: 'FUNNEL' },
-      { title: 'Cost-Per-Hire & Agency Allocation List', description: 'Tracks referral payouts, job board advertisements, and external fees.', tag: 'FINANCE' },
-      { title: 'Interviewer Score Card & Feedback Matrix', description: 'Average interview scores, timelines, and panel feedback notes.', tag: 'INTERVIEW' }
-    ],
-    distribution: {
-      title: 'Active Recruitment Stages',
-      items: [
-        { label: 'Sourcing & Resume Screen', value: '45 Candidates', percent: 54, colorClass: 'bg-novora' },
-        { label: 'Tech Tests & Panel Rounds', value: '31 Candidates', percent: 37, colorClass: 'bg-emerald-500' },
-        { label: 'Offer Issuance & Negotiation', value: '8 Candidates', percent: 9, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Conversion metrics & sourcing agency expenditure.',
-      riskIndex: 'High',
-      costImpact: 'High operational spend ($4,200 avg cost-per-hire) on external recruiters.',
-      actionableDirectives: [
-        'Establish targeted organic hiring campaigns to minimize dependent recruiter commission costs.',
-        'Integrate technical screening checkpoints earlier to decrease average panel selection cycle time.',
-        'Formulate active internal candidate databases for high-frequency hiring roles to decrease time-to-hire.'
-      ]
-    }
+    strategicFocus: 'Pipeline conversion & sourcing channel effectiveness.',
+    actionableDirectives: [
+      'Favour organic and referral sourcing where it converts well.',
+      'Move technical screening earlier to shorten panel selection cycles.',
+      'Maintain an internal candidate pool for frequently hired roles.'
+    ]
   },
   'On/Off-boarding': {
-    totalRecords: '11 Scheduled transfers',
-    lastUpdated: 'Yesterday 14:00',
-    autoRun: 'Active (Daily)',
-    stats: [
-      { label: 'New Joins (This Mo.)', value: '8 Personnel', trend: '100% hardware pre-shipped', positive: true },
-      { label: 'Exits Scheduled', value: '3 Accounts', trend: 'Non-disclosure signed', positive: true },
-      { label: 'SLA Checklist Pass Rate', value: '98.5%', trend: 'Excellent compliance', positive: true }
-    ],
-    reports: [
-      { title: 'New Hire Ramp-Up Status Booklet', description: 'Activity completion log across training, culture, and security settings.', tag: 'ONBOARDING' },
-      { title: 'Consolidated Exit Interview Summary', description: 'Anonymized termination reasons, manager notes, and general comments.', tag: 'OFFBOARDING' },
-      { title: 'Interactive Handover Checklist Audit', description: 'Device returns, authorization invalidations, and direct transitions tracker.', tag: 'COMPLIANCE' }
-    ],
-    distribution: {
-      title: 'Tasks Completion By Core Items',
-      items: [
-        { label: 'Hardware & SSO Configured', value: '11 Completed', percent: 100, colorClass: 'bg-novora' },
-        { label: 'Security & Policy Sign-up', value: '10 Completed', percent: 90, colorClass: 'bg-emerald-500' },
-        { label: 'First Team Intro Chat', value: '8 Completed', percent: 72, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Security credentials clearance & asset recovery rates.',
-      riskIndex: 'Medium',
-      costImpact: 'IT infrastructure setup overhead & unrecovered laptop replacement costs.',
-      actionableDirectives: [
-        'Mandate all directory and SSO credentials terminate within 2 hours of departure timestamps.',
-        'Configure automated notification triggers to verify company laptop recovery within 7 workdays.',
-        'Standardize onboarding templates to guarantee key cyber-awareness briefing is cleared on week 1.'
-      ]
-    }
+    strategicFocus: 'Access provisioning, credential clearance & asset recovery.',
+    actionableDirectives: [
+      'Revoke directory and SSO credentials promptly on departure.',
+      'Confirm company equipment is recovered from leavers.',
+      'Standardise onboarding checklists so security briefings happen in the first week.'
+    ]
   },
   Attendance: {
-    totalRecords: '3,109 Log records',
-    lastUpdated: 'Today 18:00',
-    autoRun: 'Active (Daily)',
-    stats: [
-      { label: 'Attendance Ratio', value: '96.2%', trend: '+0.8% peak improvement', positive: true },
-      { label: 'Average Clock-In Time', value: '08:44 AM', trend: 'Stable vs target 09:00', positive: true },
-      { label: 'Active Overtime Hours', value: '142.5 hrs', trend: '+12.4% seasonal peak', positive: false }
-    ],
-    reports: [
-      { title: 'Employee Attendance Detail Log', description: 'Exact time recordings, remote IP geolocation info, and day statuses.', tag: 'LOGS' },
-      { title: 'Overtime and Shift Premium Register', description: 'Approved overtime pay credits, night shifts, and multiplier schedules.', tag: 'OVERTIME' },
-      { title: 'Absence & Late Arrivals Analysis Sheet', description: 'Pinpoints late trends, excuse approvals, and absenteeism benchmarks.', tag: 'ABSENCE' }
-    ],
-    distribution: {
-      title: 'Current Week Check-In Types',
-      items: [
-        { label: 'On-Time Office Work', value: '112 Staff', percent: 73, colorClass: 'bg-novora' },
-        { label: 'Remote / Home Login Checked', value: '34 Staff', percent: 22, colorClass: 'bg-emerald-500' },
-        { label: 'Late Clock-in / Grace Period', value: '8 Staff', percent: 5, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Overtime wage leakages & digital shift punctuality trends.',
-      riskIndex: 'Medium',
-      costImpact: 'Overtime payroll premium payouts ($14.5k variance above corporate projection).',
-      actionableDirectives: [
-        'Enforce secondary tier supervisor approvals for overtime work exceeding 10 hours monthly.',
-        'Study rotating flex hours for key divisions facing seasonal customer ticket peaks.',
-        'In corporate locations, match key card logs against manual portal clock-ins to reduce check-in errors.'
-      ]
-    }
+    strategicFocus: 'Punctuality trends & overtime control.',
+    actionableDirectives: [
+      'Require supervisor approval for extended overtime.',
+      'Consider flexible hours for teams with seasonal peaks.',
+      'Reconcile manual clock-ins against other attendance records.'
+    ]
   },
   Leave: {
-    totalRecords: '412 Bookings total',
-    lastUpdated: 'Yesterday 17:30',
-    autoRun: 'Active (Realtime)',
-    stats: [
-      { label: 'Active Leaves Today', value: '4 Staff', trend: '-2 versus last Friday', positive: true },
-      { label: 'Pending Approvals', value: '9 Requests', trend: 'Average turn: 2.2 hours', positive: true },
-      { label: 'Avg Taken Balance', value: '12.4 Days', trend: '6.2 days available left', positive: true }
-    ],
-    reports: [
-      { title: 'Department Wise Absence Schedule', description: 'Comprehensive heat map tracking overlapping holidays and team coverage.', tag: 'COVERAGE' },
-      { title: 'Accrued Leave Financial Liability Report', description: 'Calculates unpaid leave payouts, accumulated days, and carried margins.', tag: 'FINANCE' },
-      { title: 'Holiday and Sickness Incident Sheet', description: 'Distributes parental, compassionate, annual, and medical leave data.', tag: 'HOLIDAYS' }
-    ],
-    distribution: {
-      title: 'Utilized Leave Categories',
-      items: [
-        { label: 'Paid Annual Leave', value: '280 Days', percent: 68, colorClass: 'bg-novora' },
-        { label: 'Validated Medical Leaves', value: '92 Days', percent: 22, colorClass: 'bg-emerald-500' },
-        { label: 'Maternity/Paternity/Other Leaves', value: '40 Days', percent: 10, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Unfunded book liabilities & year-end resource bottleneck mapping.',
-      riskIndex: 'Medium',
-      costImpact: 'Accrued annual leave cash payout reserves ($42k aggregate exposure).',
-      actionableDirectives: [
-        'Guide supervisors to prompt team annual leave bookings before major product deliverables sprints.',
-        'Stagger critical tech roles leaves to secure minimum 80% coverage limits in Q4.',
-        'Review recurring sick-leave clusters adjacent to weekends to optimize resource coverage plans.'
-      ]
-    }
+    strategicFocus: 'Leave liability & year-end coverage planning.',
+    actionableDirectives: [
+      'Encourage teams to book annual leave ahead of major deliverables.',
+      'Stagger leave for critical roles to keep coverage.',
+      'Clear pending leave requests before payroll cut-off.'
+    ]
   },
   Disciplinary: {
-    totalRecords: '18 Case tickets',
-    lastUpdated: '12 Jun 10:15',
-    autoRun: 'Active (Ad-hoc)',
-    stats: [
-      { label: 'Active grievances', value: '2 Cases', trend: '1 currently in arbitration', positive: false },
-      { label: 'Warning Notices Issued', value: '4 Letters', trend: '0 escalations in last 90d', positive: true },
-      { label: 'Resolved Inquiries', value: '12 Closed', trend: 'Mediation rate 94%', positive: true }
-    ],
-    reports: [
-      { title: 'Policy Breach Incident Tracker', description: 'Incidents categorized by severity, department code, and policy chapter.', tag: 'BREACHES' },
-      { title: 'Warning Process Progression Ledger', description: 'History of verbal, written warnings, PIP actions, and resolution steps.', tag: 'WARNINGS' },
-      { title: 'Grievance Resolution and Conflict Audit', description: 'Tracks mediation timelines, feedback surveys, and arbitration results.', tag: 'MEDIATION' }
-    ],
-    distribution: {
-      title: 'Current Infraction Clusters',
-      items: [
-        { label: 'Punctuality & Shift Breaches', value: '11 Cases', percent: 61, colorClass: 'bg-novora' },
-        { label: 'Safety / Conduct Incidents', value: '5 Cases', percent: 28, colorClass: 'bg-emerald-500' },
-        { label: 'Workplace Dispute Inquiries', value: '2 Cases', percent: 11, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Interpersonal disputes & litigation exposure mitigation.',
-      riskIndex: 'High',
-      costImpact: 'Extremely high potential direct litigation & external mediation services fees.',
-      actionableDirectives: [
-        'Mandate formal compliance code-of-conduct e-refresher courses across field managers.',
-        'Ensure HR representation is present in PIP (Performance Improvement Plan) reviews to prevent future claims.',
-        'Standardize all incident written files in structured secure servers to compile clean evidence trails.'
-      ]
-    }
+    strategicFocus: 'Case resolution & conduct policy compliance.',
+    actionableDirectives: [
+      'Run code-of-conduct refreshers for people managers.',
+      'Ensure HR is present in performance improvement plan reviews.',
+      'Keep incident records complete and stored securely.'
+    ]
   },
   Payroll: {
-    totalRecords: '154 Active slip sheets',
-    lastUpdated: 'Today 15:45',
-    autoRun: 'Active (Monthly)',
-    stats: [
-      { label: 'Gross Monthly Value', value: '$642,800', trend: '+1.4% change (new hires)', positive: false },
-      { label: 'Deductions & Benefits Match', value: '$98,400', trend: 'Tax withholdings optimal', positive: true },
-      { label: 'Slip Distribution Accuracy', value: '100% Sent', trend: 'No correction tickets raised', positive: true }
-    ],
-    reports: [
-      { title: 'Global Base Earnings Breakdown', description: 'Wages ledger with base pay, overtime, adjustments, and shift differentials.', tag: 'PAYROLL' },
-      { title: 'Withholding Taxes & Social Security Roll', description: 'State, Federal, and municipal taxes, medical premiums, and allocations.', tag: 'TAXES' },
-      { title: 'Corporate Cost Center Ledger', description: 'Organizes direct salary expenses by department and custom budget strings.', tag: 'BUDGETS' }
-    ],
-    distribution: {
-      title: 'Company Payroll Allocations',
-      items: [
-        { label: 'Core Base Salaries', value: '$482,100', percent: 75, colorClass: 'bg-novora' },
-        { label: 'Bonus & Overtime Payouts', value: '$96,420', percent: 15, colorClass: 'bg-emerald-500' },
-        { label: 'Fringe Taxes & Benefit Matches', value: '$64,280', percent: 10, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Labor market matching index & scale management cost controls.',
-      riskIndex: 'Low',
-      costImpact: 'Represents 64% of total company monthly operating expenditure ($642.8k).',
-      actionableDirectives: [
-        'Run localized compensation reviews against competitor job listings to pre-empt top-performer attrition.',
-        'Verify withholding formulas with external general tax guidelines prior to Q3 adjustments.',
-        'Enforce dual-authorization triggers on manual off-cycle wage releases to eliminate payment errors.'
-      ]
-    }
+    strategicFocus: 'Payroll accuracy & compensation cost control.',
+    actionableDirectives: [
+      'Benchmark compensation against the market to reduce attrition risk.',
+      'Verify statutory deduction settings before each run.',
+      'Require dual authorisation for off-cycle payments.'
+    ]
   },
   Claims: {
-    totalRecords: '412 Processed expense lines',
-    lastUpdated: 'Today 11:20',
-    autoRun: 'Active (Daily)',
-    stats: [
-      { label: 'Pending Claim Funds', value: '$4,120 USD', trend: '8 claims waiting manager sign', positive: true },
-      { label: 'Total Retained Claims', value: '$14,520 USD', trend: 'Approved this billing cycle', positive: true },
-      { label: 'Avg Payout Cycle Time', value: '3.4 Days', trend: '-1.1 days faster resolution', positive: true }
-    ],
-    reports: [
-      { title: 'Travel and Operational Mileage Log', description: 'Travel ticket receipts, hotel stays, conference seats, and mileage logs.', tag: 'TRAVEL' },
-      { title: 'Reimbursements and Operational Bills', description: 'Hardware items, client hosting business meals, and office supplies.', tag: 'OPERATIONS' },
-      { title: 'Audited Claim Deviations & Flags', description: 'Lists policy violation attempts, unverified items, or warning flags.', tag: 'AUDITING' }
-    ],
-    distribution: {
-      title: 'Current Claim Categories',
-      items: [
-        { label: 'Sourced Travel & Logistics', value: '$7,260', percent: 50, colorClass: 'bg-novora' },
-        { label: 'Business Client Entertainment', value: '$4,356', percent: 30, colorClass: 'bg-emerald-500' },
-        { label: 'Office Supplies & Miscellaneous', value: '$2,904', percent: 20, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Operational spending compliance audits & expense policy enforcement.',
-      riskIndex: 'Medium',
-      costImpact: 'High client entertainment spend ratio (30% of total outbound claims).',
-      actionableDirectives: [
-        'Set strict caps on business dining hospitality allowances based on localized regional indexes.',
-        'Audit mileage claims with coordinate validation checks to prevent inaccurate expense declarations.',
-        'Establish standard 30-day deadlines for receipt submissions to ensure accurate operational balance tallies.'
-      ]
-    }
+    strategicFocus: 'Expense policy compliance & timely reimbursement.',
+    actionableDirectives: [
+      'Set clear caps for hospitality and entertainment claims.',
+      'Validate mileage claims against trip details.',
+      'Set a receipt submission deadline to keep balances accurate.'
+    ]
   },
   Benefits: {
-    totalRecords: '382 Allocation policies',
-    lastUpdated: 'Today 10:11',
-    autoRun: 'Active (Daily)',
-    stats: [
-      { label: 'Benefit Users Registered', value: '142 Staff', trend: '92% overall selection rate', positive: true },
-      { label: 'Wellness Grant Used', value: '71% Used', trend: 'Budget remaining: $12k', positive: true },
-      { label: 'Total Benefits Cost', value: '$34,100 Mo.', trend: '+0.4% from last quarter', positive: true }
-    ],
-    reports: [
-      { title: 'Insurance Premium Distribution Audit', description: 'PPO, HMO selections, premiums paid, and active dependents tracker.', tag: 'INSURANCE' },
-      { title: 'Wellness Grant Usage Registry', description: 'Reimbursables for athletic equipment, coaching, gyms and lifestyle.', tag: 'WELLNESS' },
-      { title: 'Pension Matching Fund Report', description: 'Employer contributions, match percentages, and aggregate retirement assets.', tag: 'PENSION' }
-    ],
-    distribution: {
-      title: 'Benefit Choices Selected',
-      items: [
-        { label: 'Standard Medical & Premium PPO', value: '85 Employees', percent: 60, colorClass: 'bg-novora' },
-        { label: 'Flexible Wellness Credits', value: '43 Employees', percent: 30, colorClass: 'bg-emerald-55' },
-        { label: 'Dental & Vision Supplemental Only', value: '14 Employees', percent: 10, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Benefit program selection yields & medical premium allocations.',
-      riskIndex: 'Low',
-      costImpact: 'Average flat cost matching totals $34.1k/mo healthcare premium expenses.',
-      actionableDirectives: [
-        'Renegotiate wholesale medical plans by leveraging larger group scales in Q3 vendor negotiations.',
-        'Promote gym wellness credits usage to lower long-term chronic clinical claims and sick leave frequency.',
-        'Benchmark company pension standard brackets with localized peers to maintain competitive hiring terms.'
-      ]
-    }
+    strategicFocus: 'Benefit plan uptake & premium allocation.',
+    actionableDirectives: [
+      'Review plan terms with providers at renewal.',
+      'Promote wellness benefits to support long-term health.',
+      'Benchmark retirement contributions against peers.'
+    ]
   },
   'Helpdesk & Inquiries': {
-    totalRecords: '118 Customer support tickets',
-    lastUpdated: 'Just now',
-    autoRun: 'Active (Realtime)',
-    stats: [
-      { label: 'Open Inquiries', value: '5 Tickets', trend: '1 designated urgent priority', positive: true },
-      { label: 'Avg Resolution Time', value: '1.2 Hours', trend: '-25 minutes since upgrades', positive: true },
-      { label: 'Logged SLA Compliance', value: '98.4%', trend: 'Goal metric benchmark list: 95%', positive: true }
-    ],
-    reports: [
-      { title: 'Support Ticket SLA Performance', description: 'Tracks reaction logs, manager triggers, and resolution periods.', tag: 'SLA' },
-      { title: 'Top Inquiries Theme Analysis', description: 'Categorized queries highlighting system outages, payroll errors, or leaves.', tag: 'THEMES' },
-      { title: 'Staff CSAT Satisfaction Record', description: 'Anonymized agent scores, thank-you messages, and response feedback.', tag: 'CSAT' }
-    ],
-    distribution: {
-      title: 'Current Tickets by Topic',
-      items: [
-        { label: 'Admin Portal & Tech Support', value: '100 Completed', percent: 85, colorClass: 'bg-novora' },
-        { label: 'Correction of Payroll Info', value: '14 Completed', percent: 12, colorClass: 'bg-emerald-55' },
-        { label: 'Leave Policy Inquiries', value: '4 Completed', percent: 3, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Administrative bottle-necks & internal satisfaction SLA checks.',
-      riskIndex: 'Low',
-      costImpact: 'SLA lags reduce corporate work productivity and onboarding satisfaction scores.',
-      actionableDirectives: [
-        'Release self-service answers for high-frequency topics like overtime and benefits coverage.',
-        'Address recurring login portal and SSO issues with IT to reduce redundant support load.',
-        'Maintain the response speed under the 1.5-hour threshold to preserve excellent 98.4% CSAT ratios.'
-      ]
-    }
+    strategicFocus: 'Ticket resolution speed & recurring inquiry themes.',
+    actionableDirectives: [
+      'Publish self-service answers for frequent questions.',
+      'Work with IT on recurring login and access issues.',
+      'Keep urgent tickets assigned and moving.'
+    ]
   },
   Performance: {
-    totalRecords: '154 Active appraisals',
-    lastUpdated: '18 Jun 11:30',
-    autoRun: 'Active (Quarterly)',
-    stats: [
-      { label: 'Average Corporate Rating', value: '4.2 / 5.0', trend: 'High performance metrics overall', positive: true },
-      { label: 'Target KPI Achievement', value: '88.5% Done', trend: '+1.5% since review period', positive: true },
-      { label: 'Evaluation Complete Ratio', value: '100% Score', trend: 'Perfect manager feedback logs', positive: true }
-    ],
-    reports: [
-      { title: 'Annual Appraisal Level Sheet', description: 'Final rating distributions, review notes, and performance bands.', tag: 'APPRAISAL' },
-      { title: 'Key Performance Indicators Ledger', description: 'Metric results, targeted goals, and percentage achievements by team.', tag: 'KPIS' },
-      { title: 'Top Talent Promotion Forecast Model', description: 'Potential successors index representing leadership suitability scores.', tag: 'SUCCESSION' }
-    ],
-    distribution: {
-      title: 'Review Grade Distributions',
-      items: [
-        { label: 'Exceeds Performance Target', value: '46 Staff', percent: 30, colorClass: 'bg-novora' },
-        { label: 'Solidly Achieved Base Targets', value: '92 Staff', percent: 60, colorClass: 'bg-emerald-500' },
-        { label: 'Development / PIP Category', value: '16 Staff', percent: 10, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Alignment of individual key results with board objectives & merit distribution.',
-      riskIndex: 'Medium',
-      costImpact: 'Directly influences key performance bonus matches ($96k variable payout pools).',
-      actionableDirectives: [
-        'Rebalance grading scales across departments to eliminate grade inflation by lenient managers.',
-        'Establish direct succession paths mapping high-performing staff to critical leadership gaps.',
-        'Review development milestones for the 10% PIP cluster to ensure equitable training access.'
-      ]
-    }
+    strategicFocus: 'Goal alignment & fair rating distribution.',
+    actionableDirectives: [
+      'Calibrate ratings across departments to avoid grade inflation.',
+      'Map high performers to critical leadership gaps.',
+      'Give staff on development plans equitable training access.'
+    ]
   },
   Engagement: {
-    totalRecords: '612 Survey entries',
-    lastUpdated: '15 Jun 17:00',
-    autoRun: 'Active (Monthly)',
-    stats: [
-      { label: 'Overall Engagement Index', value: '84%', trend: 'Top tier index level', positive: true },
-      { label: 'Survey Response Rate', value: '92.4%', trend: '+3.2% high confidence level', positive: true },
-      { label: 'Anonymized Open Cards', value: '48 Messages', trend: 'Action items dispatched to staff', positive: true }
-    ],
-    reports: [
-      { title: 'Overall Pulse Survey Breakdown', description: 'Category ratings for environment, peers, management, and training.', tag: 'PULSE' },
-      { title: 'Anonymized Sentiment Word Analysis', description: 'Categorized suggestions focusing on benefits, physical office, or software.', tag: 'SENTIMENT' },
-      { title: 'Retention Risk Early Warning Roll', description: 'Identifies departments with high levels of workplace dissatisfaction.', tag: 'RETENTION' }
-    ],
-    distribution: {
-      title: 'Drivers of Corporate Engagement',
-      items: [
-        { label: 'Culture & Workspace Flexibility', value: 'Average 4.6 / 5', percent: 92, colorClass: 'bg-novora' },
-        { label: 'Leadership Vision & Strategy', value: 'Average 4.2 / 5', percent: 84, colorClass: 'bg-emerald-55' },
-        { label: 'Career Growth Opportunities', value: 'Average 3.9 / 5', percent: 78, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Workforce sentiment indicators & mitigation of key resignation risks.',
-      riskIndex: 'Medium',
-      costImpact: 'Pre-emptive engagement checks prevent costly localized talent walkouts.',
-      actionableDirectives: [
-        'Schedule priority team discussions for business units reporting flexibility scores below 75%.',
-        'Send standard executive answers addressing common trends raised in open suggestions.',
-        'Map engagement trends against attrition data to track direct managerial health patterns.'
-      ]
-    }
+    strategicFocus: 'Workforce sentiment & retention risk.',
+    actionableDirectives: [
+      'Follow up with teams reporting low flexibility or morale.',
+      'Respond to common themes raised in open feedback.',
+      'Compare engagement trends with attrition by team.'
+    ]
   },
   Training: {
-    totalRecords: '38 Active schedules',
-    lastUpdated: 'Today 13:00',
-    autoRun: 'Active (Daily)',
-    stats: [
-      { label: 'Coaching Sessions Scheduled', value: '4 Programs', trend: '2 occurring this current week', positive: true },
-      { label: 'Active Enrolled Users', value: '54 Employees', trend: '+14 new joins enrolled', positive: true },
-      { label: 'Schedule Completion Rate', value: '94.2%', trend: 'Minimal cancellation rates', positive: true }
-    ],
-    reports: [
-      { title: 'Safety and Regulatory Attendance List', description: 'Shows completed courses required for company compliance guidelines.', tag: 'COMPLIANCE' },
-      { title: 'Workforce Core Skills Gap Analysis', description: 'Tracks missing skills, requested themes, and available coach hours.', tag: 'SKILLS' },
-      { title: 'Training Budget and Vendor Invoices', description: 'Invoices for instructors, classroom rentals, and purchased logs.', tag: 'BUDGETS' }
-    ],
-    distribution: {
-      title: 'Active Program Formats',
-      items: [
-        { label: 'In-person Practical Labs', value: '19 Sessions', percent: 50, colorClass: 'bg-novora' },
-        { label: 'Self-Paced Training Videos', value: '11 Sessions', percent: 30, colorClass: 'bg-emerald-500' },
-        { label: 'Expert Panel Webinars', value: '8 Sessions', percent: 20, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Skills catalog expansions & vendor expenditure checks.',
-      riskIndex: 'Low',
-      costImpact: 'External specialized tutors and training facility booking fees.',
-      actionableDirectives: [
-        'Convert costly custom external seminars into reusable on-demand digital modules inside the LMS.',
-        'Implement standard seat verification procedures to reduce pay-per-head empty-seat fees.',
-        'Link certification milestones to standard division-level performance review systems.'
-      ]
-    }
+    strategicFocus: 'Programme coverage & training spend.',
+    actionableDirectives: [
+      'Convert repeated external seminars into reusable internal modules.',
+      'Confirm attendance to reduce unused paid seats.',
+      'Link certification milestones to performance reviews.'
+    ]
   },
   Learning: {
-    totalRecords: '211 Certification logs',
-    lastUpdated: '14 Jun 09:30',
-    autoRun: 'Active (Daily)',
-    stats: [
-      { label: 'Core Course Materials', value: '12 Curriculums', trend: '2 updated this month', positive: true },
-      { label: 'Total LMS Engagement', value: '412 Hours', trend: 'Average 2.6 hours per employee', positive: true },
-      { label: 'Certifications Issued', value: '22 Badges', trend: 'High compliance certification rate', positive: true }
-    ],
-    reports: [
-      { title: 'Compliance Completions Progress Ledger', description: 'Lists employees who have cleared ethical and secure code updates.', tag: 'COMPLIANCE' },
-      { title: 'User LMS Hours & Activity Sheets', description: 'Tracks video minutes, quiz counts, and lessons completed.', tag: 'ACTIVITY' },
-      { title: 'Certification Expiration Warning List', description: 'Signals certificates expiring within the next sixty days.', tag: 'EXPIRY' }
-    ],
-    distribution: {
-      title: 'Current Course Theme Allocations',
-      items: [
-        { label: 'Engineering and Technical Tracks', value: '106 Completed', percent: 50, colorClass: 'bg-novora' },
-        { label: 'Manager Leadership Program', value: '63 Completed', percent: 30, colorClass: 'bg-emerald-500' },
-        { label: 'Ethical Workplace Regulations', value: '42 Completed', percent: 20, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Corporate regulatory compliance checks & critical skill matrices.',
-      riskIndex: 'Low',
-      costImpact: 'Mitigates regulatory fine exposures for non-compliant industry deployments.',
-      actionableDirectives: [
-        'Deliver automatic system alerts for staff whose regulatory security clearances expire soon.',
-        'Examine learning engagement scores to find effective, popular internal curriculum creators.',
-        'Enforce ethical workplace learning completions as a required hurdle for annual bonus eligibility.'
-      ]
-    }
+    strategicFocus: 'Compliance learning completion & skills coverage.',
+    actionableDirectives: [
+      'Alert staff whose required certifications are due to expire.',
+      'Identify effective internal course authors from learner feedback.',
+      'Make required compliance courses part of annual objectives.'
+    ]
   },
   Assets: {
-    totalRecords: '184 Company hardware logs',
-    lastUpdated: '11 Jun 16:30',
-    autoRun: 'Active (Daily)',
-    stats: [
-      { label: 'Laptops in Service', value: '144 Units', trend: '100% active and tracked', positive: true },
-      { label: 'Hardware Stock Remaining', value: '20 Units', trend: 'Re-order point target: 10', positive: true },
-      { label: 'Repair & RMA Tickets', value: '4 Tickets', trend: 'Average swap period: 24h', positive: true }
-    ],
-    reports: [
-      { title: 'Master Hardware Assigned Ledger', description: 'Exact serial numbers, staff custodian records, and purchase values.', tag: 'HARDWARE' },
-      { title: 'Software Licenses and Accrued Keys', description: 'Tracks registered SaaS seats, expired logins, and pricing packages.', tag: 'SOFTWARE' },
-      { title: 'Asset Depreciation Schedule Report', description: 'Establishes remaining book values and estimated replacement dates.', tag: 'FINANCE' }
-    ],
-    distribution: {
-      title: 'Registered Hardware Split',
-      items: [
-        { label: 'Developer Laptops (Core OS)', value: '110 Units', percent: 60, colorClass: 'bg-novora' },
-        { label: 'Office Desktop Terminals', value: '55 Units', percent: 30, colorClass: 'bg-emerald-500' },
-        { label: 'Infrastructure Accessories', value: '19 Units', percent: 10, colorClass: 'bg-indigo-500' }
-      ]
-    },
-    managementBrief: {
-      strategicFocus: 'Capital hardware lifecycle tracking & unused SaaS subscription retrieval.',
-      riskIndex: 'Medium',
-      costImpact: 'Active laptop shrinkage and idle tooling licenses expenditures ($184k value).',
-      actionableDirectives: [
-        'Automate license key reclamation for high-tier apps (such as Figma or Salesforce) with 45+ days of inactivity.',
-        'Repurpose three-year-old laptops into secondary dev-test terminals to avoid immediate replacement buys.',
-        'Consolidate equipment inventory entries from branch offices to check for regional surplus devices.'
-      ]
-    }
+    strategicFocus: 'Hardware lifecycle tracking & unused licence recovery.',
+    actionableDirectives: [
+      'Reclaim licences that have been inactive for a long period.',
+      'Repurpose older laptops before buying replacements.',
+      'Consolidate branch inventories to find surplus devices.'
+    ]
   }
+};
+
+type ReportData = {
+  claims: ClaimRow[] | null;
+  payroll: PayrollRow[] | null;
+  jobs: RecruitmentJobRow[] | null;
+  candidates: RecruitmentCandidateRow[] | null;
+  attendance: AttendanceRosterLog[] | null;
+  pendingLeave: LeaveRequest[] | null;
+  leaveOverview: LeaveOverviewRow[] | null;
+  disciplinary: DisciplinaryCaseRow[] | null;
+  benefits: BenefitEnrollmentRow[] | null;
+  helpdesk: HelpdeskTicketRow[] | null;
+  reviews: PerformanceReviewRow[] | null;
+  trainings: TrainingRow[] | null;
+  assets: AssetRow[] | null;
+  onboarding: OnboardingTaskRow[] | null;
+};
+
+type DataKey = keyof ReportData;
+type LoadedData = Partial<ReportData>;
+
+const DATA_LOADERS: { [K in DataKey]: () => Promise<NonNullable<ReportData[K]>> } = {
+  claims: () => fetchAdminClaims(),
+  payroll: () => {
+    const now = new Date();
+    return fetchAdminPayroll(now.getFullYear(), now.getMonth() + 1);
+  },
+  jobs: () => fetchRecruitmentJobs(),
+  candidates: () => fetchRecruitmentCandidates(),
+  attendance: () => fetchAttendanceRoster(),
+  pendingLeave: () => fetchAdminPendingLeave(),
+  leaveOverview: () => fetchAdminLeaveOverview(),
+  disciplinary: () => fetchDisciplinaryCases(),
+  benefits: () => fetchBenefitEnrollments(),
+  helpdesk: () => fetchAdminHelpdeskTickets(),
+  reviews: () => fetchPerformanceReviews(),
+  trainings: () => fetchTrainings(),
+  assets: () => fetchAssets(),
+  onboarding: () => fetchAdminOnboardingTasks(),
+};
+
+const ALL_DATA_KEYS = Object.keys(DATA_LOADERS) as DataKey[];
+
+const MODULE_SOURCES: Record<string, DataKey[]> = {
+  Employee: [],
+  Recruitment: ['jobs', 'candidates'],
+  'On/Off-boarding': ['onboarding'],
+  Attendance: ['attendance'],
+  Leave: ['pendingLeave', 'leaveOverview'],
+  Disciplinary: ['disciplinary'],
+  Payroll: ['payroll'],
+  Claims: ['claims'],
+  Benefits: ['benefits'],
+  'Helpdesk & Inquiries': ['helpdesk'],
+  Performance: ['reviews'],
+  Engagement: [],
+  Training: ['trainings'],
+  Learning: [],
+  Assets: ['assets'],
+};
+
+const NO_SOURCE_MODULES: Record<string, string> = {
+  Engagement: 'No engagement survey data source is connected yet.',
+  Learning: 'No learning or certification data source is connected yet.',
+};
+
+type ModuleStat = { label: string; value: string; hint: string };
+type ModuleDistribution = { title: string; items: { label: string; value: string; percent: number; colorClass: string }[] };
+type ModuleView = { stats: ModuleStat[]; distribution: ModuleDistribution | null; distributionTitle: string; emptyMessage: string | null };
+type CsvTable = { headers: string[]; rows: string[][] };
+
+const BAR_COLORS = ['bg-novora', 'bg-emerald-500', 'bg-indigo-500', 'bg-amber-500', 'bg-rose-500'];
+const CLOSED_STATUSES = ['CLOSED', 'RESOLVED', 'COMPLETED', 'DONE', 'CANCELLED', 'CANCELED', 'FILLED', 'ARCHIVED', 'DISMISSED', 'WITHDRAWN'];
+
+const todayIso = () => new Date().toLocaleDateString('en-CA');
+const yearStartIso = () => `${new Date().getFullYear()}-01-01`;
+const nowTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+const titleCase = (s: string) => s.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+const statusIs = (s: string | null | undefined, values: string[]) => values.includes((s ?? '').trim().toUpperCase().replace(/[\s-]+/g, '_'));
+const isClosed = (s: string | null | undefined) => statusIs(s, CLOSED_STATUSES);
+const dateOnly = (s: string | null | undefined) => (s ? s.slice(0, 10) : '');
+const str = (v: string | number | null | undefined) => (v === null || v === undefined ? '' : String(v));
+
+function countBy<T>(rows: T[], key: (row: T) => string | null | undefined): [string, number][] {
+  const map = new Map<string, number>();
+  rows.forEach((row) => {
+    const raw = (key(row) ?? '').trim();
+    const label = raw ? titleCase(raw) : 'Unspecified';
+    map.set(label, (map.get(label) ?? 0) + 1);
+  });
+  return [...map.entries()].sort((a, b) => b[1] - a[1]);
+}
+
+function toDistribution(title: string, entries: [string, number][], format: (n: number) => string, limit = 5): ModuleDistribution | null {
+  const total = entries.reduce((sum, [, n]) => sum + n, 0);
+  if (!total) return null;
+  return {
+    title,
+    items: entries.slice(0, limit).map(([label, n], i) => ({
+      label,
+      value: format(n),
+      percent: Math.round((n / total) * 100),
+      colorClass: BAR_COLORS[i % BAR_COLORS.length]
+    }))
+  };
+}
+
+function moneyByCurrency<T>(rows: T[], value: (row: T) => number, rowCurrency: (row: T) => string | null | undefined, fallback: string): string {
+  if (rows.length === 0) return formatMoney(0, fallback);
+  const totals = new Map<string, number>();
+  rows.forEach((row) => {
+    const code = rowCurrency(row) || fallback;
+    totals.set(code, (totals.get(code) ?? 0) + (Number(value(row)) || 0));
+  });
+  return [...totals.entries()].map(([code, total]) => formatMoney(total, code)).join(' · ');
+}
+
+function employeeIndex(employees: Employee[]): Map<string, Employee> {
+  const index = new Map<string, Employee>();
+  employees.forEach((emp) => {
+    index.set(emp.id, emp);
+    if (emp.apiId) index.set(emp.apiId, emp);
+  });
+  return index;
+}
+
+function departmentNames(employees: Employee[]): string[] {
+  return [...new Set(employees.map((e) => e.department).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+}
+
+function grossPay(row: PayrollRow): number {
+  return (row.basicSalary || 0) + (row.allowances || 0) + (row.overtimePay || 0) + (row.bonus || 0);
+}
+
+function yearsSince(date: string): number | null {
+  const start = new Date(date);
+  if (Number.isNaN(start.getTime())) return null;
+  return (Date.now() - start.getTime()) / (365.25 * 24 * 3600 * 1000);
+}
+
+function buildModuleView(module: string, employees: Employee[], data: LoadedData, currency: string): ModuleView {
+  const view = (stats: ModuleStat[], distribution: ModuleDistribution | null, distributionTitle: string): ModuleView => ({
+    stats,
+    distribution,
+    distributionTitle,
+    emptyMessage: null
+  });
+  const failed = (keys: DataKey[]) => keys.every((k) => data[k] === null);
+  const loading = (keys: DataKey[]) => keys.some((k) => data[k] === undefined);
+
+  if (NO_SOURCE_MODULES[module]) {
+    return { stats: [], distribution: null, distributionTitle: '', emptyMessage: NO_SOURCE_MODULES[module] };
+  }
+  const sources = MODULE_SOURCES[module] ?? [];
+  if (sources.length > 0 && loading(sources)) {
+    return { stats: [], distribution: null, distributionTitle: '', emptyMessage: `Loading ${module.toLowerCase()} data…` };
+  }
+  if (sources.length > 0 && failed(sources)) {
+    return { stats: [], distribution: null, distributionTitle: '', emptyMessage: `Could not load ${module.toLowerCase()} data.` };
+  }
+
+  const today = todayIso();
+
+  switch (module) {
+    case 'Employee': {
+      if (employees.length === 0) {
+        return { stats: [], distribution: null, distributionTitle: '', emptyMessage: 'No employee records yet.' };
+      }
+      const active = employees.filter((e) => e.status === 'Active');
+      const tenures = active.map((e) => yearsSince(e.joinDate)).filter((y): y is number => y !== null && y >= 0);
+      const avgTenure = tenures.length ? `${(tenures.reduce((s, y) => s + y, 0) / tenures.length).toFixed(1)} yrs` : '—';
+      return view(
+        [
+          { label: 'Active headcount', value: String(active.length), hint: `${plural(employees.length, 'profile')} in total` },
+          { label: 'On leave', value: String(employees.filter((e) => e.status === 'On Leave').length), hint: 'Employee status' },
+          { label: 'Avg tenure', value: avgTenure, hint: 'Active staff, from join dates' }
+        ],
+        toDistribution('Employment type', countBy(employees, (e) => e.employmentStatus), (n) => plural(n, 'employee')),
+        'Employment type'
+      );
+    }
+    case 'Recruitment': {
+      const jobs = data.jobs ?? [];
+      const candidates = data.candidates ?? [];
+      const openJobs = jobs.filter((j) => !isClosed(j.status));
+      const openings = openJobs.reduce((s, j) => s + (j.openings ?? 0), 0);
+      return view(
+        [
+          { label: 'Open jobs', value: data.jobs ? String(openJobs.length) : '—', hint: data.jobs ? `${plural(jobs.length, 'posting')} in total` : 'Jobs unavailable' },
+          { label: 'Open headcount', value: data.jobs ? String(openings) : '—', hint: 'Openings on open jobs' },
+          { label: 'Candidates', value: data.candidates ? String(candidates.length) : '—', hint: 'All applications' }
+        ],
+        toDistribution('Candidates by stage', countBy(candidates, (c) => c.stage), (n) => plural(n, 'candidate')),
+        'Candidates by stage'
+      );
+    }
+    case 'On/Off-boarding': {
+      const tasks = data.onboarding ?? [];
+      const done = tasks.filter((t) => isClosed(t.status) || !!t.completedAt);
+      const overdue = tasks.filter((t) => !isClosed(t.status) && !t.completedAt && t.dueDate && dateOnly(t.dueDate) < today);
+      const monthPrefix = today.slice(0, 7);
+      const joinsThisMonth = employees.filter((e) => (e.joinDate ?? '').startsWith(monthPrefix)).length;
+      return view(
+        [
+          { label: 'New joins (this month)', value: String(joinsThisMonth), hint: 'From employee join dates' },
+          { label: 'Open tasks', value: String(tasks.length - done.length), hint: `${plural(done.length, 'task')} completed` },
+          { label: 'Overdue tasks', value: String(overdue.length), hint: 'Past due date' }
+        ],
+        toDistribution('Onboarding tasks by status', countBy(tasks, (t) => t.status), (n) => plural(n, 'task')),
+        'Onboarding tasks by status'
+      );
+    }
+    case 'Attendance': {
+      const logs = data.attendance ?? [];
+      const checkedIn = logs.filter((l) => !!l.checkInTime);
+      const hours = logs.map((l) => l.workHours).filter((h): h is number => typeof h === 'number');
+      return view(
+        [
+          { label: 'Logs today', value: String(logs.length), hint: 'Attendance roster' },
+          { label: 'Checked in', value: String(checkedIn.length), hint: employees.length ? `of ${plural(employees.length, 'employee')}` : 'Today' },
+          { label: 'Avg work hours', value: hours.length ? `${(hours.reduce((s, h) => s + h, 0) / hours.length).toFixed(1)} hrs` : '—', hint: 'Completed logs today' }
+        ],
+        toDistribution("Today's attendance status", countBy(logs, (l) => l.status), (n) => plural(n, 'employee')),
+        "Today's attendance status"
+      );
+    }
+    case 'Leave': {
+      const pending = data.pendingLeave ?? [];
+      const overview = (data.leaveOverview ?? []).filter((r) => r.total > 0);
+      const totalUsed = overview.reduce((s, r) => s + r.used, 0);
+      const totalDays = overview.reduce((s, r) => s + r.total, 0);
+      return view(
+        [
+          { label: 'Pending requests', value: data.pendingLeave ? String(pending.length) : '—', hint: 'Awaiting approval' },
+          { label: 'On leave', value: String(employees.filter((e) => e.status === 'On Leave').length), hint: 'Employee status' },
+          { label: 'Days used', value: data.leaveOverview && totalDays ? `${totalUsed} / ${totalDays}` : '—', hint: 'Across leave types' }
+        ],
+        overview.length
+          ? {
+              title: 'Leave used by type',
+              items: overview.slice(0, 5).map((r, i) => ({
+                label: r.label,
+                value: `${r.used} / ${r.total} days`,
+                percent: Math.min(100, Math.round((r.used / r.total) * 100)),
+                colorClass: BAR_COLORS[i % BAR_COLORS.length]
+              }))
+            }
+          : null,
+        'Leave used by type'
+      );
+    }
+    case 'Disciplinary': {
+      const cases = data.disciplinary ?? [];
+      const open = cases.filter((c) => !isClosed(c.status));
+      return view(
+        [
+          { label: 'Open cases', value: String(open.length), hint: `${plural(cases.length, 'case')} in total` },
+          { label: 'High severity', value: String(cases.filter((c) => statusIs(c.severity, ['HIGH', 'CRITICAL', 'SEVERE'])).length), hint: 'All cases' },
+          { label: 'Closed cases', value: String(cases.length - open.length), hint: 'Resolved or closed' }
+        ],
+        toDistribution('Cases by action', countBy(cases, (c) => c.actionType), (n) => plural(n, 'case')),
+        'Cases by action'
+      );
+    }
+    case 'Payroll': {
+      const rows = data.payroll ?? [];
+      const sum = (fn: (r: PayrollRow) => number) => rows.reduce((s, r) => s + (Number(fn(r)) || 0), 0);
+      const gross = sum(grossPay);
+      const parts: [string, number][] = [
+        ['Basic salaries', sum((r) => r.basicSalary)],
+        ['Allowances', sum((r) => r.allowances)],
+        ['Overtime', sum((r) => r.overtimePay)],
+        ['Bonuses', sum((r) => r.bonus)]
+      ];
+      return view(
+        [
+          { label: 'Payslips this month', value: String(rows.length), hint: `${rows.filter((r) => statusIs(r.status, ['PAID'])).length} paid` },
+          { label: 'Gross pay', value: rows.length ? formatMoney(gross, currency) : '—', hint: 'Basic, allowances, OT & bonus' },
+          { label: 'Net pay', value: rows.length ? formatMoney(sum((r) => r.netPay), currency) : '—', hint: 'After deductions & tax' }
+        ],
+        toDistribution('Gross pay composition', parts.filter(([, n]) => n > 0), (n) => formatMoney(n, currency)),
+        'Gross pay composition'
+      );
+    }
+    case 'Claims': {
+      const claims = data.claims ?? [];
+      const pending = claims.filter((c) => statusIs(c.status, ['PENDING', 'SUBMITTED']));
+      const approved = claims.filter((c) => statusIs(c.status, ['APPROVED', 'PAID']));
+      return view(
+        [
+          { label: 'Pending claims', value: String(pending.length), hint: `${plural(claims.length, 'claim')} in total` },
+          { label: 'Pending value', value: moneyByCurrency(pending, (c) => c.amount, (c) => c.currency, currency), hint: 'Awaiting decision' },
+          { label: 'Approved value', value: moneyByCurrency(approved, (c) => c.amount, (c) => c.currency, currency), hint: 'Approved or paid' }
+        ],
+        toDistribution('Claims by category', countBy(claims, (c) => c.category), (n) => plural(n, 'claim')),
+        'Claims by category'
+      );
+    }
+    case 'Benefits': {
+      const enrollments = data.benefits ?? [];
+      const active = enrollments.filter((e) => statusIs(e.status, ['ACTIVE', 'ENROLLED', 'APPROVED']));
+      return view(
+        [
+          { label: 'Enrollments', value: String(enrollments.length), hint: `${active.length} active` },
+          { label: 'Employees enrolled', value: String(new Set(enrollments.map((e) => e.employeeId)).size), hint: employees.length ? `of ${plural(employees.length, 'employee')}` : 'Unique staff' },
+          { label: 'Plans in use', value: String(new Set(enrollments.map((e) => e.planId)).size), hint: 'With at least one enrollment' }
+        ],
+        toDistribution('Enrollments by plan', countBy(enrollments, (e) => e.planName), (n) => plural(n, 'enrollment')),
+        'Enrollments by plan'
+      );
+    }
+    case 'Helpdesk & Inquiries': {
+      const tickets = data.helpdesk ?? [];
+      const open = tickets.filter((t) => !isClosed(t.status));
+      return view(
+        [
+          { label: 'Open tickets', value: String(open.length), hint: `${plural(tickets.length, 'ticket')} in total` },
+          { label: 'Urgent / high', value: String(open.filter((t) => statusIs(t.priority, ['URGENT', 'HIGH', 'CRITICAL'])).length), hint: 'Open tickets' },
+          { label: 'Unassigned', value: String(open.filter((t) => !t.assigneeEmployeeId).length), hint: 'Open tickets' }
+        ],
+        toDistribution('Tickets by category', countBy(tickets, (t) => t.category), (n) => plural(n, 'ticket')),
+        'Tickets by category'
+      );
+    }
+    case 'Performance': {
+      const reviews = data.reviews ?? [];
+      const scores = reviews.map((r) => r.score).filter((s): s is number => typeof s === 'number');
+      return view(
+        [
+          { label: 'Reviews', value: String(reviews.length), hint: `${new Set(reviews.map((r) => r.employeeId)).size} employees reviewed` },
+          { label: 'Average score', value: scores.length ? (scores.reduce((s, n) => s + n, 0) / scores.length).toFixed(1) : '—', hint: 'Scored reviews' },
+          { label: 'Completed', value: String(reviews.filter((r) => isClosed(r.status) || statusIs(r.status, ['SUBMITTED', 'FINALIZED', 'APPROVED'])).length), hint: 'Review status' }
+        ],
+        toDistribution('Reviews by rating', countBy(reviews, (r) => r.rating), (n) => plural(n, 'review')),
+        'Reviews by rating'
+      );
+    }
+    case 'Training': {
+      const trainings = data.trainings ?? [];
+      const upcoming = trainings.filter((t) => t.startDate && dateOnly(t.startDate) >= today);
+      const hours = trainings.reduce((s, t) => s + (t.durationHours ?? 0), 0);
+      return view(
+        [
+          { label: 'Programmes', value: String(trainings.length), hint: 'All trainings' },
+          { label: 'Upcoming', value: String(upcoming.length), hint: 'Starting today or later' },
+          { label: 'Scheduled hours', value: hours ? `${hours} hrs` : '—', hint: 'Sum of programme durations' }
+        ],
+        toDistribution('Programmes by format', countBy(trainings, (t) => t.mode), (n) => plural(n, 'programme')),
+        'Programmes by format'
+      );
+    }
+    case 'Assets': {
+      const assets = data.assets ?? [];
+      const assigned = assets.filter((a) => !!a.assignedToId);
+      const priced = assets.filter((a) => typeof a.purchasePrice === 'number');
+      return view(
+        [
+          { label: 'Assets', value: String(assets.length), hint: 'Registered items' },
+          { label: 'Assigned', value: String(assigned.length), hint: `${assets.length - assigned.length} unassigned` },
+          { label: 'Purchase value', value: priced.length ? formatMoney(priced.reduce((s, a) => s + (a.purchasePrice ?? 0), 0), currency) : '—', hint: 'Recorded purchase prices' }
+        ],
+        toDistribution('Assets by category', countBy(assets, (a) => a.category), (n) => plural(n, 'item')),
+        'Assets by category'
+      );
+    }
+    default:
+      return { stats: [], distribution: null, distributionTitle: '', emptyMessage: 'No data yet.' };
+  }
+}
+
+function resolveReportKind(reportName: string, selectedModule: string): string {
+  const lower = reportName.toLowerCase();
+  if (lower.includes('pdf') || lower.includes('booklet') || lower.includes('summary report') || lower.includes('trend outlook')) return 'Briefing';
+  const checks: [string, string[]][] = [
+    ['Payroll', ['payroll']],
+    ['Attendance', ['attendance']],
+    ['Leave', ['leave']],
+    ['Performance', ['performance', 'appraisal']],
+    ['Assets', ['asset']],
+    ['Recruitment', ['recruitment', 'candidate']],
+    ['On/Off-boarding', ['on/off', 'onboarding']],
+    ['Claims', ['claim']],
+    ['Disciplinary', ['disciplinary']],
+    ['Benefits', ['benefit']],
+    ['Helpdesk & Inquiries', ['helpdesk', 'inquir']],
+    ['Engagement', ['engage']],
+    ['Training', ['train']],
+    ['Learning', ['learn']]
+  ];
+  const match = checks.find(([, words]) => words.some((w) => lower.includes(w)));
+  if (match) return match[0];
+  if (MODULE_SOURCES[selectedModule] !== undefined && selectedModule !== 'Employee') return selectedModule;
+  return 'Employee';
+}
+
+function buildModuleCsv(kind: string, employees: Employee[], data: LoadedData, currency: string): CsvTable | string {
+  if (NO_SOURCE_MODULES[kind]) return `${NO_SOURCE_MODULES[kind]} Nothing to export.`;
+  const sources = MODULE_SOURCES[kind] ?? [];
+  if (sources.length > 0 && sources.every((k) => data[k] === null)) return `Could not load ${kind.toLowerCase()} data.`;
+
+  const index = employeeIndex(employees);
+  const empOf = (...keys: (string | null | undefined)[]) => keys.map((k) => (k ? index.get(k) : undefined)).find(Boolean);
+  const amt = (n: number | null | undefined) => (n === null || n === undefined ? '' : formatAmount(n, currency));
+
+  switch (kind) {
+    case 'Payroll':
+      return {
+        headers: ['Employee ID', 'Name', 'Department', 'Pay Period', `Basic Salary (${currency})`, `Allowances (${currency})`, `Overtime Pay (${currency})`, `Bonus (${currency})`, `Deductions (${currency})`, `Tax (${currency})`, `Net Pay (${currency})`, 'Status'],
+        rows: (data.payroll ?? []).map((r) => [
+          r.employeeCode,
+          r.employeeName,
+          str(empOf(r.employeeId, r.employeeCode)?.department),
+          `${r.payYear}-${String(r.payMonth).padStart(2, '0')}`,
+          amt(r.basicSalary),
+          amt(r.allowances),
+          amt(r.overtimePay),
+          amt(r.bonus),
+          amt(r.deductions),
+          amt(r.tax),
+          amt(r.netPay),
+          titleCase(r.status)
+        ])
+      };
+    case 'Attendance':
+      return {
+        headers: ['Employee ID', 'Name', 'Department', 'Work Date', 'Status', 'Clock-in', 'Clock-out', 'Work Hours', 'Notes'],
+        rows: (data.attendance ?? []).map((l) => {
+          const emp = empOf(l.employeeId);
+          return [str(emp?.id), str(emp?.name), str(emp?.department), l.workDate, titleCase(l.status), str(l.checkInTime), str(l.checkOutTime), str(l.workHours), str(l.notes)];
+        })
+      };
+    case 'Leave':
+      return {
+        headers: ['Employee ID', 'Name', 'Department', 'Leave Type', 'Start Date', 'End Date', 'Status', 'Reason', 'Submitted'],
+        rows: (data.pendingLeave ?? []).map((l) => {
+          const emp = empOf(l.employeeId);
+          return [str(emp?.id), l.employeeName, str(emp?.department), l.leaveType, l.startDate, l.endDate, titleCase(l.status), str(l.reason), dateOnly(l.createdAt)];
+        })
+      };
+    case 'Performance':
+      return {
+        headers: ['Employee ID', 'Name', 'Department', 'Review Year', 'Quarter', 'Review Type', 'Score', 'Rating', 'Reviewer', 'Status'],
+        rows: (data.reviews ?? []).map((r) => {
+          const emp = empOf(r.employeeId);
+          return [str(emp?.id), r.employeeName, str(emp?.department), str(r.reviewYear), r.reviewQuarter ? `Q${r.reviewQuarter}` : '', str(r.reviewType), str(r.score), str(r.rating), str(r.reviewerName), titleCase(r.status)];
+        })
+      };
+    case 'Assets':
+      return {
+        headers: ['Asset Code', 'Name', 'Category', 'Brand', 'Model', 'Serial Number', 'Assigned To', 'Department', 'Condition', 'Location', 'Purchase Date', `Purchase Price (${currency})`],
+        rows: (data.assets ?? []).map((a) => [
+          a.assetCode,
+          a.name,
+          str(a.category),
+          str(a.brand),
+          str(a.model),
+          str(a.serialNumber),
+          str(a.assignedToName),
+          str(empOf(a.assignedToId)?.department),
+          str(a.assetCondition),
+          str(a.location),
+          dateOnly(a.purchaseDate),
+          amt(a.purchasePrice)
+        ])
+      };
+    case 'Recruitment':
+      return {
+        headers: ['Candidate', 'Email', 'Job', 'Source', 'Stage', 'Status', 'Rating', 'Applied'],
+        rows: (data.candidates ?? []).map((c) => [c.fullName, c.email, str(c.jobTitle), str(c.source), titleCase(c.stage), titleCase(c.status), str(c.rating), dateOnly(c.appliedAt)])
+      };
+    case 'On/Off-boarding':
+      return {
+        headers: ['Employee ID', 'Name', 'Department', 'Task', 'Due Date', 'Status', 'Completed'],
+        rows: (data.onboarding ?? []).map((t) => {
+          const emp = empOf(t.employeeId);
+          return [str(emp?.id), t.employeeName, str(emp?.department), t.title, dateOnly(t.dueDate), titleCase(t.status), dateOnly(t.completedAt)];
+        })
+      };
+    case 'Claims':
+      return {
+        headers: ['Employee ID', 'Name', 'Department', 'Category', 'Claim Date', 'Amount', 'Currency', 'Vendor', 'Description', 'Status'],
+        rows: (data.claims ?? []).map((c) => {
+          const emp = empOf(c.employeeId);
+          return [str(emp?.id), c.employeeName, str(c.departmentName ?? emp?.department), c.category, dateOnly(c.claimDate), formatAmount(c.amount, c.currency || currency), c.currency || currency, str(c.vendor), str(c.description), titleCase(c.status)];
+        })
+      };
+    case 'Disciplinary':
+      return {
+        headers: ['Employee ID', 'Name', 'Department', 'Reason', 'Action', 'Severity', 'Incident Date', 'Status'],
+        rows: (data.disciplinary ?? []).map((c) => {
+          const emp = empOf(c.employeeId);
+          return [str(emp?.id), c.employeeName, str(emp?.department), c.reason, str(c.actionType), str(c.severity), dateOnly(c.incidentDate), titleCase(c.status)];
+        })
+      };
+    case 'Benefits':
+      return {
+        headers: ['Employee ID', 'Name', 'Department', 'Plan', 'Status', 'Enrolled', 'Notes'],
+        rows: (data.benefits ?? []).map((e) => {
+          const emp = empOf(e.employeeId);
+          return [str(emp?.id), e.employeeName, str(emp?.department), e.planName, titleCase(e.status), dateOnly(e.enrolledAt), str(e.notes)];
+        })
+      };
+    case 'Helpdesk & Inquiries':
+      return {
+        headers: ['Subject', 'Requester', 'Category', 'Priority', 'Status', 'Assignee', 'Created', 'Updated', 'Replies'],
+        rows: (data.helpdesk ?? []).map((t) => [t.subject, str(t.requesterName), str(t.category), str(t.priority), titleCase(t.status), str(t.assigneeName), dateOnly(t.createdAt), dateOnly(t.updatedAt), String(t.replies?.length ?? 0)])
+      };
+    case 'Training':
+      return {
+        headers: ['Programme', 'Category', 'Trainer', 'Format', 'Location', 'Start Date', 'End Date', 'Duration (hrs)', 'Max Participants', `Cost (${currency})`, 'Status'],
+        rows: (data.trainings ?? []).map((t) => [t.title, str(t.category), str(t.trainer), str(t.mode), str(t.location), dateOnly(t.startDate), dateOnly(t.endDate), str(t.durationHours), str(t.maxParticipants), amt(t.cost), titleCase(t.status)])
+      };
+    default:
+      return {
+        headers: ['Employee ID', 'Name', 'Department', 'Position', 'Employment Status', 'Status', 'Join Date', 'NRIC/Passport', 'Mobile Number', 'Company Email', 'Home Address', 'Emergency Contact'],
+        rows: employees.map((emp) => [
+          emp.id,
+          emp.name,
+          emp.department,
+          emp.position,
+          emp.employmentStatus,
+          emp.status,
+          emp.joinDate,
+          emp.nric,
+          emp.mobile,
+          emp.email,
+          emp.address,
+          emp.emergencyContact
+        ])
+      };
+  }
+}
+
+function buildBriefing(employees: Employee[], data: LoadedData, summary: ReportSummary | null, currency: string): string {
+  const now = new Date();
+  const rule = '------------------------------------------------------------------------';
+  let text = `========================================================================
+NOVORA - MANAGEMENT BRIEFING
+Generated: ${now.toLocaleDateString('en-GB')} ${now.toLocaleTimeString()}
+Classification: CONFIDENTIAL - MANAGEMENT LEVEL
+Currency: ${currency}
+========================================================================
+
+1. ORGANISATION SUMMARY
+${rule}
+Employees on record: ${employees.length}
+Active employees: ${employees.filter((e) => e.status === 'Active').length}`;
+
+  if (summary) {
+    text += `
+Pending leave requests: ${summary.pendingLeave}
+Open jobs: ${summary.openJobs}
+Candidates in pipeline: ${summary.candidates}
+Claims pending: ${summary.claimsPending}
+Payroll headcount this month: ${summary.payrollHeadcountThisMonth}`;
+  }
+
+  text += `\n\n${rule}\n2. DEPARTMENT BREAKDOWN\n${rule}`;
+  const depts = countBy(employees, (e) => e.department);
+  if (depts.length === 0) {
+    text += '\n  No employee records yet.';
+  } else {
+    depts.forEach(([dept, count]) => {
+      const percent = Math.round((count / employees.length) * 100);
+      text += `\n  - ${dept}: ${count} (${percent}% of total)`;
+    });
+  }
+
+  text += `\n\n${rule}\n3. MODULE METRICS & FOCUS AREAS\n${rule}`;
+  Object.keys(MODULE_BRIEFS).forEach((mod) => {
+    const brief = MODULE_BRIEFS[mod];
+    const moduleView = buildModuleView(mod, employees, data, currency);
+    const metrics = moduleView.emptyMessage
+      ? `  ${moduleView.emptyMessage}`
+      : moduleView.stats.map((s) => `  - ${s.label}: ${s.value}`).join('\n');
+    text += `\n[${mod.toUpperCase()}]
+- Strategic Focus: ${brief.strategicFocus}
+- Current Metrics:
+${metrics}
+- Suggested Directives:
+${brief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}`).join('\n')}
+${rule}`;
+  });
+
+  text += `\n\n========================================================================\nEND OF BRIEFING\n========================================================================`;
+  return text;
+}
+
+type BuilderKind = 'employee' | 'attendance' | 'leave' | 'payroll' | 'performance';
+
+const BUILDER_FIELDS: Record<BuilderKind, [string, boolean][]> = {
+  employee: [['Employee No.', true], ['Full Name', true], ['Department', true], ['Position', true], ['Employment Type', false], ['Status', false], ['Join Date', false], ['Email', false]],
+  attendance: [['Employee No.', true], ['Full Name', true], ['Work Date', true], ['Clock-in Time', true], ['Clock-out Time', true], ['Work Hours', false], ['Status', false]],
+  leave: [['Employee No.', true], ['Employee Name', true], ['Leave Type', true], ['Start Date', true], ['End Date', true], ['Status', false], ['Reason', false]],
+  payroll: [['Employee No.', true], ['Full Name', true], ['Pay Period', false], ['Basic Salary', true], ['Allowances', true], ['Overtime Pay', false], ['Deductions', false], ['Tax', false], ['Net Pay', true]],
+  performance: [['Staff Name', true], ['Review Period', true], ['Review Type', false], ['Score', true], ['Rating', true], ['Reviewer', false], ['Status', false]]
+};
+
+const BUILDER_MONEY_FIELDS = ['Basic Salary', 'Allowances', 'Overtime Pay', 'Deductions', 'Tax', 'Net Pay'];
+
+const BUILDER_SOURCES: Record<BuilderKind, DataKey[]> = {
+  employee: [],
+  attendance: ['attendance'],
+  leave: ['pendingLeave'],
+  payroll: ['payroll'],
+  performance: ['reviews']
+};
+
+function builderKindOf(module: string): BuilderKind {
+  const lower = module.toLowerCase();
+  if (lower.includes('attendance')) return 'attendance';
+  if (lower.includes('leave')) return 'leave';
+  if (lower.includes('payroll')) return 'payroll';
+  if (lower.includes('performance')) return 'performance';
+  return 'employee';
+}
+
+const fieldsFor = (kind: BuilderKind) => Object.fromEntries(BUILDER_FIELDS[kind]) as Record<string, boolean>;
+
+function nextRunLabel(frequency: string, time: string): string {
+  const match = time.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  let hour = match ? Number(match[1]) % 12 : 0;
+  if (match && match[3].toUpperCase() === 'PM') hour += 12;
+  const minute = match ? Number(match[2]) : 0;
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute);
+  if (frequency === 'Monthly') {
+    next.setMonth(now.getMonth() + 1, 1);
+  } else if (frequency === 'Quarterly') {
+    next.setMonth(Math.floor(now.getMonth() / 3) * 3 + 3, 1);
+  } else if (next <= now) {
+    next.setDate(next.getDate() + (frequency === 'Weekly' ? 7 : 1));
+  }
+  return `${next.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} ${time.split(' ')[0]}`;
+}
+
+const DEFAULT_SCHEDULE_FORM = {
+  type: 'Monthly payroll summary',
+  frequency: 'Monthly',
+  time: '06:00 AM',
+  format: 'CSV (.csv)',
+  recipients: ''
 };
 
 export default function ReportsTab({
@@ -602,6 +903,8 @@ export default function ReportsTab({
   activeSubTab,
   setActiveSubTab,
 }: ReportsTabProps) {
+  const { currency } = useCurrency();
+
   // Navigation State
   const [localActiveSidebarTab, setLocalActiveSidebarTab] = useState<'centre' | 'scheduled' | 'builder'>('centre');
   const activeSidebarTab = activeSubTab !== undefined ? activeSubTab : localActiveSidebarTab;
@@ -611,15 +914,19 @@ export default function ReportsTab({
   const [moduleSearch, setModuleSearch] = useState<string>('');
 
   // Stats Counters
-  const [totalCustomSaved, setTotalCustomSaved] = useState<number>(7);
+  const [totalCustomSaved, setTotalCustomSaved] = useState<number>(0);
   const [reportSummary, setReportSummary] = useState<ReportSummary | null>(null);
+  const [summaryLoadedAt, setSummaryLoadedAt] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       try {
         const summary = await fetchReportSummary()
-        if (!cancelled) setReportSummary(summary)
+        if (!cancelled) {
+          setReportSummary(summary)
+          setSummaryLoadedAt(nowTime())
+        }
       } catch (err) {
         if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
           addToast('Could not load report summary.', 'error')
@@ -631,47 +938,75 @@ export default function ReportsTab({
     }
   }, [addToast])
 
+  const dataRef = useRef<LoadedData>({});
+  const inflightRef = useRef<Partial<Record<DataKey, Promise<void>>>>({});
+  const [reportData, setReportData] = useState<LoadedData>({});
+  const [moduleLoadedAt, setModuleLoadedAt] = useState<Record<string, string>>({});
+
+  const ensureData = useCallback(async (keys: DataKey[]): Promise<LoadedData> => {
+    const pending = keys.map((key) => {
+      if (key in dataRef.current) return null;
+      if (!inflightRef.current[key]) {
+        inflightRef.current[key] = (DATA_LOADERS[key] as () => Promise<unknown>)()
+          .catch(() => null)
+          .then((result) => {
+            dataRef.current = { ...dataRef.current, [key]: result };
+            delete inflightRef.current[key];
+            setReportData(dataRef.current);
+          });
+      }
+      return inflightRef.current[key];
+    });
+    await Promise.all(pending);
+    return dataRef.current;
+  }, []);
+
+  useEffect(() => {
+    if (selectedModule === 'All Overview') return;
+    let cancelled = false;
+    ensureData(MODULE_SOURCES[selectedModule] ?? []).then(() => {
+      if (!cancelled) setModuleLoadedAt((prev) => ({ ...prev, [selectedModule]: nowTime() }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedModule, ensureData]);
+
+  const moduleView = useMemo(
+    () => (selectedModule === 'All Overview' ? null : buildModuleView(selectedModule, employees, reportData, currency)),
+    [selectedModule, employees, reportData, currency]
+  );
+
+  const departmentOptions = useMemo(() => departmentNames(employees), [employees]);
+
   // Scheduled Reports List State
   const [schedules, setSchedules] = useState<ReportSchedule[]>([]);
 
   // Scheduled Report Editor State
   const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
-  const [scheduleForm, setScheduleForm] = useState({
-    type: 'Monthly payroll summary',
-    frequency: 'Monthly',
-    time: '06:00 AM',
-    format: 'Excel (.xlsx)',
-    recipients: 'hr@novora.com, cfo@novora.com'
-  });
+  const [scheduleForm, setScheduleForm] = useState(DEFAULT_SCHEDULE_FORM);
 
   // Recent Action Activity Stack
-  const [recentActivities, setRecentActivities] = useState<{ id: string; name: string; user: string; timestamp: string; success: boolean }[]>([]);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
 
   // Custom Builder Form Configuration State
   const [builderModule, setBuilderModule] = useState<string>('Employee management');
   const [builderCombine, setBuilderCombine] = useState({
-    attendance: true,
+    attendance: false,
     leave: false,
     payroll: false,
     performance: false
   });
 
   // Dynamically populated checklist depending on primary module
-  const [selectedFields, setSelectedFields] = useState<Record<string, boolean>>({
-    'Employee No.': true,
-    'Full Name': true,
-    'Department': true,
-    'Position': true,
-    'Employment Type': false,
-    'Status': false
-  });
+  const [selectedFields, setSelectedFields] = useState<Record<string, boolean>>(() => fieldsFor('employee'));
 
-  const [filterFromDate, setFilterFromDate] = useState('2026-01-01');
-  const [filterToDate, setFilterToDate] = useState('2026-05-31');
+  const [filterFromDate, setFilterFromDate] = useState(yearStartIso);
+  const [filterToDate, setFilterToDate] = useState(todayIso);
   const [filterDept, setFilterDept] = useState('All departments');
   const [filterStatus, setFilterStatus] = useState('Active only');
   const [sortBy, setSortBy] = useState('Employee No.');
-  const [builderFormat, setBuilderFormat] = useState('Excel (.xlsx)');
+  const [builderFormat, setBuilderFormat] = useState('CSV (.csv)');
 
   // Module filter options
   const horizontalModules = [
@@ -696,448 +1031,105 @@ export default function ReportsTab({
   // Helper trigger action on form change when builderModule swaps
   const handleBuilderModuleChange = (newModule: string) => {
     setBuilderModule(newModule);
-    if (newModule.toLowerCase().includes('employee')) {
-      setSelectedFields({
-        'Employee No.': true,
-        'Full Name': true,
-        'Department': true,
-        'Position': true,
-        'Join Date': false,
-        'NRIC Pass': false
+    setSelectedFields(fieldsFor(builderKindOf(newModule)));
+  };
+
+  const saveFile = (reportName: string, fileName: string, content: string, fileType: string, successText: string) => {
+    try {
+      const blob = new Blob([content], { type: fileType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', fileName);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      addToast(successText, 'success');
+
+      const timestamp = new Date().toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short'
+      }) + ' ' + nowTime();
+
+      setRecentActivities(prev => {
+        const newAct: RecentActivity = {
+          id: createLocalId('rpt'),
+          name: reportName,
+          user: 'You',
+          timestamp,
+          success: true,
+          fileName,
+          fileType,
+          content
+        };
+        return [newAct, ...prev.filter(act => act.name !== reportName)].slice(0, 6);
       });
-    } else if (newModule.toLowerCase().includes('attendance')) {
-      setSelectedFields({
-        'Staff ID': true,
-        'Clock-in Time': true,
-        'Clock-out Time': true,
-        'Overtime Hours': true,
-        'Absence Days': false,
-        'Grace Deviation': false
-      });
-    } else if (newModule.toLowerCase().includes('leave')) {
-      setSelectedFields({
-        'Staff No.': true,
-        'Employee Name': true,
-        'Leaves Entitled': true,
-        'Leaves Taken': true,
-        'Unpaid Leaves': false,
-        'Pending Requests': false
-      });
-    } else if (newModule.toLowerCase().includes('payroll')) {
-      setSelectedFields({
-        'Employee No.': true,
-        'Basic Salary': true,
-        'Allowances': true,
-        'Employee Provident Fund': true,
-        'Deductions': false,
-        'Net Salary Pay': true
-      });
-    } else if (newModule.toLowerCase().includes('performance')) {
-      setSelectedFields({
-        'Staff Name': true,
-        'KPI Completion %': true,
-        'Appraisal Score': true,
-        'Rating Category': true,
-        'Evaluator Agent': false,
-        'Development Gap': false
-      });
-    } else {
-      setSelectedFields({
-        'Record ID': true,
-        'Staff Candidate': true,
-        'Module Metrics': true,
-        'Status Flag': true,
-        'Audited Version': false
-      });
+    } catch (err) {
+      console.error('File generation failure:', err);
+      addToast('The browser blocked the file download.', 'error');
     }
   };
 
+  const toCsv = (table: CsvTable) =>
+    [
+      table.headers.join(','),
+      ...table.rows.map(row => row.map(val => `"${(val ?? '').replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+  const fileBaseName = (reportName: string) =>
+    reportName
+      .replace(/[^a-zA-Z0-9_\-\s]/g, '')
+      .trim()
+      .replace(/\s+/g, '_');
+
   // Trigger download actions
-  const triggerDownloadLog = (reportName: string) => {
-    addToast(`Compiling server-side dataset for: ${reportName}...`, 'loading');
-    setTimeout(() => {
-      // 1. Build actual file content based on reportName and selectedModule
-      let fileContent = '';
-      let fileType = 'text/csv;charset=utf-8;';
-      let fileNameExtension = '.csv';
+  const triggerDownloadLog = async (reportName: string) => {
+    const kind = resolveReportKind(reportName, selectedModule);
+    const keys = kind === 'Briefing' ? ALL_DATA_KEYS : (MODULE_SOURCES[kind] ?? []);
+    if (keys.some(k => !(k in dataRef.current))) {
+      addToast(`Loading data for ${reportName}…`, 'loading');
+    }
+    const data = await ensureData(keys);
 
-      const isPdfReport = reportName.toLowerCase().includes('pdf') || reportName.toLowerCase().includes('booklet') || reportName.toLowerCase().includes('summary report') || reportName.toLowerCase().includes('trend outlook');
+    if (kind === 'Briefing') {
+      saveFile(
+        reportName,
+        `${fileBaseName(reportName)}.txt`,
+        buildBriefing(employees, data, reportSummary, currency),
+        'text/plain;charset=utf-8;',
+        `Downloaded "${reportName}" as a text briefing.`
+      );
+      return;
+    }
 
-      if (isPdfReport) {
-        fileType = 'text/plain;charset=utf-8;';
-        fileNameExtension = '.txt'; // Download a beautifully formatted management briefing text file
+    const table = buildModuleCsv(kind, employees, data, currency);
+    if (typeof table === 'string') {
+      addToast(table, 'info');
+      return;
+    }
+    if (table.rows.length === 0) {
+      addToast(`No ${kind.toLowerCase()} records to export yet.`, 'info');
+      return;
+    }
+    saveFile(
+      reportName,
+      `${fileBaseName(reportName)}.csv`,
+      toCsv(table),
+      'text/csv;charset=utf-8;',
+      `Downloaded "${reportName}" (${plural(table.rows.length, 'row')}).`
+    );
+  };
 
-        // Generate high-grade management board-level report markup
-        fileContent = `========================================================================
-NOVORA ENTERPRISES - EXECUTIVE BRIEFING & STRATEGIC BOARD REPORT
-Generated: ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString()}
-Classification: CONFIDENTIAL & HIGHLY SENSITIVE - MANAGEMENT LEVEL
-Scope: Consolidated Operational Ledger & Department Analyses
-========================================================================
-
-1. Q2 EXECUTIVE SUMMARY DESK
-------------------------------------------------------------------------
-Compliance & Management Index: 94.8% (EXCELLENT STATUS)
-Current Workforce Capacity: ${employees.length} Active Personnel Profiles
-Audit Evaluation: Standardized corporate alignment across all divisions.
-Risk Assessment: Low to Medium (Key operational targets resolved)
-
-Strategic Health Overview:
-The organization maintains structural integrity across all performance criteria,
-recruitment cycles, and fiscal expenditure pipelines. Turnover variance is
-strictly contained, and departmental resource yields match standard project boundaries.
-
-------------------------------------------------------------------------
-2. DIVISION PARTICIPATION BREAKDOWN
-------------------------------------------------------------------------
-Total Active Employees: ${employees.length}
-
-Department Breakdown:`;
-
-        const depts = ['Engineering', 'Operations', 'Finance', 'HR', 'Marketing'];
-        depts.forEach(dept => {
-          const count = employees.filter(e => e.department === dept).length;
-          const percent = Math.round((count / employees.length) * 100) || 0;
-          fileContent += `\n  - ${dept} Division: ${count} Members (${percent}% of total)`;
-        });
-
-        fileContent += `\n\n------------------------------------------------------------------------\n3. ACTIVE MANAGEMENT INTERFACE - MODULE METRICS & ACTIONABLE DIRECTIVES\n------------------------------------------------------------------------\nBelow are strategic briefing summaries and risk mitigation directives for \noperational modules currently tracked by Novora core HR platform:\n`;
-
-        Object.keys(MODULE_REPORTS_DATA).forEach((mod) => {
-          const brief = MODULE_REPORTS_DATA[mod];
-          if (brief && brief.managementBrief) {
-            fileContent += `\n[${mod.toUpperCase()}]
-- Strategic Focus: ${brief.managementBrief.strategicFocus}
-- Safety/Risk Index: ${brief.managementBrief.riskIndex}
-- Financial Impact: ${brief.managementBrief.costImpact}
-- Immediate Board Directives:
-${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}`).join('\n')}
-------------------------------------------------------------------------`;
-          }
-        });
-
-        fileContent += `\n\n========================================================================\nEND OF BRIEFING - CONFIDENTIAL NOVORA MANAGEMENT RECORD\nAuthorized Signature: NOVORA OPERATIONS BOARD\n========================================================================`;
-      } else {
-        // Generate CSV file content
-        const lowerName = reportName.toLowerCase();
-        let headers: string[];
-        let rows: string[][];
-
-        if (lowerName.includes('payroll') || selectedModule === 'Payroll') {
-          headers = ['Employee ID', 'Name', 'Department', 'Position', 'Join Date', 'Base Salary ($)', 'Allowances ($)', 'Tax Deductions ($)', 'Net Take-Home Pay ($)'];
-          rows = employees.map(emp => {
-            const numId = parseInt(emp.id.replace(/\D/g, '')) || 100;
-            const base = 4000 + (numId % 10) * 500;
-            const allowance = 250 + (numId % 5) * 100;
-            const deduction = Math.round(base * 0.12);
-            const net = base + allowance - deduction;
-            return [
-              emp.id,
-              emp.name,
-              emp.department,
-              emp.position,
-              emp.joinDate,
-              String(base),
-              String(allowance),
-              String(deduction),
-              String(net)
-            ];
-          });
-        } else if (lowerName.includes('attendance') || selectedModule === 'Attendance') {
-          headers = ['Employee ID', 'Name', 'Department', 'Position', 'Check-In Date', 'Assigned Work Shift', 'Status', 'Overtime Hours Worked'];
-          rows = employees.map(emp => {
-            const numId = parseInt(emp.id.replace(/\D/g, '')) || 100;
-            const ot = (numId % 3 === 0) ? (numId % 6) : 0;
-            const status = (numId % 11 === 0) ? 'Late Clock-in' : (numId % 20 === 0 ? 'On Leave' : 'On-Time Office');
-            return [
-              emp.id,
-              emp.name,
-              emp.department,
-              emp.position,
-              '2026-06-19',
-              '09:00 - 18:00 (Standard Desk)',
-              status,
-              String(ot)
-            ];
-          });
-        } else if (lowerName.includes('leave') || selectedModule === 'Leave') {
-          headers = ['Employee ID', 'Name', 'Department', 'Position', 'Annual Allowance (Days)', 'Sick Leave Balance', 'Approved Leaves Taken', 'Pending Review'];
-          rows = employees.map(emp => {
-            const numId = parseInt(emp.id.replace(/\D/g, '')) || 100;
-            const taken = 2 + (numId % 12);
-            const accum = 20;
-            return [
-              emp.id,
-              emp.name,
-              emp.department,
-              emp.position,
-              String(accum),
-              '14 Days Available',
-              String(taken),
-              (numId % 7 === 0) ? '1 Day (Medical)' : 'None'
-            ];
-          });
-        } else if (lowerName.includes('performance') || selectedModule === 'Performance') {
-          headers = ['Employee ID', 'Name', 'Department', 'Position', 'KPI Target Completion %', 'Evaluation Average', 'Manager Assessment Category', 'Last Review Date'];
-          rows = employees.map(emp => {
-            const numId = parseInt(emp.id.replace(/\D/g, '')) || 100;
-            const kpi = 70 + (numId % 31);
-            const score = (5.5 + (numId % 5) * 1.1).toFixed(1);
-            const category = kpi >= 95 ? 'Exceeds High Targets' : (kpi >= 80 ? 'Solid Core Achieved' : 'Development Pipeline (PIP)');
-            return [
-              emp.id,
-              emp.name,
-              emp.department,
-              emp.position,
-              `${kpi}%`,
-              `${score} / 10`,
-              category,
-              '2026-05-15'
-            ];
-          });
-        } else if (lowerName.includes('asset') || selectedModule === 'Assets') {
-          headers = ['Hardware Serial Code', 'Assigned Staff Custodian', 'Department', 'Item Description', 'Asset Category', 'SaaS Licensing', 'Approx. Value ($)', 'Deployment Status'];
-          rows = employees.map((emp, i) => {
-            const numId = parseInt(emp.id.replace(/\D/g, '')) || 100;
-            const deviceType = (numId % 3 === 0) ? 'MacBook Pro M3 Max' : ((numId % 3 === 1) ? 'Dell Latitude 7440' : 'Lenovo ThinkPad T14');
-            const assetCategory = 'Client Endpoint Hardware';
-            const cost = (numId % 3 === 0) ? '3200' : '1850';
-            const serial = `SN-NV-${10000 + numId}-${i}`;
-            return [
-              serial,
-              emp.name,
-              emp.department,
-              deviceType,
-              assetCategory,
-              'Enterprise Managed',
-              cost,
-              emp.status === 'Active' ? 'In Use' : 'Stored'
-            ];
-          });
-        } else if (lowerName.includes('recruitment') || selectedModule === 'Recruitment') {
-          headers = ['Candidate Profile ID', 'Applicant Name', 'Selected Division', 'Job Designation', 'Core Sourcing Channel', 'Panel Score', 'Current Progress Phase'];
-          const channels = ['LinkedIn Premium Sourcing', 'Direct Organic Application', 'External Specialized Agency', 'Internal Referrals Network'];
-          const stages = ['Final Interview Round', 'Case Assessment Check', 'Offer Issuance & Review', 'Screening Review Queue'];
-          rows = employees.map((emp, i) => {
-            const numId = parseInt(emp.id.replace(/\D/g, '')) || 100;
-            const candName = `Candidate ${emp.name.split(' ')[0]} ${String.fromCharCode(65 + (i % 26))}.`;
-            return [
-              `CAND-912${i}`,
-              candName,
-              emp.department,
-              emp.position,
-              channels[numId % channels.length],
-              `${7.5 + (numId % 3) * 0.8} / 10`,
-              stages[numId % stages.length]
-            ];
-          });
-        } else if (lowerName.includes('on/off') || selectedModule === 'On/Off-boarding') {
-          headers = ['Staff Profile ID', 'Designated Employee', 'Department', 'Position', 'IT Provision Status', 'ID Tag Verification', 'Access Status', 'Checkpoint Progress'];
-          rows = employees.map((emp, i) => {
-            const numId = parseInt(emp.id.replace(/\D/g, '')) || 100;
-            return [
-              emp.id,
-              emp.name,
-              emp.department,
-              emp.position,
-              (numId % 2 === 0) ? 'Clear (SSO Activated)' : 'Pending Device Ship',
-              'Verified Profile',
-              (numId % 7 === 0) ? 'Exit / Revoked Transmit' : 'Onboard Completed',
-              (numId % 5 === 0) ? '90% Completed' : '100% Fully Cleared'
-            ];
-          });
-        } else if (lowerName.includes('claim') || selectedModule === 'Claims') {
-          headers = ['Expense Receipt Code', 'Submitting Employee', 'Department', 'Expense Statement Title', 'Incurred Amount ($)', 'Validated Date', 'Status Flag'];
-          const statements = ['Regional Client Dinner Networking', 'SaaS Operational Subscriptions', 'Branch Office Supplies Refill', 'Travel Mileage Allowance'];
-          rows = employees.map((emp, i) => {
-            const numId = parseInt(emp.id.replace(/\D/g, '')) || 100;
-            const amt = 45 + (numId % 15) * 45;
-            return [
-              `EXP-NV-${3000 + i}`,
-              emp.name,
-              emp.department,
-              statements[numId % statements.length],
-              String(amt),
-              '2026-06-15',
-              (numId % 9 === 0) ? 'Pending Audit Approval' : 'Fully Disbursed'
-            ];
-          });
-        } else if (lowerName.includes('disciplinary') || selectedModule === 'Disciplinary') {
-          headers = ['Case ID', 'Employee Name', 'Department', 'Infraction Subtype', 'Grievance Description', 'Date Reported', 'Action Taken', 'Current Status'];
-          const infractions = ['Unexcused Absence Streak', 'Corporate Conduct Incident', 'Information Policy Violation', 'SLA Target Overage'];
-          const statuses = ['Active Inquiry', 'Written Warning Issued', 'Resolved / Mentorship Assigned', 'Escalated to HR Board'];
-          rows = employees.map((emp, i) => {
-            const numId = parseInt(emp.id.replace(/\D/g, '')) || 100;
-            return [
-              `DISC-NV-${5000 + i}`,
-              emp.name,
-              emp.department,
-              infractions[numId % infractions.length],
-              'Detailed compliance reviews initiated by HOD.',
-              '2026-06-10',
-              (numId % 4 === 0) ? 'Suspension Checklist' : 'Counselling Milestone',
-              statuses[numId % statuses.length]
-            ];
-          });
-        } else if (lowerName.includes('benefit') || selectedModule === 'Benefits') {
-          headers = ['Employee ID', 'Name', 'Department', 'Benefits Plan Selected', 'Coverage Category', 'Premium Reimbursement ($)', 'Flexible Points Earned', 'Enrollment Status'];
-          const plans = ['Platinum Medical & Dental', 'Global Health & Wellness Plus', 'Base Executive Medical Care', 'Ad-hoc Family Shield'];
-          rows = employees.map((emp, i) => {
-            const numId = parseInt(emp.id.replace(/\D/g, '')) || 100;
-            const pts = 1200 + (numId % 9) * 150;
-            const prem = 250 + (numId % 4) * 80;
-            return [
-              emp.id,
-              emp.name,
-              emp.department,
-              plans[numId % plans.length],
-              'Comprehensive Enterprise Umbrella',
-              String(prem),
-              String(pts),
-              (numId % 8 === 0) ? 'Pending Document Verification' : 'Officially Enrolled'
-            ];
-          });
-        } else if (lowerName.includes('helpdesk') || lowerName.includes('inquir') || selectedModule === 'Helpdesk & Inquiries' || selectedModule === 'Helpdesk') {
-          headers = ['Ticket ID', 'Requestor Name', 'Department', 'Inquiry Classification', 'SLA Response Time (Hours)', 'Resolution Status', 'Satisfactory Rating (1-5)'];
-          const classes = ['Salary Dispute Verification', 'EP Pass Renewal Assistance', 'Flexible Benefit Claim Reject', 'Health Portal Account Lock'];
-          rows = employees.map((emp, i) => {
-            const numId = parseInt(emp.id.replace(/\D/g, '')) || 100;
-            return [
-              `REQ-TKT-${1000 + i}`,
-              emp.name,
-              emp.department,
-              classes[numId % classes.length],
-              String(1 + (numId % 4) * 2),
-              (numId % 3 === 0) ? 'In Review Queue' : 'Resolved & Closed',
-              String(4 + (numId % 2))
-            ];
-          });
-        } else if (lowerName.includes('engage') || selectedModule === 'Engagement') {
-          headers = ['Survey ID', 'Team Division', 'Engagement Score (1-5)', 'Work-Life Balance Key', 'Primary Sentiment Pillar', 'Anonymized Suggestions Quote'];
-          const sentiments = ['Optimistic of Q3 Strategy', 'Desires More Remote Days', 'Pleased with Learning Budgets', 'Asks for Workstation Upgrades'];
-          rows = employees.map((emp, i) => {
-            const numId = parseInt(emp.id.replace(/\D/g, '')) || 100;
-            const score = (3.8 + (numId % 13) * 0.1).toFixed(1);
-            return [
-              `SURV-${200 + i}`,
-              emp.department,
-              score,
-              (numId % 2 === 0) ? 'Highly Balanced (Flexible)' : 'Slight Work Overload',
-              sentiments[numId % sentiments.length],
-              'We should retain collaborative workspace sessions once a week while preserving offline focuses.'
-            ];
-          });
-        } else if (lowerName.includes('train') || selectedModule === 'Training') {
-          headers = ['Employee ID', 'Name', 'Department', 'Enrolled Program', 'Education Format', 'Scheduled Date', 'Progress Status'];
-          const courses = ['Executive Leadership Core Mastery', 'Information Security Policy 2026', 'Conflict Mitigation & HR Guidelines', 'Next.js & TypeScript Fullstack Development'];
-          rows = employees.map((emp, i) => {
-            const numId = parseInt(emp.id.replace(/\D/g, '')) || 100;
-            return [
-              emp.id,
-              emp.name,
-              emp.department,
-              courses[numId % courses.length],
-              (numId % 2 === 0) ? 'Self-Paced LMS Video' : 'HQ Interactive Seminar',
-              '2026-07-01',
-              (numId % 3 === 0) ? '50% Halfway Completed' : '100% Fully Completed & Audited'
-            ];
-          });
-        } else if (lowerName.includes('learn') || selectedModule === 'Learning') {
-          headers = ['Employee ID', 'Name', 'Department', 'SaaS Certificate Course', 'Assigned Priority', 'Modules Completed Count', 'Status Validity'];
-          const certifications = ['AWS DevOps Solutions Architect', 'HRCI Senior Professional (SPHR)', 'Scrum Master Agile Operations', 'ISO9001 ISO Auditing'];
-          rows = employees.map((emp, i) => {
-            const numId = parseInt(emp.id.replace(/\D/g, '')) || 100;
-            return [
-              emp.id,
-              emp.name,
-              emp.department,
-              certifications[numId % certifications.length],
-              (numId % 3 === 0) ? 'Critical Priority' : 'Elective / Optional Support',
-              `${numId % 5} of 5 modules`,
-              'Valid and Audited Program'
-            ];
-          });
-        } else {
-          // General Consolidated Ledger or raw database tables
-          headers = ['Employee ID', 'Name', 'Department', 'Position', 'Employment Status', 'Status', 'Join Date', 'NRIC/Passport', 'Mobile Number', 'Company Email', 'Home Address', 'Emergency Call'];
-          rows = employees.map(emp => [
-            emp.id,
-            emp.name,
-            emp.department,
-            emp.position,
-            emp.employmentStatus,
-            emp.status,
-            emp.joinDate,
-            emp.nric,
-            emp.mobile,
-            emp.email,
-            emp.address.replace(/,/g, ' '),
-            emp.emergencyContact
-          ]);
-        }
-
-        // Build elegant CSV formatted block
-        const csvRows = [
-          headers.join(','),
-          ...rows.map(row => row.map(val => `"${(val || '').replace(/"/g, '""')}"`).join(','))
-        ];
-        fileContent = csvRows.join('\n');
-      }
-
-      // Safe trigger of browser file-download handler
-      try {
-        const cleanedNameForFile = reportName
-          .replace(/[^a-zA-Z0-9_\-\s]/g, '')
-          .replace(/\s+/g, '_');
-        const finalFileName = `${cleanedNameForFile}${fileNameExtension}`;
-
-        const blob = new Blob([fileContent], { type: fileType });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', finalFileName);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-
-        addToast(`Successfully downloaded "${reportName}" to localized office storage.`, 'success');
-
-        // Append dynamically to top of recent activities list
-        const timestamp = new Date().toLocaleDateString('en-GB', {
-          day: 'numeric',
-          month: 'short'
-        }) + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-        
-        setRecentActivities(prev => {
-          const itemExists = prev.some(act => act.name === reportName);
-          const newAct = {
-            id: createLocalId('rpt'),
-            name: reportName,
-            user: 'HR Admin',
-            timestamp: timestamp,
-            success: true
-          };
-          if (itemExists) {
-            return [newAct, ...prev.filter(act => act.name !== reportName)].slice(0, 6);
-          }
-          return [newAct, ...prev].slice(0, 6);
-        });
-      } catch (err) {
-        console.error('File generation failure:', err);
-        addToast('File download encountered standard sandboxing limitations.', 'error');
-      }
-    }, 1300);
+  const redownloadActivity = (act: RecentActivity) => {
+    saveFile(act.name, act.fileName, act.content, act.fileType, `Downloaded "${act.name}" again.`);
   };
 
   // Schedule handles
   const handleSaveSchedule = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!scheduleForm.recipients.trim()) {
-      addToast('Recipients email must contain at least one valid address.', 'error');
-      return;
-    }
 
     if (editingScheduleId) {
       setSchedules(prev => prev.map(s => {
@@ -1149,12 +1141,13 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
             frequency: scheduleForm.frequency,
             format: scheduleForm.format,
             time: scheduleForm.time,
-            recipients: scheduleForm.recipients
+            recipients: scheduleForm.recipients,
+            nextRun: nextRunLabel(scheduleForm.frequency, scheduleForm.time)
           };
         }
         return s;
       }));
-      addToast('Recurrent scheduled report adjusted successfully!', 'success');
+      addToast('Schedule updated for this session only. Automatic delivery is not connected yet.', 'success');
       setEditingScheduleId(null);
     } else {
       const isDuplicated = schedules.some(s => s.type === scheduleForm.type && s.frequency === scheduleForm.frequency);
@@ -1162,7 +1155,6 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
         addToast(`A schedule of "${scheduleForm.type}" on frequency "${scheduleForm.frequency}" already exists.`, 'info');
       }
 
-      const nextDayStr = scheduleForm.frequency === 'Daily' ? 'Tomorrow' : '1 Jun';
       setSchedules(prev => [
         ...prev,
         {
@@ -1173,20 +1165,13 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
           time: scheduleForm.time,
           format: scheduleForm.format,
           recipients: scheduleForm.recipients,
-          nextRun: `${nextDayStr} ${scheduleForm.time.split(' ')[0]}`
+          nextRun: nextRunLabel(scheduleForm.frequency, scheduleForm.time)
         }
       ]);
-      addToast(`Recurrent scheduled report established for ${scheduleForm.type}!`, 'success');
+      addToast(`Schedule for "${scheduleForm.type}" kept for this session only. Reports are not sent automatically yet; use the download button to run it now.`, 'success');
     }
 
-    // Reset Form type
-    setScheduleForm({
-      type: 'Monthly payroll summary',
-      frequency: 'Monthly',
-      time: '06:00 AM',
-      format: 'Excel (.xlsx)',
-      recipients: 'hr@novora.com, cfo@novora.com'
-    });
+    setScheduleForm(DEFAULT_SCHEDULE_FORM);
   };
 
   const handleEditScheduleClick = (sch: ReportSchedule) => {
@@ -1206,26 +1191,191 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
     addToast(`Deleted run schedule for "${name}"`, 'success');
   };
 
-  const handleCustomBuilderRun = () => {
+  const handleCustomBuilderRun = async () => {
     const fieldsSelected = Object.entries(selectedFields).filter(([_, val]) => val).map(([key]) => key);
     if (fieldsSelected.length === 0) {
       addToast('Select at least one field to export in section 2.', 'error');
       return;
     }
-    
-    addToast(`Assembling custom structured database schema for ${builderModule}...`, 'loading');
-    setTimeout(() => {
-      addToast(`Generated ${builderModule} dataset with ${fieldsSelected.length} parameters into system output.`, 'success');
-      triggerDownloadLog(`Manual Custom: ${builderModule} (${sortBy})`);
-    }, 1500);
-  };
 
-  // Count employees in departments for dashboard visualization representation
-  const marketingCount = employees.filter(e => e.department === 'Marketing').length;
-  const financeCount = employees.filter(e => e.department === 'Finance').length;
-  const engineeringCount = employees.filter(e => e.department === 'Engineering').length;
-  const hrCount = employees.filter(e => e.department === 'HR').length;
-  const operationsCount = employees.filter(e => e.department === 'Operations').length;
+    const kind = builderKindOf(builderModule);
+    const combineKeys: DataKey[] = [
+      ...(builderCombine.attendance && kind !== 'attendance' ? ['attendance' as const] : []),
+      ...(builderCombine.leave && kind !== 'leave' ? ['pendingLeave' as const] : []),
+      ...(builderCombine.payroll && kind !== 'payroll' ? ['payroll' as const] : []),
+      ...(builderCombine.performance && kind !== 'performance' ? ['reviews' as const] : [])
+    ];
+    const keys = [...BUILDER_SOURCES[kind], ...combineKeys];
+    if (keys.some(k => !(k in dataRef.current))) {
+      addToast(`Loading data for ${builderModule}…`, 'loading');
+    }
+    const data = await ensureData(keys);
+    if (BUILDER_SOURCES[kind].some(k => data[k] === null)) {
+      addToast(`Could not load ${builderModule.toLowerCase()} data.`, 'error');
+      return;
+    }
+
+    const index = employeeIndex(employees);
+    const amt = (n: number | null | undefined) => (n === null || n === undefined ? '' : formatAmount(n, currency));
+    type BuilderRow = { employee: Employee | undefined; date: string | null; values: Record<string, string> };
+    let rows: BuilderRow[] = [];
+
+    if (kind === 'employee') {
+      rows = employees.map(emp => ({
+        employee: emp,
+        date: emp.joinDate || null,
+        values: {
+          'Employee No.': emp.id,
+          'Full Name': emp.name,
+          'Department': emp.department,
+          'Position': emp.position,
+          'Employment Type': emp.employmentStatus,
+          'Status': emp.status,
+          'Join Date': emp.joinDate,
+          'Email': emp.email
+        }
+      }));
+    } else if (kind === 'attendance') {
+      rows = (data.attendance ?? []).map(l => {
+        const emp = index.get(l.employeeId);
+        return {
+          employee: emp,
+          date: l.workDate,
+          values: {
+            'Employee No.': str(emp?.id),
+            'Full Name': str(emp?.name),
+            'Work Date': l.workDate,
+            'Clock-in Time': str(l.checkInTime),
+            'Clock-out Time': str(l.checkOutTime),
+            'Work Hours': str(l.workHours),
+            'Status': titleCase(l.status)
+          }
+        };
+      });
+    } else if (kind === 'leave') {
+      rows = (data.pendingLeave ?? []).map(l => {
+        const emp = index.get(l.employeeId);
+        return {
+          employee: emp,
+          date: l.startDate,
+          values: {
+            'Employee No.': str(emp?.id),
+            'Employee Name': l.employeeName,
+            'Leave Type': l.leaveType,
+            'Start Date': l.startDate,
+            'End Date': l.endDate,
+            'Status': titleCase(l.status),
+            'Reason': str(l.reason)
+          }
+        };
+      });
+    } else if (kind === 'payroll') {
+      rows = (data.payroll ?? []).map(r => {
+        const emp = index.get(r.employeeId) ?? index.get(r.employeeCode);
+        const period = `${r.payYear}-${String(r.payMonth).padStart(2, '0')}`;
+        return {
+          employee: emp,
+          date: `${period}-01`,
+          values: {
+            'Employee No.': r.employeeCode,
+            'Full Name': r.employeeName,
+            'Pay Period': period,
+            'Basic Salary': amt(r.basicSalary),
+            'Allowances': amt(r.allowances),
+            'Overtime Pay': amt(r.overtimePay),
+            'Deductions': amt(r.deductions),
+            'Tax': amt(r.tax),
+            'Net Pay': amt(r.netPay)
+          }
+        };
+      });
+    } else {
+      rows = (data.reviews ?? []).map(r => ({
+        employee: index.get(r.employeeId),
+        date: r.createdAt ? dateOnly(r.createdAt) : null,
+        values: {
+          'Staff Name': r.employeeName,
+          'Review Period': r.reviewQuarter ? `${r.reviewYear} Q${r.reviewQuarter}` : String(r.reviewYear),
+          'Review Type': str(r.reviewType),
+          'Score': str(r.score),
+          'Rating': str(r.rating),
+          'Reviewer': str(r.reviewerName),
+          'Status': titleCase(r.status)
+        }
+      }));
+    }
+
+    const statusFilter: Record<string, Employee['status']> = { 'Active only': 'Active', 'On Leave': 'On Leave', 'Inactive': 'Inactive' };
+    rows = rows.filter(row => {
+      if (row.date && filterFromDate && row.date < filterFromDate) return false;
+      if (row.date && filterToDate && row.date > filterToDate) return false;
+      if (filterDept !== 'All departments' && row.employee?.department !== filterDept) return false;
+      const wantedStatus = statusFilter[filterStatus];
+      if (wantedStatus && row.employee?.status !== wantedStatus) return false;
+      return true;
+    });
+
+    const sortKey = (row: BuilderRow) => {
+      if (sortBy === 'Full Name') return row.employee?.name ?? row.values['Full Name'] ?? row.values['Employee Name'] ?? row.values['Staff Name'] ?? '';
+      if (sortBy === 'Join Date') return row.employee?.joinDate ?? '';
+      if (sortBy === 'Department') return row.employee?.department ?? '';
+      return row.employee?.id ?? row.values['Employee No.'] ?? '';
+    };
+    rows.sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+
+    const headers = fieldsSelected.map(f => (BUILDER_MONEY_FIELDS.includes(f) ? `${f} (${currency})` : f));
+    const combineHeaders: string[] = [];
+    const combineValues: ((emp: Employee | undefined) => string)[] = [];
+    if (combineKeys.includes('attendance')) {
+      combineHeaders.push('Attendance Today');
+      combineValues.push(emp => {
+        const log = emp?.apiId ? (data.attendance ?? []).find(l => l.employeeId === emp.apiId) : undefined;
+        return log ? titleCase(log.status) : '';
+      });
+    }
+    if (combineKeys.includes('pendingLeave')) {
+      combineHeaders.push('Pending Leave Requests');
+      combineValues.push(emp => (emp?.apiId && data.pendingLeave ? String(data.pendingLeave.filter(l => l.employeeId === emp.apiId).length) : ''));
+    }
+    if (combineKeys.includes('payroll')) {
+      combineHeaders.push(`Net Pay This Month (${currency})`);
+      combineValues.push(emp => {
+        const slip = emp ? (data.payroll ?? []).find(r => r.employeeId === emp.apiId || r.employeeCode === emp.id) : undefined;
+        return slip ? amt(slip.netPay) : '';
+      });
+    }
+    if (combineKeys.includes('reviews')) {
+      combineHeaders.push('Latest Review Score');
+      combineValues.push(emp => {
+        const latest = (data.reviews ?? [])
+          .filter(r => emp?.apiId && r.employeeId === emp.apiId)
+          .sort((a, b) => (b.reviewYear - a.reviewYear) || ((b.reviewQuarter ?? 0) - (a.reviewQuarter ?? 0)))[0];
+        return latest ? str(latest.score) : '';
+      });
+    }
+
+    if (rows.length === 0) {
+      addToast(`No ${builderModule.toLowerCase()} records match the selected filters.`, 'info');
+      return;
+    }
+
+    const table: CsvTable = {
+      headers: [...headers, ...combineHeaders],
+      rows: rows.map(row => [
+        ...fieldsSelected.map(f => row.values[f] ?? ''),
+        ...combineValues.map(fn => fn(row.employee))
+      ])
+    };
+    const reportName = `Custom: ${builderModule} (${sortBy})`;
+    const formatNote = builderFormat.startsWith('CSV') ? '' : ` ${builderFormat.split(' ')[0]} export is not available yet, so it was saved as CSV.`;
+    saveFile(
+      reportName,
+      `${fileBaseName(reportName)}.csv`,
+      toCsv(table),
+      'text/csv;charset=utf-8;',
+      `Exported ${plural(table.rows.length, 'row')} with ${plural(table.headers.length, 'column')}.${formatNote}`
+    );
+  };
 
   return (
     <div id="reports-hub-main-frame" className="w-full animate-in fade-in duration-150">
@@ -1371,7 +1521,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
               <div className="lg:col-span-7 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
                 <div>
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Most Used Reports</h3>
-                  <p className="text-[10px] text-slate-400 italic">Highly optimized for operational audits & payroll reconciliation</p>
+                  <p className="text-[10px] text-slate-400 italic">CSV exports built from live records</p>
                 </div>
 
                 <div className="space-y-3">
@@ -1386,7 +1536,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                         <span className="text-xs font-bold text-slate-800">Monthly payroll summary</span>
                         <span className="bg-blue-50 text-[9px] font-bold text-blue-600 px-2 py-0.5 rounded-md">PAYROLL</span>
                       </div>
-                      <p className="text-[11px] text-slate-500 font-medium">Earnings, deductions, net pay by department</p>
+                      <p className="text-[11px] text-slate-500 font-medium">This month&apos;s earnings, deductions and net pay per employee</p>
                     </div>
                     <Download className="h-4 w-4 text-slate-400" />
                   </div>
@@ -1401,22 +1551,22 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                         <span className="text-xs font-bold text-slate-800">Attendance detail report</span>
                         <span className="bg-slate-100 text-[9px] font-bold text-slate-600 px-2 py-0.5 rounded-md">ATTENDANCE</span>
                       </div>
-                      <p className="text-[11px] text-slate-500 font-medium">Clock-in, clock-out, OT, absent per employee</p>
+                      <p className="text-[11px] text-slate-500 font-medium">Today&apos;s clock-in, clock-out, hours and status per employee</p>
                     </div>
                     <Download className="h-4 w-4 text-slate-400" />
                   </div>
 
-                  {/* Leave balance summary */}
+                  {/* Leave requests summary */}
                   <div 
-                    onClick={() => triggerDownloadLog('Leave balance summary')}
+                    onClick={() => triggerDownloadLog('Leave requests summary')}
                     className="p-4 border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 rounded-2xl flex items-center justify-between cursor-pointer transition-all"
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-800">Leave balance summary</span>
+                        <span className="text-xs font-bold text-slate-800">Leave requests summary</span>
                         <span className="bg-amber-55 text-[9px] font-bold text-amber-700 px-2 py-0.5 rounded-md">LEAVE</span>
                       </div>
-                      <p className="text-[11px] text-slate-500 font-medium">Entitlement, used, balance per leave type</p>
+                      <p className="text-[11px] text-slate-500 font-medium">Leave requests awaiting approval, by employee and type</p>
                     </div>
                     <Download className="h-4 w-4 text-slate-400" />
                   </div>
@@ -1431,7 +1581,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                         <span className="text-xs font-bold text-slate-800">Performance appraisal results</span>
                         <span className="bg-novora/10 text-[9px] font-bold text-novora px-2 py-0.5 rounded-md">PERFORMANCE</span>
                       </div>
-                      <p className="text-[11px] text-slate-500 font-medium">Scores, grades, CEP ratings</p>
+                      <p className="text-[11px] text-slate-500 font-medium">Review scores, ratings and status</p>
                     </div>
                     <Download className="h-4 w-4 text-slate-400" />
                   </div>
@@ -1452,7 +1602,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                       <h3 className="text-xs font-black text-slate-200 uppercase tracking-wider block font-sans">Live summary</h3>
                     </div>
                     <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
-                      API
+                      {summaryLoadedAt ? `Loaded ${summaryLoadedAt}` : 'API'}
                     </span>
                   </div>
 
@@ -1493,6 +1643,9 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                   </div>
 
                   <div className="divide-y divide-slate-50">
+                    {recentActivities.length === 0 && (
+                      <p className="text-[11px] text-slate-400 font-semibold">No downloads yet this session.</p>
+                    )}
                     {recentActivities.map((act) => (
                       <div key={act.id} className="py-3.5 flex items-center justify-between first:pt-0 last:pb-0">
                         <div className="space-y-0.5">
@@ -1502,7 +1655,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                           </span>
                         </div>
                         <button 
-                          onClick={() => triggerDownloadLog(act.name)}
+                          onClick={() => redownloadActivity(act)}
                           className="text-novora hover:text-blue-700 text-xs font-extrabold cursor-pointer"
                         >
                           Download
@@ -1564,50 +1717,92 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
             id="report-individual-module"
             className="rounded-3xl border border-slate-100 bg-white p-8 shadow-xs animate-in fade-in duration-250"
           >
-            <h3 className="text-sm font-bold text-slate-800">{selectedModule} reports</h3>
-            <p className="mt-2 max-w-xl text-sm text-slate-500">
-              Detailed canned analytics for this module are not available yet. Use the live overview
-              KPIs above, or open the {selectedModule.toLowerCase()} module for operational data.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-3 text-xs">
-              {selectedModule === 'Employee' && (
-                <span className="rounded-full bg-slate-50 px-3 py-1.5 font-semibold text-slate-600">
-                  Headcount: {reportSummary?.employees ?? employees.length}
-                </span>
-              )}
-              {selectedModule === 'Leave' && (
-                <span className="rounded-full bg-slate-50 px-3 py-1.5 font-semibold text-slate-600">
-                  Pending leave: {reportSummary?.pendingLeave ?? '—'}
-                </span>
-              )}
-              {selectedModule === 'Recruitment' && (
-                <>
-                  <span className="rounded-full bg-slate-50 px-3 py-1.5 font-semibold text-slate-600">
-                    Open jobs: {reportSummary?.openJobs ?? '—'}
-                  </span>
-                  <span className="rounded-full bg-slate-50 px-3 py-1.5 font-semibold text-slate-600">
-                    Candidates: {reportSummary?.candidates ?? '—'}
-                  </span>
-                </>
-              )}
-              {selectedModule === 'Claims' && (
-                <span className="rounded-full bg-slate-50 px-3 py-1.5 font-semibold text-slate-600">
-                  Claims pending: {reportSummary?.claimsPending ?? '—'}
-                </span>
-              )}
-              {selectedModule === 'Payroll' && (
-                <span className="rounded-full bg-slate-50 px-3 py-1.5 font-semibold text-slate-600">
-                  Payroll HC this month: {reportSummary?.payrollHeadcountThisMonth ?? '—'}
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">{selectedModule} reports</h3>
+                {MODULE_BRIEFS[selectedModule] && (
+                  <p className="mt-2 max-w-xl text-sm text-slate-500">{MODULE_BRIEFS[selectedModule].strategicFocus}</p>
+                )}
+              </div>
+              {moduleLoadedAt[selectedModule] && !moduleView?.emptyMessage && (
+                <span className="rounded-full bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-slate-500">
+                  Loaded {moduleLoadedAt[selectedModule]}
                 </span>
               )}
             </div>
-            <button
-              type="button"
-              onClick={() => setSelectedModule('All Overview')}
-              className="mt-6 inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-novora/30 hover:text-novora cursor-pointer"
-            >
-              Back to overview
-            </button>
+
+            {moduleView?.emptyMessage ? (
+              <div className="mt-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-6 text-center">
+                <AlertCircle className="mx-auto h-5 w-5 text-slate-300" />
+                <p className="mt-2 text-xs font-semibold text-slate-500">{moduleView.emptyMessage}</p>
+              </div>
+            ) : (
+              moduleView && (
+                <div className="mt-5 space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {moduleView.stats.map((stat) => (
+                      <div key={stat.label} className="bg-white border border-slate-100 p-5 rounded-3xl shadow-xs relative">
+                        <span className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight block break-words">{stat.value}</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mt-2">{stat.label}</span>
+                        <span className="text-[11px] text-slate-400 font-semibold block mt-1">{stat.hint}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="border border-slate-100 rounded-3xl p-6 space-y-4">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{moduleView.distribution?.title ?? moduleView.distributionTitle}</h4>
+                    {moduleView.distribution ? (
+                      <div className="space-y-3">
+                        {moduleView.distribution.items.map((item) => (
+                          <div key={item.label} className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[11px] font-semibold">
+                              <span className="text-slate-700">{item.label}</span>
+                              <span className="text-slate-500">{item.value} · {item.percent}%</span>
+                            </div>
+                            <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                              <div className={`h-full rounded-full ${item.colorClass}`} style={{ width: `${item.percent}%` }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-slate-400 font-semibold">No data yet.</p>
+                    )}
+                  </div>
+                </div>
+              )
+            )}
+
+            {MODULE_BRIEFS[selectedModule] && (
+              <div className="mt-6 space-y-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Focus areas</span>
+                <ul className="space-y-1.5">
+                  {MODULE_BRIEFS[selectedModule].actionableDirectives.map((d) => (
+                    <li key={d} className="text-[11.5px] text-slate-600 font-medium leading-relaxed">• {d}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              {!NO_SOURCE_MODULES[selectedModule] && (
+                <button
+                  type="button"
+                  onClick={() => triggerDownloadLog(`${selectedModule} report`)}
+                  className="inline-flex items-center gap-2 rounded-xl bg-novora px-3 py-2 text-xs font-semibold text-white hover:bg-opacity-95 cursor-pointer"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Download CSV
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setSelectedModule('All Overview')}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-novora/30 hover:text-novora cursor-pointer"
+              >
+                Back to overview
+              </button>
+            </div>
           </div>
         )}
 
@@ -1631,8 +1826,8 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                       triggerClassName="bg-slate-50 border-slate-200 rounded-2xl py-3 text-xs font-bold"
                       options={[
                         { value: 'Monthly payroll summary', label: 'Monthly payroll summary (Consolidated)' },
-                        { value: 'Attendance summary — Apr', label: 'Attendance summary (Total list)' },
-                        { value: 'Leave balance summary', label: 'Leave balance report (By leave type)' },
+                        { value: 'Attendance summary', label: 'Attendance summary (Today)' },
+                        { value: 'Leave requests summary', label: 'Leave requests (Pending approval)' },
                         { value: 'Performance appraisal results', label: 'Performance metrics summary (Executive)' },
                         { value: 'Recruitment funnel state', label: 'Recruitment funnel status report' },
                       ]}
@@ -1701,7 +1896,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                       className="w-full bg-slate-50 border border-slate-200 focus:border-novora transition-colors rounded-2xl pl-11 pr-4 py-3 text-xs font-bold text-slate-700 outline-none"
                     />
                   </div>
-                  <p className="text-[10px] text-slate-400 font-medium pl-1">Separate multiple email addresses with a comma</p>
+                  <p className="text-[10px] text-slate-400 font-medium pl-1">Separate multiple email addresses with a comma. Schedules are kept for this session only and are not emailed automatically yet.</p>
                 </div>
 
                 {/* Submit button bar */}
@@ -1711,7 +1906,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                     className="bg-novora hover:bg-opacity-95 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
                   >
                     {editingScheduleId ? <CheckCircle className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                    <span>{editingScheduleId ? 'Update Run Schedule' : 'Schedule Automatic Dispatch'}</span>
+                    <span>{editingScheduleId ? 'Update Run Schedule' : 'Save Schedule'}</span>
                   </button>
                 </div>
               </form>
@@ -1959,12 +2154,8 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
                     onChange={setFilterDept}
                     triggerClassName="bg-slate-50 border-slate-200 rounded-xl py-2 text-xs font-bold"
                     options={[
-                      { value: 'All departments', label: 'All departments · Global Roster' },
-                      { value: 'Engineering', label: 'Engineering Sector' },
-                      { value: 'Finance', label: 'Finance Team' },
-                      { value: 'HR', label: 'Human Resources' },
-                      { value: 'Marketing', label: 'Marketing Operations' },
-                      { value: 'Operations', label: 'Operations Support' },
+                      { value: 'All departments', label: 'All departments' },
+                      ...departmentOptions.map((dept) => ({ value: dept, label: dept })),
                     ]}
                   />
                 </div>
@@ -2042,14 +2233,15 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
               <button
                 onClick={() => {
                   setBuilderModule('Employee management');
-                  setBuilderCombine({ attendance: true, leave: false, payroll: false, performance: false });
-                  setFilterFromDate('2026-01-01');
-                  setFilterToDate('2026-05-31');
+                  setSelectedFields(fieldsFor('employee'));
+                  setBuilderCombine({ attendance: false, leave: false, payroll: false, performance: false });
+                  setFilterFromDate(yearStartIso());
+                  setFilterToDate(todayIso());
                   setFilterDept('All departments');
                   setFilterStatus('Active only');
                   setSortBy('Employee No.');
-                  setBuilderFormat('Excel (.xlsx)');
-                  addToast('Builder configs restored to system baseline.', 'info');
+                  setBuilderFormat('CSV (.csv)');
+                  addToast('Builder reset to defaults.', 'info');
                 }}
                 className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-extrabold text-xs cursor-pointer transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100"
               >
@@ -2060,7 +2252,7 @@ ${brief.managementBrief.actionableDirectives.map((d, idx) => `  ${idx + 1}. ${d}
               <button
                 onClick={() => {
                   setTotalCustomSaved(prev => prev + 1);
-                  addToast(`Configuration presets for "${builderModule}" saved successfully!`, 'success');
+                  addToast(`Builder settings for "${builderModule}" kept for this session only.`, 'success');
                 }}
                 className="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white font-extrabold text-xs px-5 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
               >

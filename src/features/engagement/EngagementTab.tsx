@@ -44,6 +44,7 @@ import {
   type EngagementThemeResponse,
   type FeedPost,
 } from '@/services';
+import { dateStamp, downloadNearestTableCsv } from '@/lib/csv';
 
 interface EngagementTabProps {
   employees: Employee[];
@@ -296,7 +297,11 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
   const [newActTitle, setNewActTitle] = useState('');
   const [newActDept, setNewActDept] = useState('Engineering');
   const [newActPriority, setNewActPriority] = useState<'Critical' | 'High' | 'Medium' | 'Normal'>('High');
-  const [newActDueDate, setNewActDueDate] = useState('25/06/2026');
+  const [newActDueDate, setNewActDueDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 14);
+    return d.toLocaleDateString('en-CA');
+  });
   const [newActNotes, setNewActNotes] = useState('');
 
   // -------------------------------------------------------------
@@ -304,9 +309,10 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
   // -------------------------------------------------------------
   // eNPS = % Promoters - % Detractors
   const totalEnpsVotes = enpsTallies.promoters + enpsTallies.passives + enpsTallies.detractors;
-  const promoterPct = Math.round((enpsTallies.promoters / totalEnpsVotes) * 100);
-  const detractorPct = Math.round((enpsTallies.detractors / totalEnpsVotes) * 100);
-  const passivePct = Math.round((enpsTallies.passives / totalEnpsVotes) * 100);
+  const enpsDenominator = totalEnpsVotes || 1;
+  const promoterPct = Math.round((enpsTallies.promoters / enpsDenominator) * 100);
+  const detractorPct = Math.round((enpsTallies.detractors / enpsDenominator) * 100);
+  const passivePct = Math.round((enpsTallies.passives / enpsDenominator) * 100);
   const calculatedEnps = promoterPct - detractorPct;
 
   // -------------------------------------------------------------
@@ -331,7 +337,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
     });
 
     setHasVotedEnps(true);
-    addToast(`Thank you! Anonymous score of ${score}/10 recorded under secure security hashes.`, 'success');
+    addToast(`Thank you! Your anonymous score of ${score}/10 was recorded.`, 'success');
   };
 
   const handlePollVoteSubmit = (pollId: string, optionKey: string) => {
@@ -358,7 +364,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
     }));
 
     setHasVotedPollIds(prev => ({ ...prev, [pollId]: true }));
-    addToast('Secret ballot recorded. Results updated in your corporate pulse dashboards.', 'success');
+    addToast('Vote recorded.', 'success');
   };
 
   const handleSuggestionSubmit = (e: React.FormEvent) => {
@@ -380,7 +386,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
       id: createLocalId('SUG'),
       category: newOpinionCategory,
       text: newOpinionText,
-      timestamp: new Date().toISOString().split('T')[0],
+      timestamp: new Date().toLocaleDateString('en-CA'),
       vibe: identifiedVibe,
       safetyVerified: true,
       engagementHearts: 1,
@@ -390,7 +396,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
 
     setSuggestions([newItem, ...suggestions]);
     setNewOpinionText('');
-    addToast(`Secret suggestion transmitted to database channels under ID ${newItem.id}.`, 'success');
+    addToast('Anonymous suggestion added.', 'success');
   };
 
   const handleHeartSuggestion = (id: string, currentHearts: number) => {
@@ -444,7 +450,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
 
       setShoutOuts((prev) => [newShoutOut, ...prev]);
       setShoutOutMessage('');
-      addToast(`Welfare High-Five published! Recipient notified at ${selectedEmployee.email}`, 'success');
+      addToast(`Shout-out to ${selectedEmployee.name} published to the feed.`, 'success');
     } catch (err) {
       if (err instanceof ApiError && err.status === 403) {
         addToast('You do not have permission to post announcements.', 'error')
@@ -1412,8 +1418,9 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
                   <p className="text-[10px] text-slate-400 font-medium italic mt-0.5">Analyzing anonymous submissions against cognitive burnout alarm limits</p>
                 </div>
                 <button 
-                  onClick={() => {
-                    addToast('Anonymous sentiment diagnostics blueprint compiled for management council review.', 'success');
+                  onClick={(e) => {
+                    const n = downloadNearestTableCsv(e.currentTarget, `sentiment_metrics_${dateStamp()}.csv`);
+                    addToast(n > 0 ? `Exported ${n} rows as CSV.` : 'Nothing to export yet.', n > 0 ? 'success' : 'info');
                   }}
                   className="bg-slate-50 border border-slate-200 hover:border-novora rounded-xl px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 hover:text-novora cursor-pointer transition-colors"
                 >

@@ -395,7 +395,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
   };
 
   const handleSendRenewalReminder = (id: string, empName: string, certName: string) => {
-    addToast(`Transmitted immediate compliance warning alert to ${empName}. Notified: ${certName}`, 'success');
+    addToast(`Automatic reminders are not available yet. Please contact ${empName} about renewing ${certName}.`, 'info');
   };
 
   const handleCertRenewalProcess = (id: string) => {
@@ -405,7 +405,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
         return {
           ...rec,
           status: 'Active',
-          issuedDate: new Date().toISOString().split('T')[0],
+          issuedDate: new Date().toLocaleDateString('en-CA'),
           expiryDate: '2027-06-01',
           daysRemaining: 365
         };
@@ -474,10 +474,7 @@ export default function LearningTab({ employees, addToast }: LearningTabProps) {
   };
 
   const handleRegisterLmsDemoPreset = (origin: string) => {
-    addToast(`Synced connection credentials with external ${origin} portal via OAuth SSO tokens.`, 'loading');
-    setTimeout(() => {
-      addToast(`Loaded sandbox course modules from external ${origin} library index.`, 'success');
-    }, 1200);
+    addToast(`${origin} integration is not available yet.`, 'info');
   };
 
   return (

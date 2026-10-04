@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Scale,
   ShieldAlert,
@@ -38,6 +38,7 @@ import {
   fetchDisciplinaryCases,
   type DisciplinaryCaseRow,
 } from '@/services';
+import { dateStamp, downloadNearestTableCsv } from '@/lib/csv';
 
 interface DisciplinaryTabProps {
   employees: Employee[];
@@ -257,6 +258,36 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
   const [disciplinaryReportEmp, setDisciplinaryReportEmp] = useState('');
   const [disciplinaryReportLevel, setDisciplinaryReportLevel] = useState('All levels');
   const [disciplinaryReportPeriod, setDisciplinaryReportPeriod] = useState('All times');
+  const disciplinaryPeriodOptions = useMemo(() => {
+    const months = Array.from(new Set(cases.map((c) => c.incidentDate.slice(0, 7)).filter((m) => /^\d{4}-\d{2}$/.test(m))))
+      .sort()
+      .reverse();
+    return [
+      { value: 'All times', label: 'All Times' },
+      ...months.map((m) => {
+        const [y, mo] = m.split('-').map(Number);
+        return { value: m, label: new Date(y, mo - 1, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) };
+      }),
+    ];
+  }, [cases]);
+  const disciplinaryDeptOptions = useMemo(() => {
+    const depts = new Set<string>();
+    for (const e of employees) if (e.department) depts.add(String(e.department));
+    for (const c of cases) if (c.department) depts.add(c.department);
+    return [{ value: 'All departments', label: 'All Departments' }, ...Array.from(depts).sort().map((d) => ({ value: d, label: d }))];
+  }, [employees, cases]);
+  const reportCases = useMemo(
+    () =>
+      cases.filter((c) => {
+        const q = disciplinaryReportEmp.toLowerCase();
+        const matchesDept = disciplinaryReportDept === 'All departments' || c.department === disciplinaryReportDept;
+        const matchesEmp = c.employeeName.toLowerCase().includes(q) || c.employeeId.toLowerCase().includes(q);
+        const matchesLevel = disciplinaryReportLevel === 'All levels' || c.warningLevel === disciplinaryReportLevel;
+        const matchesPeriod = disciplinaryReportPeriod === 'All times' || c.incidentDate.startsWith(disciplinaryReportPeriod);
+        return matchesDept && matchesEmp && matchesLevel && matchesPeriod;
+      }),
+    [cases, disciplinaryReportDept, disciplinaryReportEmp, disciplinaryReportLevel, disciplinaryReportPeriod],
+  );
 
   // Modals state
   const [newReasonModalOpen, setNewReasonModalOpen] = useState(false);
@@ -293,15 +324,15 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
   // Case inputs state (for interactive Disciplinary case form)
   const [formEmployeeId, setFormEmployeeId] = useState('');
   const [formReason, setFormReason] = useState('');
-  const [formDate, setFormDate] = useState('2026-06-13');
+  const [formDate, setFormDate] = useState(() => new Date().toLocaleDateString('en-CA'));
   const [formLocation, setFormLocation] = useState('');
   const [formFromTime, setFormFromTime] = useState('09:00 AM');
   const [formToTime, setFormToTime] = useState('10:00 AM');
   const [formDescription, setFormDescription] = useState('');
   const [formWitnesses, setFormWitnesses] = useState<string[]>([]);
   const [formWarningLevel, setFormWarningLevel] = useState('L1');
-  const [formIssuedBy, setFormIssuedBy] = useState('Nina Reza (Head of HR)');
-  const [formActionDate, setFormActionDate] = useState('2026-06-14');
+  const [formIssuedBy, setFormIssuedBy] = useState('');
+  const [formActionDate, setFormActionDate] = useState(() => new Date().toLocaleDateString('en-CA'));
   const [formRepeatedAction, setFormRepeatedAction] = useState('First written warning');
   const [formExpectation, setFormExpectation] = useState('');
   const [aiLetterBusy, setAiLetterBusy] = useState(false);
@@ -508,7 +539,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
         incidentDate: formDate || undefined,
       });
       setCases((prev) => [mapDisciplinaryCaseRow(created, employees), ...prev]);
-      addToast(`Case folder ${created.id} registered. Notification dispatched to employee.`, 'success');
+      addToast(`Case ${created.id} saved.`, 'success');
     } catch (err) {
       addToast(err instanceof ApiError ? err.message : 'Could not create disciplinary case.', 'error');
       return;
@@ -1055,12 +1086,11 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                   aria-label="Action issued by"
                   preferUp
                   triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
-                  options={[
-                    { value: 'Nina Reza (Head of HR)', label: 'Nina Reza (Head of HR)' },
-                    { value: 'David Ng (Finance Director)', label: 'David Ng (Finance Director)' },
-                    { value: 'Malik Said (Tech Lead)', label: 'Malik Said (Tech Lead)' },
-                    { value: 'Johnathan Goh (COO)', label: 'Johnathan Goh (COO)' },
-                  ]}
+                  placeholder="Select…"
+                  options={employees.map((e) => {
+                    const label = e.position ? `${e.name} (${e.position})` : e.name;
+                    return { value: label, label };
+                  })}
                 />
               </div>
 
@@ -1324,7 +1354,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
 
               <button
                 type="button"
-                onClick={() => addToast('Dispatched formatted system PDF logs to supervisor dashboard.', 'success')}
+                onClick={() => window.print()}
                 className="nv-toolbar-btn"
               >
                 <span>Generate PDF</span>
@@ -1671,14 +1701,8 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                   onChange={setDisciplinaryReportDept}
                   className="w-auto shrink-0"
                   triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
-                  options={[
-                    { value: 'All departments', label: 'All Departments' },
-                    { value: 'Engineering', label: 'Engineering' },
-                    { value: 'HR', label: 'HR' },
-                    { value: 'Finance', label: 'Finance' },
-                    { value: 'Marketing', label: 'Marketing' },
-                    { value: 'Operations', label: 'Operations' },
-                  ]}
+                  aria-label="Report department"
+                  options={disciplinaryDeptOptions}
                 />
 
                 {/* Period/month filter */}
@@ -1687,13 +1711,8 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                   onChange={setDisciplinaryReportPeriod}
                   className="w-auto shrink-0"
                   triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
-                  options={[
-                    { value: 'All times', label: 'All Times' },
-                    { value: 'June 2026', label: 'June 2026' },
-                    { value: 'May 2026', label: 'May 2026' },
-                    { value: 'April 2026', label: 'April 2026' },
-                    { value: 'Older Periods', label: 'Older Periods' },
-                  ]}
+                  aria-label="Report period"
+                  options={disciplinaryPeriodOptions}
                 />
 
                 {/* Warning Level filter */}
@@ -1716,7 +1735,10 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                 {/* Export button */}
                 <button
                   type="button"
-                  onClick={() => addToast(`Exported Disciplinary ${disciplinaryReportType === 'detail' ? 'Detailed Logs' : 'Summary Balance'} Report successfully.`, 'success')}
+                  onClick={(e) => {
+                    const n = downloadNearestTableCsv(e.currentTarget, `disciplinary_report_${dateStamp()}`);
+                    addToast(n ? `Exported ${n} rows as CSV.` : 'Nothing to export yet.', n ? 'success' : 'info');
+                  }}
                   className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-extrabold text-white bg-novora hover:bg-opacity-95 rounded-xl transition-all shadow-sm cursor-pointer whitespace-nowrap shrink-0"
                 >
                   <FileSpreadsheet className="h-3.5 w-3.5" />
@@ -1736,19 +1758,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                   </div>
                   <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
                     Showing {
-                      cases.filter(c => {
-                        const matchesDept = disciplinaryReportDept === 'All departments' || c.department === disciplinaryReportDept;
-                        const matchesEmp = c.employeeName.toLowerCase().includes(disciplinaryReportEmp.toLowerCase()) || c.employeeId.toLowerCase().includes(disciplinaryReportEmp.toLowerCase());
-                        const matchesLevel = disciplinaryReportLevel === 'All levels' || c.warningLevel === disciplinaryReportLevel;
-                        
-                        let matchesPeriod = true;
-                        if (disciplinaryReportPeriod === 'June 2026') matchesPeriod = c.incidentDate.startsWith('2026-06');
-                        else if (disciplinaryReportPeriod === 'May 2026') matchesPeriod = c.incidentDate.startsWith('2026-05');
-                        else if (disciplinaryReportPeriod === 'April 2026') matchesPeriod = c.incidentDate.startsWith('2026-04');
-                        else if (disciplinaryReportPeriod === 'Older Periods') matchesPeriod = !c.incidentDate.startsWith('2026-06') && !c.incidentDate.startsWith('2026-05') && !c.incidentDate.startsWith('2026-04');
-                        
-                        return matchesDept && matchesEmp && matchesLevel && matchesPeriod;
-                      }).length
+                      reportCases.length
                     } matching logs
                   </span>
                 </div>
@@ -1767,20 +1777,7 @@ export default function DisciplinaryTab({ employees, addToast }: DisciplinaryTab
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-medium">
-                      {cases
-                        .filter(c => {
-                          const matchesDept = disciplinaryReportDept === 'All departments' || c.department === disciplinaryReportDept;
-                          const matchesEmp = c.employeeName.toLowerCase().includes(disciplinaryReportEmp.toLowerCase()) || c.employeeId.toLowerCase().includes(disciplinaryReportEmp.toLowerCase());
-                          const matchesLevel = disciplinaryReportLevel === 'All levels' || c.warningLevel === disciplinaryReportLevel;
-                          
-                          let matchesPeriod = true;
-                          if (disciplinaryReportPeriod === 'June 2026') matchesPeriod = c.incidentDate.startsWith('2026-06');
-                          else if (disciplinaryReportPeriod === 'May 2026') matchesPeriod = c.incidentDate.startsWith('2026-05');
-                          else if (disciplinaryReportPeriod === 'April 2026') matchesPeriod = c.incidentDate.startsWith('2026-04');
-                          else if (disciplinaryReportPeriod === 'Older Periods') matchesPeriod = !c.incidentDate.startsWith('2026-06') && !c.incidentDate.startsWith('2026-05') && !c.incidentDate.startsWith('2026-04');
-                          
-                          return matchesDept && matchesEmp && matchesLevel && matchesPeriod;
-                        })
+                      {reportCases
                         .map(item => {
                           const tagStyle =
                             item.status === 'Pending'

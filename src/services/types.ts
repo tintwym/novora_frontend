@@ -5,6 +5,7 @@ export interface OrganizationSnapshot {
   plan: string
   status: string
   trialExpiresAt: string | null
+  currency?: string | null
 }
 
 export interface AuthResponse {

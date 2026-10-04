@@ -568,6 +568,61 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
       });
   }, [attendanceLogs]);
 
+  const reportStats = useMemo(() => {
+    const pct = (num: number, den: number) => (den > 0 ? `${((num / den) * 100).toFixed(1)}%` : '—');
+    const monthLogs = attendanceLogs.filter((log) => log.workDate?.startsWith(reportMonth));
+    const monthOt = otRecords.filter((r) => r.date.startsWith(reportMonth) && /approved/i.test(r.status));
+    const otHours = (r: { hrs: string }) => parseFloat(r.hrs) || 0;
+    type Bucket = { staff: Set<string>; logs: number; present: number; late: number; absent: number; hours: number; hoursCount: number; ot: number };
+    const emptyBucket = (): Bucket => ({ staff: new Set(), logs: 0, present: 0, late: 0, absent: 0, hours: 0, hoursCount: 0, ot: 0 });
+    const total = emptyBucket();
+    const byDept = new Map<string, Bucket>();
+    for (const log of monthLogs) {
+      const dept = employeeDirectory.get(log.employeeId)?.dept || '—';
+      const bucket = byDept.get(dept) ?? emptyBucket();
+      byDept.set(dept, bucket);
+      const status = (log.status || 'PRESENT').toUpperCase();
+      for (const b of [bucket, total]) {
+        b.staff.add(log.employeeId);
+        if (status.includes('LEAVE')) continue;
+        b.logs += 1;
+        if (status.includes('ABSENT')) b.absent += 1;
+        else if (status.includes('LATE')) b.late += 1;
+        else b.present += 1;
+        if (log.workHours != null) {
+          b.hours += Number(log.workHours);
+          b.hoursCount += 1;
+        }
+      }
+    }
+    for (const r of monthOt) {
+      const dept = employeeDirectory.get(r.employeeId)?.dept || '—';
+      const bucket = byDept.get(dept) ?? emptyBucket();
+      byDept.set(dept, bucket);
+      bucket.ot += otHours(r);
+    }
+    const attended = (b: Bucket) => b.present + b.late;
+    return {
+      adherence: pct(attended(total), total.logs),
+      punctuality: pct(total.present, attended(total)),
+      overtimeHours: monthOt.reduce((sum, r) => sum + otHours(r), 0),
+      overtimeStaff: new Set(monthOt.map((r) => r.employeeId)).size,
+      absences: total.absent,
+      lateCount: total.late,
+      departments: Array.from(byDept.entries())
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([dept, b]) => ({
+          dept,
+          staff: b.staff.size,
+          avgHours: b.hoursCount > 0 ? `${(b.hours / b.hoursCount).toFixed(1)}h / day` : '—',
+          punctuality: pct(b.present, attended(b)),
+          ot: b.ot,
+          absences: b.absent,
+          attendance: pct(attended(b), b.logs),
+        })),
+    };
+  }, [attendanceLogs, otRecords, reportMonth, employeeDirectory]);
+
   const loadCatalogAttendance = useCallback(async () => {
     try {
       const [patterns, roster, attRoster] = await Promise.all([
@@ -1079,7 +1134,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
 
               <div id="checkin-timer-widget" className="bg-slate-50/70 p-6 rounded-2xl border border-slate-100 text-center space-y-4">
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wide">
-                  Today ({new Date().toISOString().split('T')[0]})
+                  Today ({new Date().toLocaleDateString('en-CA')})
                 </span>
 
                 <div className="space-y-1">
@@ -1513,7 +1568,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                               }
                               const emp = withApi[0]
                               try {
-                                const today = new Date().toISOString().slice(0, 10)
+                                const today = new Date().toLocaleDateString('en-CA')
                                 await createRosterEntry({
                                   employeeId: emp.apiId!,
                                   workDate: today,
@@ -2069,8 +2124,8 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
               <div className="nv-card p-4 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Adherence Rate</span>
-                  <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">95.8%</h3>
-                  <span className="text-[9px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">&uarr; 1.2% this week</span>
+                  <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">{reportStats.adherence}</h3>
+                  <span className="text-[9px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">Present or late, excl. leave</span>
                 </div>
                 <div className="h-10 w-10 rounded-xl bg-sky-50 border border-sky-100/60 flex items-center justify-center">
                   <UserCheck className="h-5 w-5 text-sky-500" />
@@ -2080,8 +2135,8 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
               <div className="nv-card p-4 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Overtime</span>
-                  <h3 className="text-xl font-extrabold text-novora tracking-tight">42.5 hrs</h3>
-                  <span className="text-[9px] font-bold text-novora bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">Across 18 staff</span>
+                  <h3 className="text-xl font-extrabold text-novora tracking-tight">{reportStats.overtimeHours.toFixed(1)} hrs</h3>
+                  <span className="text-[9px] font-bold text-novora bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">Approved, across {reportStats.overtimeStaff} staff</span>
                 </div>
                 <div className="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100/60 flex items-center justify-center">
                   <Clock className="h-5 w-5 text-novora" />
@@ -2091,8 +2146,8 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
               <div className="nv-card p-4 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-sans">Avg Punctuality</span>
-                  <h3 className="text-xl font-extrabold text-slate-850 tracking-tight">92.4%</h3>
-                  <span className="text-[9px] font-bold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">&darr; 0.5% late margin</span>
+                  <h3 className="text-xl font-extrabold text-slate-850 tracking-tight">{reportStats.punctuality}</h3>
+                  <span className="text-[9px] font-bold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">{reportStats.lateCount} late {reportStats.lateCount === 1 ? 'arrival' : 'arrivals'}</span>
                 </div>
                 <div className="h-10 w-10 rounded-xl bg-rose-50 border border-rose-100/60 flex items-center justify-center">
                   <AlertCircle className="h-5 w-5 text-rose-500" />
@@ -2102,8 +2157,8 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
               <div className="nv-card p-4 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Absences</span>
-                  <h3 className="text-xl font-extrabold text-rose-600 tracking-tight">12 days</h3>
-                  <span className="text-[9px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">8 with sick leave cert</span>
+                  <h3 className="text-xl font-extrabold text-rose-600 tracking-tight">{reportStats.absences} {reportStats.absences === 1 ? 'day' : 'days'}</h3>
+                  <span className="text-[9px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">Selected month</span>
                 </div>
                 <div className="h-10 w-10 rounded-xl bg-rose-50/50 border border-rose-100 flex items-center justify-center">
                   <UserX className="h-5 w-5 text-rose-600" />
@@ -2131,65 +2186,28 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                       <th className="p-3 text-center">Punctuality Score</th>
                       <th className="p-3 text-center">Approved Overtime</th>
                       <th className="p-3 text-center">Absence Incidents</th>
-                      <th className="p-3 pr-4 text-right">Compliance Rating</th>
+                      <th className="p-3 pr-4 text-right">Attendance Rate</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    <tr className="hover:bg-slate-50/40">
-                      <td className="p-3 pl-4 font-bold text-slate-800">Engineering &amp; Dev</td>
-                      <td className="p-3 font-semibold text-slate-500">142 FTEs</td>
-                      <td className="p-3 text-center font-mono font-bold text-slate-600">8.4h / day</td>
-                      <td className="p-3 text-center font-semibold text-emerald-600">96.4%</td>
-                      <td className="p-3 text-center font-mono text-slate-600">54.5 hrs</td>
-                      <td className="p-3 text-center font-bold text-rose-500">2 events</td>
-                      <td className="p-3 pr-4 text-right">
-                        <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-md font-extrabold text-[10px]">98.2 / A++</span>
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-slate-50/40">
-                      <td className="p-3 pl-4 font-bold text-slate-800">Product Management</td>
-                      <td className="p-3 font-semibold text-slate-500">28 FTEs</td>
-                      <td className="p-3 text-center font-mono font-bold text-slate-600">8.1h / day</td>
-                      <td className="p-3 text-center font-semibold text-emerald-600">95.0%</td>
-                      <td className="p-3 text-center font-mono text-slate-600">12.0 hrs</td>
-                      <td className="p-3 text-center font-bold text-slate-400">0 events</td>
-                      <td className="p-3 pr-4 text-right">
-                        <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-md font-extrabold text-[10px]">97.5 / A+</span>
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-slate-50/40">
-                      <td className="p-3 pl-4 font-bold text-slate-800">Customer Success</td>
-                      <td className="p-3 font-semibold text-slate-500">84 FTEs</td>
-                      <td className="p-3 text-center font-mono font-bold text-slate-600">8.6h / day</td>
-                      <td className="p-3 text-center font-semibold text-slate-600">91.8%</td>
-                      <td className="p-3 text-center font-mono text-slate-600">38.0 hrs</td>
-                      <td className="p-3 text-center font-bold text-rose-500">5 events</td>
-                      <td className="p-3 pr-4 text-right">
-                        <span className="bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 rounded-md font-extrabold text-[10px]">92.0 / B</span>
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-slate-50/40">
-                      <td className="p-3 pl-4 font-bold text-slate-800">Human Resources (HR)</td>
-                      <td className="p-3 font-semibold text-slate-500">12 FTEs</td>
-                      <td className="p-3 text-center font-mono font-bold text-slate-600">7.9h / day</td>
-                      <td className="p-3 text-center font-semibold text-emerald-600">97.2%</td>
-                      <td className="p-3 text-center font-mono text-slate-600">6.5 hrs</td>
-                      <td className="p-3 text-center font-bold text-slate-400">0 events</td>
-                      <td className="p-3 pr-4 text-right">
-                        <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-md font-extrabold text-[10px]">98.7 / A++</span>
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-slate-50/40">
-                      <td className="p-3 pl-4 font-bold text-slate-800">Marketing &amp; Sales</td>
-                      <td className="p-3 font-semibold text-slate-500">65 FTEs</td>
-                      <td className="p-3 text-center font-mono font-bold text-slate-600">8.2h / day</td>
-                      <td className="p-3 text-center font-semibold text-novora">89.5%</td>
-                      <td className="p-3 text-center font-mono text-slate-600">22.0 hrs</td>
-                      <td className="p-3 text-center font-bold text-rose-500">4 events</td>
-                      <td className="p-3 pr-4 text-right">
-                        <span className="bg-amber-50 text-[#b45309] border border-amber-200 px-2 py-0.5 rounded-md font-extrabold text-[10px]">89.1 / B-</span>
-                      </td>
-                    </tr>
+                    {reportStats.departments.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="p-6 text-center text-xs text-slate-400">No attendance records for this month yet.</td>
+                      </tr>
+                    )}
+                    {reportStats.departments.map((d) => (
+                      <tr key={d.dept} className="hover:bg-slate-50/40">
+                        <td className="p-3 pl-4 font-bold text-slate-800">{d.dept}</td>
+                        <td className="p-3 font-semibold text-slate-500">{d.staff} staff</td>
+                        <td className="p-3 text-center font-mono font-bold text-slate-600">{d.avgHours}</td>
+                        <td className="p-3 text-center font-semibold text-emerald-600">{d.punctuality}</td>
+                        <td className="p-3 text-center font-mono text-slate-600">{d.ot.toFixed(1)} hrs</td>
+                        <td className={`p-3 text-center font-bold ${d.absences > 0 ? 'text-rose-500' : 'text-slate-400'}`}>{d.absences} {d.absences === 1 ? 'event' : 'events'}</td>
+                        <td className="p-3 pr-4 text-right">
+                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-md font-extrabold text-[10px]">{d.attendance}</span>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>

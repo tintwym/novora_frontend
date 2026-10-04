@@ -65,6 +65,9 @@ import {
 } from '@/services'
 import ModuleHeader from '@/components/ui/ModuleHeader'
 import { DropdownAnchor, SelectMenu} from '@/components/ui'
+import { dateStamp, downloadCsv, downloadNearestTableCsv } from '@/lib/csv';
+import type { Employee } from '@/types'
+import { useCurrency } from '@/hooks/useCurrency'
 
 function mapJobStatus(status: string): JobPosting['status'] {
   const s = status.toLowerCase()
@@ -153,7 +156,9 @@ function mapOfferStatus(status: string): Offer['status'] {
   return 'Sent'
 }
 
-function mapOfferRow(row: RecruitmentOfferRow): Offer {
+type OfferItem = Offer & { currency: string | null }
+
+function mapOfferRow(row: RecruitmentOfferRow): OfferItem {
   return {
     id: row.id,
     candidateName: row.candidateName || '—',
@@ -165,6 +170,7 @@ function mapOfferRow(row: RecruitmentOfferRow): Offer {
     allowance: row.allowance != null ? String(row.allowance) : '—',
     grade: row.grade || '—',
     probation: row.probation || '—',
+    currency: row.currency,
   }
 }
 
@@ -175,7 +181,7 @@ function formatToApiMode(format: Interview['format']): string {
 }
 
 function buildScheduledAtIso(date: string, time: string): string {
-  const datePart = date?.trim() || new Date().toISOString().slice(0, 10)
+  const datePart = date?.trim() || dateStamp()
   const raw = (time || '09:00').trim()
   const ampm = raw.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i)
   let hours = 9
@@ -215,12 +221,116 @@ function sourceToApi(source: string): string {
   return 'other'
 }
 
+const PIPELINE_STAGES = ['Applied', 'Screening', 'Phone interview', 'Panel interview', 'Offer', 'Hired'] as const
+
+const ALL_PERIODS = 'All periods'
+
+const QUARTER_RANGES = ['1 Jan - 31 Mar', '1 Apr - 30 Jun', '1 Jul - 30 Sep', '1 Oct - 31 Dec']
+
+function formatSourceLabel(source: string | null | undefined): string {
+  const raw = (source || 'other').replace(/_/g, ' ').trim()
+  return raw.charAt(0).toUpperCase() + raw.slice(1)
+}
+
+function quarterKey(date: Date): string {
+  return `Q${Math.floor(date.getMonth() / 3) + 1} ${date.getFullYear()}`
+}
+
+function quarterLabel(key: string): string {
+  const q = Number(key.slice(1, 2))
+  return `${key} (${QUARTER_RANGES[q - 1] ?? ''})`
+}
+
+function parseDate(value: string | null | undefined): Date | null {
+  if (!value) return null
+  const d = new Date(value)
+  return Number.isNaN(d.getTime()) ? null : d
+}
+
+function inPeriod(value: string | null | undefined, period: string): boolean {
+  if (period === ALL_PERIODS) return true
+  const d = parseDate(value)
+  return d ? quarterKey(d) === period : false
+}
+
+function isJobClosed(job: RecruitmentJobRow): boolean {
+  const s = job.status.toLowerCase()
+  return s === 'closed' || s === 'filled'
+}
+
+function jobCycleDays(job: RecruitmentJobRow): number | null {
+  const start = parseDate(job.openDate || job.createdAt)
+  const end = parseDate(job.closeDate)
+  if (!start || !end) return null
+  const days = Math.round((end.getTime() - start.getTime()) / 86400000)
+  return days >= 0 ? days : null
+}
+
+function stageIndex(stage: string): number {
+  return PIPELINE_STAGES.indexOf(mapCandidateStage(stage))
+}
+
+function pct(part: number, whole: number): number {
+  return whole > 0 ? Math.round((part / whole) * 100) : 0
+}
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? '')
+    .join('')
+}
+
+function createEmptyReqForm() {
+  return {
+    positionTitle: '',
+    department: 'HR',
+    sectionTeam: '',
+    reportsTo: '',
+    employmentType: 'Permanent',
+    workArrangement: 'On-site',
+    jobGrade: 'G-5 / Sub B',
+    vacancies: '1',
+    targetFillDate: '',
+    urgency: 'Normal',
+    salaryMin: '',
+    salaryMax: '',
+    reason: 'New headcount',
+    justification: '',
+    minEducation: "Bachelor's degree",
+    fieldOfStudy: '',
+    minExperience: 'Fresh graduate (0 yrs)',
+    languageRequirement: 'English only',
+    skills: [] as string[],
+    newSkillInput: '',
+    responsibilities: '',
+    niceToHave: '',
+    channels: {
+      internal: true,
+      jobstreet: true,
+      linkedin: true,
+      indeed: false,
+      agency: false,
+    },
+    notifySubmit: true,
+    notifyAction: true,
+    autoPublish: true,
+    notifyHrTeam: false,
+    primaryRecruiter: '',
+    hiringManager: '',
+  }
+}
+
 interface RecruitmentTabProps {
   addToast: (text: string, type: 'success' | 'loading' | 'error' | 'info') => void;
   onAddEmployeeAsRecord: (newEmp: any) => void;
+  employees?: Employee[];
 }
 
-export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: RecruitmentTabProps) {
+export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord, employees }: RecruitmentTabProps) {
+  const { currency } = useCurrency();
   const [activeSubTab, setActiveSubTab] = useState<string>('Job Requisition');
   const [searchValue, setSearchValue] = useState<string>('');
   const [deptFilter, setDeptFilter] = useState<string>('All departments');
@@ -233,7 +343,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
 
   // Interactive Reports Tab filters
   const [reportFilterDept, setReportFilterDept] = useState<string>('All departments');
-  const [reportFilterPeriod, setReportFilterPeriod] = useState<string>('Q2 2026');
+  const [reportFilterPeriod, setReportFilterPeriod] = useState<string>(ALL_PERIODS);
   const [reportSearchQuery, setReportSearchQuery] = useState<string>('');
 
   // Core Data states
@@ -241,16 +351,19 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
   const [postings, setPostings] = useState<JobPosting[]>([]);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [interviews, setInterviews] = useState<Interview[]>([]);
-  const [offers, setOffers] = useState<Offer[]>([]);
+  const [offers, setOffers] = useState<OfferItem[]>([]);
   const [preOnboardings, setPreOnboardings] = useState<PreOnboarding[]>([]);
   const [recruitmentLoading, setRecruitmentLoading] = useState(true);
 
   // Selection states
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>('');
-  const [selectedInterviewId, setSelectedInterviewId] = useState<string>('INT-01');
-  const [selectedOfferId, setSelectedOfferId] = useState<string>('OFFER-001');
-  const [selectedPreOnboardId, setSelectedPreOnboardId] = useState<string>('PRE-01');
+  const [selectedInterviewId, setSelectedInterviewId] = useState<string>('');
+  const [selectedOfferId, setSelectedOfferId] = useState<string>('');
+  const [selectedPreOnboardId, setSelectedPreOnboardId] = useState<string>('');
   const [candidateRows, setCandidateRows] = useState<RecruitmentCandidateRow[]>([]);
+  const [jobRows, setJobRows] = useState<RecruitmentJobRow[]>([]);
+  const [interviewRows, setInterviewRows] = useState<RecruitmentInterviewRow[]>([]);
+  const [offerRows, setOfferRows] = useState<RecruitmentOfferRow[]>([]);
   const [aiJdBusy, setAiJdBusy] = useState(false);
   const [aiPostJdBusy, setAiPostJdBusy] = useState(false);
   const [aiCandBusy, setAiCandBusy] = useState(false);
@@ -265,8 +378,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
     const colors = ['bg-blue-600', 'bg-novora', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-slate-400'];
     const counts = new Map<string, number>();
     for (const c of candidates) {
-      const raw = (c.source || 'other').replace(/_/g, ' ').trim();
-      const label = raw.charAt(0).toUpperCase() + raw.slice(1);
+      const label = formatSourceLabel(c.source);
       counts.set(label, (counts.get(label) ?? 0) + 1);
     }
     const total = candidates.length;
@@ -280,6 +392,169 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
       }));
   }, [candidates]);
 
+  const departmentOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of requisitions) if (r.department && r.department !== '—') set.add(r.department);
+    for (const p of postings) if (p.department && p.department !== '—') set.add(p.department);
+    for (const j of jobRows) if (j.departmentName) set.add(j.departmentName);
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [requisitions, postings, jobRows]);
+
+  const pipelinePositionOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const c of candidates) if (c.positionApplied && c.positionApplied !== '—') set.add(c.positionApplied);
+    for (const p of postings) if (p.position) set.add(p.position);
+    return ['All positions', ...[...set].sort((a, b) => a.localeCompare(b))];
+  }, [candidates, postings]);
+
+  const pipelineSourceOptions = useMemo(
+    () => ['All sources', ...sourceBreakdown.map((s) => s.label)],
+    [sourceBreakdown],
+  );
+
+  const peopleOptions = useMemo(() => {
+    if (employees && employees.length > 0) {
+      const seen = new Set<string>();
+      return employees
+        .filter((e) => e.name && e.status !== 'Inactive')
+        .map((e) => (e.position ? `${e.name} (${e.position})` : e.name))
+        .filter((label) => (seen.has(label) ? false : (seen.add(label), true)))
+        .sort((a, b) => a.localeCompare(b));
+    }
+    const set = new Set<string>();
+    for (const r of requisitions) if (r.requestedBy && r.requestedBy !== '—') set.add(r.requestedBy);
+    for (const i of interviewRows) if (i.interviewerName) set.add(i.interviewerName);
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [employees, requisitions, interviewRows]);
+
+  const personSelectOptions = useMemo(
+    () => [{ value: '', label: '-- Not assigned --' }, ...peopleOptions.map((p) => ({ value: p, label: p }))],
+    [peopleOptions],
+  );
+
+  const reportPeriodOptions = useMemo(() => {
+    const keys = new Set<string>([quarterKey(new Date())]);
+    const add = (value: string | null | undefined) => {
+      const d = parseDate(value);
+      if (d) keys.add(quarterKey(d));
+    };
+    jobRows.forEach((j) => add(j.openDate || j.createdAt));
+    candidateRows.forEach((c) => add(c.appliedAt));
+    interviewRows.forEach((i) => add(i.scheduledAt));
+    offerRows.forEach((o) => add(o.sentAt || o.createdAt));
+    const sorted = [...keys].sort((a, b) => {
+      const [qa, ya] = [Number(a.slice(1, 2)), Number(a.slice(3))];
+      const [qb, yb] = [Number(b.slice(1, 2)), Number(b.slice(3))];
+      return yb - ya || qb - qa;
+    });
+    return [
+      { value: ALL_PERIODS, label: 'All periods' },
+      ...sorted.map((k) => ({ value: k, label: quarterLabel(k) })),
+    ];
+  }, [jobRows, candidateRows, interviewRows, offerRows]);
+
+  const reportData = useMemo(() => {
+    const deptMatch = (dept: string | null | undefined) =>
+      reportFilterDept === 'All departments' || (dept || '') === reportFilterDept;
+    const jobById = new Map(jobRows.map((j) => [j.id, j]));
+    const candDept = new Map(
+      candidateRows.map((c) => [c.id, jobById.get(c.jobPostingId)?.departmentName ?? null]),
+    );
+
+    const jobs = jobRows.filter(
+      (j) => deptMatch(j.departmentName) && inPeriod(j.openDate || j.createdAt, reportFilterPeriod),
+    );
+    const cands = candidateRows.filter(
+      (c) => deptMatch(candDept.get(c.id)) && inPeriod(c.appliedAt, reportFilterPeriod),
+    );
+    const ints = interviewRows.filter(
+      (i) => deptMatch(candDept.get(i.candidateId)) && inPeriod(i.scheduledAt, reportFilterPeriod),
+    );
+    const offs = offerRows.filter(
+      (o) => deptMatch(candDept.get(o.candidateId)) && inPeriod(o.sentAt || o.createdAt, reportFilterPeriod),
+    );
+
+    const closedJobs = jobs.filter(isJobClosed);
+    const cycleDays = closedJobs.map(jobCycleDays).filter((d): d is number => d != null);
+    const avgDays = cycleDays.length
+      ? Math.round(cycleDays.reduce((s, d) => s + d, 0) / cycleDays.length)
+      : null;
+
+    const accepted = offs.filter((o) => o.status.toLowerCase() === 'accepted').length;
+    const decided = offs.filter((o) => o.status.toLowerCase() !== 'draft').length;
+    const acceptPct = pct(accepted, decided);
+
+    const reached = PIPELINE_STAGES.map((_, idx) => cands.filter((c) => stageIndex(c.stage) >= idx).length);
+    const funnelSteps = [
+      { label: 'Applied → Screen Match', suffix: 'matched', from: reached[0], to: reached[1], bar: 'bg-novora', text: 'text-novora' },
+      { label: 'Screened → Phone Scheduled', suffix: 'advanced', from: reached[1], to: reached[2], bar: 'bg-indigo-500', text: 'text-indigo-600' },
+      { label: 'Phone scheduled → Board Panel Interview', suffix: 'approved', from: reached[2], to: reached[3], bar: 'bg-sky-500', text: 'text-sky-600' },
+      { label: 'Panel approved → Extended Contract Offer', suffix: 'recommended', from: reached[3], to: reached[4], bar: 'bg-amber-500', text: 'text-amber-600' },
+      { label: 'Contract Offer → Ultimate Hired / Starter', suffix: 'hired', from: reached[4], to: reached[5], bar: 'bg-emerald-500', text: 'text-emerald-600' },
+    ].map((s) => ({ ...s, pct: pct(s.to, s.from) }));
+
+    const deptDays = new Map<string, number[]>();
+    for (const j of closedJobs) {
+      const d = jobCycleDays(j);
+      if (d == null) continue;
+      const key = j.departmentName || '—';
+      deptDays.set(key, [...(deptDays.get(key) ?? []), d]);
+    }
+    const deptSpeed = [...deptDays.entries()]
+      .map(([dept, list]) => ({ dept, days: Math.round(list.reduce((s, d) => s + d, 0) / list.length) }))
+      .sort((a, b) => b.days - a.days);
+    const maxDeptDays = deptSpeed.reduce((m, d) => Math.max(m, d.days), 0);
+
+    const rows = jobs.map((job) => {
+      const jobCands = candidateRows.filter((c) => c.jobPostingId === job.id);
+      const candIds = new Set(jobCands.map((c) => c.id));
+      const jobInts = interviewRows.filter((i) => candIds.has(i.candidateId));
+      const offerCandIds = new Set(offerRows.filter((o) => candIds.has(o.candidateId)).map((o) => o.candidateId));
+      const recruiters = [...new Set(jobInts.map((i) => i.interviewerName).filter((n): n is string => !!n))];
+      const done = isJobClosed(job);
+      const days = jobCycleDays(job);
+      return {
+        reqId: job.id,
+        position: job.title,
+        dept: job.departmentName || '—',
+        recruiter: recruiters.join(', ') || '—',
+        spent: '—',
+        timeToClose: done && days != null ? `${days} days` : 'Pending',
+        funnel: {
+          applied: jobCands.length,
+          screened: jobCands.filter((c) => stageIndex(c.stage) >= 1).length,
+          interview: jobCands.filter((c) => stageIndex(c.stage) >= 2 || jobInts.some((i) => i.candidateId === c.id)).length,
+          offer: jobCands.filter((c) => stageIndex(c.stage) >= 4 || offerCandIds.has(c.id)).length,
+          hired: jobCands.filter((c) => stageIndex(c.stage) === 5).length,
+        },
+        status: done ? 'Completed' : 'In Progress',
+      };
+    });
+
+    const statusCount = (status: string) => jobs.filter((j) => j.status.toLowerCase() === status).length;
+
+    return {
+      timeToHire: avgDays != null ? `${avgDays} days` : '—',
+      timeShift: closedJobs.length ? `${closedJobs.length} closed` : 'No closed roles',
+      acceptRate: decided > 0 ? `${acceptPct}%` : '—',
+      acceptPct,
+      acceptDetail: decided > 0 ? `${accepted}/${decided} accepted` : 'No offers yet',
+      totalApplicants: `${cands.length} ${cands.length === 1 ? 'applicant' : 'applicants'}`,
+      open: jobs.filter((j) => !isJobClosed(j) && j.status.toLowerCase() !== 'on_hold' && j.status.toLowerCase() !== 'cancelled').length,
+      filled: closedJobs.length,
+      hold: statusCount('on_hold'),
+      cancelled: statusCount('cancelled'),
+      interviews: `${ints.length} ${ints.length === 1 ? 'loop' : 'loops'}`,
+      offers: `${offs.length} extended`,
+      signed: `${accepted} signed`,
+      text: `${jobs.length} ${jobs.length === 1 ? 'requisition' : 'requisitions'} in scope`,
+      funnelSteps,
+      deptSpeed,
+      maxDeptDays,
+      rows,
+    };
+  }, [jobRows, candidateRows, interviewRows, offerRows, reportFilterDept, reportFilterPeriod]);
+
   const loadRecruitment = useCallback(async () => {
     setRecruitmentLoading(true)
     try {
@@ -292,6 +567,9 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
       const mappedCandidates = cands.map(mapCandidateRow)
       const byId = new Map(mappedCandidates.map((c) => [c.id, c]))
       setCandidateRows(cands)
+      setJobRows(jobs)
+      setInterviewRows(ints)
+      setOfferRows(offs)
       setPostings(jobs.map(mapJobRow))
       setCandidates(mappedCandidates)
       setInterviews(ints.map((row) => mapInterviewRow(row, byId)))
@@ -450,56 +728,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
 
   // New Form states
   const [requisitionStep, setRequisitionStep] = useState<1 | 2 | 3>(1);
-  const [reqForm, setReqForm] = useState({
-    // Step 1: Position Information & Employment Details
-    positionTitle: '',
-    department: 'HR',
-    sectionTeam: '',
-    reportsTo: 'Nina Reza (Head of HR)',
-    employmentType: 'Permanent',
-    workArrangement: 'On-site',
-    jobGrade: 'G-5 / Sub B',
-    vacancies: '1',
-    targetFillDate: '13 May 2026',
-    urgency: 'Normal',
-    salaryMin: '5500',
-    salaryMax: '7000',
-    reason: 'New headcount',
-    justification: '',
-
-    // Step 2: Qualifications, Skills & JD
-    minEducation: "Bachelor's degree",
-    fieldOfStudy: 'e.g. Human Resource Management, Business',
-    minExperience: 'Fresh graduate (0 yrs)',
-    languageRequirement: 'English only',
-    skills: ['HRBP', 'Labour law (MY)', 'Performance mgmt'],
-    newSkillInput: '',
-    responsibilities: '• Partner with department heads on workforce planning\n• Lead end-to-end recruitment for assigned departments\n• Manage employee relations and grievance handling',
-    niceToHave: '',
-    channels: {
-      internal: true,
-      jobstreet: true,
-      linkedin: true,
-      indeed: false,
-      agency: false,
-    },
-
-    // Step 3: Approval chain & Routing
-    notifySubmit: true,
-    notifyAction: true,
-    autoPublish: true,
-    notifyHrTeam: false,
-    primaryRecruiter: 'Maya Tan (HR Executive)',
-    hiringManager: 'Nina Reza (Head of HR)',
-  });
-
-  const [newReq, setNewReq] = useState({
-    positionTitle: '',
-    department: 'Engineering',
-    type: 'Permanent',
-    requestedBy: 'pinky',
-    targetFill: '30 Jun',
-  });
+  const [reqForm, setReqForm] = useState(createEmptyReqForm);
 
   const [newPost, setNewPost] = useState({
     linkedReqId: '',
@@ -507,13 +736,13 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
     channel: 'LinkedIn',
     employmentType: 'Full-time',
     arrangement: 'On-site',
-    salaryMin: '5,500',
-    salaryMax: '7,000',
+    salaryMin: '',
+    salaryMax: '',
     showSalary: 'Yes — show range',
     description: '',
-    skills: 'HRBP, Labour law, Performance mgmt',
-    start: '2026-06-15',
-    end: '2026-07-15',
+    skills: '',
+    start: dateStamp(),
+    end: '',
     channels: {
       internal: true,
       jobstreet: true,
@@ -525,24 +754,24 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
 
   const [newCand, setNewCand] = useState({
     name: '',
-    experience: '3 yrs',
-    education: 'Bachelor Degree',
+    experience: '',
+    education: '',
     source: 'LinkedIn',
-    matchScore: '89%',
+    matchScore: '',
     stage: 'Applied' as const,
-    positionApplied: 'HR Business Partner',
+    positionApplied: '',
   });
   const [candNoticePeriod, setCandNoticePeriod] = useState('Immediate / Available immediately');
 
   const [newInt, setNewInt] = useState({
     candidateId: '',
     stage: 'Phone screening',
-    date: '2026-06-20',
+    date: dateStamp(),
     time: '11:00 AM',
     duration: '30 minutes',
     format: 'Video' as 'Video' | 'Phone' | 'In person',
-    location: 'Zoom link',
-    interviewers: 'Nina Reza + Ahmad Wahid',
+    location: '',
+    interviewers: '',
     notes: '',
     sendInvite: true,
     sendReminder: true,
@@ -551,18 +780,31 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
   const [newOffer, setNewOffer] = useState({
     candidateName: '',
     position: '',
-    salary: '6,000',
-    allowance: '600',
+    salary: '',
+    allowance: '',
     probation: '3 months',
     grade: 'G-5 / Sub B',
     expiryDays: '14',
   });
 
+  const nextReqId = `REQ-${new Date().getFullYear()}-${String(requisitions.length + 1).padStart(3, '0')}`;
+
+  const interviewsOnSelectedDate = useMemo(
+    () =>
+      interviewRows
+        .filter((i) => {
+          const d = parseDate(i.scheduledAt);
+          return d ? dateStamp(d) === newInt.date : false;
+        })
+        .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt)),
+    [interviewRows, newInt.date],
+  );
+
   // Handle addition callbacks
   const handleCreateRequisition = async (e: React.FormEvent) => {
     e.preventDefault();
-    const resolvedTitle = reqForm.positionTitle.trim() || 'HR Business Partner';
-    const reqId = `REQ-2026-0${13 + requisitions.length}`;
+    const resolvedTitle = reqForm.positionTitle.trim() || 'Untitled position';
+    const reqId = nextReqId;
 
     // Create the new Job Requisition record (local until requisition API exists)
     const req: JobRequisition = {
@@ -570,8 +812,8 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
       positionTitle: resolvedTitle,
       department: reqForm.department,
       type: reqForm.employmentType,
-      requestedBy: reqForm.hiringManager.split(' (')[0] || 'Nina Reza',
-      openDate: 'Today',
+      requestedBy: reqForm.hiringManager.split(' (')[0] || '—',
+      openDate: new Date().toLocaleDateString(),
       targetFill: reqForm.targetFillDate,
       applicants: 0,
       status: 'Open',
@@ -591,6 +833,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
           openings: Number(reqForm.vacancies) || 1,
           publish: true,
         })
+        setJobRows((prev) => [created, ...prev])
         setPostings((prev) => [mapJobRow(created), ...prev])
         addToast(`Requisition logged and job posting published for ${resolvedTitle}.`, 'success')
       } catch (err) {
@@ -603,7 +846,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
       }
     } else {
       addToast(
-        `Job requisition logged for ${resolvedTitle}. Awaiting manual publishing in Job Postings.`,
+        `Requisition saved for ${resolvedTitle} in this session. Publish it from Job Postings.`,
         'success'
       );
     }
@@ -611,58 +854,24 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
     setRequisitionModalOpen(false);
     // Reset wizard
     setRequisitionStep(1);
-    setReqForm({
-      positionTitle: '',
-      department: 'HR',
-      sectionTeam: '',
-      reportsTo: 'Nina Reza (Head of HR)',
-      employmentType: 'Permanent',
-      workArrangement: 'On-site',
-      jobGrade: 'G-5 / Sub B',
-      vacancies: '1',
-      targetFillDate: '13 May 2026',
-      urgency: 'Normal',
-      salaryMin: '5500',
-      salaryMax: '7000',
-      reason: 'New headcount',
-      justification: '',
-      minEducation: "Bachelor's degree",
-      fieldOfStudy: 'e.g. Human Resource Management, Business',
-      minExperience: 'Fresh graduate (0 yrs)',
-      languageRequirement: 'English only',
-      skills: ['HRBP', 'Labour law (MY)', 'Performance mgmt'],
-      newSkillInput: '',
-      responsibilities: '• Partner with department heads on workforce planning\n• Lead end-to-end recruitment for assigned departments\n• Manage employee relations and grievance handling',
-      niceToHave: '',
-      channels: {
-        internal: true,
-        jobstreet: true,
-        linkedin: true,
-        indeed: false,
-        agency: false,
-      },
-      notifySubmit: true,
-      notifyAction: true,
-      autoPublish: true,
-      notifyHrTeam: false,
-      primaryRecruiter: 'Maya Tan (HR Executive)',
-      hiringManager: 'Nina Reza (Head of HR)',
-    });
+    setReqForm(createEmptyReqForm());
   };
 
   const handleCreatePosting = async (e: React.FormEvent) => {
     e.preventDefault();
     const posTitle = newPost.position || 'New Position';
+    const linkedDept = requisitions.find((r) => r.id === newPost.linkedReqId)?.department;
     try {
       const created = await createRecruitmentJob({
         title: posTitle,
-        departmentName: 'HR',
+        departmentName: linkedDept && linkedDept !== '—' ? linkedDept : 'HR',
         employmentType: newPost.employmentType || 'Full-time',
         salaryMin: parseSalary(newPost.salaryMin),
         salaryMax: parseSalary(newPost.salaryMax),
         description: newPost.description || undefined,
         publish: true,
       })
+      setJobRows((prev) => [created, ...prev])
       setPostings((prev) => [mapJobRow(created), ...prev])
       setPostingModalOpen(false)
       addToast(`Job posting active for ${posTitle}.`, 'success')
@@ -691,17 +900,18 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
         fullName: newCand.name,
         email: `${emailLocal}@applicant.novora.local`,
         source: sourceToApi(newCand.source),
-        notes: `${newCand.experience}; ${newCand.education}`,
+        notes: [newCand.experience.trim(), newCand.education.trim()].filter(Boolean).join('; ') || undefined,
       })
+      setCandidateRows((prev) => [created, ...prev])
       setCandidates((prev) => [mapCandidateRow(created), ...prev])
       setCandidateModalOpen(false)
       addToast(`${created.fullName} entered as applicant for ${created.jobTitle || openJob.position}`, 'success')
       setNewCand({
         name: '',
-        experience: '3 yrs',
-        education: 'Bachelor Degree',
+        experience: '',
+        education: '',
         source: 'LinkedIn',
-        matchScore: '89%',
+        matchScore: '',
         stage: 'Applied',
         positionApplied: openJob.position,
       })
@@ -729,6 +939,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
       })
       const byId = new Map(candidates.map((c) => [c.id, c]))
       const item = mapInterviewRow(created, byId)
+      setInterviewRows((prev) => [created, ...prev])
       setInterviews((prev) => [item, ...prev])
       setSelectedInterviewId(item.id)
       setInterviewModalOpen(false)
@@ -762,15 +973,16 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
         grade: newOffer.grade || undefined,
         probation: newOffer.probation || undefined,
         status: 'sent',
-        expiryDate: expiry.toISOString().slice(0, 10),
+        expiryDate: dateStamp(expiry),
       })
       const item = mapOfferRow(created)
       // Prefer form position when API does not return one
       if (newOffer.position) item.position = newOffer.position
+      setOfferRows((prev) => [created, ...prev])
       setOffers((prev) => [item, ...prev])
       setSelectedOfferId(item.id)
       setOfferModalOpen(false)
-      addToast(`Offer draft delivered to ${newOffer.candidateName}`, 'success')
+      addToast(`Offer recorded as sent for ${newOffer.candidateName}`, 'success')
     } catch (err) {
       addToast(err instanceof ApiError ? err.message : 'Could not send offer.', 'error')
     }
@@ -796,36 +1008,76 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
     addToast('Updated pre-onboarding document receipt state', 'info');
   };
 
-  const handleConversionToStaff = (item: PreOnboarding) => {
-    // Add employee
+  const handleConversionToStaff = (item: PreOnboarding | undefined) => {
+    if (!item) return;
+    const matchedDept = requisitions.find((r) => r.positionTitle === item.position)?.department;
     onAddEmployeeAsRecord({
       id: createLocalId('EMP'),
       name: item.candidateName,
-      department: 'HR',
+      department: matchedDept && matchedDept !== '—' ? matchedDept : 'HR',
       position: item.position,
       employmentStatus: 'Permanent',
       status: 'Active',
-      joinDate: item.startDate === 'TBD' ? '1 Jul 2026' : item.startDate,
-      nric: '980712-14-5555',
-      mobile: '+65 12-329 8810',
-      email: `${item.candidateName.toLowerCase().replace(/\s+/g, '')}@novora.com`,
-      address: 'Marina One Residences, Singapore',
+      joinDate: item.startDate === 'TBD' || !item.startDate ? dateStamp() : item.startDate,
+      nric: '',
+      mobile: '',
+      email: '',
+      address: '',
       avatarColor: 'bg-emerald-500',
       dependents: '0',
-      emergencyContact: 'Mother - 0123456789',
+      emergencyContact: '',
     });
 
     setPreOnboardings(prev => prev.filter(p => p.id !== item.id));
-    addToast(`Successfully converted ${item.candidateName} to permanent active employee staff!`, 'success');
+    addToast(`Added ${item.candidateName} to the employee list.`, 'success');
   };
 
-  // Export report emulator
   const triggerRecruitmentExport = (format: 'Excel' | 'CSV' | 'PDF') => {
     setExportDropdownOpen(false);
-    addToast(`Filtering and compiling recruitment master database for format: ${format}...`, 'loading');
-    setTimeout(() => {
-      addToast(`Recruitment_${activeSubTab.replace(/\s+/g, '_')}.${format === 'Excel' ? 'xlsx' : format.toLowerCase()} has been exported.`, 'success');
-    }, 1500);
+    if (format === 'PDF') {
+      addToast('PDF export is not available yet. Use CSV or Excel instead.', 'info');
+      return;
+    }
+    const filename = `recruitment_${activeSubTab.replace(/\s+/g, '_').toLowerCase()}_${dateStamp()}`;
+    let ok = false;
+    let count = 0;
+    if (activeSubTab === 'Job Requisition') {
+      count = filteredRequisitions.length;
+      ok = downloadCsv(
+        filename,
+        ['ID', 'Position title', 'Department', 'Type', 'Requested by', 'Open date', 'Target fill', 'Applicants', 'Status'],
+        filteredRequisitions.map((r) => [r.id, r.positionTitle, r.department, r.type, r.requestedBy, r.openDate, r.targetFill, r.applicants, r.status]),
+      );
+    } else if (activeSubTab === 'Job Posting') {
+      count = postings.length;
+      ok = downloadCsv(
+        filename,
+        ['ID', 'Position', 'Department', 'Channel', 'Applicants', 'Status'],
+        postings.map((p) => [p.id, p.position, p.department, p.channel, p.applicants, p.status]),
+      );
+    } else if (activeSubTab === 'Candidate Pipeline') {
+      count = candidates.length;
+      ok = downloadCsv(
+        filename,
+        ['ID', 'Name', 'Position applied', 'Source', 'Stage', 'Applied date'],
+        candidates.map((c) => [c.id, c.name, c.positionApplied, formatSourceLabel(c.source), c.stage, c.appliedDate]),
+      );
+    } else if (activeSubTab === 'Interviews') {
+      count = interviews.length;
+      ok = downloadCsv(
+        filename,
+        ['ID', 'Candidate', 'Position', 'Stage', 'Date', 'Time', 'Format', 'Status'],
+        interviews.map((i) => [i.id, i.candidateName, i.position, i.stage, i.date, i.time, i.format, i.status]),
+      );
+    } else if (activeSubTab === 'Offer Management') {
+      count = offers.length;
+      ok = downloadCsv(
+        filename,
+        ['ID', 'Candidate', 'Position', 'Currency', 'Salary', 'Allowance', 'Grade', 'Sent date', 'Expiry', 'Status'],
+        offers.map((o) => [o.id, o.candidateName, o.position, o.currency || currency, o.salary, o.allowance, o.grade, o.sentDate, o.expiryDate, o.status]),
+      );
+    }
+    addToast(ok ? `Exported ${count} rows as CSV.` : 'Nothing to export yet.', ok ? 'success' : 'info');
   };
 
   // State filtering logic
@@ -838,6 +1090,40 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
   const activePreOnboard = preOnboardings.find(p => p.id === selectedPreOnboardId) || preOnboardings[0];
   const activeOffer = offers.find(o => o.id === selectedOfferId) || offers[0];
   const activeInterview = interviews.find(i => i.id === selectedInterviewId) || interviews[0];
+  const activeInterviewRow = interviewRows.find(i => i.id === activeInterview?.id);
+
+  const filteredPipelineCandidates = candidates.filter(c =>
+    c.name.toLowerCase().includes(searchValue.toLowerCase()) &&
+    (pipelinePosition === 'All positions' || c.positionApplied === pipelinePosition) &&
+    (pipelineSource === 'All sources' || formatSourceLabel(c.source) === pipelineSource)
+  );
+
+  const offerWorkflowSteps = ['Applied', 'Screened', 'Phone', 'Panel', 'Offer sent', 'Accepted', 'Hired'];
+  const offerWorkflowIndex = !activeOffer
+    ? -1
+    : activeOffer.status === 'Accepted'
+      ? 5
+      : activeOffer.status === 'Draft'
+        ? 3
+        : 4;
+
+  const onboardingAuditEntries = offerRows
+    .filter(o => o.status.toLowerCase() === 'accepted' || o.status.toLowerCase() === 'sent')
+    .map(o => ({
+      id: o.id,
+      date: parseDate(o.sentAt || o.createdAt),
+      accepted: o.status.toLowerCase() === 'accepted',
+      candidateName: o.candidateName || '—',
+      expiry: o.expiryDate ? new Date(o.expiryDate).toLocaleDateString() : null,
+    }))
+    .sort((a, b) => (b.date?.getTime() ?? 0) - (a.date?.getTime() ?? 0))
+    .slice(0, 5);
+
+  const openCandidatesForPosition = (position: string) => {
+    setPipelinePosition(pipelinePositionOptions.includes(position) ? position : 'All positions');
+    setSearchValue('');
+    setActiveSubTab('Candidate Pipeline');
+  };
 
   const subTabs = [
     'Job Requisition',
@@ -914,14 +1200,14 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
 
             {deptDropdownOpen && (
               <div id="dept-dropdown-menu" className="nv-dropdown-menu w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
-                {['All departments', 'Engineering', 'Finance', 'HR', 'Marketing', 'Operations'].map((dept) => (
+                {['All departments', ...departmentOptions].map((dept) => (
                   <button
                     key={dept}
                     type="button"
                     onClick={() => {
                       setDeptFilter(dept);
                       setDeptDropdownOpen(false);
-                      addToast(dept === 'All departments' ? 'Showing all department candidates' : `Screening for ${dept} team`, 'info');
+                      addToast(dept === 'All departments' ? 'Showing requisitions for all departments' : `Showing ${dept} requisitions`, 'info');
                     }}
                     className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-novora transition-colors"
                   >
@@ -1143,7 +1429,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                         <td className="py-3.5 px-5 text-slate-500">{req.openDate}</td>
                         <td className="py-3.5 px-5 text-rose-500 font-bold">{req.targetFill}</td>
                         <td className="py-3.5 px-5">
-                          <span className="text-blue-600 underline font-bold cursor-pointer" onClick={() => { setActiveSubTab('Candidate pipeline'); }}>
+                          <span className="text-blue-600 underline font-bold cursor-pointer" onClick={() => openCandidatesForPosition(req.positionTitle)}>
                             {req.applicants}
                           </span>
                         </td>
@@ -1160,7 +1446,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                         </td>
                         <td className="py-3.5 px-5 text-right">
                           <button
-                            onClick={() => addToast(`Reviewing full folder for ${req.positionTitle}`, 'info')}
+                            onClick={() => openCandidatesForPosition(req.positionTitle)}
                             className="bg-slate-50 hover:bg-novora/10 hover:text-novora transition-colors border border-slate-100 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 ml-auto text-slate-600 cursor-pointer"
                           >
                             <Eye className="h-3 w-3 shrink-0" />
@@ -1303,7 +1589,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   </button>
                   {pipelinePositionOpen ? (
                     <div className="nv-dropdown-menu w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
-                      {['All positions', 'HR Business Partner', 'Software Engineer', 'Finance Analyst'].map((p) => (
+                      {pipelinePositionOptions.map((p) => (
                         <button
                           key={p}
                           type="button"
@@ -1339,7 +1625,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   </button>
                   {pipelineSourceOpen ? (
                     <div className="nv-dropdown-menu w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5">
-                      {['All sources', 'LinkedIn', 'Referral', 'Agency', 'Careers page'].map((s) => (
+                      {pipelineSourceOptions.map((s) => (
                         <button
                           key={s}
                           type="button"
@@ -1439,8 +1725,8 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
 
             {/* Kanban layout stage structure */}
             <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4 overflow-x-auto pb-4">
-              {(['Applied', 'Screening', 'Phone interview', 'Panel interview', 'Offer', 'Hired'] as const).map(stage => {
-                const stageList = candidates.filter(c => c.stage === stage && c.name.toLowerCase().includes(searchValue.toLowerCase()));
+              {PIPELINE_STAGES.map(stage => {
+                const stageList = filteredPipelineCandidates.filter(c => c.stage === stage);
                 return (
                   <div key={stage} className="min-w-52.5 bg-white hover:bg-slate-50/40 border border-slate-100 rounded-2xl p-3.5 space-y-3.5 transition-colors">
                     <div className="flex items-center justify-between border-b border-slate-50 pb-2">
@@ -1557,6 +1843,9 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                           </td>
                         </tr>
                       ))}
+                      {interviews.length === 0 && (
+                        <tr><td colSpan={5} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1571,68 +1860,48 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   <span className="text-[11.5px] font-bold text-novora">Panel rating</span>
                 </div>
 
-                <div className="mb-4">
-                  <div className="text-sm font-extrabold text-slate-800">{activeInterview?.candidateName || 'Lena Wong'}</div>
-                  <div className="text-xs font-bold text-slate-400 mt-1">{activeInterview?.position || 'HR Business Partner'}</div>
-                </div>
+                {activeInterview ? (
+                  <>
+                    <div className="mb-4">
+                      <div className="text-sm font-extrabold text-slate-800">{activeInterview.candidateName}</div>
+                      <div className="text-xs font-bold text-slate-400 mt-1">{activeInterview.position}</div>
+                    </div>
 
-                <div className="space-y-3.5 border-t border-slate-50 pt-4 mb-5">
-                  <div>
-                    <div className="flex justify-between text-[11px] font-bold text-slate-600 mb-1">
-                      <span>Communication skills</span>
-                      <span>90%</span>
+                    <div className="space-y-3 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 text-xs font-semibold mb-5">
+                      <div className="flex justify-between items-center border-b border-white pb-2.5">
+                        <span className="text-slate-400">Stage</span>
+                        <span className="text-slate-800 font-bold">{activeInterview.stage}</span>
+                      </div>
+                      <div className="flex justify-between items-center border-b border-white pb-2.5">
+                        <span className="text-slate-400">Date / Time</span>
+                        <span className="text-slate-800 font-bold">{activeInterview.date} &bull; {activeInterview.time}</span>
+                      </div>
+                      <div className="flex justify-between items-center border-b border-white pb-2.5">
+                        <span className="text-slate-400">Format</span>
+                        <span className="text-slate-800 font-bold">{activeInterview.format}</span>
+                      </div>
+                      <div className="flex justify-between items-center pb-1">
+                        <span className="text-slate-400">Interviewer</span>
+                        <span className="text-slate-800 font-bold">{activeInterviewRow?.interviewerName || '—'}</span>
+                      </div>
                     </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-blue-600 h-full rounded-full" style={{ width: '90%' }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-[11px] font-bold text-slate-600 mb-1">
-                      <span>HR knowledge & expertise</span>
-                      <span>95%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full rounded-full" style={{ width: '95%' }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-[11px] font-bold text-slate-600 mb-1">
-                      <span>Analytical problem solving</span>
-                      <span>88%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-indigo-500 h-full rounded-full" style={{ width: '88%' }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-[11px] font-bold text-slate-600 mb-1">
-                      <span>Culture fit alignment</span>
-                      <span>92%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-sky-500 h-full rounded-full" style={{ width: '92%' }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-[11px] font-bold text-slate-600 mb-1">
-                      <span>Leadership indicators</span>
-                      <span>80%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-orange-500 h-full rounded-full" style={{ width: '80%' }} />
-                    </div>
-                  </div>
-                </div>
 
-                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Panel recommendation</span>
-                    <span className="text-xs font-bold text-slate-800 block mt-0.5">Proceed to contract offer</span>
-                  </div>
-                  <span className="bg-emerald-500 text-white rounded-full p-1.5 inline-flex items-center whitespace-nowrap shrink-0">
-                    <Check className="h-4.5 w-4.5 font-bold" />
-                  </span>
-                </div>
+                    <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Panel recommendation</span>
+                        <span className="text-xs font-bold text-slate-500 block mt-0.5">No scorecard submitted yet.</span>
+                      </div>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${
+                        activeInterview.status === 'Confirmed' || activeInterview.status === 'Completed' ? 'bg-emerald-50 text-emerald-600' :
+                        activeInterview.status === 'No show' ? 'bg-red-50 text-red-650' : 'bg-amber-50 text-amber-600'
+                      }`}>
+                        {activeInterview.status}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <p className="py-6 text-center text-xs text-slate-400">No interviews scheduled yet.</p>
+                )}
               </div>
             </div>
 
@@ -1675,7 +1944,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                             <span className="font-bold text-slate-900 block">{item.candidateName}</span>
                             <span className="text-[10px] text-slate-400 font-medium">{item.position}</span>
                           </td>
-                          <td className="py-3 px-1 font-mono text-slate-600">SGD {item.salary}</td>
+                          <td className="py-3 px-1 font-mono text-slate-600">{item.currency || currency} {item.salary}</td>
                           <td className="py-3 px-1 text-slate-500">{item.sentDate}</td>
                           <td className="py-3 px-1 text-rose-500">{item.expiryDate}</td>
                           <td className="py-3 px-1">
@@ -1689,6 +1958,9 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                           </td>
                         </tr>
                       ))}
+                      {offers.length === 0 && (
+                        <tr><td colSpan={5} className="p-6 text-center text-xs text-slate-400">No records yet.</td></tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1701,26 +1973,37 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 <div className="flex items-center justify-between border-b border-slate-50 pb-4 mb-4">
                   <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Offer workflow status</h3>
                   <span className="bg-amber-50 text-amber-700 text-[10.5px] font-bold px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
-                    Awaiting accept
+                    {!activeOffer
+                      ? 'No offer selected'
+                      : activeOffer.status === 'Sent'
+                        ? 'Awaiting accept'
+                        : activeOffer.status}
                   </span>
                 </div>
 
                 <div className="mb-4">
-                  <div className="text-sm font-extrabold text-slate-800">{activeOffer?.candidateName || 'Lena Wong'}</div>
-                  <div className="text-xs font-bold text-slate-400 mt-1">{activeOffer?.position || 'HR Business Partner'}</div>
+                  <div className="text-sm font-extrabold text-slate-800">{activeOffer?.candidateName || '—'}</div>
+                  <div className="text-xs font-bold text-slate-400 mt-1">{activeOffer?.position || '—'}</div>
                 </div>
 
                 {/* Progress flow map */}
                 <div className="mb-5 py-2.5 border-t border-b border-dashed border-slate-100">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-3">Workflow state</span>
                   <div className="grid grid-cols-7 gap-1 text-[9.5px] font-extrabold text-center text-slate-400">
-                    <span className="text-novora">Applied</span>
-                    <span className="text-novora">Screened</span>
-                    <span className="text-novora">Phone</span>
-                    <span className="text-novora">Panel</span>
-                    <span className="text-blue-500 bg-blue-50 border border-blue-100 rounded-sm py-0.5">Offer sent</span>
-                    <span>Accepted</span>
-                    <span>Hired</span>
+                    {offerWorkflowSteps.map((step, idx) => (
+                      <span
+                        key={step}
+                        className={
+                          idx === offerWorkflowIndex
+                            ? 'text-blue-500 bg-blue-50 border border-blue-100 rounded-sm py-0.5'
+                            : idx < offerWorkflowIndex
+                              ? 'text-novora'
+                              : ''
+                        }
+                      >
+                        {step}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
@@ -1728,33 +2011,34 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 <div className="space-y-3 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 text-xs font-semibold">
                   <div className="flex justify-between items-center border-b border-white pb-2.5">
                     <span className="text-slate-400">Salary Package</span>
-                    <span className="text-slate-800 font-bold">SGD {activeOffer?.salary || '6,500'}/mth</span>
+                    <span className="text-slate-800 font-bold">{activeOffer && activeOffer.salary !== '—' ? `${activeOffer.currency || currency} ${activeOffer.salary}/mth` : '—'}</span>
                   </div>
                   <div className="flex justify-between items-center border-b border-white pb-2.5">
                     <span className="text-slate-400">Fixed Allowance</span>
-                    <span className="text-slate-800 font-bold">SGD {activeOffer?.allowance || '650'}/mth</span>
+                    <span className="text-slate-800 font-bold">{activeOffer && activeOffer.allowance !== '—' ? `${activeOffer.currency || currency} ${activeOffer.allowance}/mth` : '—'}</span>
                   </div>
                   <div className="flex justify-between items-center border-b border-white pb-2.5">
                     <span className="text-slate-400">Grade Level</span>
-                    <span className="text-slate-800 font-mono font-bold text-[11px]">{activeOffer?.grade || 'G-6 / Sub A'}</span>
+                    <span className="text-slate-800 font-mono font-bold text-[11px]">{activeOffer?.grade || '—'}</span>
                   </div>
                   <div className="flex justify-between items-center pb-1">
                     <span className="text-slate-400">Probation duration</span>
-                    <span className="text-slate-800 font-bold">{activeOffer?.probation || '3 months'}</span>
+                    <span className="text-slate-800 font-bold">{activeOffer?.probation || '—'}</span>
                   </div>
                 </div>
 
-                {/* Simulated contract triggers */}
                 <div className="mt-5 pt-3 border-t border-slate-50 flex items-center justify-between">
                   <button
-                    onClick={() => addToast('Opening generated contract PDF document preview... Ready.', 'success')}
-                    className="flex-1 mr-2 px-3.5 py-2 hover:bg-slate-50 text-xs border border-slate-200 text-slate-600 rounded-xl transition-all font-bold cursor-pointer text-center"
+                    disabled={!activeOffer}
+                    onClick={() => addToast('PDF offer letters are not generated yet.', 'info')}
+                    className="flex-1 mr-2 px-3.5 py-2 hover:bg-slate-50 text-xs border border-slate-200 text-slate-600 rounded-xl transition-all font-bold cursor-pointer text-center disabled:opacity-60"
                   >
                     Preview PDF letter
                   </button>
                   <button
-                    onClick={() => addToast('Resent employment contract via electronic signature link!', 'success')}
-                    className="flex-1 bg-novora hover:bg-opacity-95 text-white text-xs px-3.5 py-2 rounded-xl transition-all font-bold cursor-pointer text-center"
+                    disabled={!activeOffer}
+                    onClick={() => addToast('Reminder emails are not connected yet.', 'info')}
+                    className="flex-1 bg-novora hover:bg-opacity-95 text-white text-xs px-3.5 py-2 rounded-xl transition-all font-bold cursor-pointer text-center disabled:opacity-60"
                   >
                     Send reminder
                   </button>
@@ -1779,6 +2063,9 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 </div>
 
                 <div className="space-y-3.5">
+                  {preOnboardings.length === 0 && (
+                    <p className="py-6 text-center text-xs text-slate-400">No records yet.</p>
+                  )}
                   {preOnboardings.map(item => (
                     <div
                       key={item.id}
@@ -1825,30 +2112,24 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex gap-4 items-start">
-                    <span className="text-xs font-semibold text-slate-400 w-16 pt-0.5">6 May</span>
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0 mt-2 items-center" />
-                    <div>
-                      <div className="text-xs font-bold text-slate-800">Employment contract accepted</div>
-                      <p className="text-[11px] text-slate-400 font-semibold mt-1">Ahmad Bakri - Operations Lead &bull; Start Date: 2 Jun 2026</p>
+                  {onboardingAuditEntries.length === 0 && (
+                    <p className="py-4 text-center text-xs text-slate-400">No records yet.</p>
+                  )}
+                  {onboardingAuditEntries.map(entry => (
+                    <div key={entry.id} className="flex gap-4 items-start">
+                      <span className="text-xs font-semibold text-slate-400 w-16 pt-0.5">
+                        {entry.date ? entry.date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '—'}
+                      </span>
+                      <span className={`h-2 w-2 rounded-full shrink-0 mt-2 items-center ${entry.accepted ? 'bg-emerald-500' : 'bg-blue-500'}`} />
+                      <div>
+                        <div className="text-xs font-bold text-slate-800">{entry.accepted ? 'Employment offer accepted' : 'Employment offer sent'}</div>
+                        <p className="text-[11px] text-slate-400 font-semibold mt-1">
+                          {entry.candidateName}
+                          {entry.expiry && !entry.accepted ? <> &bull; Expires {entry.expiry}</> : null}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex gap-4 items-start">
-                    <span className="text-xs font-semibold text-slate-400 w-16 pt-0.5">5 May</span>
-                    <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-2 items-center" />
-                    <div>
-                      <div className="text-xs font-bold text-slate-800">Document upload request delivered</div>
-                      <p className="text-[11px] text-slate-400 font-semibold mt-1">Lena Wong - HR Business Partner &bull; Verification link sent</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4 items-start">
-                    <span className="text-xs font-semibold text-slate-400 w-16 pt-0.5">25 Apr</span>
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0 mt-2 items-center" />
-                    <div>
-                      <div className="text-xs font-bold text-slate-800">IT Equipment assignment booked</div>
-                      <p className="text-[11px] text-slate-400 font-semibold mt-1">Laptop & credentials staged for Operations Lead</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -1924,8 +2205,9 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
 
                 {/* Active Convert Trigger */}
                 <button
+                  disabled={!activePreOnboard}
                   onClick={() => handleConversionToStaff(activePreOnboard)}
-                  className="w-full bg-novora hover:bg-opacity-95 text-white font-bold text-xs py-3 rounded-2xl transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="disabled:opacity-60 w-full bg-novora hover:bg-opacity-95 text-white font-bold text-xs py-3 rounded-2xl transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Sparkles className="h-4.5 w-4.5 text-white" />
                   <span>Convert to actual employee staff record</span>
@@ -1938,221 +2220,15 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
 
         {/* 7. REPORTS TAB */}
         {activeSubTab === 'Reports' && (() => {
-          const getReportStats = () => {
-            const periodMultiplier = reportFilterPeriod === 'Q1 2026' ? 0.85 : reportFilterPeriod === 'Full Year 2025' ? 3.4 : 1.0;
-            switch (reportFilterDept) {
-              case 'Engineering':
-                return {
-                  timeToHire: '36 days',
-                  timeShift: '↓ 2d vs last year',
-                  acceptRate: '74%',
-                  costYtd: `SGD ${Math.round(12500 * periodMultiplier).toLocaleString()}`,
-                  totalApplicants: `${Math.round(68 * periodMultiplier)} applicants`,
-                  open: 5,
-                  filled: 2,
-                  hold: 1,
-                  cancelled: 0,
-                  interviews: `${Math.round(18 * periodMultiplier)} loops`,
-                  offers: `${Math.round(3 * periodMultiplier)} extended`,
-                  signed: `${Math.round(2 * periodMultiplier)} signed`,
-                  text: 'Engineering posts require deep technical stack tests.'
-                };
-              case 'Finance':
-                return {
-                  timeToHire: '28 days',
-                  timeShift: '↓ 4d vs last year',
-                  acceptRate: '85%',
-                  costYtd: `SGD ${Math.round(4000 * periodMultiplier).toLocaleString()}`,
-                  totalApplicants: `${Math.round(22 * periodMultiplier)} applicants`,
-                  open: 2,
-                  filled: 1,
-                  hold: 0,
-                  cancelled: 0,
-                  interviews: `${Math.round(6 * periodMultiplier)} loops`,
-                  offers: `${Math.round(1 * periodMultiplier)} extended`,
-                  signed: `${Math.round(1 * periodMultiplier)} signed`,
-                  text: 'Finance posts have optimal background review speed.'
-                };
-              case 'Marketing':
-                return {
-                  timeToHire: '19 days',
-                  timeShift: '↓ 5d vs last year',
-                  acceptRate: '80%',
-                  costYtd: `SGD ${Math.round(6800 * periodMultiplier).toLocaleString()}`,
-                  totalApplicants: `${Math.round(27 * periodMultiplier)} applicants`,
-                  open: 2,
-                  filled: 1,
-                  hold: 1,
-                  cancelled: 0,
-                  interviews: `${Math.round(6 * periodMultiplier)} loops`,
-                  offers: `${Math.round(2 * periodMultiplier)} extended`,
-                  signed: `${Math.round(1 * periodMultiplier)} signed`,
-                  text: 'Marketing posts target quick interactive trial projects.'
-                };
-              case 'Operations':
-                return {
-                  timeToHire: '22 days',
-                  timeShift: '↓ 3d vs last year',
-                  acceptRate: '88%',
-                  costYtd: `SGD ${Math.round(5400 * periodMultiplier).toLocaleString()}`,
-                  totalApplicants: `${Math.round(15 * periodMultiplier)} applicants`,
-                  open: 2,
-                  filled: 1,
-                  hold: 0,
-                  cancelled: 1,
-                  interviews: `${Math.round(5 * periodMultiplier)} loops`,
-                  offers: `${Math.round(1 * periodMultiplier)} extended`,
-                  signed: `${Math.round(1 * periodMultiplier)} signed`,
-                  text: 'Operations are leveraging recruitment agency help.'
-                };
-              case 'HR':
-                return {
-                  timeToHire: '25 days',
-                  timeShift: '↓ 1d vs last year',
-                  acceptRate: '90%',
-                  costYtd: `SGD ${Math.round(2500 * periodMultiplier).toLocaleString()}`,
-                  totalApplicants: `${Math.round(15 * periodMultiplier)} applicants`,
-                  open: 1,
-                  filled: 0,
-                  hold: 0,
-                  cancelled: 0,
-                  interviews: `${Math.round(3 * periodMultiplier)} loops`,
-                  offers: `${Math.round(1 * periodMultiplier)} extended`,
-                  signed: `${Math.round(0 * periodMultiplier)} signed`,
-                  text: 'HR entries require cross-evaluation from Nina Reza.'
-                };
-              default:
-                return {
-                  timeToHire: '28 days',
-                  timeShift: '↓ 4d vs last qtr',
-                  acceptRate: '82%',
-                  costYtd: `SGD ${Math.round(8400 * periodMultiplier).toLocaleString()}`,
-                  totalApplicants: `${Math.round(147 * periodMultiplier)} applicants`,
-                  open: 12,
-                  filled: 5,
-                  hold: 2,
-                  cancelled: 1,
-                  interviews: `${Math.round(38 * periodMultiplier)} loops`,
-                  offers: `${Math.round(5 * periodMultiplier)} extended`,
-                  signed: `${Math.round(4 * periodMultiplier)} signed`,
-                  text: 'Consolidated Novora recruitment metrics report overview.'
-                };
-            }
-          };
+          const stats = reportData;
 
-          const stats = getReportStats();
-
-          const detailedRows = [
-            {
-              reqId: 'REQ-2026-001',
-              position: 'HR Business Partner',
-              dept: 'HR',
-              recruiter: 'Maya Tan',
-              spent: 'SGD 2,400',
-              timeToClose: '25 days',
-              funnel: { applied: 45, screened: 22, interview: 8, offer: 2, hired: 1 },
-              status: 'Completed',
-              period: 'Q2 2026'
-            },
-            {
-              reqId: 'REQ-2026-002',
-              position: 'Senior Back-End Engineer (Node.js)',
-              dept: 'Engineering',
-              recruiter: 'Maya Tan',
-              spent: 'SGD 5,100',
-              timeToClose: '38 days',
-              funnel: { applied: 78, screened: 45, interview: 12, offer: 3, hired: 1 },
-              status: 'Completed',
-              period: 'Q2 2026'
-            },
-            {
-              reqId: 'REQ-2026-003',
-              position: 'Finance Administrative Executive',
-              dept: 'Finance',
-              recruiter: 'Zainal Abidin',
-              spent: 'SGD 1,500',
-              timeToClose: '28 days',
-              funnel: { applied: 22, screened: 10, interview: 4, offer: 1, hired: 1 },
-              status: 'Completed',
-              period: 'Q2 2026'
-            },
-            {
-              reqId: 'REQ-2026-004',
-              position: 'Marketing & Brand Specialist',
-              dept: 'Marketing',
-              recruiter: 'Maya Tan',
-              spent: 'SGD 3,200',
-              timeToClose: '19 days',
-              funnel: { applied: 35, screened: 18, interview: 6, offer: 2, hired: 1 },
-              status: 'Completed',
-              period: 'Q2 2026'
-            },
-            {
-              reqId: 'REQ-2026-005',
-              position: 'Full-Stack Developer (React & Go)',
-              dept: 'Engineering',
-              recruiter: 'Zainal Abidin',
-              spent: 'SGD 4,600',
-              timeToClose: '34 days',
-              funnel: { applied: 54, screened: 24, interview: 10, offer: 2, hired: 1 },
-              status: 'Completed',
-              period: 'Q1 2026'
-            },
-            {
-              reqId: 'REQ-2026-006',
-              position: 'Operations Support Supervisor',
-              dept: 'Operations',
-              recruiter: 'Maya Tan',
-              spent: 'SGD 2,100',
-              timeToClose: '22 days',
-              funnel: { applied: 19, screened: 8, interview: 3, offer: 1, hired: 1 },
-              status: 'Completed',
-              period: 'Q1 2026'
-            },
-            {
-              reqId: 'REQ-2025-090',
-              position: 'Director of Platform Infrastructure',
-              dept: 'Engineering',
-              recruiter: 'Zainal Abidin',
-              spent: 'SGD 12,500',
-              timeToClose: '45 days',
-              funnel: { applied: 92, screened: 35, interview: 15, offer: 2, hired: 1 },
-              status: 'Completed',
-              period: 'Full Year 2025'
-            },
-            {
-              reqId: 'REQ-2025-095',
-              position: 'Senior Payroll Specialist',
-              dept: 'Finance',
-              recruiter: 'Maya Tan',
-              spent: 'SGD 3,800',
-              timeToClose: '30 days',
-              funnel: { applied: 28, screened: 12, interview: 5, offer: 2, hired: 1 },
-              status: 'Completed',
-              period: 'Full Year 2025'
-            },
-            {
-              reqId: 'REQ-2026-007',
-              position: 'Compensation & Benefits Associate',
-              dept: 'HR',
-              recruiter: 'Zainal Abidin',
-              spent: 'SGD 800',
-              timeToClose: 'Pending',
-              funnel: { applied: 11, screened: 4, interview: 1, offer: 0, hired: 0 },
-              status: 'In Progress',
-              period: 'Q2 2026'
-            },
-          ];
-
-          const filteredDetailedRows = detailedRows.filter(row => {
-            const matchesDept = reportFilterDept === 'All departments' || row.dept === reportFilterDept;
-            const matchesPeriod = row.period === reportFilterPeriod;
+          const filteredDetailedRows = stats.rows.filter(row => {
             const matchesSearch = reportSearchQuery.trim() === '' || 
               row.position.toLowerCase().includes(reportSearchQuery.toLowerCase()) ||
               row.reqId.toLowerCase().includes(reportSearchQuery.toLowerCase()) ||
               row.recruiter.toLowerCase().includes(reportSearchQuery.toLowerCase()) ||
               row.dept.toLowerCase().includes(reportSearchQuery.toLowerCase());
-            return matchesDept && matchesPeriod && matchesSearch;
+            return matchesSearch;
           });
 
           return (
@@ -2174,11 +2250,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
                       options={[
                         { value: 'All departments', label: 'All Departments · Consolidated' },
-                        { value: 'Engineering', label: 'Engineering Team' },
-                        { value: 'Finance', label: 'Finance Department' },
-                        { value: 'Marketing', label: 'Marketing & Brand' },
-                        { value: 'Operations', label: 'Operations Roster' },
-                        { value: 'HR', label: 'Human Resources' },
+                        ...departmentOptions.map((d) => ({ value: d, label: d })),
                       ]}
                     />
                   </div>
@@ -2191,11 +2263,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       onChange={(v) => { setReportFilterPeriod(v); addToast(`Report timeframe adjusted to: ${v}`, 'info'); }}
                       className="w-auto shrink-0"
                       triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
-                      options={[
-                        { value: 'Q2 2026', label: 'Q2 2026 (1 Apr - 30 Jun)' },
-                        { value: 'Q1 2026', label: 'Q1 2026 (1 Jan - 31 Mar)' },
-                        { value: 'Full Year 2025', label: 'Full Year 2025 (Jan - Dec)' },
-                      ]}
+                      options={reportPeriodOptions}
                     />
                   </div>
 
@@ -2204,17 +2272,17 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                 {/* Right controls: Print and CSV Download */}
                 <div className="flex items-center gap-2.5 w-full sm:w-auto sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200">
                   <button
-                    onClick={() => addToast('Successfully compiled recruitment tabular report logs to recruitment_data_sheet.csv', 'success')}
+                    onClick={(e) => {
+                      const n = downloadNearestTableCsv(e.currentTarget, `recruitment_report_${dateStamp()}`);
+                      addToast(n ? `Exported ${n} rows as CSV.` : 'Nothing to export yet.', n ? 'success' : 'info');
+                    }}
                     className="flex-1 sm:flex-initial bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-600 px-3.5 py-2 rounded-xl border border-slate-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <FileSpreadsheet className="h-3.5 w-3.5 text-slate-500" />
                     <span>Download Excel</span>
                   </button>
                   <button
-                    onClick={() => {
-                      addToast('Prepping system print screen layouts... Sending file command to Printer spool', 'loading');
-                      setTimeout(() => addToast('Executive Recruitment summary logged inside print drawer!', 'success'), 1200);
-                    }}
+                    onClick={() => window.print()}
                     className="flex-1 sm:flex-initial bg-novora hover:bg-opacity-95 text-[11px] font-extrabold text-white px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Printer className="h-3.5 w-3.5" />
@@ -2246,7 +2314,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">Offer Acceptance Rate</span>
                   <div className="flex items-baseline gap-2 mt-1.5">
                     <span className="text-3xl font-black text-slate-800">{stats.acceptRate}</span>
-                    <span className="text-[11px] font-bold text-emerald-500">↑ 8% from last qtr</span>
+                    <span className="text-[11px] font-bold text-emerald-500">{stats.acceptDetail}</span>
                   </div>
                   <p className="text-[10px] text-slate-400 font-semibold mt-1.5 italic">Percent of extended contract offer packets signed by talent</p>
                 </div>
@@ -2257,8 +2325,8 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   </div>
                   <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">Recruitment Cost YTD</span>
                   <div className="flex items-baseline gap-2 mt-1.5">
-                    <span className="text-3xl font-black text-novora">{stats.costYtd}</span>
-                    <span className="text-xs font-semibold text-slate-400">Total channel spend</span>
+                    <span className="text-3xl font-black text-novora">—</span>
+                    <span className="text-xs font-semibold text-slate-400">Not tracked yet</span>
                   </div>
                   <p className="text-[10px] text-slate-400 font-semibold mt-1.5 italic">Jobboard credits + external recruitment agency payouts</p>
                 </div>
@@ -2281,53 +2349,23 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <span className="text-[11px] font-bold text-novora bg-blue-50 px-2.5 py-1 rounded-full inline-flex items-center whitespace-nowrap shrink-0">{stats.totalApplicants}</span>
                     </div>
 
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                          <span>Applied &rarr; Screen Match</span>
-                          <span className="text-novora">68% matched</span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className="bg-novora h-full" style={{ width: '68%' }} />
-                        </div>
+                    {stats.funnelSteps[0].from === 0 ? (
+                      <p className="py-6 text-center text-xs text-slate-400">No applicants in this period yet.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {stats.funnelSteps.map((step) => (
+                          <div key={step.label}>
+                            <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                              <span>{step.label}</span>
+                              <span className={`${step.text} font-bold`}>{step.pct}% {step.suffix}</span>
+                            </div>
+                            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                              <div className={`${step.bar} h-full`} style={{ width: `${step.pct}%` }} />
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                          <span>Screened &rarr; Phone Scheduled</span>
-                          <span className="text-indigo-600 font-bold">55% advanced</span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className="bg-indigo-500 h-full" style={{ width: '55%' }} />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                          <span>Phone scheduled &rarr; Board Panel Interview</span>
-                          <span className="text-sky-600 font-bold">40% approved</span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className="bg-sky-500 h-full" style={{ width: '40%' }} />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                          <span>Panel approved &rarr; Extended Contract Offer</span>
-                          <span className="text-amber-600 font-bold">35% recommended</span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className="bg-amber-500 h-full" style={{ width: '35%' }} />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                          <span>Contract Offer &rarr; Ultimate Hired / Starter</span>
-                          <span className="text-emerald-600 font-bold">{stats.acceptRate} accepts offer terms</span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className="bg-emerald-500 h-full" style={{ width: stats.acceptRate }} />
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Recruitment Cost by source */}
@@ -2336,35 +2374,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Recruitment cost distribution by channel</h3>
                     </div>
 
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                          <span>JobStreet job ads credits</span>
-                          <span>SGD 4,620</span>
-                        </div>
-                        <div className="w-full bg-slate-100/50 h-2 rounded-full overflow-hidden">
-                          <div className="bg-blue-600 h-full" style={{ width: '55%' }} />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                          <span>LinkedIn advertising search campaigns</span>
-                          <span>SGD 2,520</span>
-                        </div>
-                        <div className="w-full bg-slate-100/50 h-2 rounded-full overflow-hidden">
-                          <div className="bg-novora h-full" style={{ width: '30%' }} />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                          <span>Partner Agency consultant commissions</span>
-                          <span>SGD 1,260</span>
-                        </div>
-                        <div className="w-full bg-slate-100/50 h-2 rounded-full overflow-hidden">
-                          <div className="bg-orange-500 h-full" style={{ width: '15%' }} />
-                        </div>
-                      </div>
-                    </div>
+                    <p className="py-6 text-center text-xs text-slate-400">No channel spend recorded yet.</p>
                   </div>
 
                 </div>
@@ -2385,7 +2395,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                         <span className="text-xl font-extrabold text-blue-600 mt-0.5 block">{stats.open}</span>
                       </div>
                       <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl">
-                        <span className="text-[10px] font-bold text-slate-400 block uppercase">Filled this quarter</span>
+                        <span className="text-[10px] font-bold text-slate-400 block uppercase">Filled in period</span>
                         <span className="text-xl font-extrabold text-emerald-600 mt-0.5 block">{stats.filled}</span>
                       </div>
                       <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl">
@@ -2424,53 +2434,23 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Average position filling speed by department (days)</h3>
                     </div>
 
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                          <span>Engineering Team</span>
-                          <span className="text-slate-800 font-bold">36 days</span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className={`h-full ${reportFilterDept === 'Engineering' ? 'bg-novora' : 'bg-slate-450'}`} style={{ width: '80%', backgroundColor: reportFilterDept === 'Engineering' ? '#2563eb' : '#94a3b8' }} />
-                        </div>
+                    {stats.deptSpeed.length === 0 ? (
+                      <p className="py-6 text-center text-xs text-slate-400">No filled positions yet.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {stats.deptSpeed.map((row) => (
+                          <div key={row.dept}>
+                            <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                              <span>{row.dept}</span>
+                              <span className="text-slate-800 font-bold">{row.days} {row.days === 1 ? 'day' : 'days'}</span>
+                            </div>
+                            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                              <div className={`h-full ${reportFilterDept === row.dept ? 'bg-novora' : 'bg-slate-450'}`} style={{ width: `${stats.maxDeptDays > 0 ? Math.max(4, Math.round((row.days / stats.maxDeptDays) * 100)) : 0}%`, backgroundColor: reportFilterDept === row.dept ? '#2563eb' : '#94a3b8' }} />
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                          <span>Finance Department</span>
-                          <span className="text-slate-800 font-bold">28 days</span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className={`h-full ${reportFilterDept === 'Finance' ? 'bg-indigo-600' : 'bg-slate-450'}`} style={{ width: '62%', backgroundColor: reportFilterDept === 'Finance' ? '#4f46e5' : '#94a3b8' }} />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                          <span>Human Resources Team</span>
-                          <span className="text-slate-800 font-bold">25 days</span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className={`h-full ${reportFilterDept === 'HR' ? 'bg-sky-600' : 'bg-slate-450'}`} style={{ width: '55%', backgroundColor: reportFilterDept === 'HR' ? '#0284c7' : '#94a3b8' }} />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                          <span>Operations Roster</span>
-                          <span className="text-slate-800 font-bold">22 days</span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className={`h-full ${reportFilterDept === 'Operations' ? 'bg-orange-600' : 'bg-slate-450'}`} style={{ width: '48%', backgroundColor: reportFilterDept === 'Operations' ? '#ea580c' : '#94a3b8' }} />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                          <span>Marketing Department</span>
-                          <span className="text-slate-800 font-bold">19 days</span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className={`h-full ${reportFilterDept === 'Marketing' ? 'bg-novora' : 'bg-slate-450'}`} style={{ width: '42%', backgroundColor: reportFilterDept === 'Marketing' ? '#e11d48' : '#94a3b8' }} />
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                 </div>
@@ -2508,8 +2488,9 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       )}
                     </div>
                     <button
-                      onClick={() => {
-                        addToast(`Exported detailed tabular ledger for ${filteredDetailedRows.length} requisitions to Excel`, 'success');
+                      onClick={(e) => {
+                        const n = downloadNearestTableCsv(e.currentTarget, `recruitment_requisitions_${dateStamp()}`);
+                        addToast(n ? `Exported ${n} rows as CSV.` : 'Nothing to export yet.', n ? 'success' : 'info');
                       }}
                       className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer"
                     >
@@ -2581,13 +2562,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       ))}
                       {filteredDetailedRows.length === 0 && (
                         <tr>
-                          <td colSpan={7} className="py-12 text-center text-slate-400 italic font-semibold">
-                            No detailed recruitment accounts fit current category filters {"'"}
-                            {reportFilterDept}
-                            {"'"} matched inside period {"'"}
-                            {reportFilterPeriod}
-                            {"'"}.
-                          </td>
+                          <td colSpan={7} className="p-6 text-center text-xs text-slate-400">No records yet.</td>
                         </tr>
                       )}
                     </tbody>
@@ -2601,7 +2576,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   </span>
                   <div className="flex items-center gap-1.5">
                     <span className="h-2 w-2 bg-emerald-500 rounded-full inline-block animate-pulse items-center shrink-0" />
-                    <span>Real-time DB Ledger Checked and Synchronized</span>
+                    <span>Derived from live recruitment records</span>
                   </div>
                 </div>
               </div>
@@ -2624,7 +2599,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
               <div>
                 <h2 className="text-xl font-bold text-slate-800 tracking-tight">New job requisition</h2>
                 <p className="text-xs text-slate-400 font-semibold mt-1">
-                  REQ-2026-0{13 + requisitions.length} &bull; Novora HRMS PTE Ltd
+                  {nextReqId} &bull; Novora HRMS PTE Ltd
                 </p>
               </div>
               <button
@@ -2745,11 +2720,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                           value={reqForm.reportsTo}
                           onChange={(v) => setReqForm({ ...reqForm, reportsTo: v })}
                           triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
-                          options={[
-                            { value: 'Nina Reza (Head of HR)', label: 'Nina Reza (Head of HR)' },
-                            { value: 'Malik Said (COO)', label: 'Malik Said (COO)' },
-                            { value: 'Ahmad Wahid (CEO)', label: 'Ahmad Wahid (CEO)' },
-                          ]}
+                          options={personSelectOptions}
                         />
                       </div>
                     </div>
@@ -2835,7 +2806,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                         />
                       </div>
                       <div>
-                        <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Salary range &mdash; min (SGD)</label>
+                        <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Salary range &mdash; min ({currency})</label>
                         <input
                           type="text"
                           placeholder="e.g. 5500"
@@ -2845,7 +2816,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                         />
                       </div>
                       <div>
-                        <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Salary range &mdash; max (SGD)</label>
+                        <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Salary range &mdash; max ({currency})</label>
                         <input
                           type="text"
                           placeholder="e.g. 7000"
@@ -3215,9 +3186,9 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                             1
                           </span>
                           <div>
-                            <span className="font-extrabold text-slate-800 block">Nina Reza</span>
+                            <span className="font-extrabold text-slate-800 block">{reqForm.hiringManager || 'Not assigned'}</span>
                             <span className="text-[10.5px] text-slate-400 font-bold mt-0.5 block">
-                              Head of HR &bull; Direct manager approval
+                              Hiring manager &bull; Direct manager approval
                             </span>
                           </div>
                         </div>
@@ -3238,9 +3209,9 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                             2
                           </span>
                           <div>
-                            <span className="font-extrabold text-slate-800 block">Ahmad Wahid</span>
+                            <span className="font-extrabold text-slate-800 block">{reqForm.reportsTo || 'Not assigned'}</span>
                             <span className="text-[10.5px] text-slate-400 font-bold mt-0.5 block">
-                              CEO &bull; Final approval (New Headcount budgeting allocation)
+                              Reports to &bull; Final approval
                             </span>
                           </div>
                         </div>
@@ -3311,10 +3282,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                           value={reqForm.primaryRecruiter}
                           onChange={(v) => setReqForm({ ...reqForm, primaryRecruiter: v })}
                           triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
-                          options={[
-                            { value: 'Maya Tan (HR Executive)', label: 'Maya Tan (HR Executive)' },
-                            { value: 'Lena Wong (HR Specialist)', label: 'Lena Wong (HR Specialist)' },
-                          ]}
+                          options={personSelectOptions}
                         />
                       </div>
                       <div>
@@ -3323,10 +3291,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                           value={reqForm.hiringManager}
                           onChange={(v) => setReqForm({ ...reqForm, hiringManager: v })}
                           triggerClassName="text-xs font-semibold bg-slate-50 border-slate-200"
-                          options={[
-                            { value: 'Nina Reza (Head of HR)', label: 'Nina Reza (Head of HR)' },
-                            { value: 'Malik Said (COO)', label: 'Malik Said (COO)' },
-                          ]}
+                          options={personSelectOptions}
                         />
                       </div>
                     </div>
@@ -3340,12 +3305,12 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 font-semibold">
                       <div className="flex justify-between md:border-r border-slate-100 pr-4">
                         <span className="text-slate-400">Ref. no.</span>
-                        <span className="text-slate-200 font-mono">REQ-2026-0{13 + requisitions.length}</span>
+                        <span className="text-slate-200 font-mono">{nextReqId}</span>
                       </div>
                       <div className="flex justify-between pl-0 md:pl-4">
                         <span className="text-slate-400">Position</span>
                         <span className="text-slate-800 font-bold">
-                          {reqForm.positionTitle || 'HR Business Partner'}
+                          {reqForm.positionTitle || '—'}
                         </span>
                       </div>
                       <div className="flex justify-between md:border-r border-slate-100 pr-4">
@@ -3361,17 +3326,19 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <div className="flex justify-between md:border-r border-slate-100 pr-4">
                         <span className="text-slate-400">Salary range</span>
                         <span className="text-slate-800 font-bold">
-                          SGD {Number(reqForm.salaryMin).toLocaleString()} &mdash; {Number(reqForm.salaryMax).toLocaleString()}
+                          {reqForm.salaryMin || reqForm.salaryMax
+                            ? `${currency} ${parseSalary(reqForm.salaryMin)?.toLocaleString() ?? '—'} — ${parseSalary(reqForm.salaryMax)?.toLocaleString() ?? '—'}`
+                            : '—'}
                         </span>
                       </div>
                       <div className="flex justify-between pl-0 md:pl-4">
                         <span className="text-slate-400">Target fill</span>
-                        <span className="text-rose-400 font-bold">{reqForm.targetFillDate}</span>
+                        <span className="text-rose-400 font-bold">{reqForm.targetFillDate || '—'}</span>
                       </div>
                       <div className="flex justify-between col-span-1 md:col-span-2 border-t border-slate-100 pt-2.5 mt-1">
                         <span className="text-slate-400">Route map routing</span>
                         <span className="text-slate-500 font-semibold">
-                          {reqForm.hiringManager.split(' ')[0]} (Hiring Mgr) &rarr; Ahmad Wahid (CEO Approval)
+                          {reqForm.hiringManager.split(' (')[0] || 'Hiring manager'} (Hiring Mgr) &rarr; {reqForm.reportsTo.split(' (')[0] || 'Final approver'} (Final Approval)
                         </span>
                       </div>
                     </div>
@@ -3653,6 +3620,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     <SelectMenu
                       value={newCand.positionApplied}
                       onChange={(v) => setNewCand({ ...newCand, positionApplied: v })}
+                      placeholder="Select requisition"
                       triggerClassName="w-full bg-slate-50 border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-semibold"
                       options={requisitions.map((r) => ({
                         value: r.positionTitle,
@@ -3661,7 +3629,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     />
                   </div>
                   <div>
-                    <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Expected Monthly Salary (SGD)</label>
+                    <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Expected Monthly Salary ({currency})</label>
                     <input
                       type="text"
                       placeholder="e.g. 6,500"
@@ -3694,15 +3662,6 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   <Upload className="h-8 w-8 text-slate-500 group-hover:text-novora mx-auto mb-2 transition-colors" />
                   <p className="text-xs font-bold text-slate-600">Drag &amp; drop Candidate CV/Resume PDF</p>
                   <p className="text-[10px] text-slate-500 mt-1">or click to browse local folders (Max size: 10MB)</p>
-                  
-                  {/* Attached resume mockup */}
-                  <div className="mt-4 bg-slate-50 border border-slate-200 rounded-xl p-2.5 max-w-sm mx-auto flex items-center justify-between text-[11px] text-emerald-400 font-bold animate-pulse">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-emerald-500" />
-                      <span>{newCand.name ? `${newCand.name.toLowerCase().replace(/\s+/g, "_")}_resume.pdf` : "jasmine_kaur_cv_screen.pdf"}</span>
-                    </div>
-                    <span className="text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded text-emerald-500 font-mono">1.2 MB</span>
-                  </div>
                 </div>
               </div>
 
@@ -3861,6 +3820,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <input
                         type="text"
                         value={newInt.location}
+                        placeholder="e.g. Zoom link or office address"
                         onChange={(e) => setNewInt({ ...newInt, location: e.target.value })}
                         className="w-full bg-slate-50 border border-novora/40 rounded-xl px-4 py-2.5 text-novora font-mono font-bold outline-none focus:border-novora"
                       />
@@ -3876,16 +3836,33 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       <div>
                         <input
                           type="text"
-                          placeholder="e.g. Nina Reza, Ahmad Wahid"
+                          list="recruitment-people-options"
+                          placeholder="Interviewer names, comma-separated"
                           value={newInt.interviewers}
                           onChange={(e) => setNewInt({ ...newInt, interviewers: e.target.value })}
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-800 outline-none focus:border-novora font-semibold"
                         />
+                        <datalist id="recruitment-people-options">
+                          {peopleOptions.map((p) => (
+                            <option key={p} value={p.split(' (')[0]} />
+                          ))}
+                        </datalist>
                       </div>
                       <div className="flex items-center gap-2 text-[11px] text-slate-400 select-none">
-                        <span className="h-6 w-6 rounded-full bg-novora/10 text-novora flex items-center justify-center font-bold shrink-0">NR</span>
-                        <span className="h-6 w-6 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold shrink-0">AW</span>
-                        <span>Evaluators auto-booked in Google Workspace Calendar</span>
+                        {newInt.interviewers
+                          .split(/[,+]/)
+                          .map((n) => n.trim())
+                          .filter(Boolean)
+                          .slice(0, 4)
+                          .map((n, idx) => (
+                            <span
+                              key={`${n}-${idx}`}
+                              className={`h-6 w-6 rounded-full flex items-center justify-center font-bold shrink-0 ${idx % 2 === 0 ? 'bg-novora/10 text-novora' : 'bg-emerald-500/10 text-emerald-400'}`}
+                            >
+                              {initials(n)}
+                            </span>
+                          ))}
+                        <span>{newInt.interviewers.trim() ? 'Panel members for this interview' : 'No interviewers added yet'}</span>
                       </div>
                     </div>
                   </div>
@@ -3937,39 +3914,37 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   {/* Visual Timeline Mockup */}
                   <div className="space-y-3">
                     <div className="flex justify-between text-[11px] text-slate-400">
-                      <span>Google Calendar Hub</span>
-                      <span className="text-novora font-mono">20 Jun 2026</span>
+                      <span>Booked interviews</span>
+                      <span className="text-novora font-mono">
+                        {parseDate(`${newInt.date}T00:00:00`)?.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) ?? '—'}
+                      </span>
                     </div>
 
                     <div className="space-y-2 font-mono text-[10.5px]">
-                      <div className="p-2 border-l-2 border-slate-300 bg-slate-50 rounded flex justify-between items-center text-slate-500">
-                        <span>09:30 AM</span>
-                        <span>Daily Operations Standup</span>
-                      </div>
+                      {interviewsOnSelectedDate.map((row) => (
+                        <div key={row.id} className="p-2 border-l-2 border-slate-300 bg-slate-50 rounded flex justify-between items-center text-slate-500">
+                          <span>{new Date(row.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span>{row.candidateName || 'Interview'}</span>
+                        </div>
+                      ))}
                       <div className="p-2 border-l-2 border-novora bg-novora/15 rounded flex justify-between items-center text-novora font-bold">
-                        <span>11:00 AM (Proposed)</span>
+                        <span>{newInt.time || '—'} (Proposed)</span>
                         <span>Candidate Interview Slot</span>
-                      </div>
-                      <div className="p-2 border-l-2 border-rose-500 bg-rose-500/10 rounded flex justify-between items-center text-rose-300">
-                        <span>12:30 PM PM</span>
-                        <span>C-Suite Lunch Meeting</span>
-                      </div>
-                      <div className="p-2 border-l-2 border-slate-300 bg-slate-50 rounded flex justify-between items-center text-slate-500">
-                        <span>03:00 PM</span>
-                        <span>Quarterly Budget Reviews</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="border-t border-slate-100 pt-3.5 space-y-2 text-[11px] text-slate-400">
-                    <div className="flex justify-between">
-                      <span>Nina Reza (Head of HR)</span>
-                      <span className="text-emerald-400">● Available</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Ahmad Wahid (CEO)</span>
-                      <span className="text-emerald-400">● Available</span>
-                    </div>
+                    {interviewsOnSelectedDate.some((row) => row.interviewerName) ? (
+                      [...new Set(interviewsOnSelectedDate.map((row) => row.interviewerName).filter((n): n is string => !!n))].map((name) => (
+                        <div key={name} className="flex justify-between">
+                          <span>{name}</span>
+                          <span className="text-amber-500">● Booked</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p>No other interviews booked on this date.</p>
+                    )}
                   </div>
                 </div>
 
@@ -4047,7 +4022,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                         setNewOffer({
                           ...newOffer,
                           candidateName: v,
-                          position: cand ? cand.positionApplied : 'HR Business Partner',
+                          position: cand && cand.positionApplied !== '—' ? cand.positionApplied : '',
                         })
                       }}
                       placeholder="-- Select screen passed candidate records --"
@@ -4065,7 +4040,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   {/* Salary, Allowance, Grade */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold">
                     <div>
-                      <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Starting Basic Salary &mdash; SGD *</label>
+                      <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Starting Basic Salary &mdash; {currency} *</label>
                       <input
                         type="text"
                         value={newOffer.salary}
@@ -4076,7 +4051,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                       />
                     </div>
                     <div>
-                      <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">Special Position Allowance (SGD)</label>
+                      <label className="block text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">Special Position Allowance ({currency})</label>
                       <input
                         type="text"
                         value={newOffer.allowance}
@@ -4206,10 +4181,10 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                     </p>
 
                     <ul className="list-disc pl-5 font-sans text-[10px] space-y-1 text-slate-800 font-semibold bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                      <li><strong>Basic Salary:</strong> SGD {Number(newOffer.salary.replace(/,/g, '') || "6000").toLocaleString()}/month</li>
-                      <li><strong>Allowances:</strong> SGD {Number(newOffer.allowance.replace(/,/g, '') || "600").toLocaleString()}/month</li>
-                      <li><strong>Internal Grade:</strong> {newOffer.grade || "G-5 / Sub B"}</li>
-                      <li><strong>Probation Range:</strong> {newOffer.probation || "3 months orientation"}</li>
+                      <li><strong>Basic Salary:</strong> {parseSalary(newOffer.salary) ? `${currency} ${parseSalary(newOffer.salary)!.toLocaleString()}/month` : '—'}</li>
+                      <li><strong>Allowances:</strong> {parseSalary(newOffer.allowance) ? `${currency} ${parseSalary(newOffer.allowance)!.toLocaleString()}/month` : '—'}</li>
+                      <li><strong>Internal Grade:</strong> {newOffer.grade || '—'}</li>
+                      <li><strong>Probation Range:</strong> {newOffer.probation || '—'}</li>
                       <li><strong>Expiry Period:</strong> This package must be signed within {newOffer.expiryDays || "14"} calendar days.</li>
                     </ul>
 
@@ -4221,8 +4196,8 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord }: Recr
                   {/* Signatures */}
                   <div className="border-t border-slate-200 pt-4 mt-4 flex justify-between items-end font-sans select-none text-[9.5px] font-semibold">
                     <div>
-                      <span className="italic block font-serif text-slate-700">Nina Reza</span>
-                      <span className="text-slate-500 block text-[8px] tracking-wide uppercase border-t border-slate-300 pt-0.5 font-bold mt-1">Nina Reza &bull; Head of HR</span>
+                      <div className="h-6 border-b border-dashed border-slate-300 w-28" />
+                      <span className="text-slate-500 block text-[8px] tracking-wide uppercase pt-1 font-bold">Authorised Signatory &bull; Human Resources</span>
                     </div>
                     <div className="text-right">
                       <div className="h-6 border-b border-dashed border-slate-300 w-28 ml-auto" />

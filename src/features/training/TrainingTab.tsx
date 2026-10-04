@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createLocalNumericId } from '@/lib/createLocalId';
+import { useCurrency } from '@/hooks/useCurrency';
 import {
   Search,
   Plus,
@@ -27,9 +28,125 @@ import {
   GraduationCap,
   ShieldAlert,
 } from 'lucide-react';
-import { ApiError, createTraining, enrollInTraining, fetchTrainingEnrollments, fetchTrainings, type TrainingEnrollmentRow, type TrainingRow } from '@/services';
+import { ApiError, completeTrainingEnrollment, createTraining, enrollInTraining, fetchTrainingEnrollments, fetchTrainings, type TrainingEnrollmentRow, type TrainingRow } from '@/services';
 import ModuleHeader from '@/components/ui/ModuleHeader';
 import { SelectMenu } from '@/components/ui';
+import { dateStamp, downloadNearestTableCsv } from '@/lib/csv';
+import type { Employee } from '@/types';
+
+type UiSchedule = {
+  id: string | number;
+  courseTitle: string;
+  type: string;
+  period: string;
+  days: number;
+  fee: string;
+  companyCont: string;
+  requestBefore: string;
+  status: string;
+};
+
+type UiSubject = {
+  id: string | number;
+  title: string;
+  course: string;
+  internalTrainer: string;
+  externalTrainer: string;
+  skill: string;
+};
+
+type UiRequest = { id: string | number; course: string; date: string; status: string };
+
+type UiBehalfRequest = { id: string | number; employee: string; course: string; date: string; status: string };
+
+type UiApproval = {
+  id: string;
+  employee: string;
+  course: string;
+  date: string;
+  location: string;
+  approvedBy: { name: string; approved: boolean }[];
+  status: string;
+  notes?: string;
+};
+
+type UiAttendance = {
+  id: string | number;
+  employee: string;
+  subject: string;
+  scheduleDate: string;
+  actualDate: string;
+  timeIn: string;
+  timeOut: string;
+  status: string;
+};
+
+function parseDate(value: string | null | undefined): Date | null {
+  if (!value) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  const d = m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function formatDate(value: string | null | undefined): string {
+  const d = parseDate(value);
+  if (!d) return value || '—';
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function formatPeriod(start: string | null | undefined, end: string | null | undefined): string {
+  if (!start && !end) return '—';
+  if (!start || !end || start === end) return formatDate(start || end);
+  return `${formatDate(start)} – ${formatDate(end)}`;
+}
+
+function daysBetween(start: string | null | undefined, end: string | null | undefined): number {
+  const s = parseDate(start);
+  const e = parseDate(end);
+  if (!s) return 0;
+  if (!e) return 1;
+  return Math.max(1, Math.round((e.getTime() - s.getTime()) / 86400000) + 1);
+}
+
+function titleCase(value: string | null | undefined): string {
+  if (!value) return '—';
+  return value
+    .replace(/[_-]+/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function initials(name: string): string {
+  return name.split(' ').filter(Boolean).map(n => n[0]).join('');
+}
+
+function scheduleStatus(row: TrainingRow): string {
+  const status = (row.status || '').toLowerCase();
+  if (status === 'completed' || status === 'cancelled') return titleCase(status);
+  const today = parseDate(dateStamp());
+  const start = parseDate(row.startDate);
+  const end = parseDate(row.endDate) || start;
+  if (!today || !start) return 'Upcoming';
+  if (today < start) return 'Upcoming';
+  if (end && today > end) return 'Completed';
+  return 'Ongoing';
+}
+
+function mapScheduleRow(row: TrainingRow): UiSchedule {
+  return {
+    id: row.id,
+    courseTitle: row.title,
+    type: row.mode || 'Internal',
+    period: formatPeriod(row.startDate, row.endDate),
+    days: daysBetween(row.startDate, row.endDate),
+    fee: row.cost != null ? `${row.cost.toLocaleString()}/pax` : '—',
+    companyCont: '—',
+    requestBefore: '—',
+    status: scheduleStatus(row),
+  };
+}
+
+const EMPTY_ROW_CLASS = 'p-6 text-center text-xs text-slate-400';
 
 type UiCourse = {
   id: string | number;
@@ -56,7 +173,7 @@ function mapTrainingRow(row: TrainingRow): UiCourse {
 }
 
 interface TrainingTabProps {
-  employees: any[];
+  employees: Employee[];
   addToast: (text: string, type: 'success' | 'loading' | 'error' | 'info') => void;
 }
 
@@ -74,6 +191,7 @@ type TrainingSubTab =
   | 'Reports';
 
 export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
+  const { currency, money } = useCurrency();
   const [activeTab, setActiveTab] = useState<TrainingSubTab>('Course');
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('All types');
@@ -105,32 +223,34 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
   ]);
 
   const [courses, setCourses] = useState<UiCourse[]>([]);
+  const [trainingRows, setTrainingRows] = useState<TrainingRow[]>([]);
   const [selectedTrainingId, setSelectedTrainingId] = useState<string>('');
   const [trainingEnrollments, setTrainingEnrollments] = useState<TrainingEnrollmentRow[]>([]);
+  const [allEnrollments, setAllEnrollments] = useState<TrainingEnrollmentRow[]>([]);
+  const [schedules, setSchedules] = useState<UiSchedule[]>([]);
 
   const loadTrainings = useCallback(async () => {
     try {
       const rows = await fetchTrainings();
       const mapped = rows.map(mapTrainingRow);
+      setTrainingRows(rows);
       setCourses(mapped);
+      setSchedules(rows.map(mapScheduleRow));
       const firstId = mapped[0] ? String(mapped[0].id) : '';
       setSelectedTrainingId((prev) => {
         if (prev && mapped.some((c) => String(c.id) === prev)) return prev;
         return firstId;
       });
-      if (firstId) {
-        try {
-          const enrollments = await fetchTrainingEnrollments(firstId);
-          setTrainingEnrollments(enrollments);
-        } catch {
-          setTrainingEnrollments([]);
-        }
-      } else {
-        setTrainingEnrollments([]);
-      }
+      const results = await Promise.allSettled(rows.map((r) => fetchTrainingEnrollments(r.id)));
+      const flattened = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+      setAllEnrollments(flattened);
+      setTrainingEnrollments(firstId ? flattened.filter((e) => e.trainingId === firstId) : []);
     } catch (err) {
       setCourses([]);
+      setTrainingRows([]);
+      setSchedules([]);
       setTrainingEnrollments([]);
+      setAllEnrollments([]);
       if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
         addToast('Could not load trainings from the server.', 'error');
       }
@@ -149,6 +269,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
     try {
       const enrollments = await fetchTrainingEnrollments(trainingId);
       setTrainingEnrollments(enrollments);
+      setAllEnrollments((prev) => [...prev.filter((e) => e.trainingId !== trainingId), ...enrollments]);
     } catch (err) {
       setTrainingEnrollments([]);
       if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 403)) {
@@ -162,66 +283,133 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
     void loadEnrollmentsForTraining(selectedTrainingId);
   }, [selectedTrainingId, loadEnrollmentsForTraining]);
 
-  const [subjects, setSubjects] = useState([
-    { id: 1, title: 'Team leadership', course: 'Leadership essentials', internalTrainer: 'David Ng', externalTrainer: '—', skill: 'People mgmt' },
-    { id: 2, title: 'Decision making', course: 'Leadership essentials', internalTrainer: 'Nina Reza', externalTrainer: '—', skill: 'Critical thinking' },
-    { id: 3, title: 'Pivot tables', course: 'Excel advanced', internalTrainer: '—', externalTrainer: 'Excel Pro Sdn', skill: 'Data analysis' },
-    { id: 4, title: 'Scrum ceremonies', course: 'Agile & Scrum', internalTrainer: '—', externalTrainer: 'Agile Academy', skill: 'Agile delivery' },
-  ]);
+  const [subjects, setSubjects] = useState<UiSubject[]>([]);
+  const [myRequests, setMyRequests] = useState<UiRequest[]>([]);
+  const [submittedBehalf, setSubmittedBehalf] = useState<UiBehalfRequest[]>([]);
+  const [approvals, setApprovals] = useState<UiApproval[]>([]);
+  const [attendance, setAttendance] = useState<UiAttendance[]>([]);
+  const [attendanceDateFilter, setAttendanceDateFilter] = useState('');
+  const [historySearch, setHistorySearch] = useState('');
 
-  const [schedules, setSchedules] = useState([
-    { id: 1, courseTitle: 'Leadership essentials', type: 'Internal', period: '12–14 May', days: 3, fee: '500/pax', companyCont: '100%', requestBefore: '7 days', status: 'Upcoming' },
-    { id: 2, courseTitle: 'Excel advanced', type: 'Internal', period: '6–7 May', days: 2, fee: '200/pax', companyCont: '50%', requestBefore: '3 days', status: 'Ongoing' },
-    { id: 3, courseTitle: 'ISO 9001 awareness', type: 'External', period: '2 May', days: 1, fee: '800/pax', companyCont: '100%', requestBefore: '14 days', status: 'Completed' },
-    { id: 4, courseTitle: 'Agile & Scrum', type: 'Overseas', period: '20–24 May', days: 5, fee: '3,200/pax', companyCont: '80%', requestBefore: '21 days', status: 'Upcoming' },
-  ]);
+  const trainingById = useMemo(() => new Map(trainingRows.map((r) => [r.id, r])), [trainingRows]);
+  const employeeByApiId = useMemo(
+    () => new Map(employees.filter((e) => e.apiId).map((e) => [e.apiId as string, e])),
+    [employees],
+  );
+  const departmentOptions = useMemo(
+    () => Array.from(new Set(employees.map((e) => String(e.department || '')).filter(Boolean))).sort(),
+    [employees],
+  );
+  const courseOptions = useMemo(() => courses.map((c) => ({ value: c.title, label: c.title })), [courses]);
 
-  const [myRequests, setMyRequests] = useState([
-    { id: 1, course: 'Excel advanced', date: '6–7 May', status: 'Allocated' },
-    { id: 2, course: 'Leadership', date: '12–14 May', status: 'Pending' },
-    { id: 3, course: 'Public speaking', date: '20 May', status: 'Pending' },
-    { id: 4, course: 'ISO 9001', date: '2 May', status: 'Completed' },
-    { id: 5, course: 'Agile & Scrum', date: '20 Apr', status: 'Denied' },
-  ]);
+  const enrollmentRecords = useMemo(() => {
+    const today = parseDate(dateStamp());
+    return allEnrollments.map((enr) => {
+      const training = trainingById.get(enr.trainingId);
+      const emp = employeeByApiId.get(enr.employeeId);
+      const status = titleCase(enr.status);
+      const completed = !!enr.completedAt || status === 'Completed';
+      const due = parseDate(training?.endDate || training?.startDate);
+      const complianceStatus = completed
+        ? 'Completed'
+        : due && today && due < today
+          ? 'Overdue'
+          : /progress|ongoing|attend/i.test(enr.status)
+            ? 'In Progress'
+            : 'Pending';
+      const courseTitle = training?.title || enr.trainingTitle || '—';
+      const courseSkills = subjects.filter((s) => s.course === courseTitle && s.skill).map((s) => s.skill);
+      return {
+        id: enr.id,
+        employee: enr.employeeName || emp?.name || '—',
+        department: emp ? String(emp.department) : '—',
+        course: courseTitle,
+        category: training?.category || '—',
+        days: training ? daysBetween(training.startDate, training.endDate) : 0,
+        cost: training?.cost ?? null,
+        dueDate: formatDate(training?.endDate || training?.startDate),
+        status,
+        completed,
+        complianceStatus,
+        signOff: enr.completedAt ? `✓ ${formatDate(enr.completedAt)}` : '—',
+        skills: courseSkills.length > 0 ? courseSkills : training?.category ? [training.category] : [],
+        proficiency: completed ? 'Proficient' : complianceStatus === 'In Progress' ? 'In Progress' : 'Scheduled',
+      };
+    });
+  }, [allEnrollments, trainingById, employeeByApiId, subjects]);
 
-  const [submittedBehalf, setSubmittedBehalf] = useState([
-    { id: 1, employee: 'Sarah Lim', course: 'Leadership', date: '12 May', status: 'Allocated' },
-    { id: 2, employee: 'Raj Kumar', course: 'Leadership', date: '12 May', status: 'Pending' },
-    { id: 3, employee: 'Ahmad Luqman', course: 'ISO 9001', date: '2 May', status: 'Completed' },
-  ]);
+  const budgetRows = useMemo(
+    () =>
+      trainingRows
+        .filter((r) => r.cost != null)
+        .map((r) => {
+          const pax = allEnrollments.filter((e) => e.trainingId === r.id).length;
+          const cost = r.cost ?? 0;
+          return {
+            id: r.id,
+            vendor: r.trainer || '—',
+            course: r.title,
+            freq: titleCase(r.mode),
+            cost,
+            pax,
+            contribution: `${money(cost * pax)} (${pax} pax)`,
+            status: titleCase(r.status),
+          };
+        }),
+    [trainingRows, allEnrollments, money],
+  );
 
-  const [approvals, setApprovals] = useState([
-    { id: 'APP-1', employee: 'Sarah Lim', course: 'Leadership essentials', date: '12-14 May', location: 'Room A', approvedBy: [{ name: 'David Ng', approved: true }, { name: 'Ahmad Wahid', approved: false }], status: 'Pending' },
-    { id: 'APP-2', employee: 'Raj Kumar', course: 'Agile & Scrum', date: '20-24 May', location: 'Overseas', approvedBy: [{ name: 'David Ng', approved: true }, { name: 'Ahmad Wahid', approved: false }], status: 'Pending' },
-    { id: 'APP-3', employee: 'Maya Tan', course: 'Excel advanced', date: '6-7 May', location: 'Room B', approvedBy: [{ name: 'Nina Reza', approved: true }], status: 'Approved' },
-    { id: 'APP-4', employee: 'Nadia Chen', course: 'Public speaking', date: '20 May', location: 'Room A', approvedBy: [{ name: 'Kevin Lim', approved: false }], status: 'Denied' },
-  ]);
-
-  const [attendance, setAttendance] = useState([
-    { id: 1, employee: 'Sarah Lim', subject: 'Leadership — Team leadership', scheduleDate: '12 May', actualDate: '12 May', timeIn: '09:02', timeOut: '13:05', status: 'Present' },
-    { id: 2, employee: 'Raj Kumar', subject: 'Excel — Pivot tables', scheduleDate: '6 May', actualDate: '6 May', timeIn: '09:05', timeOut: '17:00', status: 'Present' },
-    { id: 3, employee: 'Maya Tan', subject: 'Excel — Pivot tables', scheduleDate: '6 May', actualDate: '6 May', timeIn: '—', timeOut: '—', status: 'Absent' },
-    { id: 4, employee: 'Ahmad Luqman', subject: 'Leadership — Decision making', scheduleDate: '13 May', actualDate: '13 May', timeIn: '09:15', timeOut: '12:00', status: 'Late' },
-  ]);
+  const reportMetrics = useMemo(() => {
+    const total = enrollmentRecords.length;
+    const done = enrollmentRecords.filter((r) => r.completed).length;
+    const categories = new Set(trainingRows.map((r) => r.category).filter(Boolean));
+    const coveredDepts = new Set(enrollmentRecords.map((r) => r.department).filter((d) => d !== '—'));
+    const committed = budgetRows.reduce((sum, r) => sum + r.cost * r.pax, 0);
+    const spentCompleted = enrollmentRecords.reduce((sum, r) => sum + (r.completed ? r.cost ?? 0 : 0), 0);
+    const modeCounts = new Map<string, number>();
+    trainingRows.forEach((r) => {
+      const mode = titleCase(r.mode || 'Internal');
+      modeCounts.set(mode, (modeCounts.get(mode) || 0) + 1);
+    });
+    const formats = Array.from(modeCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([mode, count]) => ({ mode, pct: Math.round((count / trainingRows.length) * 100) }));
+    return {
+      total,
+      done,
+      complianceRate: total > 0 ? (done / total) * 100 : 0,
+      skillsCount: categories.size,
+      deptCount: coveredDepts.size,
+      deptPct: departmentOptions.length > 0 ? (coveredDepts.size / departmentOptions.length) * 100 : 0,
+      committed,
+      spentPct: committed > 0 ? Math.min(100, (spentCompleted / committed) * 100) : 0,
+      formats,
+    };
+  }, [enrollmentRecords, trainingRows, budgetRows, departmentOptions]);
 
   // FORM INPUTS
-  const [formCourse, setFormCourse] = useState('Excel advanced');
-  const [formDateFrom, setFormDateFrom] = useState('2026-05-12');
-  const [formDateTo, setFormDateTo] = useState('2026-05-14');
-  const [formDays, setFormDays] = useState(3);
-  const [formFee, setFormFee] = useState('500.00');
-  const [formLocation, setFormLocation] = useState('Training room A, Level 3');
+  const [formCourse, setFormCourse] = useState('');
+  const [formDateFrom, setFormDateFrom] = useState(() => dateStamp());
+  const [formDateTo, setFormDateTo] = useState(() => dateStamp());
+  const [formDays, setFormDays] = useState(1);
+  const [formFee, setFormFee] = useState('');
+  const [formLocation, setFormLocation] = useState('');
   const [formReason, setFormReason] = useState('');
   const [formEmailNotify, setFormEmailNotify] = useState(true);
 
   // REQUEST ON BEHALF INPUTS
   const [behalfEmpChoice, setBehalfEmpChoice] = useState<'individual' | 'all'>('individual');
-  const [behalfSelectedEmps, setBehalfSelectedEmps] = useState<string[]>(['Sarah Lim']);
+  const [behalfSelectedEmps, setBehalfSelectedEmps] = useState<string[]>([]);
   const [behalfScope, setBehalfScope] = useState('Individual employees');
   const [behalfDept, setBehalfDept] = useState('');
-  const [behalfCourse, setBehalfCourse] = useState('Leadership essentials');
-  const [behalfLocation, setBehalfLocation] = useState('Training Room A');
-  const [behalfContribution, setBehalfContribution] = useState('100% / Fixed SGD');
+  const [behalfCourse, setBehalfCourse] = useState('');
+  const [behalfLocation, setBehalfLocation] = useState('');
+  const [behalfContribution, setBehalfContribution] = useState(() => `100% / Fixed ${currency}`);
+
+  const behalfEmployees = useMemo(
+    () => employees.filter((e) => !behalfDept || String(e.department) === behalfDept),
+    [employees, behalfDept],
+  );
 
   // ADD NEW ITEM FORM INPUTS
   const [newTypeName, setNewTypeName] = useState('');
@@ -240,22 +428,22 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
   const [newCourseDue, setNewCourseDue] = useState('7 days');
 
   const [newSubjTitle, setNewSubjTitle] = useState('');
-  const [newSubjCourse, setNewSubjCourse] = useState('Leadership essentials');
+  const [newSubjCourse, setNewSubjCourse] = useState('');
   const [newSubjInTrainer, setNewSubjInTrainer] = useState('');
   const [newSubjExTrainer, setNewSubjExTrainer] = useState('—');
   const [newSubjSkill, setNewSubjSkill] = useState('');
 
-  const [newSchedCourse, setNewSchedCourse] = useState('Leadership essentials');
+  const [newSchedCourse, setNewSchedCourse] = useState('');
   const [newSchedType, setNewSchedType] = useState('Internal');
-  const [newSchedPeriod, setNewSchedPeriod] = useState('12–14 May');
-  const [newSchedDays, setNewSchedDays] = useState(3);
-  const [newSchedFee, setNewSchedFee] = useState('500/pax');
+  const [newSchedPeriod, setNewSchedPeriod] = useState('');
+  const [newSchedDays, setNewSchedDays] = useState(1);
+  const [newSchedFee, setNewSchedFee] = useState('');
   const [newSchedCont, setNewSchedCont] = useState('100%');
   const [newSchedBefore, setNewSchedBefore] = useState('7 days');
 
-  const [newAttEmployee, setNewAttEmployee] = useState('Sarah Lim');
-  const [newAttSubject, setNewAttSubject] = useState('Team leadership');
-  const [newAttDate, setNewAttDate] = useState('12 May');
+  const [newAttEmployee, setNewAttEmployee] = useState('');
+  const [newAttSubject, setNewAttSubject] = useState('');
+  const [newAttDate, setNewAttDate] = useState(() => formatDate(dateStamp()));
   const [newAttIn, setNewAttIn] = useState('09:00');
   const [newAttOut, setNewAttOut] = useState('13:00');
   const [newAttStatus, setNewAttStatus] = useState('Present');
@@ -383,6 +571,10 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
 
   const handleAddSchedule = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newSchedCourse) {
+      addToast('Please select a course', 'error');
+      return;
+    }
     if (editingItem) {
       setSchedules(prev =>
         prev.map(item =>
@@ -421,6 +613,10 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
 
   const handleAddAttendance = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newAttEmployee) {
+      addToast('Please select an employee', 'error');
+      return;
+    }
     if (editingItem) {
       setAttendance(prev =>
         prev.map(item =>
@@ -457,14 +653,18 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
 
   const handleSubmissionRequest = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formCourse) {
+      addToast('Please select a course', 'error');
+      return;
+    }
     const newReq = {
       id: createLocalNumericId(),
       course: formCourse,
-      date: `${formDateFrom.split('-')[2] || '12'}–${formDateTo.split('-')[2] || '14'} May`,
+      date: formatPeriod(formDateFrom, formDateTo),
       status: 'Pending',
     };
     setMyRequests(prev => [newReq, ...prev]);
-    addToast(`Training request for ${formCourse} submitted successfully!`, 'success');
+    addToast(`Training request for ${formCourse} added to your tracker.`, 'info');
     setFormReason('');
   };
 
@@ -487,8 +687,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
     const trainingId = String(training.id);
     let successCount = 0;
 
-    for (const empName of behalfSelectedEmps) {
-      const emp = employees.find((x: { name?: string; id?: string; apiId?: string }) => x.name === empName);
+    for (const empId of behalfSelectedEmps) {
+      const emp = employees.find((x) => x.id === empId);
+      const empName = emp?.name || empId;
       const employeeApiId = emp?.apiId;
       if (!employeeApiId) {
         addToast(`Could not enroll ${empName}: missing server id (apiId).`, 'error');
@@ -502,7 +703,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
             id: createLocalNumericId(),
             employee: empName,
             course: training.title,
-            date: '12 May',
+            date: formatDate(dateStamp()),
             status: 'Pending',
           },
           ...prev,
@@ -519,6 +720,16 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
       setSelectedTrainingId(trainingId);
       await loadEnrollmentsForTraining(trainingId);
       addToast(`Successfully enrolled ${successCount} employee(s) in ${training.title}`, 'success');
+    }
+  };
+
+  const handleCompleteEnrollment = async (enr: TrainingEnrollmentRow) => {
+    try {
+      await completeTrainingEnrollment(enr.trainingId, enr.id);
+      await loadEnrollmentsForTraining(enr.trainingId);
+      addToast(`Marked ${enr.employeeName} as completed`, 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not complete enrollment.', 'error');
     }
   };
 
@@ -542,8 +753,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
     setNewCourseType('Management');
     setNewCourseDelivery('Internal');
     setNewSubjTitle('');
-    setNewAttEmployee('Sarah Lim');
-    setNewAttSubject('Team leadership');
+    setNewAttEmployee('');
+    setNewAttSubject('');
+    setNewAttDate(formatDate(dateStamp()));
     setNewAttStatus('Present');
   };
 
@@ -636,7 +848,10 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => addToast('Exporting spreadsheet document...', 'loading')}
+            onClick={(e) => {
+              const n = downloadNearestTableCsv(e.currentTarget, `training_${dateStamp()}`);
+              addToast(n ? `Exported ${n} rows as CSV.` : 'Nothing to export yet.', n ? 'success' : 'info');
+            }}
             className="nv-toolbar-btn"
           >
             <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
@@ -925,7 +1140,18 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                       className="flex items-center justify-between text-xs border border-slate-50 rounded-xl px-3 py-2 bg-slate-50/50"
                     >
                       <span className="font-bold text-slate-700">{enr.employeeName}</span>
-                      <span className="text-[10px] font-black uppercase text-novora">{enr.status}</span>
+                      <span className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase text-novora">{enr.status}</span>
+                        {!enr.completedAt && enr.status.toLowerCase() !== 'completed' && (
+                          <button
+                            type="button"
+                            onClick={() => void handleCompleteEnrollment(enr)}
+                            className="border border-slate-200 hover:bg-white px-2 py-0.5 rounded-lg text-[10px] font-bold text-slate-600 transition-all cursor-pointer inline-flex items-center gap-0.5"
+                          >
+                            <Check className="h-3 w-3" /> Complete
+                          </button>
+                        )}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -945,12 +1171,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 aria-label="Course filter"
                 className="w-auto shrink-0"
                 triggerClassName="nv-select-trigger--toolbar min-w-[9rem]"
-                options={[
-                  { value: 'All courses', label: 'All courses' },
-                  { value: 'Leadership essentials', label: 'Leadership essentials' },
-                  { value: 'Excel advanced', label: 'Excel advanced' },
-                  { value: 'Agile & Scrum', label: 'Agile & Scrum' },
-                ]}
+                options={[{ value: 'All courses', label: 'All courses' }, ...courseOptions]}
               />
               <div className="relative flex-1">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -1011,6 +1232,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                       </td>
                     </tr>
                   ))}
+                {subjects.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                  <tr><td colSpan={6} className={EMPTY_ROW_CLASS}>No subjects yet.</td></tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -1040,7 +1264,22 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
               <input type="text" placeholder="dd/mm/yyyy" className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium py-1.5 px-3 focus:outline-none w-32" />
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <button onClick={() => addToast('Schedule copied to clipboard', 'success')} className="bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer">
+              <button onClick={async () => {
+                if (schedules.length === 0) {
+                  addToast('No schedules to copy yet.', 'info');
+                  return;
+                }
+                const text = [
+                  ['Course title', 'Type', 'Period', 'Days', `Fee (${currency})`, 'Company cont.', 'Request before', 'Status'].join('\t'),
+                  ...schedules.map(s => [s.courseTitle, s.type, s.period, s.days, s.fee, s.companyCont, s.requestBefore, s.status].join('\t')),
+                ].join('\n');
+                try {
+                  await navigator.clipboard.writeText(text);
+                  addToast('Schedule copied to clipboard', 'success');
+                } catch {
+                  addToast('Could not copy schedule to clipboard.', 'error');
+                }
+              }} className="bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer">
                 Copy schedule
               </button>
               <button
@@ -1061,7 +1300,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   <th className="py-3 px-4">Type</th>
                   <th className="py-3 px-4">Period</th>
                   <th className="py-3 px-4 text-center">Days</th>
-                  <th className="py-3 px-4">Fee (SGD)</th>
+                  <th className="py-3 px-4">Fee ({currency})</th>
                   <th className="py-3 px-4">Company cont.</th>
                   <th className="py-3 px-4">Request before</th>
                   <th className="py-3 px-4">Status</th>
@@ -1098,6 +1337,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                     </td>
                   </tr>
                 ))}
+                {schedules.length === 0 && (
+                  <tr><td colSpan={9} className={EMPTY_ROW_CLASS}>No schedules yet.</td></tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -1114,12 +1356,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 <SelectMenu
                   value={formCourse}
                   onChange={setFormCourse}
+                  placeholder={courses.length === 0 ? 'No courses loaded' : '-- Select --'}
                   triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
-                  options={[
-                    { value: 'Excel advanced', label: 'Excel advanced' },
-                    { value: 'Leadership essentials', label: 'Leadership essentials' },
-                    { value: 'ISO 9001 awareness', label: 'ISO 9001 awareness' },
-                  ]}
+                  options={courseOptions.length === 0 ? [{ value: '', label: 'No courses loaded' }] : courseOptions}
                 />
               </div>
 
@@ -1140,25 +1379,25 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   <input type="number" value={formDays} onChange={e => setFormDays(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Course fee (SGD)</label>
+                  <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Course fee ({currency})</label>
                   <input type="text" value={formFee} onChange={e => setFormFee(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none font-mono" />
                 </div>
               </div>
 
               <div className="space-y-2.5 bg-slate-50 p-4.5 rounded-2xl border border-slate-100">
                 <span className="text-[10.5px] uppercase text-slate-400 font-extrabold block">Training schedule selection <span className="text-rose-500">*</span></span>
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="mt-0.5 rounded text-novora" />
-                  <span>Team leadership — 12 May, 09:00–13:00</span>
-                </label>
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="mt-0.5 rounded text-novora" />
-                  <span>Decision making — 13 May, 09:00–12:00</span>
-                </label>
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input type="checkbox" className="mt-0.5 rounded text-novora" />
-                  <span>Conflict resolution — 14 May, 14:00–17:00</span>
-                </label>
+                {schedules.filter(s => s.courseTitle === formCourse).length === 0 ? (
+                  <p className="text-[11px] text-slate-400 font-semibold">No schedules available for this course.</p>
+                ) : (
+                  schedules
+                    .filter(s => s.courseTitle === formCourse)
+                    .map(s => (
+                      <label key={s.id} className="flex items-start gap-2 cursor-pointer">
+                        <input type="checkbox" defaultChecked className="mt-0.5 rounded text-novora" />
+                        <span>{s.courseTitle} — {s.period}</span>
+                      </label>
+                    ))
+                )}
               </div>
 
               <div className="space-y-1">
@@ -1218,12 +1457,15 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
-                        <button onClick={() => addToast(`Reviewing credentials details for ${r.course}`, 'info')} className="border border-slate-200 hover:bg-slate-50 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer">
+                        <button onClick={() => addToast(`${r.course} (${r.date}): ${r.status}`, 'info')} className="border border-slate-200 hover:bg-slate-50 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer">
                           View
                         </button>
                       </td>
                     </tr>
                   ))}
+                  {myRequests.length === 0 && (
+                    <tr><td colSpan={4} className={EMPTY_ROW_CLASS}>No training requests yet.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1244,7 +1486,15 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                     <span>Individual employees</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" checked={behalfEmpChoice === 'all'} onChange={() => setBehalfEmpChoice('all')} className="text-novora" />
+                    <input
+                      type="radio"
+                      checked={behalfEmpChoice === 'all'}
+                      onChange={() => {
+                        setBehalfEmpChoice('all');
+                        setBehalfSelectedEmps(behalfEmployees.map(emp => emp.id));
+                      }}
+                      className="text-novora"
+                    />
                     <span>All department</span>
                   </label>
                 </div>
@@ -1267,14 +1517,20 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Department</label>
                   <SelectMenu
                     value={behalfDept}
-                    onChange={setBehalfDept}
+                    onChange={(dept) => {
+                      setBehalfDept(dept);
+                      if (behalfEmpChoice === 'all') {
+                        setBehalfSelectedEmps(
+                          employees.filter(emp => !dept || String(emp.department) === dept).map(emp => emp.id),
+                        );
+                      }
+                    }}
                     placeholder="-- Select --"
                     preferUp
                     triggerClassName="bg-slate-50 border-slate-200"
                     options={[
                       { value: '', label: '-- Select --' },
-                      { value: 'Engineering', label: 'Engineering' },
-                      { value: 'HR', label: 'HR' },
+                      ...departmentOptions.map(d => ({ value: d, label: d })),
                     ]}
                   />
                 </div>
@@ -1282,27 +1538,31 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
 
               <div className="space-y-2 bg-slate-50 p-4.5 rounded-2xl border border-slate-100">
                 <span className="text-[10.5px] uppercase text-slate-400 font-extrabold block">Employees <span className="text-rose-500">*</span></span>
-                {['Sarah Lim (EMP-0021) — Engineering', 'Raj Kumar (EMP-0048) — Engineering', 'Ahmad Luqman (EMP-0187) — Operations'].map((empName) => {
-                  const plainName = empName.split(' (')[0];
-                  const isChecked = behalfSelectedEmps.includes(plainName);
-                  return (
-                    <label key={empName} className="flex items-center gap-2.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => {
-                          if (isChecked) {
-                            setBehalfSelectedEmps(prev => prev.filter(x => x !== plainName));
-                          } else {
-                            setBehalfSelectedEmps(prev => [...prev, plainName]);
-                          }
-                        }}
-                        className="rounded text-novora"
-                      />
-                      <span>{empName}</span>
-                    </label>
-                  );
-                })}
+                {behalfEmployees.length === 0 && (
+                  <p className="text-[11px] text-slate-400 font-semibold">No employees available.</p>
+                )}
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {behalfEmployees.map((emp) => {
+                    const isChecked = behalfSelectedEmps.includes(emp.id);
+                    return (
+                      <label key={emp.id} className="flex items-center gap-2.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            if (isChecked) {
+                              setBehalfSelectedEmps(prev => prev.filter(x => x !== emp.id));
+                            } else {
+                              setBehalfSelectedEmps(prev => [...prev, emp.id]);
+                            }
+                          }}
+                          className="rounded text-novora"
+                        />
+                        <span>{emp.name} ({emp.id}){emp.department ? ` — ${emp.department}` : ''}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="space-y-3 pt-2 border-t border-slate-100">
@@ -1373,7 +1633,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                     <tr key={sb.id} className="hover:bg-slate-50/40">
                       <td className="py-3.5 px-4 font-black text-slate-900 flex items-center gap-2">
                         <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-600 shrink-0">
-                          {sb.employee.split(' ').map(n=>n[0]).join('')}
+                          {initials(sb.employee)}
                         </div>
                         <span>{sb.employee}</span>
                       </td>
@@ -1386,6 +1646,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                       </td>
                     </tr>
                   ))}
+                  {submittedBehalf.length === 0 && (
+                    <tr><td colSpan={4} className={EMPTY_ROW_CLASS}>No requests submitted on behalf yet.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1424,7 +1687,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   <tr key={app.id} className="hover:bg-slate-50/40">
                     <td className="py-3.5 px-4 font-black text-slate-900 flex items-center gap-2">
                       <div className="h-6 w-6 rounded-full bg-novora/10 text-novora flex items-center justify-center text-[10px] font-black shrink-0">
-                        {app.employee.split(' ').map(n=>n[0]).join('')}
+                        {initials(app.employee)}
                       </div>
                       <span>{app.employee}</span>
                     </td>
@@ -1472,6 +1735,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                     </td>
                   </tr>
                 ))}
+                {approvals.length === 0 && (
+                  <tr><td colSpan={7} className={EMPTY_ROW_CLASS}>No training requests awaiting approval.</td></tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -1498,10 +1764,10 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 triggerClassName="nv-select-trigger--toolbar min-w-[9rem]"
                 options={[{ value: 'All departments', label: 'All departments' }]}
               />
-              <input type="text" placeholder="06/05/2026" className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium py-1.5 px-3 focus:outline-none w-32" />
+              <input type="text" value={attendanceDateFilter} onChange={e => setAttendanceDateFilter(e.target.value)} placeholder="Filter date..." className="bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium py-1.5 px-3 focus:outline-none w-32" />
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <button onClick={() => addToast('Punctuality stats compiled successfully', 'success')} className="bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 font-bold text-xs px-4 py-2 rounded-xl cursor-pointer">
+              <button onClick={() => { setAttendanceDateFilter(''); addToast('Attendance filters reset', 'info'); }} className="bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 font-bold text-xs px-4 py-2 rounded-xl cursor-pointer">
                 Reset
               </button>
               <button
@@ -1529,11 +1795,13 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {attendance.map((att) => (
+                {attendance
+                  .filter(att => !attendanceDateFilter.trim() || att.actualDate.toLowerCase().includes(attendanceDateFilter.trim().toLowerCase()) || att.scheduleDate.toLowerCase().includes(attendanceDateFilter.trim().toLowerCase()))
+                  .map((att) => (
                   <tr key={att.id} className="hover:bg-slate-50/40">
                     <td className="py-3.5 px-4 font-black text-slate-900 flex items-center gap-2">
                       <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-mono font-black text-slate-600 shrink-0">
-                        {att.employee.split(' ').map(n=>n[0]).join('')}
+                        {initials(att.employee)}
                       </div>
                       <span>{att.employee}</span>
                     </td>
@@ -1562,6 +1830,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                     </td>
                   </tr>
                 ))}
+                {attendance.length === 0 && (
+                  <tr><td colSpan={8} className={EMPTY_ROW_CLASS}>No attendance records yet.</td></tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -1600,10 +1871,13 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                   <Search className="h-4 w-4 text-slate-400" />
                 </span>
-                <input type="text" placeholder="Search employee..." className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none" />
+                <input type="text" value={historySearch} onChange={e => setHistorySearch(e.target.value)} placeholder="Search employee..." className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none" />
               </div>
             </div>
-            <button onClick={() => addToast('Downloaded complete corporate records as CSV', 'success')} className="bg-blue-50 hover:bg-blue-100 text-novora font-black text-xs px-4.5 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 w-full sm:w-auto justify-center">
+            <button onClick={(e) => {
+              const n = downloadNearestTableCsv(e.currentTarget, `training_records_${dateStamp()}`);
+              addToast(n ? `Exported ${n} rows as CSV.` : 'Nothing to export yet.', n ? 'success' : 'info');
+            }} className="bg-blue-50 hover:bg-blue-100 text-novora font-black text-xs px-4.5 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 w-full sm:w-auto justify-center">
               <Download className="h-4 w-4" />
               <span>Export history</span>
             </button>
@@ -1616,52 +1890,38 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                   <th className="py-3 px-4">Employee</th>
                   <th className="py-3 px-4">Course title</th>
                   <th className="py-3 px-4 text-center">Days</th>
-                  <th className="py-3 px-4">Fee (SGD)</th>
+                  <th className="py-3 px-4">Fee ({currency})</th>
                   <th className="py-3 px-4">Approved by</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                <tr className="hover:bg-slate-50/40">
-                  <td className="py-3.5 px-4 font-black text-slate-900">Sarah Lim</td>
-                  <td className="py-3.5 px-4">Leadership essentials</td>
-                  <td className="py-3.5 px-4 text-center font-mono">3</td>
-                  <td className="py-3.5 px-4 font-mono">500</td>
-                  <td className="py-3.5 px-4">David Ng &bull; pending</td>
-                  <td className="py-3.5 px-4">
-                    <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] inline-flex items-center whitespace-nowrap shrink-0">Pending</span>
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <button className="border border-slate-200 hover:bg-slate-50 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all">View</button>
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50/40">
-                  <td className="py-3.5 px-4 font-black text-slate-900">Raj Kumar</td>
-                  <td className="py-3.5 px-4">Excel advanced</td>
-                  <td className="py-3.5 px-4 text-center font-mono">2</td>
-                  <td className="py-3.5 px-4 font-mono">200</td>
-                  <td className="py-3.5 px-4">David Ng ✓</td>
-                  <td className="py-3.5 px-4">
-                    <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[10px] inline-flex items-center whitespace-nowrap shrink-0">Completed</span>
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <button className="border border-slate-200 hover:bg-slate-50 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all">View</button>
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50/40">
-                  <td className="py-3.5 px-4 font-black text-slate-900">Maya Tan</td>
-                  <td className="py-3.5 px-4">Excel advanced</td>
-                  <td className="py-3.5 px-4 text-center font-mono">2</td>
-                  <td className="py-3.5 px-4 font-mono">200</td>
-                  <td className="py-3.5 px-4">Nina Reza ✓</td>
-                  <td className="py-3.5 px-4">
-                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-[10px] inline-flex items-center whitespace-nowrap shrink-0">Allocated</span>
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <button className="border border-slate-200 hover:bg-slate-50 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all">View</button>
-                  </td>
-                </tr>
+                {enrollmentRecords
+                  .filter(r => r.employee.toLowerCase().includes(historySearch.toLowerCase()) || r.course.toLowerCase().includes(historySearch.toLowerCase()))
+                  .map((r) => (
+                    <tr key={r.id} className="hover:bg-slate-50/40">
+                      <td className="py-3.5 px-4 font-black text-slate-900">{r.employee}</td>
+                      <td className="py-3.5 px-4">{r.course}</td>
+                      <td className="py-3.5 px-4 text-center font-mono">{r.days || '—'}</td>
+                      <td className="py-3.5 px-4 font-mono">{r.cost != null ? r.cost.toLocaleString() : '—'}</td>
+                      <td className="py-3.5 px-4 text-slate-400">—</td>
+                      <td className="py-3.5 px-4">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] inline-flex items-center whitespace-nowrap shrink-0 ${
+                          r.completed ? 'bg-green-100 text-green-700' :
+                          /cancel|denied|reject|withdrawn/i.test(r.status) ? 'bg-rose-100 text-rose-700' :
+                          /pending/i.test(r.status) ? 'bg-amber-100 text-amber-700' :
+                          'bg-blue-100 text-blue-700'
+                        }`}>{r.completed ? 'Completed' : r.status}</span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <button onClick={() => addToast(`${r.employee} — ${r.course}: ${r.completed ? 'Completed' : r.status}`, 'info')} className="border border-slate-200 hover:bg-slate-50 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all">View</button>
+                      </td>
+                    </tr>
+                  ))}
+                {enrollmentRecords.length === 0 && (
+                  <tr><td colSpan={7} className={EMPTY_ROW_CLASS}>No training history yet.</td></tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -1740,11 +2000,11 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 </span>
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-900">83.3%</h3>
-                <p className="text-[10.5px] text-slate-500 mt-1 font-semibold">5 of 6 mandatory sign-offs completed</p>
+                <h3 className="text-2xl font-black text-slate-900">{reportMetrics.complianceRate.toFixed(1)}%</h3>
+                <p className="text-[10.5px] text-slate-500 mt-1 font-semibold">{reportMetrics.done} of {reportMetrics.total} enrolments completed</p>
               </div>
               <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                <div className="bg-emerald-500 h-full" style={{ width: '83.3%' }}></div>
+                <div className="bg-emerald-500 h-full" style={{ width: `${reportMetrics.complianceRate}%` }}></div>
               </div>
             </div>
 
@@ -1756,11 +2016,11 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 </span>
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-900">6 Core Skills</h3>
-                <p className="text-[10.5px] text-slate-500 mt-1 font-semibold">Actively tracked across 4 departments</p>
+                <h3 className="text-2xl font-black text-slate-900">{reportMetrics.skillsCount} Core Skills</h3>
+                <p className="text-[10.5px] text-slate-500 mt-1 font-semibold">Actively tracked across {reportMetrics.deptCount} departments</p>
               </div>
               <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                <div className="bg-novora h-full" style={{ width: '60%' }}></div>
+                <div className="bg-novora h-full" style={{ width: `${reportMetrics.deptPct}%` }}></div>
               </div>
             </div>
 
@@ -1772,11 +2032,11 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 </span>
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-900">SGD 8,400</h3>
+                <h3 className="text-2xl font-black text-slate-900">{money(reportMetrics.committed)}</h3>
                 <p className="text-[10.5px] text-slate-500 mt-1 font-semibold">Commited corporate training funds</p>
               </div>
               <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                <div className="bg-indigo-500 h-full" style={{ width: '75%' }}></div>
+                <div className="bg-indigo-500 h-full" style={{ width: `${reportMetrics.spentPct}%` }}></div>
               </div>
             </div>
 
@@ -1788,13 +2048,21 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                 </span>
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-900">3 Formats</h3>
-                <p className="text-[10.5px] text-slate-500 mt-1 font-semibold">50% Internal, 30% External, 20% Overseas</p>
+                <h3 className="text-2xl font-black text-slate-900">{reportMetrics.formats.length} Formats</h3>
+                <p className="text-[10.5px] text-slate-500 mt-1 font-semibold">
+                  {reportMetrics.formats.length > 0
+                    ? reportMetrics.formats.map(f => `${f.pct}% ${f.mode}`).join(', ')
+                    : 'No trainings yet'}
+                </p>
               </div>
               <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                <div className="bg-novora h-full" style={{ width: '50%' }} />
-                <div className="bg-emerald-500 h-full" style={{ width: '30%' }} />
-                <div className="bg-indigo-500 h-full" style={{ width: '20%' }} />
+                {reportMetrics.formats.map((f, i) => (
+                  <div
+                    key={f.mode}
+                    className={`${['bg-novora', 'bg-emerald-500', 'bg-indigo-500', 'bg-amber-500'][i % 4]} h-full`}
+                    style={{ width: `${f.pct}%` }}
+                  />
+                ))}
               </div>
             </div>
           </div>
@@ -1828,21 +2096,16 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                     triggerClassName="nv-select-trigger--toolbar min-w-[8rem]"
                     options={[
                       { value: 'All', label: 'All Departments' },
-                      { value: 'Engineering', label: 'Engineering' },
-                      { value: 'Finance', label: 'Finance' },
-                      { value: 'Operations', label: 'Operations' },
-                      { value: 'Human Resources', label: 'HR' },
-                      { value: 'Marketing', label: 'Marketing' },
+                      ...departmentOptions.map(d => ({ value: d, label: d })),
                     ]}
                   />
                 )}
               </div>
               
               <button
-                onClick={() => {
-                  const rName = selectedReportType === 'compliance' ? 'Compliance Ledger' :
-                                selectedReportType === 'skills' ? 'Skills Matrix Audit' : 'Budget & Invoice Records';
-                  addToast(`Exported training ${rName} report as high-fidelity Spreadsheet successfully`, 'success');
+                onClick={(e) => {
+                  const n = downloadNearestTableCsv(e.currentTarget, `training_report_${dateStamp()}`);
+                  addToast(n ? `Exported ${n} rows as CSV.` : 'Nothing to export yet.', n ? 'success' : 'info');
                 }}
                 className="bg-blue-50 hover:bg-blue-100 text-novora font-black text-xs px-4.5 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 w-full sm:w-auto justify-center"
               >
@@ -1867,14 +2130,17 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {[
-                      { employee: 'Sarah Lim', course: 'Leadership essentials', category: 'Compliance', dueDate: '12 May', mandatory: 'Yes', status: 'Completed', signOff: 'David Ng ✓' },
-                      { employee: 'Raj Kumar', course: 'Excel advanced', category: 'Technical', dueDate: '06 May', mandatory: 'No', status: 'Completed', signOff: 'David Ng ✓' },
-                      { employee: 'Maya Tan', course: 'ISO 9001 awareness', category: 'Compliance', dueDate: '02 May', mandatory: 'Yes', status: 'Overdue', signOff: '—' },
-                      { employee: 'Ahmad Luqman', course: 'Agile & Scrum', category: 'Management', dueDate: '20 May', mandatory: 'Yes', status: 'Completed', signOff: 'Nina Reza ✓' },
-                      { employee: 'Nadia Chen', course: 'Public speaking', category: 'Soft skills', dueDate: '14 May', mandatory: 'No', status: 'In Progress', signOff: '—' },
-                      { employee: 'Kevin Lim', course: 'Leadership essentials', category: 'Compliance', dueDate: '12 May', mandatory: 'Yes', status: 'Pending', signOff: '—' },
-                    ]
+                    {enrollmentRecords
+                      .map(r => ({
+                        id: r.id,
+                        employee: r.employee,
+                        course: r.course,
+                        category: r.category,
+                        dueDate: r.dueDate,
+                        mandatory: courses.find(c => c.title === r.course)?.mandatory || '—',
+                        status: r.complianceStatus,
+                        signOff: r.signOff,
+                      }))
                       .filter(item => {
                         return (
                           item.employee.toLowerCase().includes(reportSearch.toLowerCase()) ||
@@ -1882,8 +2148,8 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                           item.category.toLowerCase().includes(reportSearch.toLowerCase())
                         );
                       })
-                      .map((item, index) => (
-                        <tr key={index} className="hover:bg-slate-50/40">
+                      .map((item) => (
+                        <tr key={item.id} className="hover:bg-slate-50/40">
                           <td className="py-3.5 px-4 font-black text-slate-900">{item.employee}</td>
                           <td className="py-3.5 px-4">{item.course}</td>
                           <td className="py-3.5 px-4">
@@ -1911,6 +2177,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                           <td className="py-3.5 px-4 text-right font-medium text-slate-600">{item.signOff}</td>
                         </tr>
                       ))}
+                    {enrollmentRecords.length === 0 && (
+                      <tr><td colSpan={7} className={EMPTY_ROW_CLASS}>No records yet.</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -1930,29 +2199,33 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {[
-                      { employee: 'Sarah Lim', dept: 'Human Resources', course: 'Leadership essentials', skills: 'People Management, Strategy', status: 'Mastered' },
-                      { employee: 'Raj Kumar', dept: 'Engineering', course: 'Excel advanced', skills: 'Data Analysis, Pivot Tables', status: 'Proficient' },
-                      { employee: 'Maya Tan', dept: 'Finance', course: 'Excel advanced', skills: 'Data Analysis, Advanced Formulas', status: 'In Progress' },
-                      { employee: 'Ahmad Luqman', dept: 'Operations', course: 'Agile & Scrum', skills: 'Agile Delivery, Scrum Master', status: 'Mastered' },
-                      { employee: 'Nadia Chen', dept: 'Marketing', course: 'Public speaking', skills: 'Communication, Presentation', status: 'In Progress' },
-                      { employee: 'Kevin Lim', dept: 'Engineering', course: 'Leadership essentials', skills: 'Critical Thinking, Delegation', status: 'Scheduled' },
-                    ]
+                    {enrollmentRecords
+                      .map(r => ({
+                        id: r.id,
+                        employee: r.employee,
+                        dept: r.department,
+                        course: r.course,
+                        skills: r.skills,
+                        status: r.proficiency,
+                      }))
                       .filter(item => {
-                        const matchesSearch = item.employee.toLowerCase().includes(reportSearch.toLowerCase()) ||
-                                              item.skills.toLowerCase().includes(reportSearch.toLowerCase()) ||
-                                              item.course.toLowerCase().includes(reportSearch.toLowerCase());
-                        const matchesDept = reportFilterDept === 'All' || item.dept.toLowerCase().includes(reportFilterDept.toLowerCase());
+                        const q = reportSearch.toLowerCase();
+                        const matchesSearch = item.employee.toLowerCase().includes(q) ||
+                                              item.dept.toLowerCase().includes(q) ||
+                                              item.skills.some(s => s.toLowerCase().includes(q)) ||
+                                              item.course.toLowerCase().includes(q);
+                        const matchesDept = reportFilterDept === 'All' || item.dept === reportFilterDept;
                         return matchesSearch && matchesDept;
                       })
-                      .map((item, index) => (
-                        <tr key={index} className="hover:bg-slate-50/40">
+                      .map((item) => (
+                        <tr key={item.id} className="hover:bg-slate-50/40">
                           <td className="py-3.5 px-4 font-black text-slate-900">{item.employee}</td>
                           <td className="py-3.5 px-4 font-medium text-slate-600">{item.dept}</td>
                           <td className="py-3.5 px-4">{item.course}</td>
                           <td className="py-3.5 px-4">
                             <div className="flex flex-wrap gap-1.5">
-                              {item.skills.split(', ').map((skill, si) => (
+                              {item.skills.length === 0 && <span className="text-slate-400">—</span>}
+                              {item.skills.map((skill, si) => (
                                 <span key={si} className="bg-slate-50 border border-slate-200/60 text-slate-600 px-2 py-0.5 rounded-lg text-[9.5px] font-semibold">
                                   {skill}
                                 </span>
@@ -1970,6 +2243,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                           </td>
                         </tr>
                       ))}
+                    {enrollmentRecords.length === 0 && (
+                      <tr><td colSpan={5} className={EMPTY_ROW_CLASS}>No records yet.</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -1990,25 +2266,19 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {[
-                      { vendor: 'Executive Coaching Ltd', course: 'Leadership essentials', freq: 'One time', cost: 1500, contribution: '100% (SGD 1,500)', status: 'Approved' },
-                      { vendor: 'Excel Pro Pte. Ltd.', course: 'Excel advanced', freq: 'Repeat', cost: 1200, contribution: '50% (SGD 600)', status: 'Paid' },
-                      { vendor: 'Apex Safe Corp', course: 'ISO 9001 awareness', freq: 'Annual', cost: 800, contribution: '100% (SGD 800)', status: 'Paid' },
-                      { vendor: 'Agile Academy', course: 'Agile & Scrum', freq: 'One time', cost: 3200, contribution: '80% (SGD 2,560)', status: 'Pending Approval' },
-                      { vendor: 'Global Speakers Bureau', course: 'Public speaking', freq: 'Repeat', cost: 900, contribution: '100% (SGD 900)', status: 'Approved' },
-                    ]
+                    {budgetRows
                       .filter(item => {
                         return (
                           item.vendor.toLowerCase().includes(reportSearch.toLowerCase()) ||
                           item.course.toLowerCase().includes(reportSearch.toLowerCase())
                         );
                       })
-                      .map((item, index) => (
-                        <tr key={index} className="hover:bg-slate-50/40">
+                      .map((item) => (
+                        <tr key={item.id} className="hover:bg-slate-50/40">
                           <td className="py-3.5 px-4 font-black text-slate-900">{item.vendor}</td>
                           <td className="py-3.5 px-4">{item.course}</td>
                           <td className="py-3.5 px-4 font-medium text-slate-500">{item.freq}</td>
-                          <td className="py-3.5 px-4 text-center font-mono">SGD {item.cost.toLocaleString()}</td>
+                          <td className="py-3.5 px-4 text-center font-mono">{money(item.cost)}</td>
                           <td className="py-3.5 px-4 font-mono text-novora">{item.contribution}</td>
                           <td className="py-3.5 px-4 text-right">
                             <span className={`px-2.5 py-1 rounded-xl text-[10px] font-bold ${
@@ -2020,6 +2290,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                           </td>
                         </tr>
                       ))}
+                    {budgetRows.length === 0 && (
+                      <tr><td colSpan={6} className={EMPTY_ROW_CLASS}>No records yet.</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -2227,11 +2500,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                     <SelectMenu
                       value={newSubjCourse}
                       onChange={setNewSubjCourse}
+                      placeholder={courses.length === 0 ? 'No courses loaded' : '-- Select --'}
                       triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
-                      options={[
-                        { value: 'Leadership essentials', label: 'Leadership essentials' },
-                        { value: 'Excel advanced', label: 'Excel advanced' },
-                      ]}
+                      options={courseOptions.length === 0 ? [{ value: '', label: 'No courses loaded' }] : courseOptions}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -2262,11 +2533,9 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                     <SelectMenu
                       value={newSchedCourse}
                       onChange={setNewSchedCourse}
+                      placeholder={courses.length === 0 ? 'No courses loaded' : '-- Select --'}
                       triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
-                      options={[
-                        { value: 'Leadership essentials', label: 'Leadership essentials' },
-                        { value: 'Excel advanced', label: 'Excel advanced' },
-                      ]}
+                      options={courseOptions.length === 0 ? [{ value: '', label: 'No courses loaded' }] : courseOptions}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -2293,7 +2562,7 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                       <input type="number" value={newSchedDays} onChange={e => setNewSchedDays(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Fee (SGD)</label>
+                      <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Fee ({currency})</label>
                       <input type="text" value={newSchedFee} onChange={e => setNewSchedFee(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2" />
                     </div>
                   </div>
@@ -2311,18 +2580,18 @@ export default function TrainingTab({ employees, addToast }: TrainingTabProps) {
                     <SelectMenu
                       value={newAttEmployee}
                       onChange={setNewAttEmployee}
+                      placeholder={employees.length === 0 ? 'No employees available' : '-- Select --'}
                       triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
-                      options={[
-                        { value: 'Sarah Lim', label: 'Sarah Lim' },
-                        { value: 'Raj Kumar', label: 'Raj Kumar' },
-                        { value: 'Maya Tan', label: 'Maya Tan' },
-                        { value: 'Ahmad Luqman', label: 'Ahmad Luqman' },
-                      ]}
+                      options={
+                        employees.length === 0
+                          ? [{ value: '', label: 'No employees available' }]
+                          : employees.map(emp => ({ value: emp.name, label: `${emp.name} (${emp.id})` }))
+                      }
                     />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10.5px] uppercase text-slate-400 font-extrabold">Course / Subject</label>
-                    <input type="text" value={newAttSubject} onChange={e => setNewAttSubject(e.target.value)} placeholder="e.g. Leadership — Team leadership" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5" />
+                    <input type="text" value={newAttSubject} onChange={e => setNewAttSubject(e.target.value)} placeholder="e.g. Course — Subject" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">

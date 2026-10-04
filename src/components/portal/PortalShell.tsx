@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Sidebar from '@/components/layout/Sidebar'
 import Topbar from '@/components/layout/Topbar'
+import { dateStamp, downloadCsv } from '@/lib/csv'
 import {
   AddEmployeeModal,
   EmployeeDirectoryTab,
@@ -160,13 +161,16 @@ export default function PortalShell() {
 
   const triggerExport = (format: 'Excel' | 'CSV' | 'PDF') => {
     setExportDropdownOpen(false)
-    addToast(`Compiling and sanitizing employee dataset for ${format}...`, 'loading')
-    setTimeout(() => {
-      addToast(
-        `Dataset successfully downloaded as Novora_Employees.${format === 'Excel' ? 'xlsx' : format.toLowerCase()}`,
-        'success',
-      )
-    }, 1800)
+    if (format === 'PDF') {
+      window.print()
+      return
+    }
+    const ok = downloadCsv(
+      `novora_employees_${dateStamp()}`,
+      ['Employee ID', 'Name', 'Department', 'Position', 'Employment status', 'Status', 'Join date', 'Email', 'Mobile'],
+      employees.map((e) => [e.id, e.name, e.department, e.position, e.employmentStatus, e.status, e.joinDate, e.email, e.mobile]),
+    )
+    addToast(ok ? `Exported ${employees.length} employees as CSV.` : 'No employees to export yet.', ok ? 'success' : 'info')
   }
 
   const handleSubTabChange = (tab: SubTab) => setActiveSubTab(tab)
@@ -202,6 +206,13 @@ export default function PortalShell() {
           addToast={addToast}
           session={session}
           onLogout={handleLogout}
+          employees={employees}
+          onNavigate={goToTab}
+          onSelectEmployee={(emp) => {
+            setSelectedEmployee(emp)
+            setActiveSubTab('Employee Profile')
+            goToTab('Employees Management')
+          }}
         />
 
         <div
@@ -349,6 +360,7 @@ export default function PortalShell() {
                 {activeSubTab === 'Employee Profile' && (
                   <EmployeeProfileTab
                     employee={selectedEmployee}
+                    employees={employees}
                     onBackToDirectory={() => handleSubTabChange('Employee Directory')}
                     onDeleteEmployee={(id) => {
                       void (async () => {
@@ -463,7 +475,7 @@ export default function PortalShell() {
           ) : activeTab === 'Assets Management' ? (
             <AssetsTab employees={employees} addToast={addToast} />
           ) : activeTab === 'Recruitment Management' ? (
-            <RecruitmentTab addToast={addToast} onAddEmployeeAsRecord={handleAddEmployee} />
+            <RecruitmentTab addToast={addToast} onAddEmployeeAsRecord={handleAddEmployee} employees={employees} />
           ) : activeTab === 'Attendance Management' ? (
             <AttendanceTab employees={employees} addToast={addToast} />
           ) : activeTab === 'Leave Management' ? (
@@ -500,6 +512,7 @@ export default function PortalShell() {
           onClose={() => setIsAddModalOpen(false)}
           onAddEmployee={handleAddEmployee}
           addToast={addToast}
+          employees={employees}
         />
       )}
     </div>

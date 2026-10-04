@@ -54,6 +54,9 @@ import {
   replyHelpdeskTicket,
   type HelpdeskTicketRow,
 } from '@/services';
+import { dateStamp, downloadNearestTableCsv } from '@/lib/csv';
+import { useCurrency } from '@/hooks/useCurrency';
+import { useAuth } from '@/providers/AuthProvider';
 
 interface HelpdeskTabProps {
   employees: Employee[];
@@ -183,6 +186,9 @@ function mapHelpdeskTicketRow(row: HelpdeskTicketRow): Ticket {
 }
 
 export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
+  const { currency, money } = useCurrency();
+  const { session } = useAuth();
+  const companyName = session?.organization?.name || session?.companyName || 'Our company';
   // 1. Current Subtab Selector
   const [activeSubTab, setActiveSubTab] = useState<HelpdeskSubTab>('Tickets Center & Live Chat');
 
@@ -249,14 +255,14 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
     {
       id: 'FAQ-304',
       question: 'What is the limit for optical checkups and prescription frames?',
-      answer: 'Novora offers a maximum annual allowance of $400 for optical care, inclusive of specialized progressives and medical lenses. File your official receipt inside the Claims management subsystem.',
+      answer: 'The company offers an annual allowance for optical care, inclusive of specialized progressives and medical lenses. File your official receipt inside the Claims management subsystem.',
       category: 'Benefits Inquiry',
       helpfulCount: 29
     },
     {
       id: 'FAQ-305',
       question: 'How does the company coordinate remote internet allowances?',
-      answer: 'Permanent remote or hybrid associates can request a maximum $80 monthly remote internet and telephone reimbursement block, with standard invoice copies uploaded to claims prior to the 25th of each calendar month.',
+      answer: 'Permanent remote or hybrid associates can request a monthly remote internet and telephone reimbursement, with standard invoice copies uploaded to claims prior to the 25th of each calendar month.',
       category: 'Benefits Inquiry',
       helpfulCount: 21
     },
@@ -270,34 +276,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
   ]);
 
   // 4. State for Generated HR Documents (Self-Service)
-  const [generatedDocs, setGeneratedDocs] = useState<GeneratedDoc[]>([
-    {
-      id: 'DOC-1091',
-      templateType: 'Standard Employment Verification Letter',
-      employeeName: 'Sarah Lim',
-      employeeId: 'EMP-001',
-      issuedFor: 'HSBC Mortgage Department',
-      purpose: 'Housing mortgage eligibility verification',
-      salaryListed: '$6,800.00 / month',
-      dateGenerated: '2026-06-11 14:02',
-      status: 'Digitally Signed & Issued',
-      signedBy: 'David Ng (HR Director)',
-      verificationCode: 'VER-HSBC-8723X'
-    },
-    {
-      id: 'DOC-1092',
-      templateType: 'Salary Certificate',
-      employeeName: 'John Doe',
-      employeeId: 'EMP-004',
-      issuedFor: 'Embassy of Japan',
-      purpose: 'Schengen-Equivalent Travel Visa application',
-      salaryListed: '$4,200.00 / month',
-      dateGenerated: '2026-06-14 11:20',
-      status: 'Awaiting Signature',
-      signedBy: '',
-      verificationCode: 'VER-JAP-1092A'
-    }
-  ]);
+  const [generatedDocs, setGeneratedDocs] = useState<GeneratedDoc[]>([]);
 
   // SLA Time limits by category configuration
   const SLA_RULES = {
@@ -337,6 +316,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string>('Standard Employment Verification Letter');
   const [recipientOrg, setRecipientOrg] = useState<string>('');
   const [customMemoField, setCustomMemoField] = useState<string>('');
+  const [letterSalary, setLetterSalary] = useState<string>('');
   const [verificationOutput, setVerificationOutput] = useState<GeneratedDoc | null>(null);
   const [eSignatureText, setESignatureText] = useState<string>('');
 
@@ -353,7 +333,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
             sender: 'System' as const,
             senderName: 'SLA Guard Engine',
             text: '🚨 WARNING: Response deadline has lapsed! Automated ticket transition triggered. Re-routed to the escalate-deck.',
-            timestamp: new Date().toISOString().slice(0, 16).replace('T', ' ')
+            timestamp: `${new Date().toLocaleDateString('en-CA')} ${new Date().toTimeString().slice(0, 5)}`
           };
           addToast(`SLA Timeout simulated for ticket ${ticketId}. Automated escalation completed!`, 'error');
           return {
@@ -381,7 +361,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
             sender: 'System' as const,
             senderName: 'Workflow Supervisor',
             text: `Ticket manually re-assigned on account of workload balance. Lead Agent assigned: ${selectedAgent.name} (${selectedAgent.position}).`,
-            timestamp: new Date().toISOString().slice(0, 16).replace('T', ' ')
+            timestamp: `${new Date().toLocaleDateString('en-CA')} ${new Date().toTimeString().slice(0, 5)}`
           };
           addToast(`Ticket re-assigned to ${selectedAgent.name} successfully.`, 'info');
           return {
@@ -411,7 +391,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
             sender: 'System' as const,
             senderName: 'Engine Admin',
             text: textMsg,
-            timestamp: new Date().toISOString().slice(0, 16).replace('T', ' ')
+            timestamp: `${new Date().toLocaleDateString('en-CA')} ${new Date().toTimeString().slice(0, 5)}`
           };
           addToast(`Ticket ${ticketId} set to "${nextStatus}" status.`, 'success');
           return { ...t, status: nextStatus, replies: [...t.replies, sysMsg] };
@@ -439,7 +419,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
           senderName: savedReply.authorName || 'HR Support',
           text: savedReply.body,
           timestamp: savedReply.createdAt?.replace('T', ' ').slice(0, 16) ||
-            new Date().toISOString().slice(0, 16).replace('T', ' '),
+            `${new Date().toLocaleDateString('en-CA')} ${new Date().toTimeString().slice(0, 5)}`,
         };
         setTickets((prev) =>
           prev.map((t) =>
@@ -466,7 +446,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
       sender: (chatInternalNote ? 'System' as const : 'Support Representative' as const),
       senderName: chatInternalNote ? 'INTERNAL SECURE NOTE' : 'HR Specialist ServiceDesk',
       text: bodyText,
-      timestamp: new Date().toISOString().slice(0, 16).replace('T', ' ')
+      timestamp: `${new Date().toLocaleDateString('en-CA')} ${new Date().toTimeString().slice(0, 5)}`
     };
 
     setTickets(prev =>
@@ -498,10 +478,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
     const selectedEmployeeObj = employees.find(emp => emp.id === selectedEmpId);
     if (!selectedEmployeeObj) return;
 
-    // Simulate simple salary list lookup based on employee level/position or generic defaults
-    const simulatedSalaryNum = selectedEmployeeObj.position.includes('Senior') ? '$7,400.00' :
-                              selectedEmployeeObj.position.includes('Lead') ? '$9,500.00' :
-                              selectedEmployeeObj.position.includes('Director') ? '$14,200.00' : '$4,500.00';
+    const salaryValue = parseFloat(letterSalary);
 
     const newGeneratedObject: GeneratedDoc = {
       id: createLocalId('DOC'),
@@ -510,8 +487,8 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
       employeeId: selectedEmployeeObj.id,
       issuedFor: recipientOrg,
       purpose: customMemoField || 'Official Verification of Employment Terms',
-      salaryListed: `${simulatedSalaryNum} / month`,
-      dateGenerated: new Date().toISOString().slice(0, 16).replace('T', ' '),
+      salaryListed: Number.isFinite(salaryValue) && salaryValue > 0 ? `${money(salaryValue)} / month` : 'Not stated',
+      dateGenerated: `${new Date().toLocaleDateString('en-CA')} ${new Date().toTimeString().slice(0, 5)}`,
       status: 'Awaiting Signature',
       signedBy: '',
       verificationCode: `VER-${recipientOrg.toUpperCase().slice(0, 4)}-${createLocalNumericId(1000) % 9000}X`
@@ -520,6 +497,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
     setGeneratedDocs([newGeneratedObject, ...generatedDocs]);
     setVerificationOutput(newGeneratedObject);
     setESignatureText('');
+    setLetterSalary('');
     addToast(`Successfully created salary/employment letter draft ${newGeneratedObject.id}.`, 'success');
   };
 
@@ -607,7 +585,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
       setNewSubject('');
       setNewDescription('');
       setConfidentialToggle(false);
-      addToast(`Ticket ${mapped.id} launched successfully. Team notified!`, 'success');
+      addToast(`Ticket ${mapped.id} created.`, 'success');
     } catch (err) {
       addToast(err instanceof ApiError ? err.message : 'Could not create helpdesk ticket.', 'error');
     }
@@ -1360,6 +1338,19 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                   />
                 </div>
 
+                <div>
+                  <label className="text-[10px] text-slate-400 font-extrabold block mb-1 uppercase">Monthly base salary ({currency}, optional)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    placeholder="Leave blank to omit salary from the letter"
+                    value={letterSalary}
+                    onChange={(e) => setLetterSalary(e.target.value)}
+                    className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-xl p-2.5 outline-none focus:bg-white focus:border-novora/30"
+                  />
+                </div>
+
                 {/* Submit trigger compile */}
                 <button
                   type="submit"
@@ -1377,6 +1368,9 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
               <span className="text-[10px] font-black uppercase text-slate-400 block">Recent Issued Digital Certificates</span>
               
               <div className="space-y-2 max-h-[220px] overflow-y-auto">
+                {generatedDocs.length === 0 && (
+                  <p className="py-3 text-center text-[11px] text-slate-400">No documents issued yet.</p>
+                )}
                 {generatedDocs.map((doc) => (
                   <div
                     key={doc.id}
@@ -1419,7 +1413,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                       <div className="h-5 w-5 rounded bg-[#1e293b] flex items-center justify-center">
                         <span className="text-white text-[10px] font-black">N</span>
                       </div>
-                      <span className="text-[12.5px] font-black text-[#1e293b] tracking-wider uppercase font-mono">Novora Global Corp</span>
+                      <span className="text-[12.5px] font-black text-[#1e293b] tracking-wider uppercase font-mono">{companyName}</span>
                     </div>
                     <p className="text-[9px] text-slate-400 font-medium font-mono leading-none">
                       HR Operational Hub &bull; 100 Marina Parkway, Floor 18 &bull; Singapore 018989
@@ -1446,7 +1440,7 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
 
                   <div className="space-y-2.5 mt-4 font-medium text-slate-600">
                     <p>
-                      This serves to officially verify and certify that <strong>{verificationOutput.employeeName}</strong> (ID: <strong>{verificationOutput.employeeId}</strong>) is currently employed under active full-time status at Novora Global Corp.
+                      This serves to officially verify and certify that <strong>{verificationOutput.employeeName}</strong> (ID: <strong>{verificationOutput.employeeId}</strong>) is currently employed at {companyName}.
                     </p>
 
                     <p>
@@ -1454,10 +1448,10 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
                     </p>
 
                     <ul className="list-disc pl-5 space-y-1 bg-slate-50 border border-slate-100 p-3 rounded-2xl font-mono text-[11px] text-slate-600">
-                      <li><strong>Designation Position:</strong> {employees.find(e => e.id === verificationOutput.employeeId)?.position || 'General Specialist'}</li>
-                      <li><strong>Department Domain:</strong> {employees.find(e => e.id === verificationOutput.employeeId)?.department || 'HR Division'}</li>
+                      <li><strong>Designation Position:</strong> {employees.find(e => e.id === verificationOutput.employeeId)?.position || '—'}</li>
+                      <li><strong>Department Domain:</strong> {employees.find(e => e.id === verificationOutput.employeeId)?.department || '—'}</li>
                       <li><strong>Official Base Salary:</strong> {verificationOutput.salaryListed}</li>
-                      <li><strong>Employment Date:</strong> {employees.find(e => e.id === verificationOutput.employeeId)?.joinDate || '18 Jan 2024'}</li>
+                      <li><strong>Employment Date:</strong> {employees.find(e => e.id === verificationOutput.employeeId)?.joinDate || '—'}</li>
                     </ul>
 
                     <p>
@@ -1707,7 +1701,10 @@ export default function HelpdeskTab({ employees, addToast }: HelpdeskTabProps) {
               </div>
 
               <button
-                onClick={() => addToast('Service Desk Operations CSV compiled.', 'success')}
+                onClick={(e) => {
+                  const n = downloadNearestTableCsv(e.currentTarget, `helpdesk_operations_${dateStamp()}`);
+                  addToast(n ? `Exported ${n} rows as CSV.` : 'Nothing to export yet.', n ? 'success' : 'info');
+                }}
                 className="bg-slate-900 text-white hover:bg-slate-800 text-[10px] font-black px-3 py-1.5 rounded-xl cursor-pointer transition-all"
               >
                 Download CSV report

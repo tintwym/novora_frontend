@@ -42,6 +42,7 @@ type AuthContextValue = {
   handleAuthSuccess: (next: AuthSession) => void
   handleLogout: () => Promise<void>
   loadEmployees: (roles: string[]) => Promise<void>
+  setOrganizationCurrency: (currency: string) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -240,6 +241,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [addToast, router])
 
+  const setOrganizationCurrency = useCallback((currency: string) => {
+    setSession((prev) =>
+      prev?.organization ? { ...prev, organization: { ...prev.organization, currency } } : prev,
+    )
+  }, [])
+
   const value = useMemo<AuthContextValue>(
     () => ({
       authReady: !authBootstrapping,
@@ -252,6 +259,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       handleAuthSuccess,
       handleLogout,
       loadEmployees,
+      setOrganizationCurrency,
     }),
     [
       authBootstrapping,
@@ -262,6 +270,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       handleAuthSuccess,
       handleLogout,
       loadEmployees,
+      setOrganizationCurrency,
     ],
   )
 

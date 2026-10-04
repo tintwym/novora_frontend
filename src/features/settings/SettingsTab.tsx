@@ -4,6 +4,10 @@ import { useTheme } from '@/providers/ThemeProvider';
 import type { AccentPreset, DensityPreset, ThemePreset } from '@/lib/theme';
 import SettingsSubNav from '@/components/settings/SettingsSubNav';
 import { SelectMenu } from '@/components/ui';
+import { dateStamp, downloadCsv } from '@/lib/csv';
+import { CURRENCY_OPTIONS, formatMoney } from '@/lib/currency';
+import { useCurrency } from '@/hooks/useCurrency';
+import { useAuth } from '@/providers/AuthProvider';
 import {
   ApiError,
   activateUser,
@@ -105,15 +109,11 @@ function mapBranchRow(b: BranchRow, index: number): BranchUi {
   }
 }
 
-function formatSalaryBound(n: number | null | undefined) {
-  return n != null ? `SGD ${Number(n).toLocaleString()}` : '—'
-}
-
 function mapPositionToGrade(p: PositionRow) {
   return {
     id: p.level || p.title,
-    min: formatSalaryBound(p.minSalary),
-    max: formatSalaryBound(p.maxSalary),
+    min: p.minSalary ?? null,
+    max: p.maxSalary ?? null,
   }
 }
 
@@ -144,6 +144,8 @@ export default function SettingsTab({
   employees,
 }: SettingsTabProps) {
   const { theme: themePref, density, accent: accentColor, setTheme, setDensity, setAccent } = useTheme();
+  const { currency: workspaceCurrency } = useCurrency();
+  const { setOrganizationCurrency } = useAuth();
 
   // --- STATE FOR SETTINGS ---
 
@@ -286,13 +288,7 @@ export default function SettingsTab({
   };
 
   // 4. Department & Position State
-  const [departments, setDepartments] = useState([
-    { name: 'Engineering', head: 'David Ng', count: 342 },
-    { name: 'Finance', head: 'Rachel Tan', count: 180 },
-    { name: 'HR', head: 'Nina Reza', count: 88 },
-    { name: 'Marketing', head: 'Kevin Lim', count: 142 },
-    { name: 'Operations', head: 'Malik Said', count: 261 },
-  ]);
+  const [departments, setDepartments] = useState<{ name: string; head: string; count: number }[]>([]);
   const [newDept, setNewDept] = useState({ name: '', head: '', count: 0 });
   const [showAddDept, setShowAddDept] = useState(false);
 
@@ -321,7 +317,7 @@ export default function SettingsTab({
     }
   };
 
-  const [grades, setGrades] = useState<{ id: string; min: string; max: string }[]>([]);
+  const [grades, setGrades] = useState<{ id: string; min: number | null; max: number | null }[]>([]);
   const [newGrade, setNewGrade] = useState({ id: '', min: '', max: '' });
   const [showAddGrade, setShowAddGrade] = useState(false);
 
@@ -415,10 +411,10 @@ export default function SettingsTab({
       liveDepartments.map((d) => ({
         name: d.name,
         head: d.description || '—',
-        count: 0,
+        count: employees.filter((e) => e.departmentId === d.id || String(e.department) === d.name).length,
       })),
     )
-  }, [liveDepartments])
+  }, [liveDepartments, employees])
 
   useEffect(() => {
     if (availableRoleCodes.length === 0) return
@@ -768,9 +764,12 @@ export default function SettingsTab({
     timezone: 'Asia/Singapore (UTC+8)',
     dateFormat: 'DD/MM/YYYY',
     timeFormat: '12-hour (AM/PM)',
-    currency: 'SGD — Singapore Dollar',
+    currency: workspaceCurrency,
     weekStart: 'Monday',
   });
+  useEffect(() => {
+    setRegional((prev) => ({ ...prev, currency: workspaceCurrency }));
+  }, [workspaceCurrency]);
   const [holidays, setHolidays] = useState<HolidayRow[]>([]);
   const [newHoliday, setNewHoliday] = useState({ name: '', holidayDate: '' });
 
@@ -809,11 +808,18 @@ export default function SettingsTab({
     }
   }
 
-  const saveRegional = () => {
-    addToast('Updating system localisation arrays...', 'loading');
-    setTimeout(() => {
-      addToast('Timezone, calendar and currency parameters aligned.', 'success');
-    }, 1100);
+  const saveRegional = async () => {
+    if (regional.currency === workspaceCurrency) {
+      addToast('Currency unchanged. Other localisation options are not saved yet.', 'info');
+      return;
+    }
+    try {
+      const updated = await updateOrganization({ currency: regional.currency });
+      setOrganizationCurrency(updated.currency || regional.currency);
+      addToast(`Currency changed to ${updated.currency || regional.currency}. All modules now show amounts in this currency.`, 'success');
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not save currency.', 'error');
+    }
   };
 
   // 14. Email Templates
@@ -1350,10 +1356,13 @@ export default function SettingsTab({
                         <div className="text-[10px] text-slate-400 font-bold mt-0.5 uppercase tracking-wide">Head: &bull; {d.head}</div>
                       </div>
                       <div className="text-[11px] font-bold text-novora bg-blue-50/80 px-2 py-0.5 rounded-md border border-blue-100">
-                        {d.count} employees
+                        {d.count} {d.count === 1 ? 'employee' : 'employees'}
                       </div>
                     </div>
                   ))}
+                  {departments.length === 0 && (
+                    <p className="py-4 text-center text-[11px] text-slate-400">No departments yet. Add one to get started.</p>
+                  )}
                 </div>
               </div>
 
@@ -1380,14 +1389,14 @@ export default function SettingsTab({
                       />
                       <input
                         type="text"
-                        placeholder="Min salary (SGD)"
+                        placeholder={`Min salary (${workspaceCurrency})`}
                         value={newGrade.min}
                         onChange={(e) => setNewGrade({ ...newGrade, min: e.target.value })}
                         className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none"
                       />
                       <input
                         type="text"
-                        placeholder="Max salary (SGD)"
+                        placeholder={`Max salary (${workspaceCurrency})`}
                         value={newGrade.max}
                         onChange={(e) => setNewGrade({ ...newGrade, max: e.target.value })}
                         className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none"
@@ -1409,7 +1418,7 @@ export default function SettingsTab({
                     <div key={grade.id} className="py-2.5 flex justify-between items-center hover:bg-slate-50/40 px-2 rounded-lg">
                       <div className="font-extrabold text-slate-800 text-xs bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">{grade.id}</div>
                       <div className="text-right">
-                        <div className="font-bold text-slate-700">{grade.min} &mdash; {grade.max}</div>
+                        <div className="font-bold text-slate-700">{grade.min != null ? formatMoney(grade.min, workspaceCurrency, 0) : '—'} &mdash; {grade.max != null ? formatMoney(grade.max, workspaceCurrency, 0) : '—'}</div>
                         <div className="text-[9.5px] font-bold text-slate-400 mt-0.5">Approved corporate bounds</div>
                       </div>
                     </div>
@@ -2465,10 +2474,12 @@ export default function SettingsTab({
               </div>
               <button
                 onClick={() => {
-                  addToast('Assembling historic telemetry dossier for system export...', 'loading');
-                  setTimeout(() => {
-                    addToast('Dossier successfully downloaded as audit_log_novora.csv', 'success');
-                  }, 1200);
+                  const ok = downloadCsv(
+                    `audit_log_${dateStamp()}`,
+                    ['Time', 'User', 'Action', 'Module', 'IP address'],
+                    filteredLogs.map((l) => [l.time, l.user, l.action, l.module, l.ip]),
+                  );
+                  addToast(ok ? `Exported ${filteredLogs.length} audit entries as CSV.` : 'No audit entries to export.', ok ? 'success' : 'info');
                 }}
                 className="bg-novora text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-opacity-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer inline-flex"
               >
@@ -2637,7 +2648,7 @@ export default function SettingsTab({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              saveRegional();
+              void saveRegional();
             }}
             className="space-y-6"
           >
@@ -2692,15 +2703,11 @@ export default function SettingsTab({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Primary Currency ledger</label>
+                <label className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Company currency</label>
                 <SelectMenu
                   value={regional.currency}
                   onChange={(v) => setRegional({ ...regional, currency: v })}
-                  options={[
-                    { value: 'SGD — Singapore Dollar', label: 'SGD — Singapore Dollar' },
-                    { value: 'USD — US Dollar', label: 'USD — US Dollar' },
-                    { value: 'GBP — British Pound Sterling', label: 'GBP — British Pound Sterling' },
-                  ]}
+                  options={CURRENCY_OPTIONS.some((o) => o.value === regional.currency) ? CURRENCY_OPTIONS : [{ value: regional.currency, label: regional.currency }, ...CURRENCY_OPTIONS]}
                   triggerClassName="text-xs font-semibold"
                 />
               </div>

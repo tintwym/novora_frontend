@@ -41,6 +41,10 @@ export type NavSection = {
   divider?: boolean
 }
 
+export function navLabel(name: string): string {
+  return name.replace(/\s+Management$/, '')
+}
+
 /** Single flat list in the original Novora order. */
 export const MAIN_NAV_SECTIONS: NavSection[] = [
   {

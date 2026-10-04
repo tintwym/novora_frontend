@@ -80,6 +80,7 @@ export type OrganizationProfile = {
   country: string | null
   phone: string | null
   website: string | null
+  currency: string
 }
 
 export type BranchRow = {
@@ -557,6 +558,7 @@ export async function updateOrganization(payload: Partial<{
   country: string
   phone: string
   website: string
+  currency: string
 }>): Promise<OrganizationProfile> {
   return apiRequest<OrganizationProfile>('/api/admin/organization', { method: 'PUT', body: payload })
 }

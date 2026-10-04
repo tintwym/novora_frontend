@@ -42,14 +42,81 @@ import {
   type PerformanceReviewRow,
 } from '@/services';
 import ModuleHeader from '@/components/ui/ModuleHeader';
+import type { Employee } from '@/types';
 
 type UiEvaluation = {
+  id: string;
+  employeeId: string;
   name: string;
   reviewType: string;
   date: string;
   period: string;
   status: string;
+  score: number | null;
+  rating: string | null;
+  reviewerName: string | null;
+  reviewYear: number;
 };
+
+type EvalScores = {
+  codeQuality: number | null;
+  problemSolving: number | null;
+  systemDesign: number | null;
+  sprintsCompleted: number | null;
+  bugsSLA: number | null;
+  attendance: string;
+};
+
+type ActiveEvaluation = {
+  employeeName: string;
+  empId: string;
+  reviewType: string;
+  reviewDate: string;
+  reviewPeriod: string;
+  status: string;
+  scores: EvalScores;
+};
+
+type GrantPermission = {
+  evaluator: string;
+  type: string;
+  from: string;
+  to: string;
+  status: string;
+  color: string;
+};
+
+const EMPTY_SCORES: EvalScores = {
+  codeQuality: null,
+  problemSolving: null,
+  systemDesign: null,
+  sprintsCompleted: null,
+  bugsSLA: null,
+  attendance: '',
+};
+
+const GRADE_BADGE_COLORS: Record<string, string> = {
+  A: 'bg-blue-100 text-blue-800 border-blue-200',
+  B: 'bg-green-100 text-green-800 border-green-200',
+  C: 'bg-amber-100 text-amber-800 border-amber-200',
+  D: 'bg-red-100 text-red-800 border-red-200',
+};
+
+function toLocalIsoDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function initialsOf(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n[0]?.toUpperCase() ?? '')
+    .join('');
+}
 
 function mapReviewRow(row: PerformanceReviewRow): UiEvaluation {
   const status = /complet|approv|done/i.test(row.status) ? 'Completed' : 'Pending';
@@ -70,16 +137,22 @@ function mapReviewRow(row: PerformanceReviewRow): UiEvaluation {
     }
   }
   return {
+    id: row.id,
+    employeeId: row.employeeId,
     name: row.employeeName || '—',
     reviewType: row.reviewType || 'Review',
     date,
     period,
     status,
+    score: row.score,
+    rating: row.rating,
+    reviewerName: row.reviewerName,
+    reviewYear: row.reviewYear,
   };
 }
 
 interface PerformanceTabProps {
-  employees: any[];
+  employees: Employee[];
   addToast: (text: string, type: 'success' | 'info' | 'error' | 'loading') => void;
 }
 
@@ -101,7 +174,9 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('Evaluation');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState('All departments');
-  const [selectedYear, setSelectedYear] = useState('2026');
+  const currentYear = new Date().getFullYear();
+  const yearOptions = [currentYear, currentYear - 1, currentYear - 2].map(String);
+  const [selectedYear, setSelectedYear] = useState(String(currentYear));
 
   // Multi-dropdown support
   const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
@@ -151,37 +226,24 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
     { name: 'Attendance', type: 'Attendance KPI', weightage: 10, scoring: '% attendance', measurement: 'Attendance %', levels: 'Auto-calc', color: 'bg-teal-100 text-teal-800' }
   ]);
 
-  const [grantPermissions, setGrantPermissions] = useState([
-    { evaluator: 'David Ng', type: 'Year-end appraisal', from: '1 Jan 2026', to: '31 Jan 2026', pendingCount: 8, status: 'Active', color: 'bg-blue-100 text-blue-800' },
-    { evaluator: 'Nina Reza', type: 'Year-end appraisal', from: '1 Jan 2026', to: '31 Jan 2026', pendingCount: 5, status: 'Active', color: 'bg-green-100 text-green-800' },
-    { evaluator: 'Kevin Lim', type: 'Mid-year appraisal', from: '1 Jun 2025', to: '30 Jun 2025', pendingCount: 0, status: 'Expired', color: 'bg-pink-100 text-pink-800' }
-  ]);
+  const [grantPermissions, setGrantPermissions] = useState<GrantPermission[]>([]);
 
   // Active Evaluation Assessment Form
-  const [activeEval, setActiveEval] = useState({
-    employeeName: 'Sarah Lim',
-    empId: 'EMP-0021',
-    reviewType: 'Year-end appraisal',
-    reviewDate: '15/01/2026',
-    reviewPeriod: '1 Jan 2025 – 31 Dec 2025',
-    status: 'Pending (Grade calculation)',
-    scores: {
-      codeQuality: 4,
-      problemSolving: 5,
-      systemDesign: 4,
-      sprintsCompleted: 92,
-      bugsSLA: 88,
-      attendance: '97%'
-    }
-  });
+  const [activeEval, setActiveEval] = useState<ActiveEvaluation | null>(null);
 
   const [evaluationsList, setEvaluationsList] = useState<UiEvaluation[]>([]);
   const [appraiserNote, setAppraiserNote] = useState('');
   const [aiNoteBusy, setAiNoteBusy] = useState(false);
   const canUseHrAi = useCanUseHrAi();
 
+  const scoreText = (v: number | string | null) => (v === null || v === '' ? undefined : String(v));
+
   const handleAiAppraiserNote = async () => {
     if (aiNoteBusy) return;
+    if (!activeEval) {
+      addToast('Select an employee or review to start.', 'error');
+      return;
+    }
     setAiNoteBusy(true);
     addToast('Drafting appraiser note with Gemini…', 'loading');
     try {
@@ -190,12 +252,12 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
         reviewType: activeEval.reviewType,
         reviewPeriod: activeEval.reviewPeriod,
         reviewDate: activeEval.reviewDate,
-        codeQuality: String(activeEval.scores.codeQuality),
-        problemSolving: String(activeEval.scores.problemSolving),
-        systemDesign: String(activeEval.scores.systemDesign),
-        sprintsCompleted: String(activeEval.scores.sprintsCompleted),
-        bugsSla: String(activeEval.scores.bugsSLA),
-        attendance: String(activeEval.scores.attendance),
+        codeQuality: scoreText(activeEval.scores.codeQuality),
+        problemSolving: scoreText(activeEval.scores.problemSolving),
+        systemDesign: scoreText(activeEval.scores.systemDesign),
+        sprintsCompleted: scoreText(activeEval.scores.sprintsCompleted),
+        bugsSla: scoreText(activeEval.scores.bugsSLA),
+        attendance: scoreText(activeEval.scores.attendance),
         existingNote: appraiserNote,
       });
       setAppraiserNote(result.draft);
@@ -228,13 +290,38 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
     void loadReviews();
   }, [loadReviews]);
 
-  const [perfResults, setPerfResults] = useState([
-    { name: 'Sarah Lim', attr: 86.7, kpi: 90.0, comp: 82.0, attend: 97.0, total: 91.7, grade: 'A', gradeColor: 'bg-blue-100 text-blue-800 border-blue-200' },
-    { name: 'Raj Kumar', attr: 80.0, kpi: 88.0, comp: 79.0, attend: 95.0, total: 86.2, grade: 'A', gradeColor: 'bg-blue-100 text-blue-800 border-blue-200' },
-    { name: 'Nadia Chen', attr: 72.0, kpi: 75.0, comp: 70.0, attend: 88.0, total: 73.5, grade: 'B', gradeColor: 'bg-green-100 text-green-800 border-green-200' },
-    { name: 'Maya Tan', attr: 65.0, kpi: 68.0, comp: 62.0, attend: 84.0, total: 67.5, grade: 'B', gradeColor: 'bg-green-100 text-green-800 border-green-200' },
-    { name: 'Ahmad L', attr: 52.0, kpi: 55.0, comp: 50.0, attend: 80.0, total: 56.5, grade: 'C', gradeColor: 'bg-amber-100 text-amber-800 border-amber-200' }
-  ]);
+  const gradeForScore = (score: number | null, rating: string | null) => {
+    const fromRating = rating?.trim();
+    if (fromRating) return fromRating.toUpperCase();
+    if (score === null) return '—';
+    const band = grades.find((g) => score >= g.from && score <= g.to);
+    return band ? band.grade : '—';
+  };
+
+  const perfResults = evaluationsList
+    .filter((r) => (r.score !== null || r.rating) && String(r.reviewYear) === selectedYear)
+    .map((r) => {
+      const grade = gradeForScore(r.score, r.rating);
+      return {
+        id: r.id,
+        employeeId: r.employeeId,
+        name: r.name,
+        type: r.reviewType,
+        period: r.period,
+        status: r.status,
+        appraiser: r.reviewerName || '—',
+        attr: '—',
+        kpi: '—',
+        comp: '—',
+        attend: '—',
+        total: r.score !== null ? r.score : '—',
+        grade,
+        gradeColor: GRADE_BADGE_COLORS[grade[0]] || 'bg-slate-100 text-slate-700 border-slate-200',
+      };
+    })
+    .sort((a, b) => (typeof b.total === 'number' ? b.total : -1) - (typeof a.total === 'number' ? a.total : -1));
+
+  const [profileEmployeeId, setProfileEmployeeId] = useState<string | null>(null);
 
   const [competencies, setCompetencies] = useState([
     { name: 'Leadership', type: 'Competency', parent: '—', definition: 'Ability to guide, inspire and influence a team', color: 'bg-sky-100 text-sky-800' },
@@ -325,11 +412,10 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
   const [stpAppraiserNote, setStpAppraiserNote] = useState('Yes');
 
   // Grant Permission Modal Fields
-  const [prmEvaluator, setPrmEvaluator] = useState('David Ng');
+  const [prmEvaluator, setPrmEvaluator] = useState('');
   const [prmType, setPrmType] = useState('Year-end appraisal');
-  const [prmFrom, setPrmFrom] = useState('1 Jan 2026');
-  const [prmTo, setPrmTo] = useState('31 Jan 2026');
-  const [prmPending, setPrmPending] = useState(3);
+  const [prmFrom, setPrmFrom] = useState('');
+  const [prmTo, setPrmTo] = useState('');
   const [prmStatus, setPrmStatus] = useState('Active');
 
   // View List Modal Fields
@@ -349,7 +435,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
   const [evalEmpId, setEvalEmpId] = useState('');
   const [evalReviewType, setEvalReviewType] = useState('Year-end appraisal');
   const [evalReviewDate, setEvalReviewDate] = useState('');
-  const [evalReviewPeriod, setEvalReviewPeriod] = useState('Jan–Dec 2026');
+  const [evalReviewPeriod, setEvalReviewPeriod] = useState(`Jan–Dec ${currentYear}`);
   
   // Initial Scores for New Evaluation
   const [evalCodeQuality, setEvalCodeQuality] = useState(4);
@@ -379,33 +465,22 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
   };
 
   const handleCreateEvaluation = async () => {
-    const employeeOptions = employees && employees.length > 0 ? employees : [
-      { id: 'EMP-0021', name: 'Sarah Lim', department: 'Engineering' },
-      { id: 'EMP-0022', name: 'Raj Kumar', department: 'Engineering' },
-      { id: 'EMP-0023', name: 'Ahmad L', department: 'Operations' },
-      { id: 'EMP-0024', name: 'Nadia Chen', department: 'Marketing' },
-    ];
-
-    const selectedEmp = employeeOptions.find((emp: { id?: string }) => emp.id === evalEmpId) || employeeOptions[0];
+    const selectedEmp = (employees || []).find((emp) => emp.id === evalEmpId);
     if (!selectedEmp) {
       addToast('Please select an employee for evaluation', 'error');
       return;
     }
 
     let employeeId: string | undefined =
-      (selectedEmp as { apiId?: string }).apiId ||
+      selectedEmp.apiId ||
       (/^[0-9a-f-]{36}$/i.test(String(selectedEmp.id)) ? String(selectedEmp.id) : undefined);
 
     if (!employeeId) {
       try {
         const listed = await listEmployees();
-        const match =
-          listed.find(
-            (e) =>
-              e.apiId === (selectedEmp as { apiId?: string }).apiId ||
-              e.id === selectedEmp.id ||
-              e.name === selectedEmp.name
-          ) || listed[0];
+        const match = listed.find(
+          (e) => e.id === selectedEmp.id || e.name === selectedEmp.name
+        );
         employeeId = match?.apiId;
       } catch {
         /* fall through */
@@ -449,7 +524,8 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
         }
       });
 
-      addToast(`New evaluation record established for ${selectedEmp.name}`, 'success');
+      setAppraiserNote('');
+      addToast(`Performance review created for ${selectedEmp.name}`, 'success');
       setActiveModal(null);
     } catch (err) {
       addToast(err instanceof ApiError ? err.message : 'Could not create performance review.', 'error');
@@ -632,17 +708,20 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
   };
 
   const handleSavePermission = () => {
-    const f = {
+    if (!prmEvaluator) {
+      addToast('Please select an evaluator', 'error');
+      return;
+    }
+    const f: GrantPermission = {
       evaluator: prmEvaluator,
       type: prmType,
       from: prmFrom,
       to: prmTo,
-      pendingCount: Number(prmPending),
       status: prmStatus,
       color: 'bg-indigo-100 text-indigo-800'
     };
     setGrantPermissions([...grantPermissions, f]);
-    addToast(`Review credentials allocated to ${prmEvaluator}.`, 'success');
+    addToast(`Evaluation permission added for ${prmEvaluator} (this session only).`, 'info');
     setActiveModal(null);
   };
 
@@ -670,6 +749,70 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
     }
     setActiveModal(null);
   };
+
+  const pendingReviewsFor = (evaluator: string) =>
+    evaluationsList.filter((r) => r.status === 'Pending' && r.reviewerName === evaluator);
+
+  const findEmployeeForReview = (r: { employeeId: string; name: string }) =>
+    (employees || []).find((e) => e.apiId === r.employeeId || e.id === r.employeeId) ||
+    (employees || []).find((e) => e.name === r.name);
+
+  const openReview = (item: UiEvaluation) => {
+    const emp = findEmployeeForReview(item);
+    setActiveEval({
+      employeeName: item.name,
+      empId: emp?.id || '',
+      reviewType: item.reviewType,
+      reviewDate: item.date,
+      reviewPeriod: item.period,
+      status: item.status,
+      scores: { ...EMPTY_SCORES },
+    });
+    setAppraiserNote('');
+  };
+
+  const handleExportReviews = () => {
+    if (evaluationsList.length === 0) {
+      addToast('No performance reviews to export.', 'info');
+      return;
+    }
+    const header = ['Employee', 'Review type', 'Review date', 'Review period', 'Score', 'Grade', 'Appraiser', 'Status'];
+    const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+    const lines = evaluationsList.map((r) =>
+      [
+        r.name,
+        r.reviewType,
+        r.date,
+        r.period,
+        r.score !== null ? String(r.score) : '',
+        gradeForScore(r.score, r.rating),
+        r.reviewerName || '',
+        r.status,
+      ].map(escape).join(',')
+    );
+    const blob = new Blob([[header.map(escape).join(','), ...lines].join('\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `performance-reviews-${toLocalIsoDate(new Date())}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    addToast(`Exported ${evaluationsList.length} performance reviews.`, 'success');
+  };
+
+  const profileEmployee = profileEmployeeId
+    ? (employees || []).find((e) => e.id === profileEmployeeId || e.apiId === profileEmployeeId) || null
+    : null;
+  const profileReviews = profileEmployeeId
+    ? evaluationsList.filter(
+        (r) =>
+          r.employeeId === profileEmployeeId ||
+          (profileEmployee !== null && (r.employeeId === profileEmployee.apiId || r.employeeId === profileEmployee.id))
+      )
+    : [];
+  const profileName = profileEmployee?.name || profileReviews[0]?.name || '';
+  const profileLatest = profileReviews.find((r) => r.score !== null || r.rating) || null;
+  const profileLatestGrade = profileLatest ? gradeForScore(profileLatest.score, profileLatest.rating) : '—';
 
   const activeTabClass = 'bg-blue-50 text-novora';
   const inactiveTabClass = 'text-slate-600 hover:text-slate-950 hover:bg-slate-50';
@@ -735,7 +878,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
             </button>
             {yearDropdownOpen && (
               <div className="nv-dropdown-menu w-24">
-                {['2026', '2025', '2024'].map((y) => (
+                {yearOptions.map((y) => (
                   <button
                     key={y}
                     type="button"
@@ -793,7 +936,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
 
           <button
             type="button"
-            onClick={() => addToast('Compiling performance statistics report...', 'loading')}
+            onClick={handleExportReviews}
             className="nv-toolbar-btn"
           >
             <Download className="h-4 w-4" />
@@ -1461,11 +1604,10 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
               </div>
               <button
                 onClick={() => {
-                  setPrmEvaluator('David Ng');
+                  setPrmEvaluator(employees?.[0]?.name ?? '');
                   setPrmType('Year-end appraisal');
-                  setPrmFrom('1 Jan 2026');
-                  setPrmTo('31 Jan 2026');
-                  setPrmPending(3);
+                  setPrmFrom(formatDateString(toLocalIsoDate(new Date())));
+                  setPrmTo('');
                   setPrmStatus('Active');
                   setActiveModal('grant_permission');
                 }}
@@ -1490,22 +1632,27 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {grantPermissions.map((item, idx) => (
+                  {grantPermissions.length === 0 && (
+                    <tr><td colSpan={7} className="p-6 text-center text-xs text-slate-400">No evaluation permissions granted yet.</td></tr>
+                  )}
+                  {grantPermissions.map((item, idx) => {
+                    const pendingCount = pendingReviewsFor(item.evaluator).length;
+                    return (
                     <tr key={idx} className="hover:bg-slate-50/45 transition-colors">
                       <td className="py-3 pl-2">
                         <div className="flex items-center gap-2.5">
                           <div className={`h-7 w-7 rounded-full flex items-center justify-center font-bold text-xs ${item.color}`}>
-                            {item.evaluator.split(' ').map(n => n[0]).join('')}
+                            {initialsOf(item.evaluator)}
                           </div>
                           <span className="font-bold text-slate-800">{item.evaluator}</span>
                         </div>
                       </td>
                       <td className="py-3 font-semibold text-slate-700">{item.type}</td>
-                      <td className="py-3 text-slate-500">{item.from}</td>
-                      <td className="py-3 text-slate-500">{item.to}</td>
+                      <td className="py-3 text-slate-500">{item.from || '—'}</td>
+                      <td className="py-3 text-slate-500">{item.to || '—'}</td>
                       <td className="py-3">
-                        <span className={`font-bold ${item.pendingCount > 0 ? 'text-novora underline cursor-pointer' : 'text-emerald-600 font-semibold'}`}>
-                          {item.pendingCount > 0 ? `${item.pendingCount} employees` : '0 pending'}
+                        <span className={`font-bold ${pendingCount > 0 ? 'text-novora underline cursor-pointer' : 'text-emerald-600 font-semibold'}`}>
+                          {pendingCount > 0 ? `${pendingCount} employees` : '0 pending'}
                         </span>
                       </td>
                       <td className="py-3">
@@ -1519,11 +1666,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                             setPermissionViewItem({
                               evaluator: item.evaluator,
                               type: item.type,
-                              details: item.evaluator === 'David Ng'
-                                ? ['Sarah Lim', 'Raj Kumar', 'Maya Tan', 'Darren Low', 'Evelyn Ng', 'Thomas Chu', 'Fiona Lin', 'Alex Wong']
-                                : item.evaluator === 'Nina Reza'
-                                  ? ['Ahmad L', 'Nadia Chen', 'Zulhasnan H.', 'Siti Aminah', 'Guok Seng']
-                                  : ['Kevin Lim', 'Raymond Tan']
+                              details: pendingReviewsFor(item.evaluator).map((r) => r.name)
                             });
                             setActiveModal('view_list');
                           }}
@@ -1535,7 +1678,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                           <button
                             onClick={() => {
                               const updated = [...grantPermissions];
-                              updated[idx].status = 'Draft';
+                              updated[idx] = { ...updated[idx], status: 'Draft' };
                               setGrantPermissions(updated);
                               addToast(`Temporarily suspended evaluation permission for ${item.evaluator}`, 'info');
                             }}
@@ -1547,7 +1690,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                           <button
                             onClick={() => {
                               const updated = [...grantPermissions];
-                              updated[idx].status = 'Active';
+                              updated[idx] = { ...updated[idx], status: 'Active' };
                               setGrantPermissions(updated);
                               addToast(`Re-grant review authorization to ${item.evaluator}`, 'success');
                             }}
@@ -1558,7 +1701,8 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                         )}
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1614,17 +1758,10 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
 
               <button
                 onClick={() => {
-                  const employeeOptions = employees && employees.length > 0 ? employees : [
-                    { id: 'EMP-0021', name: 'Sarah Lim', department: 'Engineering' },
-                    { id: 'EMP-0022', name: 'Raj Kumar', department: 'Engineering' },
-                    { id: 'EMP-0023', name: 'Ahmad L', department: 'Operations' },
-                    { id: 'EMP-0024', name: 'Nadia Chen', department: 'Marketing' },
-                  ];
-                  setEvalEmpId(employeeOptions[0].id);
+                  setEvalEmpId(employees?.[0]?.id ?? '');
                   setEvalReviewType('Year-end appraisal');
-                  const today = new Date().toISOString().split('T')[0];
-                  setEvalReviewDate(today);
-                  setEvalReviewPeriod('Jan–Dec 2026');
+                  setEvalReviewDate(toLocalIsoDate(new Date()));
+                  setEvalReviewPeriod(`Jan–Dec ${new Date().getFullYear()}`);
                   setEvalCodeQuality(4);
                   setEvalProblemSolving(4);
                   setEvalSystemDesign(4);
@@ -1646,35 +1783,45 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
               <div className="lg:col-span-7 bg-slate-50/20 border border-slate-100 rounded-2xl p-6 space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                   <h4 className="text-sm font-extrabold text-slate-800">
-                    Evaluation entry — {activeEval.employeeName}
+                    Evaluation entry{activeEval ? ` — ${activeEval.employeeName}` : ''}
                   </h4>
-                  <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase inline-flex items-center whitespace-nowrap shrink-0">
-                    Pending
+                  {activeEval && (
+                  <span className={`${activeEval.status === 'Completed' ? 'bg-green-50 text-emerald-700 border-green-150' : 'bg-amber-100 text-amber-800 border-amber-200'} border text-[10px] font-bold px-2 py-0.5 rounded-full uppercase inline-flex items-center whitespace-nowrap shrink-0`}>
+                    {activeEval.status === 'Completed' ? 'Completed' : 'Pending'}
                   </span>
+                  )}
                 </div>
 
+                {!activeEval ? (
+                  <div className="p-6 text-center text-xs text-slate-400">
+                    {evaluationsList.length > 0
+                      ? 'Select an employee or review to start — open a review from the list below.'
+                      : 'Select an employee or review to start — click "New Evaluation" to create one.'}
+                  </div>
+                ) : (
+                <>
                 <div className="grid grid-cols-2 gap-4 text-xs">
                   <div>
                     <label className="text-[10px] uppercase text-slate-400 font-bold tracking-wider block mb-1">Employee *</label>
-                    <input type="text" readOnly value={`${activeEval.employeeName} (${activeEval.empId})`} className="w-full bg-slate-50 text-slate-700 p-2 border rounded-xl outline-none" />
+                    <input type="text" readOnly aria-label="Employee" value={activeEval.empId ? `${activeEval.employeeName} (${activeEval.empId})` : activeEval.employeeName} className="w-full bg-slate-50 text-slate-700 p-2 border rounded-xl outline-none" />
                   </div>
                   <div>
                     <label className="text-[10px] uppercase text-slate-400 font-bold tracking-wider block mb-1">Review type *</label>
-                    <input type="text" readOnly value={activeEval.reviewType} className="w-full bg-slate-50 text-slate-700 p-2 border rounded-xl outline-none" />
+                    <input type="text" readOnly aria-label="Review type" value={activeEval.reviewType} className="w-full bg-slate-50 text-slate-700 p-2 border rounded-xl outline-none" />
                   </div>
                   <div>
                     <label className="text-[10px] uppercase text-slate-400 font-bold tracking-wider block mb-1">Review date *</label>
-                    <input type="text" readOnly value={activeEval.reviewDate} className="w-full bg-slate-50 text-slate-700 p-2 border rounded-xl outline-none" />
+                    <input type="text" readOnly aria-label="Review date" value={activeEval.reviewDate} className="w-full bg-slate-50 text-slate-700 p-2 border rounded-xl outline-none" />
                   </div>
                   <div>
                     <label className="text-[10px] uppercase text-slate-400 font-bold tracking-wider block mb-1">Review period</label>
-                    <input type="text" readOnly value={activeEval.reviewPeriod} className="w-full bg-slate-50 text-slate-700 p-2 border rounded-xl outline-none" />
+                    <input type="text" readOnly aria-label="Review period" value={activeEval.reviewPeriod} className="w-full bg-slate-50 text-slate-700 p-2 border rounded-xl outline-none" />
                   </div>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => addToast('Assigned appraisal criteria loaded.', 'success')}
+                  onClick={() => addToast(`${evalCategories.length} evaluation categories are configured in Eval. Category settings.`, 'info')}
                   className="w-full text-center py-2.5 bg-novora text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer hover:bg-opacity-90"
                 >
                   Load category list
@@ -1707,7 +1854,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                                 {n}
                               </span>
                             ))}
-                            <span className="font-bold text-slate-600 ml-2">{item.val}/5</span>
+                            <span className="font-bold text-slate-600 ml-2">{item.val ?? '—'}/5</span>
                           </div>
                         </div>
                       ))}
@@ -1722,20 +1869,22 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                       <div className="flex justify-between items-center bg-white p-2 border border-slate-100 rounded-lg">
                         <span className="font-semibold text-slate-700">Sprints completed on time</span>
                         <div className="flex gap-3 items-center">
-                          <input readOnly type="number" value={activeEval.scores.sprintsCompleted} className="w-14 bg-slate-50 p-1 border rounded text-center font-bold" />
-                          <span className="font-bold text-emerald-600">92%</span>
+                          <input readOnly type="number" aria-label="Sprints completed on time (%)" value={activeEval.scores.sprintsCompleted ?? ''} className="w-14 bg-slate-50 p-1 border rounded text-center font-bold" />
+                          <span className="font-bold text-emerald-600">{activeEval.scores.sprintsCompleted !== null ? `${activeEval.scores.sprintsCompleted}%` : '—'}</span>
                         </div>
                       </div>
                       <div className="flex justify-between items-center bg-white p-2 border border-slate-100 rounded-lg">
                         <span className="font-semibold text-slate-700">Bugs resolved within SLA</span>
                         <div className="flex gap-3 items-center">
-                          <input readOnly type="number" value={activeEval.scores.bugsSLA} className="w-14 bg-slate-50 p-1 border rounded text-center font-bold" />
-                          <span className="font-bold text-emerald-600">88%</span>
+                          <input readOnly type="number" aria-label="Bugs resolved within SLA (%)" value={activeEval.scores.bugsSLA ?? ''} className="w-14 bg-slate-50 p-1 border rounded text-center font-bold" />
+                          <span className="font-bold text-emerald-600">{activeEval.scores.bugsSLA !== null ? `${activeEval.scores.bugsSLA}%` : '—'}</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
+                </>
+                )}
               </div>
 
               {/* Right Column: Objectives and appraiser notes */}
@@ -1756,7 +1905,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   </div>
                   <div>
                     <label className="text-[10px] text-slate-400 uppercase font-black block mb-1">Category / objective</label>
-                    <input type="text" placeholder="e.g. Lead frontend team Q1 2026" className="w-full border rounded-xl p-2 outline-none font-medium" />
+                    <input type="text" placeholder="e.g. Lead frontend team next quarter" className="w-full border rounded-xl p-2 outline-none font-medium" />
                   </div>
                   <div>
                     <label className="text-[10px] text-slate-400 uppercase font-black block mb-1">Target</label>
@@ -1766,7 +1915,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     <label className="text-[10px] text-slate-400 uppercase font-black block mb-1">Comment</label>
                     <textarea rows={2} placeholder="Notes on this objective..." className="w-full border rounded-xl p-2 outline-none resize-none font-medium" />
                   </div>
-                  <button type="button" onClick={() => addToast('Objective added to appraisal framework config.', 'success')} className="w-full text-center py-2 border border-dashed border-novora font-bold text-novora rounded-xl hover:bg-novora/5 transition-colors">
+                  <button type="button" onClick={() => addToast('Saving objectives is not available yet.', 'info')} className="w-full text-center py-2 border border-dashed border-novora font-bold text-novora rounded-xl hover:bg-novora/5 transition-colors">
                     + Add objective
                   </button>
                 </div>
@@ -1777,7 +1926,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     {canUseHrAi && (
                     <button
                       type="button"
-                      disabled={aiNoteBusy}
+                      disabled={aiNoteBusy || !activeEval}
                       onClick={() => void handleAiAppraiserNote()}
                       className="inline-flex items-center gap-1.5 rounded-xl border border-novora/25 bg-novora/5 px-3 py-1.5 text-[11px] font-bold text-novora hover:bg-novora/10 disabled:opacity-60 cursor-pointer"
                     >
@@ -1814,8 +1963,11 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
+                    {evaluationsList.length === 0 && (
+                      <tr><td colSpan={6} className="p-6 text-center text-xs text-slate-400">No evaluations yet.</td></tr>
+                    )}
                     {evaluationsList.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/45 transition-colors">
+                      <tr key={item.id || idx} className="hover:bg-slate-50/45 transition-colors">
                         <td className="py-2.5 pl-2">
                           <div className="flex items-center gap-2">
                             <div className="h-7 w-7 rounded-lg bg-novora/10 text-novora font-black text-xs flex items-center justify-center">
@@ -1835,21 +1987,12 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                         <td className="py-2.5 text-right pr-2">
                           <button
                             onClick={() => {
-                              if (item.status === 'Pending') {
-                                setActiveEval({
-                                  ...activeEval,
-                                  employeeName: item.name,
-                                  reviewType: item.reviewType,
-                                  reviewDate: item.date
-                                });
-                                addToast(`Loaded workstation form for ${item.name}`, 'success');
-                              } else {
-                                addToast(`Downloading completed appraisal report for ${item.name}`, 'loading');
-                              }
+                              openReview(item);
+                              addToast(`Loaded evaluation for ${item.name}`, 'success');
                             }}
                             className="font-bold text-novora hover:underline"
                           >
-                            {item.status === 'Pending' ? 'Open' : 'Download'}
+                            Open
                           </button>
                         </td>
                       </tr>
@@ -1867,7 +2010,9 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
             <div className="flex justify-between items-center pb-2">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Performance summaries</span>
               <button
-                onClick={() => addToast('Batch calculating absolute performance scores...', 'loading')}
+                onClick={() => {
+                  void loadReviews().then(() => addToast('Grades recalculated from the latest performance reviews.', 'success'));
+                }}
                 className="bg-slate-50 border border-slate-200 hover:border-novora hover:bg-novora/10 text-slate-700 hover:text-novora text-xs font-bold px-4 py-2 rounded-xl transition-all"
               >
                 Calculate grade
@@ -1889,8 +2034,11 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
+                  {perfResults.length === 0 && (
+                    <tr><td colSpan={8} className="p-6 text-center text-xs text-slate-400">No results yet.</td></tr>
+                  )}
                   {perfResults.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/45 transition-colors">
+                    <tr key={item.id || idx} className="hover:bg-slate-50/45 transition-colors">
                       <td className="py-2.5 pl-2 font-bold text-slate-800">{item.name}</td>
                       <td className="py-2.5 font-mono font-medium text-slate-600">{item.attr}</td>
                       <td className="py-2.5 font-mono font-medium text-slate-600">{item.kpi}</td>
@@ -1905,8 +2053,8 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                       <td className="py-2.5 text-right pr-2">
                         <button
                           onClick={() => {
+                            setProfileEmployeeId(item.employeeId);
                             setActiveSubTab('Employee Profile');
-                            addToast(`Pulled full file card index for ${item.name}`, 'success');
                           }}
                           className="font-bold text-novora hover:underline"
                         >
@@ -2005,7 +2153,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
             <div className="flex justify-between items-center pb-2 border-b border-slate-50">
               <span className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Verified appraisal reports</span>
               <button
-                onClick={() => addToast('Batch PDF report export has been triggered.', 'success')}
+                onClick={handleExportReviews}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all"
               >
                 Export all
@@ -2027,21 +2175,24 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
+                  {perfResults.length === 0 && (
+                    <tr><td colSpan={8} className="p-6 text-center text-xs text-slate-400">No results yet.</td></tr>
+                  )}
                   {perfResults.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/45 transition-colors">
+                    <tr key={item.id || idx} className="hover:bg-slate-50/45 transition-colors">
                       <td className="py-3 pl-2 font-bold text-slate-800">{item.name}</td>
-                      <td className="py-3 font-semibold text-slate-700">Year-end appraisal</td>
-                      <td className="py-3 text-slate-500">Jan–Dec 2025</td>
+                      <td className="py-3 font-semibold text-slate-700">{item.type}</td>
+                      <td className="py-3 text-slate-500">{item.period}</td>
                       <td className="py-3 text-blue-600 font-black font-mono text-[12.5px]">{item.total}</td>
                       <td className="py-3 text-center">
                         <span className={`inline-block py-0.5 px-3 border rounded text-[10px] font-black ${item.gradeColor}`}>
                           {item.grade}
                         </span>
                       </td>
-                      <td className="py-3 font-semibold text-slate-700">David Ng</td>
+                      <td className="py-3 font-semibold text-slate-700">{item.appraiser}</td>
                       <td className="py-3">
-                        <span className="bg-green-55 text-emerald-700 border border-green-150 text-[10px] font-black px-2.5 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
-                          Completed
+                        <span className={`${item.status === 'Completed' ? 'bg-green-55 text-emerald-700 border-green-150' : 'bg-amber-50 text-amber-700 border-amber-100'} border text-[10px] font-black px-2.5 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0`}>
+                          {item.status}
                         </span>
                       </td>
                       <td className="py-3 text-right pr-2 flex justify-end gap-2 text-slate-600 align-middle">
@@ -2049,8 +2200,9 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                           onClick={() => {
                             setReportDetailItem({
                               name: item.name,
-                              type: 'Year-end appraisal',
-                              period: 'Jan–Dec 2025',
+                              type: item.type,
+                              period: item.period,
+                              status: item.status,
                               attr: item.attr,
                               kpi: item.kpi,
                               comp: item.comp,
@@ -2058,7 +2210,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                               total: item.total,
                               grade: item.grade,
                               gradeColor: item.gradeColor,
-                              appraiser: 'David Ng'
+                              appraiser: item.appraiser
                             });
                             setActiveModal('view_report');
                           }}
@@ -2067,7 +2219,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                           View
                         </button>
                         <button
-                          onClick={() => addToast(`Dossier PDF download successful for ${item.name}`, 'success')}
+                          onClick={() => addToast(`PDF download for ${item.name} is not available yet.`, 'info')}
                           className="font-bold text-slate-500 hover:text-slate-800"
                         >
                           PDF
@@ -2082,77 +2234,45 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
         )}
 
         {/* ==================== SUB-TAB 12: EMPLOYEE PROFILE ==================== */}
-        {activeSubTab === 'Employee Profile' && (
+        {activeSubTab === 'Employee Profile' && !profileName && (
+          <div className="p-6 text-center text-xs text-slate-400">Select an employee from Perf. Result to view their performance profile.</div>
+        )}
+        {activeSubTab === 'Employee Profile' && profileName && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left side card block */}
             <div className="lg:col-span-5 border border-slate-100 rounded-2xl p-6 space-y-5 bg-slate-50/20">
               <div className="flex items-center gap-4 border-b border-slate-100 pb-4.5">
                 <div className="h-12 w-12 bg-blue-100 border border-blue-200 text-novora rounded-xl flex items-center justify-center text-lg font-black shadow-xs">
-                  SL
+                  {initialsOf(profileName)}
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-800 tracking-tight">Sarah Lim Wei Ling</h3>
+                  <h3 className="text-base font-extrabold text-slate-800 tracking-tight">{profileName}</h3>
                   <p className="text-[10.5px] font-semibold text-slate-400 mt-1 uppercase tracking-wide">
-                    EMP-0021 &bull; Engineering &bull; Senior Developer
+                    {[profileEmployee?.id, profileEmployee?.department, profileEmployee?.position].filter(Boolean).join(' • ') || '—'}
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-y-3.5 gap-x-4 text-xs font-semibold">
                 <div>
-                  <span className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Performance level</span>
-                  <span className="bg-blue-50 text-novora px-2 py-0.5 rounded-md font-bold text-[10.5px]">Advanced</span>
-                </div>
-                <div>
                   <span className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Current grade (latest)</span>
-                  <span className="bg-blue-50 text-novora px-2.5 border border-blue-100 font-black rounded text-[11px] h-6 inline-flex items-center">A</span>
+                  <span className="bg-blue-50 text-novora px-2.5 border border-blue-100 font-black rounded text-[11px] h-6 inline-flex items-center">{profileLatestGrade}</span>
                 </div>
                 <div>
                   <span className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Latest score</span>
-                  <p className="text-slate-800 font-bold">91.7 / 100</p>
-                </div>
-                <div>
-                  <span className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Last review</span>
-                  <span className="text-slate-500 font-mono">Year-end appraisal &bull; Jan 2026</span>
-                </div>
-                <div>
-                  <span className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">CEP rating</span>
-                  <span className="bg-green-50 text-emerald-800 font-bold px-2 py-0.5 rounded-md text-[10px]">High potential</span>
-                </div>
-                <div>
-                  <span className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Possible next position</span>
-                  <span className="text-slate-800 font-bold">Tech Lead</span>
+                  <p className="text-slate-800 font-bold">{profileLatest?.score != null ? `${profileLatest.score} / 100` : '—'}</p>
                 </div>
                 <div className="col-span-2">
-                  <span className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Time frame</span>
-                  <span className="text-slate-800 font-bold">12 months</span>
+                  <span className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Last review</span>
+                  <span className="text-slate-500 font-mono">
+                    {profileReviews[0] ? `${profileReviews[0].reviewType} • ${profileReviews[0].date}` : '—'}
+                  </span>
                 </div>
               </div>
 
-              {/* Progress percentage bars */}
-              <div className="border-t border-slate-100 pt-4.5 space-y-3">
-                <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Score breakdown</span>
-                {[
-                  { label: 'Technical skills (attr.)', value: 86.7, color: 'bg-blue-500' },
-                  { label: 'Project delivery (KPI)', value: 90.0, color: 'bg-teal-500' },
-                  { label: 'Leadership (comp.)', value: 82.0, color: 'bg-sky-500' },
-                  { label: 'Communication (attr.)', value: 88.0, color: 'bg-amber-500' },
-                  { label: 'Attendance KPI', value: 97.0, color: 'bg-green-600' }
-                ].map((item, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <div className="flex justify-between font-semibold text-[11px] text-slate-600">
-                      <span>{item.label}</span>
-                      <span>{item.value}</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className={`h-1.5 ${item.color} rounded-sm`} style={{ width: `${item.value}%` }}></div>
-                    </div>
-                  </div>
-                ))}
-                <div className="border-t border-slate-100/50 pt-2.5 flex justify-between items-center text-xs font-bold text-slate-700">
-                  <span>Overall score</span>
-                  <span className="text-blue-600 text-sm font-black font-mono">91.7 / 100</span>
-                </div>
+              <div className="border-t border-slate-100/50 pt-2.5 flex justify-between items-center text-xs font-bold text-slate-700">
+                <span>Overall score</span>
+                <span className="text-blue-600 text-sm font-black font-mono">{profileLatest?.score != null ? `${profileLatest.score} / 100` : '—'}</span>
               </div>
             </div>
 
@@ -2171,50 +2291,27 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {[
-                        { type: 'Year-end appraisal', period: '2025', score: 91.7, grade: 'A', scoreColor: 'text-blue-600', gradeColor: 'bg-blue-105 text-blue-800 border-blue-200' },
-                        { type: 'Mid-year appraisal', period: 'H1 2025', score: 87.3, grade: 'A', scoreColor: 'text-blue-600', gradeColor: 'bg-blue-105 text-blue-800 border-blue-200' },
-                        { type: 'Year-end appraisal', period: '2024', score: 83.1, grade: 'A', scoreColor: 'text-blue-600', gradeColor: 'bg-blue-105 text-blue-800 border-blue-200' },
-                        { type: 'Year-end appraisal', period: '2023', score: 74.5, grade: 'B', scoreColor: 'text-amber-600', gradeColor: 'bg-green-105 text-green-800 border-green-200' },
-                      ].map((hist, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/20">
-                          <td className="py-2.5 pl-3 font-semibold text-slate-800">{hist.type}</td>
+                      {profileReviews.length === 0 && (
+                        <tr><td colSpan={4} className="p-6 text-center text-xs text-slate-400">No reviews yet.</td></tr>
+                      )}
+                      {profileReviews.map((hist, idx) => {
+                        const grade = gradeForScore(hist.score, hist.rating);
+                        return (
+                        <tr key={hist.id || idx} className="hover:bg-slate-50/20">
+                          <td className="py-2.5 pl-3 font-semibold text-slate-800">{hist.reviewType}</td>
                           <td className="py-2.5 text-slate-500 font-medium">{hist.period}</td>
-                          <td className={`py-2.5 font-bold font-mono text-[12px] ${hist.scoreColor}`}>{hist.score}</td>
+                          <td className="py-2.5 font-bold font-mono text-[12px] text-blue-600">{hist.score ?? '—'}</td>
                           <td className="py-2.5 text-center pr-3">
-                            <span className={`inline-block py-0.5 px-2.5 border rounded font-black text-[10px] ${hist.gradeColor}`}>
-                              {hist.grade}
+                            <span className={`inline-block py-0.5 px-2.5 border rounded font-black text-[10px] ${GRADE_BADGE_COLORS[grade[0]] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+                              {grade}
                             </span>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="text-sm font-extrabold text-slate-800 uppercase tracking-wide border-b pb-1.5">Training recommended</h4>
-                <div className="flex gap-2">
-                  <div className="flex-1 bg-slate-50/50 p-3 rounded-xl border border-slate-100 flex justify-between items-center text-xs">
-                    <span className="font-bold text-slate-700">Leadership essentials</span>
-                    <span className="bg-red-100 text-red-700 text-[9.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded">Mandatory</span>
-                  </div>
-                  <div className="flex-1 bg-slate-50/50 p-3 rounded-xl border border-slate-100 flex justify-between items-center text-xs">
-                    <span className="font-bold text-slate-700">Agile & Scrum</span>
-                    <span className="bg-slate-100 text-slate-500 text-[9.5px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded">Optional</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-slate-50/40 p-4.5 rounded-2xl border border-slate-100 text-xs text-slate-700 leading-relaxed space-y-2">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Appraiser note (latest)</span>
-                <p className="font-medium text-slate-600 italic">
-                  "Strong technical contributor with consistent improvement. Nominated for tech lead role in Q3 2026. Recommended for leadership training before promotion cycle."
-                </p>
-                <span className="block text-right font-bold text-novora text-[10px] uppercase">
-                  — David Ng &bull; 15 Jan 2026
-                </span>
               </div>
             </div>
           </div>
@@ -2635,7 +2732,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                       <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Assessment Template Setup Name</label>
                       <input
                         type="text"
-                        placeholder="e.g. Year-end Appraisal Form 2026"
+                        placeholder={`e.g. Year-end Appraisal Form ${currentYear}`}
                         value={stpName}
                         onChange={(e) => setStpName(e.target.value)}
                         className="w-full text-xs p-2.5 border rounded-xl outline-none"
@@ -2728,11 +2825,8 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                         value={prmEvaluator}
                         onChange={setPrmEvaluator}
                         triggerClassName="text-xs font-bold"
-                        options={[
-                          { value: 'David Ng', label: 'David Ng' },
-                          { value: 'Nina Reza', label: 'Nina Reza' },
-                          { value: 'Kevin Lim', label: 'Kevin Lim' },
-                        ]}
+                        placeholder={(employees || []).length > 0 ? 'Select evaluator' : 'No employees available'}
+                        options={(employees || []).map((emp) => ({ value: emp.name, label: emp.name }))}
                       />
                     </div>
                     <div>
@@ -2905,15 +2999,8 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                         onChange={setEvalEmpId}
                         preferUp
                         triggerClassName="w-full text-xs border rounded-xl bg-white"
-                        options={(employees && employees.length > 0
-                          ? employees
-                          : [
-                              { id: 'EMP-0021', name: 'Sarah Lim', department: 'Engineering' },
-                              { id: 'EMP-0022', name: 'Raj Kumar', department: 'Engineering' },
-                              { id: 'EMP-0023', name: 'Ahmad L', department: 'Operations' },
-                              { id: 'EMP-0024', name: 'Nadia Chen', department: 'Marketing' },
-                            ]
-                        ).map((emp: { id: string; name: string; department?: string }) => ({
+                        placeholder={(employees || []).length > 0 ? 'Select employee' : 'No employees available'}
+                        options={(employees || []).map((emp) => ({
                           value: emp.id,
                           label: `${emp.name} (${emp.id}) — ${emp.department ?? ''}`,
                         }))}
@@ -2939,7 +3026,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                         <label className="text-[10px] uppercase text-slate-400 font-bold block mb-1">Review Period *</label>
                         <input
                           type="text"
-                          placeholder="e.g. Jan–Dec 2026"
+                          placeholder={`e.g. Jan–Dec ${currentYear}`}
                           value={evalReviewPeriod}
                           onChange={(e) => setEvalReviewPeriod(e.target.value)}
                           className="w-full text-xs p-2.5 border rounded-xl outline-none text-slate-700 bg-white"
@@ -3063,7 +3150,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                         </div>
                         <div>
                           <span className="block text-[9px] uppercase font-bold text-slate-400">Status</span>
-                          <span className="text-emerald-600 font-bold text-[11px]">Completed &bull; Verified</span>
+                          <span className={`${reportDetailItem.status === 'Completed' ? 'text-emerald-600' : 'text-amber-600'} font-bold text-[11px]`}>{reportDetailItem.status}</span>
                         </div>
                       </div>
                     </div>
@@ -3091,7 +3178,7 @@ export default function PerformanceTab({ employees, addToast }: PerformanceTabPr
                     <div className="flex gap-2.5 pt-2">
                       <button
                         type="button"
-                        onClick={() => addToast(`Printing report for ${reportDetailItem.name}...`, 'loading')}
+                        onClick={() => window.print()}
                         className="flex-1 py-2 bg-novora text-white rounded-xl text-xs font-bold hover:bg-blue-700 cursor-pointer"
                       >
                         Print EA certificate

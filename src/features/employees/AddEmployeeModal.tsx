@@ -29,6 +29,7 @@ interface AddEmployeeModalProps {
   onClose: () => void;
   onAddEmployee: (emp: Employee) => void;
   addToast: (text: string, type: 'success' | 'info' | 'error' | 'loading') => void;
+  employees?: Employee[];
 }
 
 interface BiometricTerminalRow {
@@ -56,7 +57,7 @@ async function resolveDepartmentId(departmentName: string): Promise<string> {
   return created.id
 }
 
-export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addToast }: AddEmployeeModalProps) {
+export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addToast, employees = [] }: AddEmployeeModalProps) {
   // Current creation wizard step
   const [step, setStep] = useState<number>(1);
   const [submitting, setSubmitting] = useState(false);
@@ -822,12 +823,11 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                         placeholder="Select…"
                         triggerClassName="text-xs font-bold border-slate-200"
                         options={[
-                          { value: '', label: 'Select…' },
-                          { value: 'EMP-0010', label: 'David Ng (Director of Engineering)' },
-                          { value: 'EMP-0030', label: 'Rachel Tan (head of Finance)' },
-                          { value: 'EMP-0040', label: 'Nina Reza (head of People Op)' },
-                          { value: 'EMP-0050', label: 'Kevin Lim (VP Marketing)' },
-                          { value: 'EMP-0001', label: 'Katherin Lee (Chief Executive Officer)' },
+                          { value: '', label: employees.length ? 'Select…' : 'No employees yet' },
+                          ...employees.map((e) => ({
+                            value: e.name,
+                            label: e.position ? `${e.name} (${e.position})` : e.name,
+                          })),
                         ]}
                       />
                     </div>

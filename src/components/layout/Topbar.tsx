@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import {
-  Search,
   Bell,
   ChevronDown,
   LogOut,
@@ -8,7 +7,8 @@ import {
   ShieldCheck,
   Briefcase,
 } from 'lucide-react'
-import type { AuthSession } from '@/types'
+import type { AuthSession, Employee, SidebarTab } from '@/types'
+import GlobalSearch from '@/components/layout/GlobalSearch'
 import { primaryRole, roleDisplayLabel } from '@/lib/roles'
 import { formatPersonDisplayName } from '@/lib/personName'
 import { DropdownAnchor } from '@/components/ui'
@@ -26,6 +26,9 @@ interface TopbarProps {
   addToast: (text: string, type: 'success' | 'info' | 'error' | 'loading') => void
   session?: AuthSession | null
   onLogout?: () => void | Promise<void>
+  employees?: Employee[]
+  onNavigate?: (tab: SidebarTab) => void
+  onSelectEmployee?: (emp: Employee) => void
 }
 
 type NotifyUi = { id: string; title: string; msg: string; time: string; read: boolean }
@@ -73,15 +76,18 @@ export default function Topbar({
   addToast,
   session,
   onLogout,
+  employees = [],
+  onNavigate,
+  onSelectEmployee,
 }: TopbarProps) {
   const [profileOpen, setProfileOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [notifications, setNotifications] = useState<NotifyUi[]>([])
 
-  const displayName = formatPersonDisplayName(session?.fullName || 'pinky')
-  const displayEmail = session?.email || 'pinky.sharma@novora.com'
+  const displayName = formatPersonDisplayName(session?.fullName || session?.email?.split('@')[0])
+  const displayEmail = session?.email || ''
   const displayRole = roleDisplayLabel(session?.roles)
-  const initial = displayName.trim().charAt(0).toUpperCase() || 'P'
+  const initial = displayName.trim().charAt(0).toUpperCase() || 'U'
   const unreadCount = notifications.filter((n) => !n.read).length
 
   const loadNotifications = useCallback(async () => {
@@ -116,6 +122,14 @@ export default function Topbar({
     setNotificationsOpen(false)
   }
 
+  const handleMarkAllRead = async () => {
+    const unread = notifications.filter((n) => !n.read)
+    const results = await Promise.allSettled(unread.map((n) => markNotificationRead(n.id)))
+    const done = new Set(unread.filter((_, i) => results[i].status === 'fulfilled').map((n) => n.id))
+    setNotifications((prev) => prev.map((n) => (done.has(n.id) ? { ...n, read: true } : n)))
+    if (done.size < unread.length) addToast('Some notifications could not be marked read.', 'error')
+  }
+
   return (
     <header
       id="app-topbar"
@@ -132,18 +146,14 @@ export default function Topbar({
       </div>
 
       <div className="flex items-center gap-3 md:gap-4 shrink-0">
-        <div id="topbar-search-container" className="nv-search-wrap hidden md:block md:w-52 xl:w-80">
-          <Search className="nv-search-icon h-4 w-4" aria-hidden />
-          <input
-            id="topbar-search-input"
-            type="search"
-            placeholder="Search employees, modules..."
-            value={searchValue}
-            onChange={(e) => onSearchChange?.(e.target.value)}
-            className="nv-search-input"
-            aria-label="Search employees and modules"
-          />
-        </div>
+        <GlobalSearch
+          value={searchValue}
+          onChange={(val) => onSearchChange?.(val)}
+          roles={session?.roles}
+          employees={employees}
+          onNavigate={(tab) => onNavigate?.(tab)}
+          onSelectEmployee={(emp) => onSelectEmployee?.(emp)}
+        />
 
         <DropdownAnchor
           open={notificationsOpen}
@@ -178,8 +188,9 @@ export default function Topbar({
                 <span className="font-bold text-slate-800 text-sm">Notifications</span>
                 <button
                   type="button"
-                  className="text-[11px] text-novora font-semibold cursor-pointer hover:underline"
-                  onClick={() => addToast('Cleared all alerts', 'success')}
+                  className="text-[11px] text-novora font-semibold cursor-pointer hover:underline disabled:opacity-40 disabled:cursor-default disabled:no-underline"
+                  disabled={unreadCount === 0}
+                  onClick={() => void handleMarkAllRead()}
                 >
                   Mark all as read
                 </button>
