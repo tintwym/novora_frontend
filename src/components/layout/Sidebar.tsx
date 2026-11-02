@@ -92,16 +92,28 @@ export default function Sidebar({
     setActiveTab(tab);
   };
 
-  const collapseToggle = narrow ? null : (
+  const collapseToggle = narrow ? null : rail ? (
+    <SidebarTooltip label="Expand sidebar" show>
+      <button
+        type="button"
+        id="sidebar-expand-btn"
+        onClick={() => setCollapsed((v) => !v)}
+        aria-label="Expand sidebar"
+        className="nv-sidebar-toggle"
+      >
+        <PanelLeftOpen className="h-4 w-4" />
+      </button>
+    </SidebarTooltip>
+  ) : (
     <button
       type="button"
-      id={rail ? 'sidebar-expand-btn' : 'sidebar-collapse-btn'}
+      id="sidebar-collapse-btn"
       onClick={() => setCollapsed((v) => !v)}
-      title={rail ? 'Expand sidebar' : 'Collapse sidebar'}
-      aria-label={rail ? 'Expand sidebar' : 'Collapse sidebar'}
+      title="Collapse sidebar"
+      aria-label="Collapse sidebar"
       className="nv-sidebar-toggle"
     >
-      {rail ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+      <PanelLeftClose className="h-4 w-4" />
     </button>
   );
 
@@ -230,7 +242,7 @@ export default function Sidebar({
                   <button
                     id={`nav-${item.name.replace(/\s+/g, '-').replace(/\//g, '').toLowerCase()}`}
                     type="button"
-                    title={rail ? navLabel(item.name) : undefined}
+                    aria-label={rail ? navLabel(item.name) : undefined}
                     aria-current={isActive ? 'page' : undefined}
                     onClick={() => handleTabClick(item.name)}
                     className={`nv-sidebar-link ${isActive ? 'nv-sidebar-link--active' : ''} ${rail ? 'nv-sidebar-link--rail' : ''}`}

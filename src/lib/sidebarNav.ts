@@ -26,6 +26,7 @@ import {
   FileText,
   Contrast,
   Globe,
+  Link2,
 } from 'lucide-react'
 import type { SidebarTab } from '@/types'
 
@@ -105,6 +106,10 @@ export const SETTINGS_NAV_SECTIONS: SettingsNavSection[] = [
       { name: 'Security', icon: Shield },
       { name: 'Audit log', icon: FileText },
     ],
+  },
+  {
+    group: 'Integrations',
+    items: [{ name: 'Novora CRM', icon: Link2 }],
   },
   {
     group: 'Preferences',

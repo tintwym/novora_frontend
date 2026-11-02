@@ -71,6 +71,7 @@ import {
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import NovoraLogo from '@/components/brand/NovoraLogo';
+import CrmIntegrationPanel from './CrmIntegrationPanel';
 
 type BranchUi = { id: string; name: string; city: string; count: number; isMain: boolean }
 
@@ -2326,6 +2327,8 @@ export default function SettingsTab({
             </div>
           </div>
         )}
+
+        {activeSubTab === 'Novora CRM' && <CrmIntegrationPanel addToast={addToast} />}
 
         {/* TAB 10: Security */}
         {activeSubTab === 'Security' && (

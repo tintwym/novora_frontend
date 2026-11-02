@@ -1,5 +1,12 @@
-import type { ReactNode } from 'react'
+'use client'
 
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
+
+/**
+ * Floating label for the collapsed sidebar rail.
+ * Portaled to `document.body` so it is not clipped by the shell's `overflow: hidden`.
+ */
 export default function SidebarTooltip({
   label,
   show,
@@ -9,17 +16,75 @@ export default function SidebarTooltip({
   show: boolean
   children: ReactNode
 }) {
+  const tipId = useId()
+  const anchorRef = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState({ top: 0, left: 0 })
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const updatePosition = useCallback(() => {
+    const el = anchorRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    setPos({
+      top: rect.top + rect.height / 2,
+      left: rect.right + 10,
+    })
+  }, [])
+
+  const openTip = useCallback(() => {
+    updatePosition()
+    setOpen(true)
+  }, [updatePosition])
+
+  const closeTip = useCallback(() => {
+    setOpen(false)
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    const onScrollOrResize = () => updatePosition()
+    window.addEventListener('scroll', onScrollOrResize, true)
+    window.addEventListener('resize', onScrollOrResize)
+    return () => {
+      window.removeEventListener('scroll', onScrollOrResize, true)
+      window.removeEventListener('resize', onScrollOrResize)
+    }
+  }, [open, updatePosition])
+
   if (!show) return <>{children}</>
 
   return (
-    <div className="group/sidebar-tip relative w-full">
+    <div
+      ref={anchorRef}
+      className="relative inline-flex w-full max-w-full justify-center"
+      onMouseEnter={openTip}
+      onMouseLeave={closeTip}
+      onFocus={openTip}
+      onBlur={closeTip}
+    >
       {children}
-      <span
-        role="tooltip"
-        className="nv-sidebar-tooltip pointer-events-none absolute left-[calc(100%+0.625rem)] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-lg border border-[var(--sidebar-border)] bg-[var(--sidebar-dropdown-bg)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--sidebar-text-hover)] opacity-0 shadow-lg transition-all duration-200 group-hover/sidebar-tip:translate-x-0.5 group-hover/sidebar-tip:opacity-100"
-      >
-        {label}
-      </span>
+      {mounted &&
+        open &&
+        createPortal(
+          <span
+            id={tipId}
+            role="tooltip"
+            className="nv-sidebar-tooltip pointer-events-none fixed z-[80] whitespace-nowrap rounded-lg border border-[var(--sidebar-border)] bg-[var(--sidebar-dropdown-bg)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--sidebar-text-hover)] shadow-lg"
+            style={{
+              top: pos.top,
+              left: pos.left,
+              transform: 'translateY(-50%)',
+            }}
+          >
+            {label}
+          </span>,
+          document.body,
+        )}
     </div>
   )
 }
