@@ -274,6 +274,22 @@ html[data-theme='cyber-dark'] .nv-btn-secondary {
   width: 4.25rem;
 }
 
+/* Hover labels for the icon rail (rendered via portal; keep a class hook for theme). */
+.nv-sidebar-tooltip {
+  animation: nv-sidebar-tip-in 140ms ease-out;
+}
+
+@keyframes nv-sidebar-tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
 .nv-sidebar-header {
   display: flex;
   align-items: center;

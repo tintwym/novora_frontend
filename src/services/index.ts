@@ -192,6 +192,8 @@ export {
   createMyEducation,
   deleteMyEducation,
 } from './profileApi'
+export { fetchCrmConnection, createCrmLinkCode, disconnectCrm } from './crmIntegrationApi'
+export type { CrmConnectionStatus, CrmLinkCode } from './crmIntegrationApi'
 export { ApiError } from './types'
 export type {
   AuthResponse,
