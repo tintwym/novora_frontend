@@ -237,7 +237,10 @@ function createProfileData(employee: Employee | null, companyName: string) {
     assignedShift: '',
 
     payType: '',
-    basicSalary: 0,
+    basicSalary: employee?.basicSalary ?? 0,
+    monthlyAllowance: employee?.monthlyAllowance ?? 0,
+    monthlyDeduction: employee?.monthlyDeduction ?? 0,
+    taxRatePercent: employee?.taxRatePercent ?? 0,
     payEffectiveDate: '',
     bankAccount: '',
     allowances: [] as ProfileAllowance[],
@@ -2225,9 +2228,15 @@ export default function EmployeeProfileTab({
                       </button>
                     ) : (
                       <button 
-                        onClick={() => { 
-                          setIsEditingPayRate(false); 
-                          addToast('Pay rate updated for this session only.', 'info');
+                        onClick={() => {
+                          setIsEditingPayRate(false);
+                          onUpdateEmployee({
+                            ...employee,
+                            basicSalary: profileData.basicSalary,
+                            monthlyAllowance: totalAllowances || profileData.monthlyAllowance || 0,
+                            monthlyDeduction: totalDeductions || profileData.monthlyDeduction || 0,
+                            taxRatePercent: profileData.taxRatePercent || undefined,
+                          });
                         }}
                         className="text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-lg flex items-center gap-1 cursor-pointer"
                       >

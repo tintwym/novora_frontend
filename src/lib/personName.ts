@@ -99,10 +99,15 @@ function toPascalSyllables(token: string): string {
   return parts.map((p) => titleCaseWord(p)).join('')
 }
 
+const hasMyanmarScript = (value: string) => /[\u1000-\u109F\uAA60-\uAA7F]/.test(value)
+
 /** Prefer a readable layout for chrome (topbar, greetings, biometric). */
 export function formatPersonDisplayName(fullName: string | null | undefined): string {
   const trimmed = (fullName ?? '').trim()
   if (!trimmed) return 'User'
+
+  // Keep Unicode Myanmar names as-is (syllable heuristics are for romanized locals).
+  if (hasMyanmarScript(trimmed)) return trimmed
 
   if (/[\s._+\-]+/.test(trimmed)) {
     const parts = stripEmployeePlaceholder(

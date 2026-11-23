@@ -847,10 +847,10 @@ export default function BenefitsTab({ employees, addToast }: BenefitsTabProps) {
                           <td className="p-3 font-bold text-slate-800">{formatMoney(claim.amount, claim.currency)}</td>
                           <td className="p-3">
                             <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg ${
-                              claim.status === 'Disbursed' ? 'bg-emerald-50 text-emerald-750' :
+                              claim.status === 'Disbursed' ? 'bg-emerald-50 text-emerald-700' :
                               claim.status === 'Approved' ? 'bg-blue-50 text-blue-755' :
                               claim.status === 'Rejected' ? 'bg-rose-50 text-rose-700' :
-                              'bg-amber-50 text-amber-750'
+                              'bg-amber-50 text-amber-700'
                             }`}>
                               {claim.status}
                             </span>

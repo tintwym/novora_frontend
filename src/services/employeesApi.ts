@@ -21,6 +21,10 @@ export interface EmployeeApiRow {
   city: string | null
   country: string | null
   managerName: string | null
+  basicSalary?: number | null
+  monthlyAllowance?: number | null
+  monthlyDeduction?: number | null
+  taxRatePercent?: number | null
 }
 
 export type CreateEmployeePayload = {
@@ -42,6 +46,10 @@ export type UpdateEmployeePayload = {
   employeeCode?: string
   hireDate?: string
   status?: string
+  basicSalary?: number | null
+  monthlyAllowance?: number | null
+  monthlyDeduction?: number | null
+  taxRatePercent?: number | null
 }
 
 const AVATAR_COLORS = [
@@ -127,6 +135,10 @@ export function mapEmployeeRow(row: EmployeeApiRow): Employee {
     reportsTo: row.managerName?.trim() || undefined,
     departmentId: row.departmentId ?? undefined,
     positionId: row.positionId ?? undefined,
+    basicSalary: row.basicSalary ?? undefined,
+    monthlyAllowance: row.monthlyAllowance ?? undefined,
+    monthlyDeduction: row.monthlyDeduction ?? undefined,
+    taxRatePercent: row.taxRatePercent ?? undefined,
   }
 }
 

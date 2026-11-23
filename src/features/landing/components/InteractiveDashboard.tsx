@@ -352,7 +352,7 @@ export default function InteractiveDashboard() {
                     <button
                       onClick={handleSimulateScan}
                       disabled={isScanning}
-                      className="bg-blue-600 hover:bg-blue-750 disabled:bg-slate-800 text-white text-[10px] font-bold px-3 py-1.5 rounded transition-all cursor-pointer flex items-center gap-1"
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-800 text-white text-[10px] font-bold px-3 py-1.5 rounded transition-all cursor-pointer flex items-center gap-1"
                     >
                       {isScanning ? (
                         <>

@@ -957,7 +957,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
       <div id="payroll-module-navigator" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
         
         {/* Navigation tabs styled exactly like Disciplinary Management */}
-        <div id="payroll-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
+        <div id="payroll-navigation-tabs" className="nv-tab-list select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
           {mainTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeMainTab === tab.label;
@@ -965,14 +965,13 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               <button
                 id={`payroll-tab-${tab.label.replace(/\s+/g, '-').toLowerCase()}`}
                 key={tab.label}
+                type="button"
                 onClick={() => {
                   setActiveMainTab(tab.label);
                   addToast(`Opened ${tab.displayLabel} workstation view`, 'info');
                 }}
-                className={`text-xs font-bold px-3.5 py-2.5 rounded-xl transition-all shrink-0 relative cursor-pointer flex items-center gap-1.5 ${
-                  isActive
-                    ? 'bg-blue-50 text-novora'
-                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+                className={`nv-tab shrink-0 cursor-pointer flex items-center gap-1.5 text-xs ${
+                  isActive ? 'nv-tab-active' : ''
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -1083,7 +1082,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
           <button
             type="button"
             onClick={triggerPayrollRun}
-            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-extrabold text-white bg-novora hover:bg-opacity-95 rounded-xl transition-all shadow-sm cursor-pointer whitespace-nowrap shrink-0"
+            className="nv-btn-primary h-9 !py-2 !px-3.5 whitespace-nowrap shrink-0 cursor-pointer"
           >
             <Calculator className="h-4 w-4 shrink-0" />
             <span>Run payroll</span>
@@ -1093,17 +1092,16 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
 
       {/* ===== 3. SECONDARY LEVEL NAVIGATION CAP CAPSULES (Pills) ===== */}
-      <div id="payroll-secondary-capsules" className="flex items-center gap-2 select-none overflow-x-auto scrollbar-none py-1">
+      <div id="payroll-secondary-capsules" className="nv-toolbar select-none overflow-x-auto scrollbar-none py-0.5">
+        <div className="flex items-center gap-2 min-w-0">
         
         {/* Render secondary navigation pill elements according to activeMainTab */}
         {activeMainTab === 'Allowance' && (['Allowance type'] as const).map((sub) => (
           <button
             key={sub}
             onClick={() => setAllowanceSubTab(sub)}
-            className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
-              allowanceSubTab === sub
-                ? 'bg-novora text-white font-extrabold shadow-xxs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-100'
+            className={`nv-tab text-xs shrink-0 cursor-pointer ${
+              allowanceSubTab === sub ? 'nv-tab-active' : ''
             }`}
           >
             {sub}
@@ -1113,12 +1111,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
         {activeMainTab === 'Bonus' && (['Bonus type'] as const).map((sub) => (
           <button
             key={sub}
+            type="button"
             onClick={() => setBonusSubTab(sub)}
-            className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
-              bonusSubTab === sub
-                ? 'bg-novora text-white font-extrabold shadow-xxs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-100'
-            }`}
+            className={`nv-tab text-xs shrink-0 cursor-pointer ${bonusSubTab === sub ? 'nv-tab-active' : ''}`}
           >
             {sub}
           </button>
@@ -1129,16 +1124,15 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
           return (
             <button
               key={sub}
+              type="button"
               onClick={() => setOvertimeSubTab(sub)}
-              className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
-                overtimeSubTab === sub
-                  ? 'bg-novora text-white font-extrabold shadow-xxs'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-100'
+              className={`nv-tab text-xs shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                overtimeSubTab === sub ? 'nv-tab-active' : ''
               }`}
             >
               <span>{sub}</span>
               {isApproval && (
-                <span className="h-4.5 w-4.5 bg-amber-100 text-amber-700 text-[10px] font-black rounded-full flex items-center justify-center border border-amber-200 shrink-0">
+                <span className="nv-badge nv-badge--warn min-w-[1.1rem] justify-center px-1 py-0 text-[10px] font-bold normal-case tracking-normal">
                   {otRequests.filter((r) => r.status === 'Pending').length}
                 </span>
               )}
@@ -1149,12 +1143,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
         {activeMainTab === 'Deposit' && (['Deposit type'] as const).map((sub) => (
           <button
             key={sub}
+            type="button"
             onClick={() => setDepositSubTab(sub)}
-            className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
-              depositSubTab === sub
-                ? 'bg-novora text-white font-extrabold shadow-xxs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-100'
-            }`}
+            className={`nv-tab text-xs shrink-0 cursor-pointer ${depositSubTab === sub ? 'nv-tab-active' : ''}`}
           >
             {sub}
           </button>
@@ -1163,12 +1154,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
         {activeMainTab === 'Deduction' && (['Deduction type'] as const).map((sub) => (
           <button
             key={sub}
+            type="button"
             onClick={() => setDeductionSubTab(sub)}
-            className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
-              deductionSubTab === sub
-                ? 'bg-novora text-white font-extrabold shadow-xxs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-100'
-            }`}
+            className={`nv-tab text-xs shrink-0 cursor-pointer ${deductionSubTab === sub ? 'nv-tab-active' : ''}`}
           >
             {sub}
           </button>
@@ -1177,12 +1165,9 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
         {activeMainTab === 'Tax' && (['Tax category'] as const).map((sub) => (
           <button
             key={sub}
+            type="button"
             onClick={() => setTaxSubTab(sub)}
-            className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
-              taxSubTab === sub
-                ? 'bg-novora text-white font-extrabold shadow-xxs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-100'
-            }`}
+            className={`nv-tab text-xs shrink-0 cursor-pointer ${taxSubTab === sub ? 'nv-tab-active' : ''}`}
           >
             {sub}
           </button>
@@ -1191,27 +1176,35 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
         {activeMainTab === 'Pay management' && (['Payroll run', 'Payroll history'] as const).map((sub) => (
           <button
             key={sub}
+            type="button"
             onClick={() => setPayMgmtSubTab(sub)}
-            className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
-              payMgmtSubTab === sub
-                ? 'bg-novora text-white font-extrabold shadow-xxs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-white border border-slate-100'
-            }`}
+            className={`nv-tab text-xs shrink-0 cursor-pointer ${payMgmtSubTab === sub ? 'nv-tab-active' : ''}`}
           >
             {sub}
           </button>
         ))}
 
         {activeMainTab === 'Payroll reports' && (
-          <div className="text-xs font-bold text-novora bg-novora/10 px-3 py-1.5 rounded-lg border border-novora/20">
-            Interactive Dashboard Reports
-          </div>
+          <span className="nv-badge nv-badge--neutral normal-case tracking-normal text-[11px] font-semibold">
+            Reports
+          </span>
         )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="nv-badge nv-badge--info normal-case tracking-normal text-[10px] font-bold">
+            {activePeriodLabel}
+          </span>
+          {selectedDeptFilter !== 'All departments' ? (
+            <span className="nv-badge nv-badge--neutral normal-case tracking-normal text-[10px] font-bold">
+              {selectedDeptFilter}
+            </span>
+          ) : null}
+        </div>
       </div>
 
 
       {/* ===== 4. CONTENT WRAPPER BASED ON MAIN TABS AND SUB TABS ===== */}
-      <div id="payroll-workspace-canvas" className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs min-h-[400px]">
+      <div id="payroll-workspace-canvas" className="nv-panel p-5 sm:p-6 min-h-[400px]">
         
         {/* =======================================================
             ALLOWANCE MAIN TAB CONTENT
@@ -1253,27 +1246,27 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
 
                   <button
                     onClick={() => setAllowanceModalOpen(true)}
-                    className="bg-novora hover:bg-opacity-95 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-sm inline-flex items-center gap-1.5 self-end sm:self-auto cursor-pointer"
+                    className="nv-btn-primary text-xs !py-2 !px-3.5 inline-flex items-center gap-1.5 self-end sm:self-auto cursor-pointer"
                   >
                     <Plus className="h-4 w-4" />
-                    <span>New Allowance Type</span>
+                    <span>New allowance type</span>
                   </button>
                 </div>
 
                 {/* Table containing rows with active edit dialog launch */}
-                <div className="border border-slate-100 rounded-2xl overflow-x-auto">
+                <div className="nv-table-shell nv-table-shell--compact overflow-x-auto">
                   <table className="w-full text-left text-xs min-w-[800px]">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        <th className="p-4 pl-6">Allowance name</th>
-                        <th className="p-4">Policy type</th>
-                        <th className="p-4">Amount ({currency})</th>
-                        <th className="p-4">Deduction amt</th>
-                        <th className="p-4 text-center">Taxable</th>
-                        <th className="p-4 text-center">On payslip</th>
-                        <th className="p-4 text-center">Attach emp.</th>
-                        <th className="p-4">Status</th>
-                        <th className="p-4 pr-6 text-right">Actions</th>
+                        <th className="px-3 py-2 pl-4">Allowance name</th>
+                        <th className="px-3 py-2">Policy type</th>
+                        <th className="px-3 py-2">Amount ({currency})</th>
+                        <th className="px-3 py-2">Deduction amt</th>
+                        <th className="px-3 py-2 text-center">Taxable</th>
+                        <th className="px-3 py-2 text-center">On payslip</th>
+                        <th className="px-3 py-2 text-center">Attach emp.</th>
+                        <th className="px-3 py-2">Status</th>
+                        <th className="px-3 py-2 pr-4 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
@@ -1415,7 +1408,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       </span>
                     </div>
 
-                    <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white">
+                    <div className="nv-table-shell nv-table-shell--compact overflow-hidden bg-white">
                       <table className="w-full text-left text-xs">
                         <thead>
                           <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -1616,7 +1609,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </button>
                 </div>
 
-                <div className="border border-slate-100 rounded-2xl overflow-x-auto">
+                <div className="nv-table-shell nv-table-shell--compact overflow-x-auto">
                   <table className="w-full text-left text-xs min-w-[700px]">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -1926,7 +1919,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     </button>
                   </div>
 
-                  <div className="border border-slate-100 rounded-2xl overflow-x-auto">
+                  <div className="nv-table-shell nv-table-shell--compact overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -2393,7 +2386,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </button>
                 </div>
 
-                <div className="border border-slate-100 rounded-2xl overflow-x-auto">
+                <div className="nv-table-shell nv-table-shell--compact overflow-x-auto">
                   <table className="w-full text-left text-xs min-w-[700px]">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -2527,7 +2520,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </button>
                 </div>
 
-                <div className="border border-slate-100 rounded-2xl overflow-x-auto">
+                <div className="nv-table-shell nv-table-shell--compact overflow-x-auto">
                   <table className="w-full text-left text-xs min-w-[700px]">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -2773,7 +2766,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                   </button>
                 </div>
 
-                <div className="border border-slate-100 rounded-2xl overflow-x-auto">
+                <div className="nv-table-shell nv-table-shell--compact overflow-x-auto">
                   <table className="w-full text-left text-xs min-w-[600px]">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -2789,7 +2782,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                       {taxes.map((t) => (
                         <tr key={t.id} className="hover:bg-slate-50/50">
                           <td className="p-4 pl-6 font-bold text-slate-800">{t.name}</td>
-                          <td className="p-4 font-mono font-bold text-red-650">{t.code}</td>
+                          <td className="p-4 font-mono font-bold text-red-600">{t.code}</td>
                           <td className="p-4 text-slate-700">{t.calculateOn}</td>
                           <td className="p-4 text-center">
                             {t.calcOverallIncome === 'Yes' ? (
@@ -2835,7 +2828,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                          addToast(`Archived ${docName} standard successfully.`, 'success');
                        }
                      }}>
-                  <div className="h-10 w-10 bg-red-50 text-red-650 rounded-full flex items-center justify-center mx-auto mb-2 shrink-0">
+                  <div className="h-10 w-10 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-2 shrink-0">
                     <Paperclip className="h-5 w-5" />
                   </div>
                   <p className="text-xs font-bold text-slate-800">Attach government withholding filings or advisory reference briefs</p>
@@ -2892,7 +2885,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     </div>
                     <div className="flex justify-between pt-1.5">
                       <span>Exempt Threshold Level</span>
-                      <strong className="text-slate-800 text-indigo-650">{money(3000, 0)} / month</strong>
+                      <strong className="text-slate-800 text-indigo-600">{money(3000, 0)} / month</strong>
                     </div>
                   </div>
                 </div>
@@ -3043,7 +3036,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
                     </button>
                   </div>
 
-                  <div className="border border-slate-100 rounded-2xl overflow-x-auto">
+                  <div className="nv-table-shell nv-table-shell--compact overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -3473,7 +3466,7 @@ export default function PayrollTab({ employees, addToast }: PayrollTabProps) {
               </div>
 
               {/* 4. Employee Detailed ledger table */}
-              <div className="border border-slate-100 rounded-2xl overflow-x-auto bg-white">
+              <div className="nv-table-shell nv-table-shell--compact overflow-x-auto bg-white">
                 <table className="w-full text-left text-xs min-w-[850px]">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">

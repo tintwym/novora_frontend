@@ -276,7 +276,7 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
         {/* Left Aspect: Headcount Distribution Bar Chart Widget */}
         <div className="lg:col-span-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-5">
           <div className="border-b border-slate-50 pb-3">
-            <h3 className="text-xs font-bold text-slate-850 uppercase tracking-wider">Internal Roster Distribution by Department</h3>
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Internal Roster Distribution by Department</h3>
             <p className="text-[10px] text-slate-400 font-medium italic mt-0.5">Calculated percent of total database staff mapped to sectors</p>
           </div>
 
@@ -319,7 +319,7 @@ export default function EmployeeReportsTab({ employees, addToast }: EmployeeRepo
           {/* Employee Seniority & Tenure Levels Widget */}
           <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs">
             <div className="border-b border-slate-50 pb-3 mb-4">
-              <h3 className="text-xs font-bold text-slate-850 uppercase tracking-wider">Internal Service Longevity / Tenure Breakdown</h3>
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Internal Service Longevity / Tenure Breakdown</h3>
               <p className="text-[10px] text-slate-400 font-medium italic mt-0.5">Years of service calculated from historical joining rosters</p>
             </div>
 

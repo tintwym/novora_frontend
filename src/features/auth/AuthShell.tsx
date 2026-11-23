@@ -35,27 +35,17 @@ export default function AuthShell({ title, subtitle, children, footer }: AuthShe
           </p>
         </div>
 
-        <div className="relative z-10 max-w-lg space-y-5 animate-soft-fade-up">
+        <div className="relative z-10 max-w-lg space-y-4 animate-soft-fade-up">
           <h2 className="font-display text-4xl font-bold tracking-tight leading-[1.1]">
             Novora
           </h2>
-          <p className="text-lg font-semibold text-white/90 leading-snug">
-            People operations, built for growing teams.
+          <p className="text-base font-semibold text-white/90 leading-snug">
+            People operations for growing teams.
           </p>
-          <p className="text-sm font-medium text-white/60 leading-relaxed max-w-md">
-            Attendance, leave, payroll, recruitment, and performance — one workspace with clear
-            roles for Admin, HR, and every employee.
+          <p className="text-sm font-medium text-white/55 leading-relaxed max-w-md">
+            Attendance, leave, payroll, and performance in one workspace — clear roles for Admin,
+            HR, and every employee.
           </p>
-          <div className="flex flex-wrap gap-2 pt-2">
-            {['Attendance', 'Leave', 'Payroll', 'Recruitment'].map((label) => (
-              <span
-                key={label}
-                className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white/70"
-              >
-                {label}
-              </span>
-            ))}
-          </div>
         </div>
 
         <p className="relative z-10 text-[11px] font-semibold text-white/35">

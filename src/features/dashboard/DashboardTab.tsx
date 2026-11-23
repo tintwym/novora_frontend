@@ -199,21 +199,23 @@ function StatCard({
   const pct = isPercentDelta(delta)
   const up = pct && !delta!.trim().startsWith('-')
   return (
-    <div className="nv-stat-card !rounded-2xl !p-5 flex flex-col justify-between">
-      <span className={`flex w-fit items-center justify-center rounded-xl p-2.5 ${colorClass}`}>
-        <Icon className="h-5 w-5 shrink-0" />
-      </span>
-      <div className="mt-4">
-        <span className="block text-[26px] font-black leading-none tracking-tight text-slate-800">{value}</span>
-        <span className="mt-1.5 block text-[9.5px] font-black uppercase tracking-wider text-slate-400">{title}</span>
+    <div className="nv-stat-card !rounded-xl !p-3.5 flex flex-col justify-between min-h-0">
+      <div className="flex items-start justify-between gap-2">
+        <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400">{title}</span>
+        <span className={`flex shrink-0 items-center justify-center rounded-lg p-1.5 ${colorClass}`}>
+          <Icon className="h-3.5 w-3.5 shrink-0" />
+        </span>
+      </div>
+      <div className="mt-2">
+        <span className="block text-[22px] font-black leading-none tracking-tight text-slate-800 tabular-nums">{value}</span>
         {delta && delta !== '—' && (
-          <div className="mt-1.5 flex items-center gap-1.5 text-[10.5px] font-bold">
+          <div className="mt-1.5 flex items-center gap-1.5 text-[10px] font-bold">
             {pct ? (
               <>
                 <span className={`font-extrabold ${up ? 'text-emerald-600' : 'text-rose-600'}`}>
                   {up ? '↑' : '↓'} {delta.replace(/^[+-]/, '')}
                 </span>
-                <span className="font-medium text-slate-400">vs last month</span>
+                <span className="font-medium text-slate-400">vs last mo</span>
               </>
             ) : (
               <span className="font-medium text-slate-400">{delta}</span>
@@ -767,23 +769,23 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
   if (loading) {
     return (
       <div className="space-y-6 animate-in fade-in duration-300">
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <SkeletonBlock key={i} className="h-36" />
           ))}
         </div>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <SkeletonBlock className="h-80 lg:col-span-6" />
-          <SkeletonBlock className="h-80 lg:col-span-3" />
-          <SkeletonBlock className="h-80 lg:col-span-3" />
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+          <SkeletonBlock className="h-80 xl:col-span-6" />
+          <SkeletonBlock className="h-80 xl:col-span-3" />
+          <SkeletonBlock className="h-80 xl:col-span-3" />
         </div>
       </div>
     )
   }
 
   const absenceQueue = (
-    <Card className="lg:col-span-4">
-      <CardHeader title="Absence Queue" action={{ label: 'Action List', onClick: () => goTo('Leave Management') }} />
+    <Card className="xl:col-span-4">
+      <CardHeader title="Absence Queue" action={{ label: 'Action List', onClick: () => goTo(isAdmin ? 'Approvals' : 'Leave Management') }} />
       {leaveRows.length === 0 ? (
         <EmptyNote>No leave requests right now.</EmptyNote>
       ) : (
@@ -837,9 +839,9 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
             colorClass="bg-orange-50 text-orange-600 border border-orange-100/30"
           />
         </div>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <TimeTrackingCard addToast={addToast} className="lg:col-span-4" />
-          <AttendanceCard overview={attendance} className="lg:col-span-4" />
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+          <TimeTrackingCard addToast={addToast} className="xl:col-span-4" />
+          <AttendanceCard overview={attendance} className="xl:col-span-4" />
           {absenceQueue}
         </div>
       </div>
@@ -847,10 +849,26 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
   }
 
   const headcount = employees.length > 0 ? employees.length.toLocaleString() : '—'
+  const pendingLeave = leaveRows.filter((r) => /pending/i.test(r.status)).length
 
   return (
-    <div id="dynamic-combined-dashboard-root" className="space-y-6 animate-in fade-in duration-300">
-      <div id="strategic-indicators-grid" className="grid grid-cols-2 gap-4 lg:grid-cols-6">
+    <div id="dynamic-combined-dashboard-root" className="space-y-5 animate-in fade-in duration-300">
+      {pendingLeave > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-100 bg-amber-50/90 px-4 py-2.5 text-xs">
+          <span className="font-bold text-amber-900">
+            {pendingLeave} leave request{pendingLeave === 1 ? '' : 's'} waiting for approval
+          </span>
+          <button
+            type="button"
+            onClick={() => goTo('Approvals')}
+            className="font-black uppercase tracking-wide text-novora hover:underline"
+          >
+            Open approvals
+          </button>
+        </div>
+      ) : null}
+
+      <div id="strategic-indicators-grid" className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-6">
         <StatCard
           title="Total Employees"
           value={kpi('total employees')?.value ?? headcount}
@@ -895,14 +913,14 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <WorkforceTrendsCard growth={growth} className="lg:col-span-6" />
-        <AttendanceCard overview={attendance} className="lg:col-span-3" />
-        <TimeTrackingCard addToast={addToast} className="lg:col-span-3" />
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+        <WorkforceTrendsCard growth={growth} className="xl:col-span-6" />
+        <AttendanceCard overview={attendance} className="xl:col-span-3" />
+        <TimeTrackingCard addToast={addToast} className="xl:col-span-3" />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <Card className="lg:col-span-4">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <Card className="xl:col-span-4">
           <CardHeader title="New Talent" action={{ label: 'Explorer', onClick: () => goTo('Employees Management') }} />
           {hires.length === 0 ? (
             <EmptyNote>No new joiners in the last 30 days.</EmptyNote>
@@ -930,10 +948,10 @@ export default function DashboardTab({ employees, setActiveSidebarTab, addToast,
 
         {absenceQueue}
 
-        <FinancialOverviewCard slices={payroll} onOpen={() => goTo('Payroll Management')} className="lg:col-span-4" />
+        <FinancialOverviewCard slices={payroll} onOpen={() => goTo('Payroll Management')} className="xl:col-span-4" />
       </div>
 
-      <Card className="!flex-row items-start gap-4">
+      <Card className="!flex-col items-start gap-4 sm:!flex-row">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-novora/10 text-novora">
           <Sparkles className="h-4 w-4" />
         </span>

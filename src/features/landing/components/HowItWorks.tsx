@@ -91,7 +91,7 @@ export default function HowItWorks() {
               <span>Taxes calculated</span>
               <span>-$3,150.22</span>
             </div>
-            <div className="flex items-center justify-between text-slate-200 text-xs font-bold pt-1 border-t border-slate-850">
+            <div className="flex items-center justify-between text-slate-200 text-xs font-bold pt-1 border-t border-slate-800">
               <span>Disbursed via API</span>
               <span className="text-orange-400">$45,089.78</span>
             </div>

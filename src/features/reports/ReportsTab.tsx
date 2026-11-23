@@ -1387,6 +1387,8 @@ export default function ReportsTab({
         {(
           [
             { id: 'centre' as const, label: 'Report centre' },
+            { id: 'scheduled' as const, label: 'Scheduled' },
+            { id: 'builder' as const, label: 'Custom builder' },
           ] as const
         ).map((tab) => {
           const isActive = activeSidebarTab === tab.id
@@ -1715,7 +1717,7 @@ export default function ReportsTab({
         {activeSidebarTab === 'centre' && selectedModule !== 'All Overview' && (
           <div
             id="report-individual-module"
-            className="rounded-3xl border border-slate-100 bg-white p-8 shadow-xs animate-in fade-in duration-250"
+            className="rounded-3xl border border-slate-100 bg-white p-8 shadow-xs animate-in fade-in duration-200"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>

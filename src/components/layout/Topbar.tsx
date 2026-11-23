@@ -3,6 +3,7 @@ import {
   Bell,
   ChevronDown,
   LogOut,
+  Menu,
   User,
   ShieldCheck,
   Briefcase,
@@ -29,6 +30,7 @@ interface TopbarProps {
   employees?: Employee[]
   onNavigate?: (tab: SidebarTab) => void
   onSelectEmployee?: (emp: Employee) => void
+  onOpenMobileNav?: () => void
 }
 
 type NotifyUi = { id: string; title: string; msg: string; time: string; read: boolean }
@@ -78,6 +80,7 @@ export default function Topbar({
   onLogout,
   employees = [],
   onNavigate,
+  onOpenMobileNav,
   onSelectEmployee,
 }: TopbarProps) {
   const [profileOpen, setProfileOpen] = useState(false)
@@ -133,19 +136,29 @@ export default function Topbar({
   return (
     <header
       id="app-topbar"
-      className="relative z-40 h-16 px-6 md:px-8 flex items-center justify-between gap-4 shrink-0"
+      className="relative z-40 flex h-16 shrink-0 items-center justify-between gap-2 px-3 sm:gap-3 sm:px-5 md:gap-4 md:px-8"
     >
-      <div className="flex items-center gap-2 min-w-0 flex-1">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        {onOpenMobileNav ? (
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--shell-topbar-border)] text-slate-600 hover:bg-[var(--sidebar-item-hover-bg)] md:hidden"
+            aria-label="Open navigation"
+            onClick={onOpenMobileNav}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        ) : null}
         <h1
           id="topbar-section-title"
-          className="text-base md:text-[19px] font-bold tracking-tight truncate"
+          className="truncate text-sm font-bold tracking-tight sm:text-base md:text-[19px]"
           title={activeTabName}
         >
           {activeTabName}
         </h1>
       </div>
 
-      <div className="flex items-center gap-3 md:gap-4 shrink-0">
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-3 md:gap-4">
         <GlobalSearch
           value={searchValue}
           onChange={(val) => onSearchChange?.(val)}
@@ -182,7 +195,7 @@ export default function Topbar({
           {notificationsOpen ? (
             <div
               id="topbar-notifications-dropdown"
-              className="nv-dropdown-menu w-80 nv-card shadow-xl py-2"
+              className="nv-dropdown-menu w-[min(20rem,calc(100vw-1.5rem))] nv-card shadow-xl py-2"
             >
               <div className="px-4 py-2.5 border-b border-slate-50 flex items-center justify-between">
                 <span className="font-bold text-slate-800 text-sm">Notifications</span>
@@ -240,7 +253,7 @@ export default function Topbar({
             <div className="h-7 w-7 bg-novora/10 border border-novora/20 rounded-lg flex items-center justify-center text-sm font-bold text-novora">
               {initial}
             </div>
-            <span className="text-xs font-bold text-[var(--shell-title)] tracking-tight max-w-28 truncate hidden xl:inline">
+            <span className="hidden max-w-28 truncate text-xs font-bold tracking-tight text-[var(--shell-title)] lg:inline">
               {displayName}
             </span>
             <RoleIcon roles={session?.roles} className="h-3.5 w-3.5 text-slate-500 shrink-0 hidden sm:block" />

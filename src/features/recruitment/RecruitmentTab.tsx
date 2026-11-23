@@ -1836,7 +1836,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord, employ
                           <td className="py-3 px-1">
                             <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${
                               item.status === 'Confirmed' ? 'bg-emerald-50 text-emerald-600' :
-                              item.status === 'No show' ? 'bg-red-50 text-red-650' : 'bg-amber-50 text-amber-600'
+                              item.status === 'No show' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'
                             }`}>
                               {item.status}
                             </span>
@@ -1893,7 +1893,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord, employ
                       </div>
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${
                         activeInterview.status === 'Confirmed' || activeInterview.status === 'Completed' ? 'bg-emerald-50 text-emerald-600' :
-                        activeInterview.status === 'No show' ? 'bg-red-50 text-red-650' : 'bg-amber-50 text-amber-600'
+                        activeInterview.status === 'No show' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'
                       }`}>
                         {activeInterview.status}
                       </span>
@@ -2139,7 +2139,7 @@ export default function RecruitmentTab({ addToast, onAddEmployeeAsRecord, employ
               <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs">
                 <div className="flex items-center justify-between border-b border-slate-50 pb-4 mb-4">
                   <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Verification check</h3>
-                  <span className="text-[11px] font-bold text-indigo-650">{activePreOnboard?.candidateName || 'Candidate'}</span>
+                  <span className="text-[11px] font-bold text-indigo-600">{activePreOnboard?.candidateName || 'Candidate'}</span>
                 </div>
 
                 {/* Subchecklist with manual toggles */}

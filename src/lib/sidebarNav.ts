@@ -6,6 +6,7 @@ import {
   UserPlus,
   CalendarCheck2,
   FileMinus,
+  ClipboardCheck,
   ShieldAlert,
   CreditCard,
   Receipt,
@@ -57,6 +58,7 @@ export const MAIN_NAV_SECTIONS: NavSection[] = [
       { name: 'On/Off-boarding Management', icon: UserPlus },
       { name: 'Attendance Management', icon: CalendarCheck2 },
       { name: 'Leave Management', icon: FileMinus },
+      { name: 'Approvals', icon: ClipboardCheck },
       { name: 'Disciplinary Management', icon: ShieldAlert },
       { name: 'Payroll Management', icon: CreditCard },
       { name: 'Claims Management', icon: Receipt },
@@ -109,7 +111,10 @@ export const SETTINGS_NAV_SECTIONS: SettingsNavSection[] = [
   },
   {
     group: 'Integrations',
-    items: [{ name: 'Novora CRM', icon: Link2 }],
+    items: [
+      { name: 'Novora CRM', icon: Link2 },
+      { name: 'Novora Accounting', icon: CreditCard },
+    ],
   },
   {
     group: 'Preferences',

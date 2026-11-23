@@ -16,6 +16,8 @@ interface SidebarProps {
   roles?: string[];
   settingsSubTab?: string;
   setSettingsSubTab?: (tab: string) => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 export default function Sidebar({
@@ -24,6 +26,8 @@ export default function Sidebar({
   roles = [],
   settingsSubTab = 'Company profile',
   setSettingsSubTab,
+  mobileOpen = false,
+  onMobileClose,
 }: SidebarProps) {
   const { isDarkSidebar } = useTheme();
   const [collapsed, setCollapsed] = useState(() => {
@@ -36,18 +40,38 @@ export default function Sidebar({
   const [moduleMenuOpen, setModuleMenuOpen] = useState(false);
   const [settingsSearch, setSettingsSearch] = useState('');
   const [narrow, setNarrow] = useState(false);
+  const [phone, setPhone] = useState(false);
   const moduleMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 1023px)');
-    const update = () => setNarrow(mq.matches);
+    const mqNarrow = window.matchMedia('(max-width: 1023px)');
+    const mqPhone = window.matchMedia('(max-width: 767px)');
+    const update = () => {
+      setNarrow(mqNarrow.matches);
+      setPhone(mqPhone.matches);
+    };
     update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
+    mqNarrow.addEventListener('change', update);
+    mqPhone.addEventListener('change', update);
+    return () => {
+      mqNarrow.removeEventListener('change', update);
+      mqPhone.removeEventListener('change', update);
+    };
   }, []);
 
-  const rail = collapsed || narrow;
+  useEffect(() => {
+    if (!phone || !mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onMobileClose?.();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [phone, mobileOpen, onMobileClose]);
+
+  // Phone: off-canvas expanded drawer. Tablet (768–1023): icon rail. Desktop: user collapse.
+  const rail = phone ? false : collapsed || narrow;
   const settingsMode = activeTab === 'Settings' && !rail;
+  const drawer = phone;
 
   useEffect(() => {
     try {
@@ -92,7 +116,7 @@ export default function Sidebar({
     setActiveTab(tab);
   };
 
-  const collapseToggle = narrow ? null : rail ? (
+  const collapseToggle = drawer || narrow ? null : rail ? (
     <SidebarTooltip label="Expand sidebar" show>
       <button
         type="button"
@@ -121,7 +145,16 @@ export default function Sidebar({
     <aside
       id="app-sidebar"
       data-collapsed={rail ? 'true' : 'false'}
-      className={`nv-sidebar-shell ${rail ? 'nv-sidebar-shell--rail' : 'nv-sidebar-shell--expanded'}`}
+      data-drawer={drawer ? 'true' : 'false'}
+      aria-hidden={drawer && !mobileOpen ? true : undefined}
+      className={[
+        'nv-sidebar-shell',
+        rail ? 'nv-sidebar-shell--rail' : 'nv-sidebar-shell--expanded',
+        drawer ? 'nv-sidebar-shell--drawer' : '',
+        drawer && mobileOpen ? 'nv-sidebar-shell--drawer-open' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
       {settingsMode ? (
         <div id="settings-sidebar-header" className="p-4 border-b border-[var(--sidebar-border)] shrink-0">

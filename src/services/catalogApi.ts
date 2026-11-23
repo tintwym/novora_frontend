@@ -10,6 +10,8 @@ export type LeaveTypeRow = {
   maxCarryDays: number
   description: string | null
   active: boolean
+  requiresAttachment?: boolean
+  accrualMethod?: 'ANNUAL' | 'MONTHLY_PRORATE' | string
   createdAt: string | null
 }
 
@@ -278,6 +280,8 @@ export async function createLeaveType(payload: {
   maxCarryDays?: number
   description?: string
   active?: boolean
+  requiresAttachment?: boolean
+  accrualMethod?: string
 }): Promise<LeaveTypeRow> {
   return apiRequest<LeaveTypeRow>('/api/admin/leave-types', { method: 'POST', body: payload })
 }
@@ -293,6 +297,8 @@ export async function updateLeaveType(
     maxCarryDays?: number
     description?: string
     active?: boolean
+    requiresAttachment?: boolean
+    accrualMethod?: string
   },
 ): Promise<LeaveTypeRow> {
   return apiRequest<LeaveTypeRow>(`/api/admin/leave-types/${id}`, { method: 'PUT', body: payload })

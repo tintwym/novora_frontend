@@ -24,6 +24,9 @@ export type LeaveRequest = {
   decidedBy: string | null
   decidedAt: string | null
   createdAt: string
+  hasAttachment?: boolean
+  attachmentName?: string | null
+  attachmentUrl?: string | null
 }
 
 export type CreateLeavePayload = {
@@ -31,6 +34,9 @@ export type CreateLeavePayload = {
   startDate: string
   endDate: string
   reason?: string
+  attachmentName?: string
+  attachmentContentBase64?: string
+  attachmentUrl?: string
 }
 
 export type DecideLeavePayload = {
