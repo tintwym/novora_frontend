@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import type { Employee, SidebarTab } from '@/types'
 import { canManageFullSystem } from '@/lib/roles'
+import { COMPANY_TZ, COMPANY_UTC_OFFSET, localTodayIso } from '@/lib/dates'
 import { DropdownAnchor } from '@/components/ui'
 import {
   ApiError,
@@ -68,20 +69,17 @@ const ATTENDANCE_COLORS: Record<string, string> = {
   'on leave': '#818cf8',
 }
 
-function todayLocalIso() {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
-/** Backend returns LocalTime as "HH:mm:ss" (not a full ISO datetime). */
-function parsePunch(value: string | null | undefined): Date | null {
+/** Backend returns LocalTime as "HH:mm:ss" in Asia/Singapore (not a full ISO datetime). */
+function parsePunch(value: string | null | undefined, dayIso = localTodayIso()): Date | null {
   if (!value) return null
   const raw = String(value).trim()
   const timeOnly = raw.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/)
   if (timeOnly) {
-    const d = new Date()
-    d.setHours(Number(timeOnly[1]), Number(timeOnly[2]), Number(timeOnly[3] ?? 0), 0)
-    return d
+    const hh = String(Number(timeOnly[1])).padStart(2, '0')
+    const mm = String(Number(timeOnly[2])).padStart(2, '0')
+    const ss = String(Number(timeOnly[3] ?? 0)).padStart(2, '0')
+    const parsed = new Date(`${dayIso}T${hh}:${mm}:${ss}${COMPANY_UTC_OFFSET}`)
+    return Number.isNaN(parsed.getTime()) ? null : parsed
   }
   const parsed = new Date(raw)
   return Number.isNaN(parsed.getTime()) ? null : parsed
@@ -90,7 +88,12 @@ function parsePunch(value: string | null | undefined): Date | null {
 function formatPunch(value: string | null | undefined) {
   const d = parsePunch(value)
   if (!d) return '--:--'
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: COMPANY_TZ,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(d)
 }
 
 function normalizeWorkDate(value: unknown): string {
@@ -112,12 +115,23 @@ function initials(name: string) {
 }
 
 function digitalTime(d: Date) {
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: COMPANY_TZ,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(d)
 }
 
 function calendarDate(d: Date) {
-  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  return d.toLocaleDateString('en-GB', {
+    timeZone: COMPANY_TZ,
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 }
 
 function smoothPath(pts: { x: number; y: number }[]) {
@@ -473,14 +487,10 @@ function TimeTrackingCard({ addToast, className = '' }: { addToast: Toast; class
     try {
       setErrorHint(null)
       const rows = await fetchMyAttendance()
-      const today = todayLocalIso()
-      const todayUtc = new Date().toISOString().slice(0, 10)
+      const today = localTodayIso()
       const openSession = rows.find((r) => r.checkInTime && !r.checkOutTime)
       const todayLog =
-        rows.find((r) => {
-          const wd = normalizeWorkDate(r.workDate)
-          return wd === today || wd === todayUtc
-        }) || openSession
+        rows.find((r) => normalizeWorkDate(r.workDate) === today) || openSession
       applyLog(todayLog?.checkInTime, todayLog?.checkOutTime)
     } catch (err) {
       setErrorHint(err instanceof ApiError ? err.message : 'Could not load attendance.')
@@ -520,9 +530,10 @@ function TimeTrackingCard({ addToast, className = '' }: { addToast: Toast; class
   }
 
   const sessionLabel = (() => {
-    const start = parsePunch(checkIn)
+    const day = localTodayIso(clock)
+    const start = parsePunch(checkIn, day)
     if (!start) return '0h 0m'
-    const end = phase === 'done' ? parsePunch(checkOut) ?? clock : clock
+    const end = phase === 'done' ? parsePunch(checkOut, day) ?? clock : clock
     const mins = Math.max(0, Math.floor((end.getTime() - start.getTime()) / 60000))
     return `${Math.floor(mins / 60)}h ${mins % 60}m`
   })()
@@ -544,7 +555,7 @@ function TimeTrackingCard({ addToast, className = '' }: { addToast: Toast; class
           {digitalTime(clock)}
         </span>
         <span className="mt-2 block text-center text-[9px] font-black uppercase tracking-wider text-slate-500">
-          {calendarDate(clock)}
+          {calendarDate(clock)} · SGT
         </span>
       </div>
 

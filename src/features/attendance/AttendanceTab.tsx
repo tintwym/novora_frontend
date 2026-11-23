@@ -255,8 +255,13 @@ function toHhMm(raw: string): string | undefined {
 }
 
 function todayIsoDate() {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  // Match backend WorkService Asia/Singapore calendar day (not browser-local / UTC).
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Singapore',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date())
 }
 
 function mapAttendanceTodayRow(row: AttendanceTodayRow) {
