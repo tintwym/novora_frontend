@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), var(--font-noto-myanmar), "Noto Sans Myanmar", "Padauk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-inter), var(--font-noto-myanmar), "Noto Sans Myanmar", "Padauk", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   --color-novora: #2f66e0;
@@ -119,6 +119,40 @@ body {
   background-color: var(--shell-surface);
   color: var(--color-novora-ink);
   transition: background-color 420ms ease, color 420ms ease;
+}
+
+/* Hide scrollbars on horizontal tab strips without breaking scroll. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Myanmar script: avoid letter-spacing / uppercase that break glyphs. */
+:lang(my),
+.font-my,
+:where([lang='my']) {
+  font-family: var(--font-noto-myanmar), "Noto Sans Myanmar", "Padauk", var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.7;
+  letter-spacing: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+:lang(my) .uppercase,
+:where([lang='my']) .uppercase {
+  text-transform: none;
+}
+
+:lang(my) .tracking-wide,
+:lang(my) .tracking-wider,
+:lang(my) .tracking-widest,
+:where([lang='my']) .tracking-wide,
+:where([lang='my']) .tracking-wider,
+:where([lang='my']) .tracking-widest {
+  letter-spacing: normal;
 }
 
 #novora-hrms-root {
@@ -272,6 +306,46 @@ html[data-theme='cyber-dark'] .nv-btn-secondary {
 
 .nv-sidebar-shell--rail {
   width: 4.25rem;
+}
+
+.nv-sidebar-shell--drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 50;
+  width: min(17rem, calc(100vw - 3rem));
+  transform: translateX(-105%);
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.nv-sidebar-shell--drawer-open {
+  transform: translateX(0);
+  pointer-events: auto;
+  box-shadow: 12px 0 40px rgb(15 23 42 / 0.18);
+}
+
+.nv-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  border: 0;
+  cursor: pointer;
+  background: rgb(15 23 42 / 0.35);
+}
+
+@media (min-width: 768px) {
+  .nv-sidebar-shell--drawer,
+  .nv-sidebar-shell--drawer-open {
+    position: sticky;
+    transform: none;
+    pointer-events: auto;
+    box-shadow: none;
+    width: auto;
+  }
+
+  .nv-sidebar-backdrop {
+    display: none;
+  }
 }
 
 /* Hover labels for the icon rail (rendered via portal; keep a class hook for theme). */
@@ -607,15 +681,29 @@ html[data-theme='cyber-dark'] .nv-btn-secondary {
 }
 
 html[data-density='compact'] #portal-inner-board {
-  padding: 1rem 1.25rem;
+  padding: 0.85rem 1rem;
 }
 
 html[data-density='cozy'] #portal-inner-board {
-  padding: 1.5rem 2rem;
+  padding: 1rem 1.25rem;
 }
 
 html[data-density='spacious'] #portal-inner-board {
-  padding: 1.75rem 2.5rem;
+  padding: 1.15rem 1.35rem;
+}
+
+@media (min-width: 1024px) {
+  html[data-density='compact'] #portal-inner-board {
+    padding: 1rem 1.25rem;
+  }
+
+  html[data-density='cozy'] #portal-inner-board {
+    padding: 1.5rem 2rem;
+  }
+
+  html[data-density='spacious'] #portal-inner-board {
+    padding: 1.75rem 2.5rem;
+  }
 }
 
 @keyframes mesh-drift {
@@ -1244,6 +1332,10 @@ html[data-theme='cyber-dark'] .nv-search-wrap:focus-within .nv-search-input {
 
 .nv-ai-panel {
   animation: nv-ai-panel-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  border-color: color-mix(in srgb, var(--color-novora) 22%, var(--color-novora-border));
+  background:
+    radial-gradient(ellipse 80% 120% at 0% 0%, color-mix(in srgb, var(--color-novora) 8%, transparent), transparent 55%),
+    color-mix(in srgb, white 94%, transparent);
 }
 
 @keyframes nv-ai-panel-in {
@@ -1425,7 +1517,19 @@ html[data-theme='cyber-dark'] .nv-dropdown-menu > button.nv-dropdown-item--activ
 /* HR module surfaces inside the authenticated portal */
 #portal-inner-board {
   color: var(--color-novora-ink);
-  padding: 1.25rem 2rem;
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  #portal-inner-board {
+    padding: 1.15rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  #portal-inner-board {
+    padding: 1.25rem 2rem;
+  }
 }
 
 .nv-panel {
@@ -1540,30 +1644,42 @@ html[data-theme='cyber-dark'] .nv-dropdown-menu > button.nv-dropdown-item--activ
 #performance-filters,
 #payroll-global-ctrls,
 #employees-top-controls {
-  flex-wrap: nowrap;
-  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
-[id$="-upper-actions"] > *,
-[id$="-top-controls"] > *,
-#performance-filters > *,
-#payroll-global-ctrls > *,
-#employees-top-controls > * {
-  flex-shrink: 0;
-}
+@media (min-width: 1024px) {
+  [id$="-upper-actions"],
+  [id$="-top-controls"],
+  #performance-filters,
+  #payroll-global-ctrls,
+  #employees-top-controls {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+  }
 
-[id$="-upper-actions"] button,
-[id$="-upper-actions"] select,
-[id$="-top-controls"] button,
-[id$="-top-controls"] select,
-#performance-filters button,
-#performance-filters select,
-#payroll-global-ctrls button,
-#payroll-global-ctrls select,
-#employees-top-controls button,
-#employees-top-controls select {
-  white-space: nowrap !important;
-  flex-shrink: 0;
+  [id$="-upper-actions"] > *,
+  [id$="-top-controls"] > *,
+  #performance-filters > *,
+  #payroll-global-ctrls > *,
+  #employees-top-controls > * {
+    flex-shrink: 0;
+  }
+
+  [id$="-upper-actions"] button,
+  [id$="-upper-actions"] select,
+  [id$="-top-controls"] button,
+  [id$="-top-controls"] select,
+  #performance-filters button,
+  #performance-filters select,
+  #payroll-global-ctrls button,
+  #payroll-global-ctrls select,
+  #employees-top-controls button,
+  #employees-top-controls select {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
 }
 
 /* —— Module chrome (shared across tabs) —— */
@@ -1645,6 +1761,15 @@ html[data-theme='cyber-dark'] .nv-dropdown-menu > button.nv-dropdown-item--activ
 
 .nv-table-shell tbody tr:last-child td {
   border-bottom: none;
+}
+
+.nv-table-shell--compact thead th {
+  padding: 0.55rem 0.85rem;
+}
+
+.nv-table-shell--compact tbody td {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.75rem;
 }
 
 .nv-empty {
@@ -1767,13 +1892,6 @@ html[data-theme='cyber-dark'] .nv-dropdown-menu > button.nv-dropdown-item--activ
 .nv-stagger > *:nth-child(6) { animation-delay: 290ms; }
 .nv-stagger > *:nth-child(7) { animation-delay: 340ms; }
 .nv-stagger > *:nth-child(8) { animation-delay: 390ms; }
-
-.nv-ai-panel {
-  border-color: color-mix(in srgb, var(--color-novora) 22%, var(--color-novora-border));
-  background:
-    radial-gradient(ellipse 80% 120% at 0% 0%, color-mix(in srgb, var(--color-novora) 8%, transparent), transparent 55%),
-    color-mix(in srgb, white 94%, transparent);
-}
 
 @media (prefers-reduced-motion: reduce) {
   .animate-portal-content-in,

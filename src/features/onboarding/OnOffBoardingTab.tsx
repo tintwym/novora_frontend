@@ -1010,7 +1010,7 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
                               </button>
                               <button
                                 onClick={() => handleManagerApprovalState(c.id, 'Rejected')}
-                                className="border border-red-200 text-red-650 hover:bg-red-50 font-extrabold text-[10px] px-2 py-1 rounded-md"
+                                className="border border-red-200 text-red-600 hover:bg-red-50 font-extrabold text-[10px] px-2 py-1 rounded-md"
                               >
                                 Reject
                               </button>

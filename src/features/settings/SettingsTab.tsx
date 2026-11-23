@@ -72,6 +72,7 @@ import {
 import type { Employee } from '@/types';
 import NovoraLogo from '@/components/brand/NovoraLogo';
 import CrmIntegrationPanel from './CrmIntegrationPanel';
+import AccountingIntegrationPanel from './AccountingIntegrationPanel';
 
 type BranchUi = { id: string; name: string; city: string; count: number; isMain: boolean }
 
@@ -912,7 +913,7 @@ export default function SettingsTab({
                   <button
                     type="button"
                     onClick={() => addToast('Reverted logo to text fallback.', 'info')}
-                    className="px-3 py-1.5 bg-red-50 text-red-650 hover:bg-red-100 text-[10.5px] font-bold rounded-lg cursor-pointer transition-all"
+                    className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 text-[10.5px] font-bold rounded-lg cursor-pointer transition-all"
                   >
                     Remove
                   </button>
@@ -1096,7 +1097,7 @@ export default function SettingsTab({
             <div className="flex justify-end pt-3">
               <button
                 type="submit"
-                className="bg-novora text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-opacity-95 cursor-pointer transition-all flex items-center gap-2"
+                className="nv-btn-primary text-xs inline-flex items-center gap-2"
               >
                 <Save className="h-4 w-4" />
                 <span>Save Registry Details</span>
@@ -1115,7 +1116,7 @@ export default function SettingsTab({
               </div>
               <button
                 onClick={() => addToast('System module grid configuration saved successfully.', 'success')}
-                className="bg-novora text-white px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-opacity-95 cursor-pointer transition-all flex items-center gap-1.5 animate-pulse"
+                className="nv-btn-primary text-xs inline-flex items-center gap-1.5 animate-pulse"
               >
                 <Save className="h-3.5 w-3.5" />
                 <span>Save Modules Setup</span>
@@ -1168,7 +1169,7 @@ export default function SettingsTab({
                   setShowAddBranch(true);
                   setEditingBranchId(null);
                 }}
-                className="bg-novora text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-opacity-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                className="nv-btn-primary text-xs inline-flex items-center gap-1.5"
               >
                 <Plus className="h-4 w-4" />
                 <span>Add Branch</span>
@@ -1274,11 +1275,11 @@ export default function SettingsTab({
                       <td className="px-5 py-3.5">{b.count} staff members</td>
                       <td className="px-5 py-3.5">
                         {b.isMain ? (
-                          <span className="bg-emerald-50 text-emerald-650 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase">
+                          <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase">
                             Main Branch HQ
                           </span>
                         ) : (
-                          <span className="bg-blue-50 text-blue-650 border border-blue-100 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase">
+                          <span className="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase">
                             Active Office
                           </span>
                         )}
@@ -1441,7 +1442,7 @@ export default function SettingsTab({
               </div>
               <button
                 onClick={() => setShowAddUser(true)}
-                className="bg-novora text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-opacity-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                className="nv-btn-primary text-xs inline-flex items-center gap-1.5"
               >
                 <Plus className="h-4 w-4" />
                 <span>Invite User</span>
@@ -1561,7 +1562,7 @@ export default function SettingsTab({
                         ) : (
                           <button
                             onClick={() => void handleRevokeAccess(su.id, su.email)}
-                            className="text-red-500 hover:text-red-750 hover:underline cursor-pointer"
+                            className="text-red-500 hover:text-red-700 hover:underline cursor-pointer"
                           >
                             Revoke Access
                           </button>
@@ -1932,7 +1933,7 @@ export default function SettingsTab({
                       addToast(`Roles Authorization Matrix for " ${editingMatrixRole}" updated successfully!`, 'success');
                       setEditingMatrixRole(null);
                     }}
-                    className="bg-novora text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-opacity-95 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                    className="nv-btn-primary text-xs inline-flex items-center gap-1.5"
                   >
                     <Save className="h-4 w-4" />
                     <span>Save Matrix Credentials</span>
@@ -1949,7 +1950,7 @@ export default function SettingsTab({
                 </div>
                 <button
                   onClick={() => setShowCreateRole(!showCreateRole)}
-                  className="bg-novora text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-opacity-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="nv-btn-primary text-xs inline-flex items-center gap-1.5"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Create Role</span>
@@ -2026,7 +2027,7 @@ export default function SettingsTab({
               </div>
               <button
                 onClick={() => setShowCreateWorkflow(!showCreateWorkflow)}
-                className="bg-novora text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-opacity-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                className="nv-btn-primary text-xs inline-flex items-center gap-1.5"
               >
                 <Plus className="h-4 w-4" />
                 <span>New Workflow</span>
@@ -2097,7 +2098,7 @@ export default function SettingsTab({
                     <div className="flex items-center gap-3">
                       <h4 className="text-xs font-bold text-slate-800">{w.name}</h4>
                       <span className={`px-2 py-0.5 text-[9px] font-extrabold rounded-md uppercase tracking-wide border border-slate-100 ${
-                        w.active ? 'bg-emerald-50 text-emerald-650 border-emerald-100' : 'bg-slate-100 text-slate-400 border-slate-200'
+                        w.active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-100 text-slate-400 border-slate-200'
                       }`}>
                         {w.active ? 'Active Routing' : 'Deactivated'}
                       </span>
@@ -2133,7 +2134,7 @@ export default function SettingsTab({
               </div>
               <button
                 onClick={saveNotifs}
-                className="bg-novora text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-opacity-95 cursor-pointer transition-all flex items-center gap-1.5"
+                className="nv-btn-primary text-xs inline-flex items-center gap-1.5"
               >
                 <Save className="h-4 w-4" />
                 <span>Save state</span>
@@ -2274,11 +2275,11 @@ export default function SettingsTab({
                   </div>
                   <div className="shrink-0 text-right">
                     {item.connected ? (
-                      <span className="bg-emerald-50 text-emerald-650 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase block text-center">
+                      <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase block text-center">
                         Active Connection
                       </span>
                     ) : (
-                      <span className="bg-amber-50 text-amber-650 border border-amber-100 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase block text-center cursor-pointer hover:bg-amber-100/55" onClick={() => addToast('Configuring authority setup...', 'loading')}>
+                      <span className="bg-amber-50 text-amber-600 border border-amber-100 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase block text-center cursor-pointer hover:bg-amber-100/55" onClick={() => addToast('Configuring authority setup...', 'loading')}>
                         Setup Pending
                       </span>
                     )}
@@ -2329,6 +2330,7 @@ export default function SettingsTab({
         )}
 
         {activeSubTab === 'Novora CRM' && <CrmIntegrationPanel addToast={addToast} />}
+        {activeSubTab === 'Novora Accounting' && <AccountingIntegrationPanel addToast={addToast} />}
 
         {/* TAB 10: Security */}
         {activeSubTab === 'Security' && (
@@ -2340,7 +2342,7 @@ export default function SettingsTab({
               </div>
               <button
                 onClick={saveSecurity}
-                className="bg-novora text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-opacity-95 cursor-pointer transition-all flex items-center gap-1.5"
+                className="nv-btn-primary text-xs inline-flex items-center gap-1.5"
               >
                 <Save className="h-4 w-4" />
                 <span>Enforce directives</span>
@@ -2484,7 +2486,7 @@ export default function SettingsTab({
                   );
                   addToast(ok ? `Exported ${filteredLogs.length} audit entries as CSV.` : 'No audit entries to export.', ok ? 'success' : 'info');
                 }}
-                className="bg-novora text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-opacity-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer inline-flex"
+                className="nv-btn-primary text-xs inline-flex items-center justify-center gap-1.5"
               >
                 <Download className="h-4 w-4" />
                 <span>Export log</span>
@@ -2524,12 +2526,12 @@ export default function SettingsTab({
                       <td className="px-5 py-3.5">
                         <span className={`px-2 py-0.5 text-[9px] font-extrabold rounded-md uppercase tracking-wide border border-slate-100 ${
                           log.module === 'Payroll'
-                            ? 'bg-green-50 text-green-650 border-green-100'
+                            ? 'bg-green-50 text-green-600 border-green-100'
                             : log.module === 'Claims'
-                            ? 'bg-orange-50 text-orange-650 border-orange-100'
+                            ? 'bg-orange-50 text-orange-600 border-orange-100'
                             : log.module === 'Disciplinary'
-                            ? 'bg-pink-50 text-pink-650 border-pink-100'
-                            : 'bg-blue-50 text-blue-650 border-blue-100'
+                            ? 'bg-pink-50 text-pink-600 border-pink-100'
+                            : 'bg-blue-50 text-blue-600 border-blue-100'
                         }`}>
                           {log.module}
                         </span>
@@ -2779,7 +2781,7 @@ export default function SettingsTab({
             <div className="flex justify-end pt-2">
               <button
                 type="submit"
-                className="bg-novora text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-opacity-95 cursor-pointer transition-all flex items-center gap-1.5"
+                className="nv-btn-primary text-xs inline-flex items-center gap-1.5"
               >
                 <Save className="h-4 w-4" />
                 <span>Save Localisation</span>
@@ -2802,7 +2804,7 @@ export default function SettingsTab({
                   setEditingTemplateId(null);
                   setNewTemplateForm({ id: 0, name: '', trigger: 'On employee creation', subject: '', body: '' });
                 }}
-                className="bg-novora text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-opacity-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                className="nv-btn-primary text-xs inline-flex items-center gap-1.5"
               >
                 <Plus className="h-4 w-4" />
                 <span>{showCreateTemplate ? 'Close Editor' : 'Create Mail Template'}</span>
@@ -2859,7 +2861,7 @@ export default function SettingsTab({
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
                         <label className="text-[10px] font-bold text-slate-400 uppercase">Body Content Email Text</label>
-                        <span className="text-[9.5px] font-extrabold text-blue-650 bg-blue-50/60 px-1.5 py-0.5 rounded">
+                        <span className="text-[9.5px] font-extrabold text-blue-600 bg-blue-50/60 px-1.5 py-0.5 rounded">
                           Tokens: &#123;name&#125;, &#123;days&#125;, &#123;id&#125;, &#123;email&#125;
                         </span>
                       </div>
@@ -2992,7 +2994,7 @@ export default function SettingsTab({
               </div>
               <button
                 onClick={triggerBackupNow}
-                className="bg-novora text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-opacity-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer inline-flex shadow-xs"
+                className="nv-btn-primary text-xs inline-flex items-center justify-center gap-1.5"
               >
                 <RefreshCw className="h-4 w-4 animate-spin" style={{ animationDuration: '4s' }} />
                 <span>Run backup now</span>
@@ -3061,7 +3063,7 @@ export default function SettingsTab({
                       <div className="text-xs font-bold text-slate-700">Last success: 6 May 02:00 AM</div>
                       <div className="text-[10px] font-medium text-slate-400 mt-0.5">Automated cron verified &bull; S3 Bucket: novora_backups</div>
                     </div>
-                    <span className="bg-emerald-50 text-emerald-650 border border-emerald-100 px-2.5 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase">
+                    <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2.5 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase">
                       4.2 GB Snapshot
                     </span>
                   </div>

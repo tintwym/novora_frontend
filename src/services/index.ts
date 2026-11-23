@@ -75,12 +75,23 @@ export {
   createMyClaim,
   fetchAdminClaims,
   decideClaim,
+  fetchClaimPolicy,
+  updateClaimPolicy,
   fetchAdminPayroll,
   fetchPayrollRunSummary,
   generateAdminPayroll,
   processAdminPayrollMonth,
   fetchMyPayslips,
 } from './financeApi'
+export { fetchPendingApprovals } from './approvalsApi'
+export type { ApprovalTask, ApprovalsResponse } from './approvalsApi'
+export type { ClaimPolicy, ClaimCategoryLimit } from './financeApi'
+export {
+  fetchAccountingConnection,
+  connectAccounting,
+  disconnectAccounting,
+} from './accountingIntegrationApi'
+export type { AccountingConnectionStatus } from './accountingIntegrationApi'
 export {
   fetchDepartments,
   createDepartment,

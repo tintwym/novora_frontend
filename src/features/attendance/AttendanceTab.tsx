@@ -1035,23 +1035,22 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
 
       {/* Upper Navigation sub-menus completely aligned and capitalized */}
       <div id="attendance-module-navigator" className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/85 pb-4 gap-4">
-        <div id="attendance-navigation-tabs" className="flex items-center gap-2 select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
+        <div id="attendance-navigation-tabs" className="nv-tab-list select-none overflow-x-auto w-full lg:w-auto scrollbar-none py-1">
           {subTabs.map((tab) => {
             const isActive = activeSubTab === tab;
             return (
               <button
                 id={`tab-${tab.toLowerCase().replace(/\s+/g, '-')}`}
                 key={tab}
+                type="button"
                 onClick={() => handleSubTabChange(tab)}
-                className={`text-xs font-bold px-3.5 py-2 rounded-xl transition-all shrink-0 relative cursor-pointer ${
-                  isActive
-                    ? 'bg-blue-50 text-novora'
-                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+                className={`nv-tab text-xs shrink-0 relative cursor-pointer inline-flex items-center gap-1.5 ${
+                  isActive ? 'nv-tab-active' : ''
                 }`}
               >
                 <span>{tab}</span>
                 {tab === 'Unknown Swipes' && unresolvedSwipes.length > 0 && (
-                  <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-extrabold bg-red-500 text-white rounded-full inline-flex items-center whitespace-nowrap shrink-0">
+                  <span className="nv-badge nv-badge--warn min-w-[1.1rem] justify-center px-1 py-0 text-[10px] font-bold normal-case tracking-normal">
                     {unresolvedSwipes.length}
                   </span>
                 )}
@@ -1096,25 +1095,36 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
           </DropdownAnchor>
 
           <button
+            type="button"
             onClick={handleExportRoster}
-            className="h-9 inline-flex items-center gap-2 px-3.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/20 rounded-xl transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
+            className="nv-btn-secondary h-9 !py-2 !px-3.5 cursor-pointer whitespace-nowrap shrink-0"
           >
             <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
             <span>Export</span>
           </button>
 
           <button
+            type="button"
             onClick={() => handleSubTabChange('Manual Punch')}
-            className="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-white bg-novora hover:bg-opacity-95 rounded-xl transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
+            className="nv-btn-primary h-9 !py-2 !px-3.5 cursor-pointer whitespace-nowrap shrink-0"
           >
             <Plus className="h-3.5 w-3.5 shrink-0" />
-            <span>Manual Punch</span>
+            <span>Manual punch</span>
           </button>
         </div>
       </div>
 
+      <div className="nv-toolbar py-0.5">
+        <span className="nv-badge nv-badge--info normal-case tracking-normal text-[10px] font-bold">
+          {rosterPeriodLabel}
+        </span>
+        <span className="nv-badge nv-badge--neutral normal-case tracking-normal text-[10px] font-bold">
+          {deptFilter}
+        </span>
+      </div>
+
       {/* Main Switchboard Stage Container */}
-      <div id="attendance-active-tab-panel" className="min-h-[460px]">
+      <div id="attendance-active-tab-panel" className="nv-panel p-5 sm:p-6 min-h-[460px]">
 
         {/* 1. CHECK-IN SUB-TAB */}
         {activeSubTab === 'Check-In' && (
@@ -1990,7 +2000,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                 </button>
               </div>
 
-              <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
+              <div className="nv-table-shell nv-table-shell--compact overflow-hidden">
                 <table className="w-full text-left">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -2146,7 +2156,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
               <div className="nv-card p-4 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-sans">Avg Punctuality</span>
-                  <h3 className="text-xl font-extrabold text-slate-850 tracking-tight">{reportStats.punctuality}</h3>
+                  <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">{reportStats.punctuality}</h3>
                   <span className="text-[9px] font-bold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">{reportStats.lateCount} late {reportStats.lateCount === 1 ? 'arrival' : 'arrivals'}</span>
                 </div>
                 <div className="h-10 w-10 rounded-xl bg-rose-50 border border-rose-100/60 flex items-center justify-center">
@@ -2176,7 +2186,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                 <p className="text-[10px] font-semibold text-slate-400 mt-0.5">Summary metrics and analytical variance parameters for organizational business units</p>
               </div>
 
-              <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
+              <div className="nv-table-shell nv-table-shell--compact overflow-hidden">
                 <table className="w-full text-left text-xs text-slate-700">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -2320,7 +2330,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
 
                         return (
                           <tr key={idx} className="hover:bg-slate-50/20 transition-colors">
-                            <td className="py-3.5 pl-3 font-extrabold text-slate-850 flex items-center gap-2">
+                            <td className="py-3.5 pl-3 font-extrabold text-slate-800 flex items-center gap-2">
                               <span className="h-6 w-6 rounded bg-novora/10 text-novora font-bold flex items-center justify-center text-[10px]">{row.initials}</span>
                               {row.name}
                             </td>
@@ -2352,7 +2362,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="nv-card w-full max-w-md p-6 shadow-xl space-y-5 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h4 className="text-sm font-bold text-slate-850 tracking-tight">Create Corporate Shift Pattern</h4>
+              <h4 className="text-sm font-bold text-slate-800 tracking-tight">Create Corporate Shift Pattern</h4>
               <button type="button" onClick={() => setShiftModalOpen(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="h-4 w-4" />
               </button>
@@ -2453,7 +2463,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="nv-card w-full max-w-md p-6 shadow-xl space-y-5 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h4 className="text-sm font-bold text-slate-850 tracking-tight flex items-center gap-2">
+              <h4 className="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
                 <PlusCircle className="h-4 w-4 text-novora" />
                 <span>Create Corporate Timesheet</span>
               </h4>
@@ -2568,7 +2578,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="nv-card w-full max-w-md p-6 shadow-xl space-y-5 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h4 className="text-sm font-bold text-slate-850 tracking-tight flex items-center gap-2">
+              <h4 className="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
                 <Settings className="h-4 w-4 text-novora" />
                 <span>Edit Corporate Timesheet</span>
               </h4>
@@ -2688,7 +2698,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="nv-card w-full max-w-md p-6 shadow-xl space-y-5 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h4 className="text-sm font-bold text-slate-850 tracking-tight flex items-center gap-2">
+              <h4 className="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
                 <Clock className="h-4 w-4 text-emerald-500" />
                 <span>Configure Extra Hours Alignment</span>
               </h4>
@@ -2790,7 +2800,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="nv-card w-full max-w-sm p-6 shadow-xl space-y-5 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h4 className="text-sm font-bold text-slate-850 tracking-tight flex items-center gap-2">
+              <h4 className="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
                 <Settings className="h-4 w-4 text-slate-600 animate-spin" style={{ animationDuration: '6s' }} />
                 <span>Edit Compliance Policy</span>
               </h4>

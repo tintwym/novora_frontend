@@ -15,6 +15,7 @@ import {
 import { DashboardTab } from '@/features/dashboard'
 import { AttendanceTab } from '@/features/attendance'
 import { LeaveTab } from '@/features/leave'
+import { ApprovalsTab } from '@/features/approvals'
 import { PayrollTab } from '@/features/payroll'
 import { ClaimsTab } from '@/features/claims'
 import { BenefitsTab } from '@/features/benefits'
@@ -44,7 +45,7 @@ import {
 } from '@/lib/roles'
 import { BookOpen, ChevronDown, Download, FileSpreadsheet, FileText } from 'lucide-react'
 import { DropdownAnchor } from '@/components/ui'
-import { SETTINGS_NAV_SECTIONS } from '@/lib/sidebarNav'
+import { SETTINGS_NAV_SECTIONS, navLabel } from '@/lib/sidebarNav'
 
 const ALLOWED_SETTINGS_TABS = new Set(
   SETTINGS_NAV_SECTIONS.flatMap((section) => section.items.map((item) => item.name)),
@@ -69,6 +70,7 @@ export default function PortalShell() {
 
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('Employee Profile')
   const [reportsSubTab, setReportsSubTab] = useState<'centre' | 'scheduled' | 'builder'>('centre')
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [settingsSubTab, setSettingsSubTab] = useState<string>('Company profile')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [searchValue, setSearchValue] = useState('')
@@ -91,12 +93,6 @@ export default function PortalShell() {
       setSettingsSubTab('Company profile')
     }
   }, [settingsSubTab])
-
-  useEffect(() => {
-    if (reportsSubTab !== 'centre') {
-      setReportsSubTab('centre')
-    }
-  }, [reportsSubTab])
 
   useEffect(() => {
     if (!authReady) return
@@ -135,6 +131,7 @@ export default function PortalShell() {
       addToast('That module is limited to Admin and HR roles.', 'info')
       return
     }
+    setMobileNavOpen(false)
     router.push(portalPath(portal, tab))
   }
 
@@ -190,17 +187,28 @@ export default function PortalShell() {
       id="novora-hrms-root"
       className="flex h-dvh min-h-0 select-none font-sans overflow-hidden"
     >
+      {mobileNavOpen ? (
+        <button
+          type="button"
+          className="nv-sidebar-backdrop"
+          aria-label="Close navigation"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      ) : null}
+
       <Sidebar
         activeTab={activeTab}
         setActiveTab={goToTab}
         roles={session.roles}
         settingsSubTab={settingsSubTab}
         setSettingsSubTab={setSettingsSubTab}
+        mobileOpen={mobileNavOpen}
+        onMobileClose={() => setMobileNavOpen(false)}
       />
 
-      <main id="main-portal-contents" className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <main id="main-portal-contents" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar
-          activeTabName={activeTab}
+          activeTabName={navLabel(activeTab)}
           searchValue={searchValue}
           onSearchChange={setSearchValue}
           addToast={addToast}
@@ -208,6 +216,7 @@ export default function PortalShell() {
           onLogout={handleLogout}
           employees={employees}
           onNavigate={goToTab}
+          onOpenMobileNav={() => setMobileNavOpen(true)}
           onSelectEmployee={(emp) => {
             setSelectedEmployee(emp)
             setActiveSubTab('Employee Profile')
@@ -218,7 +227,7 @@ export default function PortalShell() {
         <div
           id="portal-inner-board"
           key={activeTab}
-          className="flex-1 min-h-0 overflow-y-auto animate-portal-content-in"
+          className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto animate-portal-content-in"
         >
           {!canAccessTab(session.roles, activeTab) ? null : activeTab === 'Employees Management' ? (
             <div id="employees-module-root" className="space-y-6">
@@ -286,7 +295,7 @@ export default function PortalShell() {
                             <button
                               key={dept}
                               type="button"
-                              aria-selected={deptFilterState === dept}
+                              aria-current={deptFilterState === dept ? 'true' : undefined}
                               onClick={() => filteredByDepartmentDropdown(dept)}
                               className={deptFilterState === dept ? 'nv-dropdown-item--active' : ''}
                             >
@@ -408,6 +417,10 @@ export default function PortalShell() {
                             positionId: updatedEmp.positionId,
                             employeeCode: updatedEmp.id,
                             status: updatedEmp.status === 'Inactive' ? 'inactive' : 'active',
+                            basicSalary: updatedEmp.basicSalary ?? null,
+                            monthlyAllowance: updatedEmp.monthlyAllowance ?? null,
+                            monthlyDeduction: updatedEmp.monthlyDeduction ?? null,
+                            taxRatePercent: updatedEmp.taxRatePercent ?? null,
                           })
                           setEmployees((prev) =>
                             prev.map((e) => (e.apiId === apiId || e.id === updatedEmp.id ? saved : e)),
@@ -480,6 +493,8 @@ export default function PortalShell() {
             <AttendanceTab employees={employees} addToast={addToast} />
           ) : activeTab === 'Leave Management' ? (
             <LeaveTab employees={employees} addToast={addToast} roles={session.roles} />
+          ) : activeTab === 'Approvals' ? (
+            <ApprovalsTab addToast={addToast} />
           ) : activeTab === 'Disciplinary Management' ? (
             <DisciplinaryTab employees={employees} addToast={addToast} />
           ) : activeTab === 'Payroll Management' ? (

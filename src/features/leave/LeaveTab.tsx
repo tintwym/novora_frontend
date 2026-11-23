@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search,
   ChevronDown,
@@ -247,7 +247,7 @@ function mapLeaveTypeRow(row: LeaveTypeRow): LeaveType {
     paid: row.paid,
     deductionRate: row.paid ? 'No deduction' : 'Normal rate',
     hourBased: false,
-    attachmentReq: false,
+    attachmentReq: Boolean(row.requiresAttachment),
     status: row.active ? 'Active' : 'Inactive',
   }
 }
@@ -257,12 +257,13 @@ function mapLeavePolicyFromType(row: LeaveTypeRow): LeavePolicy {
     id: row.id,
     type: row.name,
     allowDays: `${row.daysAllowed} days / year`,
-    accrual: 'Monthly prorate',
+    accrual:
+      row.accrualMethod === 'MONTHLY_PRORATE' ? 'Monthly prorate' : 'Annual lump sum',
     carryForward: row.carryForward
       ? `${row.maxCarryDays || 0} days max`
       : 'Not allowed',
     applicable: 'All active employees',
-    autoAttach: 'On join date',
+    autoAttach: row.requiresAttachment ? 'Attachment required' : 'On join date',
     minWorkingDays: 'N/A',
     serviceBonus: [],
     holidayRules: row.paid
@@ -303,6 +304,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
     deductionRate: 'No deduction',
     hourBased: false,
     attachmentReq: false,
+    accrualMethod: 'ANNUAL' as 'ANNUAL' | 'MONTHLY_PRORATE',
     status: 'Active' as 'Active' | 'Inactive'
   });
 
@@ -385,6 +387,9 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
   const [reqNotify, setReqNotify] = useState(true);
   const [firstDayHalf, setFirstDayHalf] = useState('Full day');
   const [lastDayHalf, setLastDayHalf] = useState('Full day');
+  const [reqAttachmentName, setReqAttachmentName] = useState('');
+  const [reqAttachmentBase64, setReqAttachmentBase64] = useState('');
+  const reqAttachmentInputRef = useRef<HTMLInputElement>(null);
 
   // Request for others form state
   const [rfoEmployee, setRfoEmployee] = useState('');
@@ -698,6 +703,8 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
         code: codeFromName(newTypeData.name),
         paid: newTypeData.paid,
         active: newTypeData.status === 'Active',
+        requiresAttachment: newTypeData.attachmentReq,
+        accrualMethod: newTypeData.accrualMethod,
       });
       setLeaveTypeRows((prev) => [...prev.filter((r) => r.id !== created.id), created]);
       setNewTypeModal(false);
@@ -709,6 +716,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
         deductionRate: 'No deduction',
         hourBased: false,
         attachmentReq: false,
+        accrualMethod: 'ANNUAL',
         status: 'Active'
       });
     } catch (err) {
@@ -737,6 +745,8 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
         maxCarryDays: existing?.maxCarryDays,
         description: existing?.description ?? undefined,
         active: editingType.status === 'Active',
+        requiresAttachment: editingType.attachmentReq,
+        accrualMethod: existing?.accrualMethod || 'ANNUAL',
       });
       setLeaveTypeRows((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
       setEditTypeModal(false);
@@ -763,10 +773,45 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
     return diffDays;
   };
 
+  const selectedLeaveTypeMeta = useMemo(() => {
+    const name = extractLeaveTypeName(reqType)
+    return leaveTypeRows.find(
+      (t) => t.name.toLowerCase() === name.toLowerCase() || t.code.toLowerCase() === name.toLowerCase(),
+    )
+  }, [leaveTypeRows, reqType])
+
+  const handleLeaveAttachmentSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (file.size > 6 * 1024 * 1024) {
+      addToast('Attachment is larger than 6MB.', 'error')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : ''
+      const base64 = result.includes(',') ? result.split(',')[1] : result
+      if (!base64) {
+        addToast('Could not read attachment.', 'error')
+        return
+      }
+      setReqAttachmentName(file.name)
+      setReqAttachmentBase64(base64)
+      addToast(`Attachment ready: ${file.name}`, 'info')
+    }
+    reader.onerror = () => addToast('Could not read attachment.', 'error')
+    reader.readAsDataURL(file)
+  }
+
   const handleSelfRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!reqFromDate || !reqToDate) {
       addToast('Please choose start and end dates.', 'error')
+      return
+    }
+    if (selectedLeaveTypeMeta?.requiresAttachment && !reqAttachmentBase64) {
+      addToast(`Attachment is required for ${selectedLeaveTypeMeta.name}.`, 'error')
       return
     }
     setLeaveBusy(true)
@@ -776,10 +821,15 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
         startDate: reqFromDate,
         endDate: reqToDate,
         reason: reqReason.trim() || undefined,
+        attachmentName: reqAttachmentBase64 ? reqAttachmentName || undefined : undefined,
+        attachmentContentBase64: reqAttachmentBase64 || undefined,
       })
       setRequests((prev) => [mapApiLeave(created), ...prev.filter((r) => r.id !== created.id)])
       setMyEmployeeIds((prev) => (prev.includes(created.employeeId) ? prev : [...prev, created.employeeId]))
       setReqReason('')
+      setReqAttachmentName('')
+      setReqAttachmentBase64('')
+      void fetchMyLeaveBalances().then(setLeaveBalances).catch(() => undefined)
       addToast('Leave request submitted for review.', 'success')
       setActiveSubTab('Leave history')
     } catch (err) {
@@ -852,7 +902,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
 
   const handleManualAttach = (id: string) => {
     setAttachmentRecords(prev => prev.map(a => a.id === id ? { ...a, attached: true } : a));
-    addToast('Document attachment attached successfully', 'success');
+    addToast('Document attached successfully', 'success');
   };
 
   return (
@@ -1161,9 +1211,9 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {leavePolicies.map((policy) => (
-              <div key={policy.id} className="nv-card p-6 shadow-xs space-y-4 relative group hover:shadow-sm transition-all duration-250">
+              <div key={policy.id} className="nv-card p-6 shadow-xs space-y-4 relative group hover:shadow-sm transition-all duration-200">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">{policy.type} policy</h3>
+                  <h3 className="text-sm font-extrabold text-slate-800 tracking-tight">{policy.type} policy</h3>
                   <div className="flex items-center gap-2">
                     <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px] font-bold">Yearly</span>
                     <button
@@ -1356,7 +1406,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
           {/* Left panel - Request Form */}
           <div className="lg:col-span-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Leave request form</h3>
+              <h3 className="text-sm font-extrabold text-slate-800 tracking-tight">Leave request form</h3>
               <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-50 p-1 rounded-xl">
                 <button
                   type="button"
@@ -1382,12 +1432,18 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                   value={reqType}
                   onChange={setReqType}
                   triggerClassName="text-xs font-bold bg-slate-50 border-slate-100"
-                  options={[
-                    { value: 'Annual Leave', label: 'Annual Leave' },
-                    { value: 'Sick Leave', label: 'Sick Leave' },
-                    { value: 'Personal Leave', label: 'Personal Leave' },
-                    { value: 'Unpaid Leave', label: 'Unpaid Leave' },
-                  ]}
+                  options={
+                    leaveTypeRows.length > 0
+                      ? leaveTypeRows
+                          .filter((t) => t.active)
+                          .map((t) => ({ value: t.name, label: t.name }))
+                      : [
+                          { value: 'Annual Leave', label: 'Annual Leave' },
+                          { value: 'Sick Leave', label: 'Sick Leave' },
+                          { value: 'Personal Leave', label: 'Personal Leave' },
+                          { value: 'Unpaid Leave', label: 'Unpaid Leave' },
+                        ]
+                  }
                 />
               </div>
 
@@ -1461,6 +1517,30 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                 />
               </div>
 
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 block uppercase">
+                  Attachment{selectedLeaveTypeMeta?.requiresAttachment ? ' *' : ''}
+                </label>
+                <input
+                  ref={reqAttachmentInputRef}
+                  type="file"
+                  accept="image/*,.pdf"
+                  className="hidden"
+                  onChange={handleLeaveAttachmentSelected}
+                />
+                <button
+                  type="button"
+                  onClick={() => reqAttachmentInputRef.current?.click()}
+                  className="w-full rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-left text-xs font-bold text-slate-700 hover:bg-white"
+                >
+                  {reqAttachmentName
+                    ? `Attached: ${reqAttachmentName}`
+                    : selectedLeaveTypeMeta?.requiresAttachment
+                      ? 'Upload required supporting document'
+                      : 'Optional supporting document'}
+                </button>
+              </div>
+
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -1495,7 +1575,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
           {/* Right panel - Balance and History List */}
           <div className="lg:col-span-6 space-y-6">
             <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
-              <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Leave balance overview</h3>
+              <h3 className="text-sm font-extrabold text-slate-800 tracking-tight">Leave balance overview</h3>
               <div className="space-y-3.5">
                 {leaveBalances.length === 0 && (
                   <p className="text-xs font-medium text-slate-400">No leave balances yet.</p>
@@ -1569,7 +1649,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
           {/* Left panel - Request Form on behalf */}
           <div className="lg:col-span-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-5">
             <div>
-              <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Leave request for others</h3>
+              <h3 className="text-sm font-extrabold text-slate-800 tracking-tight">Leave request for others</h3>
               <p className="text-[10px] font-semibold text-slate-400 mt-1">Submit leave on behalf of another employee</p>
             </div>
 
@@ -1697,7 +1777,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
 
           {/* Right panel - Behalf History */}
           <div className="lg:col-span-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
-            <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Recent time offs (other employees)</h3>
+            <h3 className="text-sm font-extrabold text-slate-800 tracking-tight">Recent time offs (other employees)</h3>
             <div className="nv-card overflow-hidden">
               <table className="w-full text-left text-xs text-slate-600">
                 <thead className="bg-[#f8fafc] border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -1715,7 +1795,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                   )}
                   {otherRecentRequests.map((r) => (
                     <tr key={r.id} className="hover:bg-slate-50/40">
-                      <td className="p-3 pl-4 font-bold text-slate-850">{r.name}</td>
+                      <td className="p-3 pl-4 font-bold text-slate-800">{r.name}</td>
                       <td className="p-3 font-semibold text-slate-600">{r.type}</td>
                       <td className="p-3 text-slate-500">{r.dateStr}</td>
                       <td className="p-3 text-center font-mono font-bold text-slate-600">{r.days}</td>
@@ -1931,8 +2011,8 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                           r.status === 'Accepted'
                             ? 'bg-emerald-50 text-emerald-700'
                             : r.status === 'Pending'
-                            ? 'bg-amber-50 text-amber-750'
-                            : 'bg-rose-50 text-rose-750'
+                            ? 'bg-amber-50 text-amber-700'
+                            : 'bg-rose-50 text-rose-700'
                         }`}>
                           {r.status}
                         </span>
@@ -1978,7 +2058,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                     {selectedProfileEmp.name ? selectedProfileEmp.name.charAt(0) : '?'}
                   </div>
                   <div>
-                    <h3 className="text-base font-extrabold text-slate-850 tracking-tight">
+                    <h3 className="text-base font-extrabold text-slate-800 tracking-tight">
                       {selectedProfileEmp.name}
                     </h3>
                     <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">
@@ -2009,7 +2089,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
 
               {/* Entitilement table */}
               <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
-                <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Leave entitlement &amp; balance</h3>
+                <h3 className="text-sm font-extrabold text-slate-800 tracking-tight">Leave entitlement &amp; balance</h3>
                 <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
                   <table className="w-full text-left text-xs text-slate-600">
                     <thead className="bg-[#f8fafc] border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -2046,7 +2126,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
             {/* Right panel - Applied policies + Recent timeline */}
             <div className="lg:col-span-6 space-y-6">
               <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
-                <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Applied policies</h3>
+                <h3 className="text-sm font-extrabold text-slate-800 tracking-tight">Applied policies</h3>
                 <div className="space-y-3.5 text-xs">
                   {leaveTypeRows.length === 0 && (
                     <p className="text-xs font-medium text-slate-400">No leave policies yet.</p>
@@ -2066,7 +2146,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
 
               {/* Recent activity list */}
               <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
-                <h3 className="text-sm font-extrabold text-slate-850 tracking-tight">Recent leave activity</h3>
+                <h3 className="text-sm font-extrabold text-slate-800 tracking-tight">Recent leave activity</h3>
                 <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
                   <table className="w-full text-left text-xs text-slate-600">
                     <thead className="bg-[#f8fafc] border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -2161,7 +2241,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
           {/* 2. Departmental compliance/utilization scoreboard */}
           <div className="nv-card p-5 shadow-sm space-y-4">
             <div>
-              <h4 className="text-xs font-bold text-slate-850 tracking-tight flex items-center gap-2">
+              <h4 className="text-xs font-bold text-slate-800 tracking-tight flex items-center gap-2">
                 <Network className="h-4 w-4 text-novora" />
                 <span>Departmental Time Off &amp; Leave Utilization Matrix</span>
               </h4>
@@ -2308,7 +2388,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                         .map(row => (
                           <tr key={row.id} className="hover:bg-slate-50/40">
                             <td className="p-3 pl-4 text-slate-400 font-bold font-mono">{row.id}</td>
-                            <td className="p-3 font-extrabold text-slate-850">{row.name}</td>
+                            <td className="p-3 font-extrabold text-slate-800">{row.name}</td>
                             <td className="p-3 text-slate-500 font-semibold">{row.dept}</td>
                             <td className="p-3">
                               <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md text-[10px] font-bold">{row.type}</span>
@@ -2358,7 +2438,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
                         .map(row => (
                           <tr key={row.key} className="hover:bg-slate-50/40">
                             <td className="p-3 pl-4 text-slate-400 font-bold font-mono">{row.employeeId}</td>
-                            <td className="p-3 font-extrabold text-slate-850">{row.name}</td>
+                            <td className="p-3 font-extrabold text-slate-800">{row.name}</td>
                             <td className="p-3 text-slate-500 font-semibold">{row.dept}</td>
                             <td className="p-3 text-center font-bold font-mono text-slate-700">{row.annual} days</td>
                             <td className="p-3 text-center font-bold font-mono text-emerald-600">{row.sick} days</td>
@@ -2385,7 +2465,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="nv-card w-full max-w-sm p-6 shadow-xl space-y-4 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h4 className="text-sm font-bold text-slate-850 tracking-tight flex items-center gap-1.5">
+              <h4 className="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-1.5">
                 <Settings className="h-4.5 w-4.5 text-novora" />
                 <span>Configure Leave Type</span>
               </h4>
@@ -2461,6 +2541,24 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
               </div>
 
               <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 block uppercase">Accrual method</label>
+                <SelectMenu
+                  value={newTypeData.accrualMethod}
+                  onChange={(v) =>
+                    setNewTypeData({
+                      ...newTypeData,
+                      accrualMethod: v === 'MONTHLY_PRORATE' ? 'MONTHLY_PRORATE' : 'ANNUAL',
+                    })
+                  }
+                  triggerClassName="text-xs font-bold bg-slate-50 border-slate-200"
+                  options={[
+                    { value: 'ANNUAL', label: 'Annual lump sum' },
+                    { value: 'MONTHLY_PRORATE', label: 'Monthly prorate' },
+                  ]}
+                />
+              </div>
+
+              <div className="space-y-1">
                 <label className="text-[10px] font-semibold text-slate-400 block uppercase">Theme Badge Accent Color</label>
                 <div className="flex flex-wrap gap-2.5 pt-1">
                   {[
@@ -2510,7 +2608,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="nv-card w-full max-w-sm p-6 shadow-xl space-y-4 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h4 className="text-sm font-bold text-slate-850 tracking-tight flex items-center gap-1.5">
+              <h4 className="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-1.5">
                 <Settings className="h-4.5 w-4.5 text-novora" />
                 <span>Edit Leave Configuration</span>
               </h4>
@@ -2609,7 +2707,7 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white border border-slate-100 rounded-3xl w-full max-w-lg p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
-              <h4 className="text-sm font-black text-slate-850 tracking-wider flex items-center gap-2">
+              <h4 className="text-sm font-black text-slate-800 tracking-wider flex items-center gap-2">
                 <FileText className="h-4.5 w-4.5 text-novora" />
                 <span>CREATE NEW LEAVE POLICY</span>
               </h4>

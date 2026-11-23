@@ -16,6 +16,9 @@ export type ClaimRow = {
   decidedBy: string | null
   decidedAt: string | null
   createdAt: string
+  hasReceipt?: boolean
+  receiptName?: string | null
+  receiptUrl?: string | null
 }
 
 export type CreateClaimPayload = {
@@ -26,6 +29,26 @@ export type CreateClaimPayload = {
   vendor?: string
   description?: string
   employeeId?: string
+  receiptName?: string
+  receiptContentBase64?: string
+  receiptUrl?: string
+}
+
+export type ClaimCategoryLimit = {
+  id: string | null
+  category: string
+  dailyLimit: number | null
+  monthlyLimit: number | null
+  receiptRequired: 'ALWAYS' | 'THRESHOLD' | 'NEVER' | string
+}
+
+export type ClaimPolicy = {
+  receiptRequiredAbove: number
+  maxClaimAgeDays: number
+  blockFutureDates: boolean
+  enforceReceipt: boolean
+  enforceClaimAge: boolean
+  categoryLimits: ClaimCategoryLimit[]
 }
 
 export type PayrollRow = {
@@ -78,6 +101,26 @@ export async function decideClaim(
     method: 'POST',
     body: payload,
   })
+}
+
+export async function fetchClaimPolicy(): Promise<ClaimPolicy> {
+  return apiRequest<ClaimPolicy>('/api/admin/claim-policy', { method: 'GET', skipCsrf: true })
+}
+
+export async function updateClaimPolicy(payload: {
+  receiptRequiredAbove: number
+  maxClaimAgeDays: number
+  blockFutureDates: boolean
+  enforceReceipt: boolean
+  enforceClaimAge: boolean
+  categoryLimits: Array<{
+    category: string
+    dailyLimit?: number | null
+    monthlyLimit?: number | null
+    receiptRequired: string
+  }>
+}): Promise<ClaimPolicy> {
+  return apiRequest<ClaimPolicy>('/api/admin/claim-policy', { method: 'PUT', body: payload })
 }
 
 export async function fetchAdminPayroll(year?: number, month?: number): Promise<PayrollRow[]> {

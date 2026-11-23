@@ -1132,7 +1132,7 @@ export default function EngagementTab({ employees, addToast }: EngagementTabProp
             </div>
 
             <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs flex items-center gap-4.5">
-              <span className="p-3 bg-sky-50 text-sky-650 rounded-xl">
+              <span className="p-3 bg-sky-50 text-sky-600 rounded-xl">
                 <ClipboardList className="h-5.5 w-5.5" />
               </span>
               <div>

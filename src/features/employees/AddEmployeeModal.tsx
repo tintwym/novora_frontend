@@ -596,7 +596,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
               {/* Card 2: Organisation details form */}
               <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-xs space-y-6">
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <h3 className="text-xs font-black text-slate-850 uppercase tracking-wider">Organisation information</h3>
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Organisation information</h3>
                   <span className="bg-rose-50 text-rose-600 font-extrabold uppercase tracking-widest text-[9px] px-2 py-0.5 rounded border border-rose-100/50">required</span>
                 </div>
 
@@ -1078,7 +1078,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                   </label>
                 </div>
 
-                <div className={`grid grid-cols-1 md:grid-cols-2 gap-5 text-xs transition-opacity duration-250 ${passportEnabled ? 'opacity-100' : 'opacity-40 cursor-not-allowed pointer-events-none'}`}>
+                <div className={`grid grid-cols-1 md:grid-cols-2 gap-5 text-xs transition-opacity duration-200 ${passportEnabled ? 'opacity-100' : 'opacity-40 cursor-not-allowed pointer-events-none'}`}>
                   {/* Passport No */}
                   <div className="space-y-1.5">
                     <label className="block font-bold text-slate-400 uppercase tracking-wider">Passport No.</label>
@@ -1509,7 +1509,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
                     <div className="space-y-2 font-semibold">
                       <div className="flex justify-between">
                         <span className="text-slate-400">Terminals Registered:</span>
-                        <span className="text-slate-850 font-bold">
+                        <span className="text-slate-800 font-bold">
                           {biometricEnabled ? `${terminalsList.length} terminal(s) active` : 'Disabled'}
                         </span>
                       </div>
@@ -1547,7 +1547,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAddEmployee, addTo
             <span className="text-[10.5px] font-extrabold text-slate-400 block uppercase tracking-wider">Step {step} of 5</span>
             
             <div className="flex justify-between items-baseline mt-1">
-              <span className="text-2xl font-black text-slate-850 tracking-tight">{step * 20}%</span>
+              <span className="text-2xl font-black text-slate-800 tracking-tight">{step * 20}%</span>
               <span className="text-[11px] font-semibold text-slate-450">complete</span>
             </div>
 

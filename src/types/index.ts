@@ -26,6 +26,12 @@ export interface Employee {
   reportsTo?: string; // ID of the manager
   departmentId?: string;
   positionId?: string;
+  /** Monthly basic salary (API-backed; used by payroll generate). */
+  basicSalary?: number;
+  monthlyAllowance?: number;
+  monthlyDeduction?: number;
+  /** Tax percent e.g. 8 for 8%. */
+  taxRatePercent?: number;
 }
 
 export type SidebarTab =
@@ -35,6 +41,7 @@ export type SidebarTab =
   | 'On/Off-boarding Management'
   | 'Attendance Management'
   | 'Leave Management'
+  | 'Approvals'
   | 'Disciplinary Management'
   | 'Payroll Management'
   | 'Claims Management'

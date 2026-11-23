@@ -24,7 +24,7 @@ export default function BrandLockup({
 
   return (
     <div className={`flex items-center gap-2.5 select-none ${className}`}>
-      <NovoraLogo className={`${s.mark} shrink-0`} />
+      <NovoraLogo product="hrms" className={`${s.mark} shrink-0`} />
       <div className="min-w-0">
         <div className={`${s.word} font-display font-extrabold tracking-tight leading-none ${wordColor}`}>
           Novora
@@ -32,7 +32,7 @@ export default function BrandLockup({
         <div
           className={`${s.sub} font-bold tracking-[0.14em] uppercase leading-none ${subColor}`}
         >
-          HRMS SOFTWARE
+          HRMS
         </div>
       </div>
     </div>

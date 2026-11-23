@@ -24,6 +24,7 @@ const MAX_QUESTION_LENGTH = 500
 /** Plain-language phrases people type, mapped to the module that handles them. */
 const INTENTS: { tab: SidebarTab; words: string[]; hint: string }[] = [
   { tab: 'Leave Management', words: ['leave', 'vacation', 'holiday', 'sick', 'time off', 'annual', 'maternity', 'absence'], hint: 'Leave requests and balances' },
+  { tab: 'Approvals', words: ['approve', 'approval', 'inbox', 'pending request', 'reject'], hint: 'Unified approvals inbox' },
   { tab: 'Payroll Management', words: ['payslip', 'salary', 'pay', 'payroll', 'tax', 'bonus', 'wage', 'deduction'], hint: 'Payslips, salary and tax' },
   { tab: 'Claims Management', words: ['claim', 'reimburse', 'expense', 'receipt', 'travel', 'mileage'], hint: 'Expense claims' },
   { tab: 'Attendance Management', words: ['attendance', 'punch', 'clock', 'shift', 'roster', 'overtime', 'timesheet', 'late'], hint: 'Punches, rosters and overtime' },
@@ -148,6 +149,7 @@ export default function GlobalSearch({
       return
     }
     setOpen(false)
+    setMobileOpen(false)
     setAnswer(null)
     onChange('')
     if (item.kind === 'module') onNavigate(item.tab)
@@ -157,6 +159,7 @@ export default function GlobalSearch({
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
       setOpen(false)
+      setMobileOpen(false)
       inputRef.current?.blur()
       return
     }
@@ -175,38 +178,86 @@ export default function GlobalSearch({
     }
   }
 
+  const [mobileOpen, setMobileOpen] = useState(false)
   const showPanel = open && query.length > 0
   const showAnswer = answer !== null && answer.question === query
 
+  useEffect(() => {
+    if (!mobileOpen) return
+    const id = window.setTimeout(() => inputRef.current?.focus(), 30)
+    return () => window.clearTimeout(id)
+  }, [mobileOpen])
+
   return (
-    <div ref={wrapRef} id="topbar-search-container" className="nv-search-wrap relative hidden md:block md:w-52 xl:w-80">
-      <Search className="nv-search-icon h-4 w-4" aria-hidden />
-      <input
-        ref={inputRef}
-        id="topbar-search-input"
-        type="search"
-        placeholder="Search or ask AI…"
-        value={value}
-        onChange={(e) => {
-          onChange(e.target.value)
+    <div ref={wrapRef} id="topbar-search-container" className="relative">
+      <button
+        type="button"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--shell-topbar-border)] text-slate-600 hover:bg-[var(--sidebar-item-hover-bg)] md:hidden"
+        aria-label="Open search"
+        onClick={() => {
+          setMobileOpen(true)
           setOpen(true)
-          setError(null)
         }}
-        onFocus={() => setOpen(true)}
-        onKeyDown={onKeyDown}
-        className="nv-search-input"
-        aria-label="Search employees and modules, or ask the HR assistant"
-        role="combobox"
-        aria-expanded={showPanel}
-        aria-controls="topbar-search-results"
-        autoComplete="off"
-      />
+      >
+        <Search className="h-4 w-4" />
+      </button>
+
+      <div
+        className={[
+          'nv-search-wrap',
+          mobileOpen
+            ? 'fixed inset-x-3 top-3 z-50 block rounded-2xl border border-[var(--shell-topbar-border)] bg-[var(--shell-topbar-bg)] p-2 shadow-xl'
+            : 'relative hidden md:block md:w-52 lg:w-64 xl:w-80',
+        ].join(' ')}
+      >
+        {mobileOpen ? (
+          <div className="mb-2 flex items-center justify-between px-1">
+            <span className="text-xs font-bold text-slate-600">Search</span>
+            <button
+              type="button"
+              className="rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100"
+              onClick={() => {
+                setMobileOpen(false)
+                setOpen(false)
+              }}
+            >
+              Close
+            </button>
+          </div>
+        ) : null}
+        <div className="relative">
+          <Search className="nv-search-icon h-4 w-4" aria-hidden />
+          <input
+            ref={inputRef}
+            id="topbar-search-input"
+            type="search"
+            placeholder="Search or ask AI…"
+            value={value}
+            onChange={(e) => {
+              onChange(e.target.value)
+              setOpen(true)
+              setError(null)
+            }}
+            onFocus={() => setOpen(true)}
+            onKeyDown={onKeyDown}
+            className="nv-search-input"
+            aria-label="Search employees and modules, or ask the HR assistant"
+            role="combobox"
+            aria-expanded={showPanel}
+            aria-controls="topbar-search-results"
+            autoComplete="off"
+          />
+        </div>
 
       {showPanel && (
         <div
           id="topbar-search-results"
           role="listbox"
-          className="absolute right-0 top-full mt-2 w-[min(28rem,calc(100vw-2rem))] nv-card shadow-xl py-2 z-50 max-h-[70vh] overflow-y-auto"
+          className={
+            mobileOpen
+              ? 'relative mt-2 max-h-[60vh] w-full overflow-y-auto rounded-xl border border-slate-100 bg-white py-2 shadow-sm'
+              : 'absolute right-0 top-full z-50 mt-2 max-h-[70vh] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto nv-card py-2 shadow-xl'
+          }
         >
           {items.map((item, idx) => {
             const active = idx === activeIndex
@@ -307,6 +358,18 @@ export default function GlobalSearch({
           </p>
         </div>
       )}
+      </div>
+      {mobileOpen ? (
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-slate-900/30 md:hidden"
+          aria-label="Dismiss search"
+          onClick={() => {
+            setMobileOpen(false)
+            setOpen(false)
+          }}
+        />
+      ) : null}
     </div>
   )
 }

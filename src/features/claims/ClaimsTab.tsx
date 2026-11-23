@@ -34,7 +34,9 @@ import {
   createMyClaim,
   decideClaim,
   fetchAdminClaims,
+  fetchClaimPolicy,
   fetchMyClaims,
+  updateClaimPolicy,
   type ClaimRow,
 } from '@/services';
 import { dateStamp, downloadCsv, downloadNearestTableCsv } from '@/lib/csv';
@@ -155,7 +157,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
       payrollMonth: '—',
       pushStatus: status === 'Approved' ? 'Queued' : '—',
       description: row.description || '—',
-      hasAttachment: false,
+      hasAttachment: Boolean(row.hasReceipt),
       decidedBy: row.decidedBy,
       decidedAt: row.decidedAt,
       createdAt: row.createdAt,
@@ -181,6 +183,60 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
     void loadClaims()
   }, [loadClaims])
 
+  const receiptLabel = (mode: string) => {
+    if (mode === 'ALWAYS') return 'Always'
+    if (mode === 'NEVER') return '—'
+    return `Above ${currency} threshold`
+  }
+
+  const loadPolicy = useCallback(async () => {
+    if (!isAdmin) return
+    try {
+      const policy = await fetchClaimPolicy()
+      setReceiptThreshold(Number(policy.receiptRequiredAbove) || 50)
+      setMaxClaimAgeDays(policy.maxClaimAgeDays || 30)
+      setBlockFutureDates(policy.blockFutureDates)
+      setEnforceReceipt(policy.enforceReceipt)
+      setEnforceClaimAge(policy.enforceClaimAge)
+      setSpendLimits(
+        (policy.categoryLimits || []).map((l) => ({
+          category: l.category,
+          daily: l.dailyLimit != null ? String(l.dailyLimit) : '—',
+          monthly: l.monthlyLimit != null ? String(l.monthlyLimit) : '—',
+          receiptReq: receiptLabel(l.receiptRequired),
+        })),
+      )
+      setValidationRules([
+        {
+          id: 1,
+          label: 'Flag claims exceeding daily / monthly category limits',
+          enabled: true,
+        },
+        {
+          id: 2,
+          label: `Block claims submitted more than ${policy.maxClaimAgeDays} days after receipt date`,
+          enabled: policy.enforceClaimAge,
+        },
+        {
+          id: 3,
+          label: `Require receipt attachment for claims above ${currency} ${policy.receiptRequiredAbove}`,
+          enabled: policy.enforceReceipt,
+        },
+        {
+          id: 4,
+          label: 'Block future-dated claims',
+          enabled: policy.blockFutureDates,
+        },
+      ])
+    } catch {
+      // keep empty/local until policy API is available
+    }
+  }, [currency, isAdmin])
+
+  useEffect(() => {
+    void loadPolicy()
+  }, [loadPolicy])
+
   // Submit Claim tab states
   const [claimCategory, setClaimCategory] = useState<string>('-- Select category --');
   const [claimDate, setClaimDate] = useState<string>(() => new Date().toLocaleDateString('en-CA'));
@@ -191,6 +247,13 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
   const [claimDesc, setClaimDesc] = useState<string>('');
   const [selectedStaffName, setSelectedStaffName] = useState<string>('');
   const [hasReceiptFile, setHasReceiptFile] = useState<boolean>(false);
+  const [receiptName, setReceiptName] = useState<string>('');
+  const [receiptContentBase64, setReceiptContentBase64] = useState<string>('');
+  const [receiptThreshold, setReceiptThreshold] = useState(50);
+  const [maxClaimAgeDays, setMaxClaimAgeDays] = useState(30);
+  const [blockFutureDates, setBlockFutureDates] = useState(true);
+  const [enforceReceipt, setEnforceReceipt] = useState(true);
+  const [enforceClaimAge, setEnforceClaimAge] = useState(true);
   const [sendEmailNotification, setSendEmailNotification] = useState<boolean>(true);
 
   useEffect(() => {
@@ -237,12 +300,25 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      addToast('Receipt file is larger than 10MB.', 'error');
+    if (file.size > 6 * 1024 * 1024) {
+      addToast('Receipt file is larger than 6MB.', 'error');
       return;
     }
-    setHasReceiptFile(true);
-    addToast('Receipt attached. Please enter the claim details.', 'info');
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      const base64 = result.includes(',') ? result.split(',')[1] : result;
+      if (!base64) {
+        addToast('Could not read receipt file.', 'error');
+        return;
+      }
+      setReceiptName(file.name);
+      setReceiptContentBase64(base64);
+      setHasReceiptFile(true);
+      addToast(`Receipt attached: ${file.name}`, 'info');
+    };
+    reader.onerror = () => addToast('Could not read receipt file.', 'error');
+    reader.readAsDataURL(file);
   };
 
   // Interactive UI Modal States
@@ -298,6 +374,10 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
       addToast('Please input an amount greater than 0.', 'error')
       return
     }
+    if (enforceReceipt && amount > receiptThreshold && !hasReceiptFile) {
+      addToast(`Receipt is required for claims above ${currency} ${receiptThreshold}.`, 'error')
+      return
+    }
     setClaimsBusy(true)
     try {
       const created = await createMyClaim({
@@ -308,6 +388,8 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
         vendor: claimVendor || undefined,
         description: claimDesc || undefined,
         employeeId: employees.find((emp) => emp.id === selectedStaffName)?.apiId || undefined,
+        receiptName: hasReceiptFile ? receiptName || undefined : undefined,
+        receiptContentBase64: hasReceiptFile ? receiptContentBase64 || undefined : undefined,
       })
       setClaims((prev) => [mapClaim(created), ...prev.filter((c) => c.id !== created.id)])
       addToast(`Claim for ${claimCurrency} ${fmtAmount(amount, 2)} submitted.`, 'success')
@@ -316,9 +398,51 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
       setClaimAmount('0.00')
       setClaimDesc('')
       setHasReceiptFile(false)
+      setReceiptName('')
+      setReceiptContentBase64('')
       setSelectedStaffName('')
     } catch (err) {
       addToast(err instanceof ApiError ? err.message : 'Could not submit claim.', 'error')
+    } finally {
+      setClaimsBusy(false)
+    }
+  }
+
+  const persistClaimPolicy = async (overrides?: {
+    blockFutureDates?: boolean
+    enforceReceipt?: boolean
+    enforceClaimAge?: boolean
+  }) => {
+    if (!isAdmin) return
+    setClaimsBusy(true)
+    try {
+      const receiptMode = (label: string) => {
+        if (label.includes('Always')) return 'ALWAYS'
+        if (label === '—') return 'NEVER'
+        return 'THRESHOLD'
+      }
+      const parseLimit = (raw: string) => {
+        if (!raw || raw === '—') return null
+        const n = Number(String(raw).replace(/[^0-9.]/g, ''))
+        return Number.isFinite(n) ? n : null
+      }
+      await updateClaimPolicy({
+        receiptRequiredAbove: receiptThreshold,
+        maxClaimAgeDays,
+        blockFutureDates: overrides?.blockFutureDates ?? blockFutureDates,
+        enforceReceipt: overrides?.enforceReceipt ?? enforceReceipt,
+        enforceClaimAge: overrides?.enforceClaimAge ?? enforceClaimAge,
+        categoryLimits: spendLimits.map((l) => ({
+          category: l.category,
+          dailyLimit: parseLimit(l.daily),
+          monthlyLimit: parseLimit(l.monthly),
+          receiptRequired: receiptMode(l.receiptReq),
+        })),
+      })
+      addToast('Claim policy saved on server.', 'success')
+      await loadPolicy()
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not save claim policy.', 'error')
     } finally {
       setClaimsBusy(false)
     }
@@ -806,14 +930,16 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 <div className="flex items-center gap-2">
                   <span className="bg-indigo-100 text-indigo-700 text-[10px] font-black px-2 py-0.5 rounded uppercase">Receipt attachment</span>
                   <span className="text-[10px] font-bold text-slate-500">
-                    {hasReceiptFile ? '✓ Receipt attached' : `Upload receipt (required for claims > ${currency} 50)`}
+                    {hasReceiptFile
+                      ? `✓ Receipt attached${receiptName ? `: ${receiptName}` : ''}`
+                      : `Upload receipt (required for claims > ${currency} ${receiptThreshold})`}
                   </span>
                 </div>
                 {hasReceiptFile && (
                   <button
                     type="button"
                     onClick={() => { setHasReceiptFile(false); addToast('Receipt detached.', 'info'); }}
-                    className="text-red-500 hover:text-red-650 font-bold text-xs"
+                    className="text-red-500 hover:text-red-600 font-bold text-xs"
                   >
                     Remove
                   </button>
@@ -1076,7 +1202,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                               <>
                                 <button
                                   onClick={() => handleApprove(claim.id)}
-                                  className="bg-emerald-600 hover:bg-emerald-750 text-white font-bold text-[10.5px] px-2.5 py-1 rounded-lg cursor-pointer transition-colors"
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] px-2.5 py-1 rounded-lg cursor-pointer transition-colors"
                                 >
                                   Approve
                                 </button>
@@ -1468,7 +1594,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Policy flags &mdash; {headerMonthLabel}</span>
                   <span className="text-red-500 text-[10px] font-bold">{monthFlagged.filter(c => c.status === 'Pending').length} pending review</span>
                 </div>
-                <p className="text-2xl font-black text-red-650 mt-2">{monthFlagged.length}</p>
+                <p className="text-2xl font-black text-red-600 mt-2">{monthFlagged.length}</p>
               </div>
             </div>
 
@@ -1538,7 +1664,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                       <div key={budget.label}>
                         <div className="flex justify-between mb-1 flex-wrap gap-1">
                           <span className="font-bold text-slate-800">{budget.label}</span>
-                          <span className={`font-extrabold ${alert ? 'text-red-650' : ''}`}>
+                          <span className={`font-extrabold ${alert ? 'text-red-600' : ''}`}>
                             {money(spent)} / {money(budget.cap, 0)}{alert ? ' \u2022 alert!' : ''}
                           </span>
                         </div>
@@ -1721,7 +1847,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                       </div>
                       <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                         <span className="block text-[9px] font-bold text-slate-400 uppercase">Policy Violations</span>
-                        <span className="text-base font-black text-red-650 mt-1 block">{flaggedSum} infractions</span>
+                        <span className="text-base font-black text-red-600 mt-1 block">{flaggedSum} infractions</span>
                       </div>
                     </div>
 
@@ -2171,6 +2297,8 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               <button
                 onClick={() => {
                   setIsEditSpendLimitsModalOpen(false);
+                  setIsEditSpendLimitsModalOpen(false);
+                  void persistClaimPolicy();
                   addToast(`Compliance limit updated for category: ${spendLimits[selectedSpendLimitIdx].category}`, 'success');
                 }}
                 className="px-4.5 py-2 bg-novora hover:bg-opacity-95 text-white font-extrabold rounded-xl transition-all text-xs cursor-pointer"
@@ -2272,8 +2400,21 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
               </button>
               <button
                 onClick={() => {
+                  const ageRule = validationRules.find((r) => /more than/i.test(r.label))
+                  const receiptRule = validationRules.find((r) => /receipt attachment/i.test(r.label))
+                  const futureRule = validationRules.find((r) => /future/i.test(r.label))
+                  const nextAge = ageRule?.enabled ?? enforceClaimAge
+                  const nextReceipt = receiptRule?.enabled ?? enforceReceipt
+                  const nextFuture = futureRule?.enabled ?? blockFutureDates
+                  setEnforceClaimAge(nextAge)
+                  setEnforceReceipt(nextReceipt)
+                  setBlockFutureDates(nextFuture)
                   setIsEditValidationRulesModalOpen(false);
-                  addToast('Auto-validation scripts configured successfully.', 'success');
+                  void persistClaimPolicy({
+                    enforceClaimAge: nextAge,
+                    enforceReceipt: nextReceipt,
+                    blockFutureDates: nextFuture,
+                  });
                 }}
                 className="px-5 py-2 bg-slate-800 hover:bg-opacity-90 text-white font-black rounded-xl text-xs"
               >
@@ -2518,7 +2659,7 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 /* Regular review content */
                 <>
                   <div className="bg-orange-50 text-orange-800 border border-orange-100 p-4 rounded-xl font-semibold flex items-start gap-2.5 leading-normal">
-                    <AlertCircle className="h-4 w-4 text-orange-650 shrink-0 mt-0.5" />
+                    <AlertCircle className="h-4 w-4 text-orange-600 shrink-0 mt-0.5" />
                     <div>
                       <p className="font-bold text-orange-900">Payroll integration not connected</p>
                       <p className="text-[11px] text-orange-800 mt-0.5">

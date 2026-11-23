@@ -33,7 +33,7 @@ export default function Navbar({ onOpenDemo, onOpenTrial, onSignIn }: NavbarProp
             <BrandLockup size="md" />
           </button>
 
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden lg:flex items-center gap-8">
             {[
               ['features', 'Features'],
               ['benefits', 'Benefits'],
@@ -47,7 +47,7 @@ export default function Navbar({ onOpenDemo, onOpenTrial, onSignIn }: NavbarProp
             ))}
           </nav>
 
-          <div className="hidden md:flex items-center gap-2.5">
+          <div className="hidden lg:flex items-center gap-2.5">
             <button type="button" onClick={onSignIn} className="nv-btn-secondary px-4 py-2 text-sm">
               Sign in
             </button>
@@ -62,7 +62,7 @@ export default function Navbar({ onOpenDemo, onOpenTrial, onSignIn }: NavbarProp
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -71,7 +71,7 @@ export default function Navbar({ onOpenDemo, onOpenTrial, onSignIn }: NavbarProp
       </div>
 
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200/70 bg-white/95 backdrop-blur-md px-4 py-4 space-y-1">
+        <div className="lg:hidden border-t border-slate-200/70 bg-white/95 backdrop-blur-md px-4 py-4 space-y-1">
           {[
             ['features', 'Features'],
             ['benefits', 'Benefits'],
