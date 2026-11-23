@@ -24,7 +24,8 @@ import {
   AlertCircle,
   UserCheck,
   UserX,
-  Network
+  Network,
+  Sparkles,
 } from 'lucide-react';
 import type { Employee } from '@/types';
 import { canManageFullSystem } from '@/lib/roles';
@@ -37,12 +38,14 @@ import {
   createMyLeave,
   decideLeave,
   fetchAdminPendingLeave,
+  fetchLeaveAiReview,
   fetchLeaveTypes,
   fetchMyLeave,
   fetchMyLeaveBalances,
   updateLeaveType,
   type LeaveBalance,
   type LeaveRequest as ApiLeaveRequest,
+  type LeaveReviewResponse,
   type LeaveTypeRow,
 } from '@/services';
 import { dateStamp, downloadCsv, downloadNearestTableCsv } from '@/lib/csv';
@@ -410,6 +413,39 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
 
   // Tab count
   const pendingCount = requests.filter(r => r.status === 'Pending').length;
+  const [leaveAiBusy, setLeaveAiBusy] = useState(false);
+  const [leaveAi, setLeaveAi] = useState<LeaveReviewResponse | null>(null);
+
+  const runLeaveAiReview = async () => {
+    if (leaveAiBusy) return;
+    setLeaveAiBusy(true);
+    addToast('Scanning leave queue…', 'loading');
+    try {
+      const pending = requests.filter((r) => r.status === 'Pending');
+      const now = new Date();
+      const approvedThisMonth = requests.filter((r) => {
+        if (r.status !== 'Accepted') return false;
+        const d = new Date(r.fromDate);
+        return !Number.isNaN(d.getTime()) && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }).length;
+      const result = await fetchLeaveAiReview({
+        pendingCount: pending.length,
+        approvedThisMonth,
+        sampleRequests: pending.slice(0, 10).map(
+          (r) => `${r.name} (${r.dept}): ${r.type} ${r.fromDate}→${r.toDate} (${r.days}d) — ${r.reason || 'no reason'}`,
+        ),
+      });
+      setLeaveAi(result);
+      addToast(
+        result.source === 'gemini' ? 'AI leave tips ready — review only.' : 'Heuristic leave tips ready.',
+        'success',
+      );
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not run leave AI assist.', 'error');
+    } finally {
+      setLeaveAiBusy(false);
+    }
+  };
 
   const findEmployee = useCallback(
     (employeeId: string) => employees.find((e) => e.apiId === employeeId || e.id === employeeId),
@@ -1830,13 +1866,50 @@ export default function LeaveTab({ employees, addToast, roles = [] }: LeaveTabPr
               </span>
             </div>
 
-            <button
-              onClick={() => addToast('No approval filters are applied.', 'info')}
-              className="text-slate-500 hover:text-slate-800 font-bold text-xs cursor-pointer hover:underline"
-            >
-              Reset Filters
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                disabled={leaveAiBusy}
+                onClick={() => void runLeaveAiReview()}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-novora/25 bg-novora/5 px-3 py-1.5 text-xs font-extrabold text-novora hover:bg-novora/10 disabled:opacity-60"
+              >
+                <Sparkles className={`h-3.5 w-3.5 ${leaveAiBusy ? 'animate-spin' : ''}`} />
+                {leaveAiBusy ? 'Scanning…' : 'AI Leave tips'}
+              </button>
+              <button
+                onClick={() => addToast('No approval filters are applied.', 'info')}
+                className="text-slate-500 hover:text-slate-800 font-bold text-xs cursor-pointer hover:underline"
+              >
+                Reset Filters
+              </button>
+            </div>
           </div>
+
+          {leaveAi && (
+            <div className="nv-ai-panel rounded-2xl border border-novora/20 bg-novora/5 p-4 space-y-2">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h5 className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                    <Sparkles className="h-3.5 w-3.5 text-novora" />
+                    AI leave tips
+                  </h5>
+                  <p className="mt-0.5 text-[10px] text-slate-400">{leaveAi.disclaimer}</p>
+                </div>
+                <button type="button" onClick={() => setLeaveAi(null)} className="text-[10px] font-bold text-slate-500">
+                  Dismiss
+                </button>
+              </div>
+              <p className="text-xs font-medium text-slate-600">{leaveAi.summary}</p>
+              <ul className="space-y-1">
+                {leaveAi.findings.map((f) => (
+                  <li key={f} className="flex gap-1.5 text-xs text-slate-700">
+                    <span className="mt-0.5 text-novora">•</span>
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="nv-card overflow-hidden shadow-xs">
             <table className="w-full text-left text-xs text-slate-600">

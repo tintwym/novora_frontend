@@ -37,6 +37,8 @@ import {
   ApiError,
   createOnboardingTask,
   fetchAdminOnboardingTasks,
+  fetchOnboardingAiAssist,
+  type OnboardingAssistResponse,
   type OnboardingTaskRow,
 } from '@/services';
 
@@ -156,6 +158,39 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
     d.setDate(d.getDate() + 14);
     return d.toLocaleDateString('en-CA');
   });
+  const [onboardingAiBusy, setOnboardingAiBusy] = useState(false);
+  const [onboardingAi, setOnboardingAi] = useState<OnboardingAssistResponse | null>(null);
+
+  const runOnboardingAiAssist = async () => {
+    if (onboardingAiBusy) return;
+    setOnboardingAiBusy(true);
+    addToast('Drafting onboarding assist…', 'loading');
+    try {
+      const existing = checklist
+        .filter((item) => !selectedSubEmployee || item.targetEmployeeId === selectedSubEmployee)
+        .map((item) => item.task)
+        .slice(0, 12);
+      const result = await fetchOnboardingAiAssist({
+        employeeName: currentEmployeeObj?.name,
+        department: currentEmployeeObj?.department,
+        role: currentEmployeeObj?.position,
+        existingTasks: existing,
+        dayOneDate: newChecklistDueDate,
+      });
+      setOnboardingAi(result);
+      if (result.suggestedTasks?.[0] && !newChecklistTask.trim()) {
+        setNewChecklistTask(result.suggestedTasks[0]);
+      }
+      addToast(
+        result.source === 'gemini' ? 'AI onboarding assist ready — review only.' : 'Heuristic onboarding assist ready.',
+        'success',
+      );
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not draft onboarding assist.', 'error');
+    } finally {
+      setOnboardingAiBusy(false);
+    }
+  };
 
   const loadOnboardingTasks = useCallback(async () => {
     try {
@@ -656,7 +691,37 @@ export default function OnOffBoardingTab({ employees, addToast }: OnOffBoardingT
           {/* Left panel: configure custom checklist item */}
           <div className="lg:col-span-1 space-y-6">
             <div className="nv-card p-6 shadow-xs">
-              <h5 className="text-[12.5px] font-black text-slate-700 uppercase tracking-wide mb-4">Create Checklist Task</h5>
+              <div className="mb-4 flex items-center justify-between gap-2">
+                <h5 className="text-[12.5px] font-black text-slate-700 uppercase tracking-wide">Create Checklist Task</h5>
+                <button
+                  type="button"
+                  disabled={onboardingAiBusy}
+                  onClick={() => void runOnboardingAiAssist()}
+                  className="inline-flex items-center gap-1 rounded-xl border border-novora/25 bg-novora/5 px-2.5 py-1 text-[10px] font-extrabold text-novora hover:bg-novora/10 disabled:opacity-60"
+                >
+                  <Sparkles className={`h-3 w-3 ${onboardingAiBusy ? 'animate-spin' : ''}`} />
+                  {onboardingAiBusy ? '…' : 'AI assist'}
+                </button>
+              </div>
+              {onboardingAi && (
+                <div className="mb-4 space-y-2 rounded-xl border border-novora/20 bg-novora/5 p-3">
+                  <p className="text-[10px] text-slate-400">{onboardingAi.disclaimer}</p>
+                  <p className="text-xs font-medium text-slate-700">{onboardingAi.welcomeNote}</p>
+                  <ul className="space-y-1">
+                    {onboardingAi.suggestedTasks.map((t) => (
+                      <li key={t}>
+                        <button
+                          type="button"
+                          onClick={() => setNewChecklistTask(t)}
+                          className="text-left text-[11px] font-semibold text-novora hover:underline"
+                        >
+                          + {t}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <form onSubmit={handleAddChecklistTask} className="space-y-4">
                 <div>
                   <label className="text-[10px] text-slate-400 font-bold block mb-1">Milestone Action Statement</label>

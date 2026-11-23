@@ -85,8 +85,8 @@ function parsePunch(value: string | null | undefined, dayIso = localTodayIso()):
   return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
-function formatPunch(value: string | null | undefined) {
-  const d = parsePunch(value)
+function formatPunch(value: string | null | undefined, dayIso?: string) {
+  const d = parsePunch(value, dayIso)
   if (!d) return '--:--'
   return new Intl.DateTimeFormat('en-GB', {
     timeZone: COMPANY_TZ,
@@ -473,15 +473,20 @@ function TimeTrackingCard({ addToast, className = '' }: { addToast: Toast; class
   const [phase, setPhase] = useState<PunchPhase>('loading')
   const [checkIn, setCheckIn] = useState<string | null>(null)
   const [checkOut, setCheckOut] = useState<string | null>(null)
+  const [sessionDate, setSessionDate] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [clock, setClock] = useState(() => new Date())
   const [errorHint, setErrorHint] = useState<string | null>(null)
 
-  const applyLog = useCallback((inTime: string | null | undefined, outTime: string | null | undefined) => {
-    setCheckIn(inTime ?? null)
-    setCheckOut(outTime ?? null)
-    setPhase(inTime && outTime ? 'done' : inTime ? 'in' : 'not_started')
-  }, [])
+  const applyLog = useCallback(
+    (inTime: string | null | undefined, outTime: string | null | undefined, workDate?: string | null) => {
+      setCheckIn(inTime ?? null)
+      setCheckOut(outTime ?? null)
+      setSessionDate(workDate ? normalizeWorkDate(workDate) || null : null)
+      setPhase(inTime && outTime ? 'done' : inTime ? 'in' : 'not_started')
+    },
+    [],
+  )
 
   const refresh = useCallback(async () => {
     try {
@@ -489,9 +494,10 @@ function TimeTrackingCard({ addToast, className = '' }: { addToast: Toast; class
       const rows = await fetchMyAttendance()
       const today = localTodayIso()
       const openSession = rows.find((r) => r.checkInTime && !r.checkOutTime)
-      const todayLog =
-        rows.find((r) => normalizeWorkDate(r.workDate) === today) || openSession
-      applyLog(todayLog?.checkInTime, todayLog?.checkOutTime)
+      const todayLog = rows.find((r) => normalizeWorkDate(r.workDate) === today)
+      // Prefer an open session (incl. yesterday forgotten punch-out) over a closed today row.
+      const active = openSession || todayLog
+      applyLog(active?.checkInTime, active?.checkOutTime, active?.workDate)
     } catch (err) {
       setErrorHint(err instanceof ApiError ? err.message : 'Could not load attendance.')
       setPhase('unavailable')
@@ -511,14 +517,25 @@ function TimeTrackingCard({ addToast, className = '' }: { addToast: Toast; class
     if (busy) return
     setBusy(true)
     try {
+      const hadOvernightOpen = kind === 'in' && phase === 'in' && sessionDate && sessionDate !== localTodayIso()
       const log = kind === 'in' ? await checkInAttendance() : await checkOutAttendance()
-      applyLog(log.checkInTime, log.checkOutTime)
-      addToast(
-        kind === 'in'
-          ? `Punched in at ${formatPunch(log.checkInTime)}.`
-          : `Punched out at ${formatPunch(log.checkOutTime)}.`,
-        'success',
-      )
+      applyLog(log.checkInTime, log.checkOutTime, log.workDate)
+      if (kind === 'in') {
+        addToast(
+          hadOvernightOpen
+            ? `Previous open punch was closed. Punched in at ${formatPunch(log.checkInTime)}.`
+            : `Punched in at ${formatPunch(log.checkInTime)}.`,
+          'success',
+        )
+      } else {
+        const wd = normalizeWorkDate(log.workDate)
+        addToast(
+          wd && wd !== localTodayIso()
+            ? `Punched out at ${formatPunch(log.checkOutTime)} (closed open session from ${wd}).`
+            : `Punched out at ${formatPunch(log.checkOutTime)}.`,
+          'success',
+        )
+      }
     } catch (err) {
       const message = err instanceof ApiError ? err.message : `Punch ${kind} failed.`
       addToast(message, 'error')
@@ -529,8 +546,11 @@ function TimeTrackingCard({ addToast, className = '' }: { addToast: Toast; class
     }
   }
 
+  const today = localTodayIso(clock)
+  const overnightOpen = phase === 'in' && !!sessionDate && sessionDate !== today
+
   const sessionLabel = (() => {
-    const day = localTodayIso(clock)
+    const day = sessionDate || today
     const start = parsePunch(checkIn, day)
     if (!start) return '0h 0m'
     const end = phase === 'done' ? parsePunch(checkOut, day) ?? clock : clock
@@ -538,7 +558,8 @@ function TimeTrackingCard({ addToast, className = '' }: { addToast: Toast; class
     return `${Math.floor(mins / 60)}h ${mins % 60}m`
   })()
 
-  const canIn = phase === 'not_started'
+  // Overnight open session: allow Punch Out to close it, or Punch In to auto-close + start today.
+  const canIn = phase === 'not_started' || overnightOpen
   const canOut = phase === 'in'
   const btn = (enabled: boolean, hover: string) =>
     `flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-black transition-all ${
@@ -560,23 +581,40 @@ function TimeTrackingCard({ addToast, className = '' }: { addToast: Toast; class
       </div>
 
       <div className="space-y-3 rounded-2xl border border-slate-100 bg-slate-50/85 p-4">
-        <div className="flex justify-end">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {overnightOpen ? (
+            <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[8.5px] font-black uppercase tracking-widest text-amber-900">
+              Open since {sessionDate}
+            </span>
+          ) : (
+            <span />
+          )}
           <span
             className={`rounded-md px-2 py-0.5 text-[8.5px] font-black uppercase tracking-widest ${
               phase === 'in' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
             }`}
           >
-            {phase === 'in' ? 'Working' : phase === 'done' ? 'Done' : 'Standby'}
+            {phase === 'in' ? (overnightOpen ? 'Missed out' : 'Working') : phase === 'done' ? 'Done' : 'Standby'}
           </span>
         </div>
+        {overnightOpen ? (
+          <p className="text-[10.5px] font-medium leading-relaxed text-amber-800">
+            You forgot to punch out. Use <strong>Punch Out</strong> to close that session, or{' '}
+            <strong>Punch In</strong> to auto-close it at 23:59 and start today.
+          </p>
+        ) : null}
         <div className="grid grid-cols-2 gap-2.5">
           <div className="rounded-xl border border-slate-100/80 bg-white p-3">
             <span className="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-400">Clock In</span>
-            <span className="mt-1 block font-mono text-xs font-black text-slate-700">{formatPunch(checkIn)}</span>
+            <span className="mt-1 block font-mono text-xs font-black text-slate-700">
+              {formatPunch(checkIn, sessionDate || today)}
+            </span>
           </div>
           <div className="rounded-xl border border-slate-100/80 bg-white p-3">
             <span className="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-400">Clock Out</span>
-            <span className="mt-1 block font-mono text-xs font-black text-slate-700">{formatPunch(checkOut)}</span>
+            <span className="mt-1 block font-mono text-xs font-black text-slate-700">
+              {formatPunch(checkOut, sessionDate || today)}
+            </span>
           </div>
         </div>
         <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-900 px-3.5 py-2 text-white">
@@ -597,11 +635,11 @@ function TimeTrackingCard({ addToast, className = '' }: { addToast: Toast; class
           <>
             <button type="button" disabled={!canIn || busy} onClick={() => void punch('in')} className={btn(canIn, 'hover:text-novora')}>
               <LogIn className="h-3.5 w-3.5 shrink-0" />
-              <span className="text-[9.5px] uppercase tracking-wide">Punch In</span>
+              <span className="text-[9.5px] uppercase tracking-wide">{overnightOpen ? 'In (new day)' : 'Punch In'}</span>
             </button>
             <button type="button" disabled={!canOut || busy} onClick={() => void punch('out')} className={btn(canOut, 'hover:text-rose-600')}>
               <LogOut className="h-3.5 w-3.5 shrink-0" />
-              <span className="text-[9.5px] uppercase tracking-wide">Punch Out</span>
+              <span className="text-[9.5px] uppercase tracking-wide">{overnightOpen ? 'Close open' : 'Punch Out'}</span>
             </button>
           </>
         )}

@@ -31,6 +31,12 @@ export {
   fetchPayrollAiAnomalies,
   fetchBenefitsAiTip,
   fetchAssetsAiInsights,
+  fetchClaimsAiReview,
+  fetchLeaveAiReview,
+  fetchApprovalAiNote,
+  fetchAttendanceAiReview,
+  fetchReportsAiBrief,
+  fetchOnboardingAiAssist,
   askPolicyAssistant,
 } from './aiApi'
 export type {
@@ -57,6 +63,18 @@ export type {
   BenefitsTipResponse,
   AssetsInsightRequest,
   AssetsInsightResponse,
+  ClaimsReviewRequest,
+  ClaimsReviewResponse,
+  LeaveReviewRequest,
+  LeaveReviewResponse,
+  ApprovalNoteRequest,
+  ApprovalNoteResponse,
+  AttendanceReviewRequest,
+  AttendanceReviewResponse,
+  ReportsBriefRequest,
+  ReportsBriefResponse,
+  OnboardingAssistRequest,
+  OnboardingAssistResponse,
   PolicyQaResponse,
 } from './aiApi'
 export {

@@ -24,7 +24,9 @@ import {
   Settings,
   X,
   Network,
+  Sparkles,
 } from 'lucide-react';
+import { localTodayIso } from '@/lib/dates'
 import {
   ApiError,
   adminAttendancePunch,
@@ -34,6 +36,7 @@ import {
   createRosterEntry,
   createShiftPattern,
   decideOvertimeRecord,
+  fetchAttendanceAiReview,
   fetchAttendanceRoster,
   fetchAttendanceToday,
   fetchMyAttendance,
@@ -42,6 +45,7 @@ import {
   fetchRoster,
   fetchShiftPatterns,
   type AttendanceLog,
+  type AttendanceReviewResponse,
   type AttendanceRosterLog,
   type AttendanceTodayRow,
   type OtPolicyRow,
@@ -255,13 +259,11 @@ function toHhMm(raw: string): string | undefined {
 }
 
 function todayIsoDate() {
-  // Match backend WorkService Asia/Singapore calendar day (not browser-local / UTC).
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Singapore',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date())
+  return localTodayIso()
+}
+
+function normalizeWorkDate(value: string | null | undefined): string {
+  return String(value || '').slice(0, 10)
 }
 
 function mapAttendanceTodayRow(row: AttendanceTodayRow) {
@@ -402,6 +404,7 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
   const [checkedIn, setCheckedIn] = useState<boolean>(false);
   const [checkInTime, setCheckInTime] = useState<string | null>(null);
   const [checkOutTime, setCheckOutTime] = useState<string | null>(null);
+  const [sessionWorkDate, setSessionWorkDate] = useState<string | null>(null);
   const [attendanceBusy, setAttendanceBusy] = useState(false);
   const [recentChecks, setRecentChecks] = useState<
     { date: string; in: string; out: string; hours: string; status: string }[]
@@ -412,29 +415,21 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
       const rows = await fetchMyAttendance()
       setRecentChecks(rows.slice(0, 14).map(mapAttendanceRow))
 
-      const todayLocal = (() => {
-        const d = new Date()
-        const y = d.getFullYear()
-        const m = String(d.getMonth() + 1).padStart(2, '0')
-        const day = String(d.getDate()).padStart(2, '0')
-        return `${y}-${m}-${day}`
-      })()
-      const todayUtc = new Date().toISOString().slice(0, 10)
+      const today = localTodayIso()
+      // Prefer open session (incl. forgotten punch-out from a prior day) over a closed today row.
       const openSession = rows.find((r) => r.checkInTime && !r.checkOutTime)
-      const todayLog =
-        rows.find((r) => {
-          const wd = String(r.workDate || '').slice(0, 10)
-          return wd === todayLocal || wd === todayUtc
-        }) || openSession
+      const todayLog = rows.find((r) => normalizeWorkDate(r.workDate) === today)
+      const active = openSession || todayLog
 
-      if (todayLog?.checkInTime && !todayLog.checkOutTime) {
+      setSessionWorkDate(active?.workDate ? normalizeWorkDate(active.workDate) : null)
+      if (active?.checkInTime && !active.checkOutTime) {
         setCheckedIn(true)
-        setCheckInTime(formatPunchTime(todayLog.checkInTime))
+        setCheckInTime(formatPunchTime(active.checkInTime))
         setCheckOutTime(null)
-      } else if (todayLog?.checkInTime && todayLog.checkOutTime) {
+      } else if (active?.checkInTime && active.checkOutTime) {
         setCheckedIn(false)
-        setCheckInTime(formatPunchTime(todayLog.checkInTime))
-        setCheckOutTime(formatPunchTime(todayLog.checkOutTime))
+        setCheckInTime(formatPunchTime(active.checkInTime))
+        setCheckOutTime(formatPunchTime(active.checkOutTime))
       } else {
         setCheckedIn(false)
         setCheckInTime(null)
@@ -504,6 +499,8 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
   const [rollCallRows, setRollCallRows] = useState<
     { employeeId?: string; name: string; initials: string; dept: string; shift: string; in: string; out: string; hrs: string; office: string; status: string }[]
   >([]);
+  const [attendanceAiBusy, setAttendanceAiBusy] = useState(false);
+  const [attendanceAi, setAttendanceAi] = useState<AttendanceReviewResponse | null>(null);
 
   // Manual Punch Form states
   const [punchEmployee, setPunchEmployee] = useState('');
@@ -872,33 +869,55 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
     }, 1000);
   };
 
-  const executeCheckInFlow = async () => {
+  const overnightOpen =
+    checkedIn && !!sessionWorkDate && sessionWorkDate !== localTodayIso()
+
+  const applySelfServiceLog = (log: AttendanceLog) => {
+    setSessionWorkDate(normalizeWorkDate(log.workDate) || null)
+    setCheckInTime(formatPunchTime(log.checkInTime))
+    setCheckOutTime(log.checkOutTime ? formatPunchTime(log.checkOutTime) : null)
+    setCheckedIn(Boolean(log.checkInTime && !log.checkOutTime))
+    setRecentChecks((prev) => [mapAttendanceRow(log), ...prev.filter((r) => r.date !== log.workDate)])
+  }
+
+  const executeSelfServicePunch = async (kind: 'in' | 'out') => {
     if (attendanceBusy) return
-    // Already completed both punches for today — don't re-trigger check-in.
-    if (checkInTime && checkOutTime) {
+    const today = localTodayIso()
+    if (kind === 'in' && checkInTime && checkOutTime && sessionWorkDate === today) {
       addToast('You already completed punch in/out for today.', 'info')
+      return
+    }
+    if (kind === 'out' && !checkedIn) {
+      addToast('No open punch to check out. Punch in first.', 'error')
       return
     }
     setAttendanceBusy(true)
     try {
-      if (!checkedIn) {
-        addToast('Checking in…', 'loading')
+      if (kind === 'in') {
+        addToast(overnightOpen ? 'Closing previous day and checking in…' : 'Checking in…', 'loading')
         const log = await checkInAttendance()
-        setCheckedIn(true)
-        setCheckInTime(formatPunchTime(log.checkInTime))
-        setCheckOutTime(null)
-        setRecentChecks((prev) => [mapAttendanceRow(log), ...prev.filter((r) => r.date !== log.workDate)])
-        addToast(`Checked in at ${formatPunchTime(log.checkInTime)}.`, 'success')
+        applySelfServiceLog(log)
+        addToast(
+          overnightOpen
+            ? `Previous open punch closed. Checked in at ${formatPunchTime(log.checkInTime)}.`
+            : `Checked in at ${formatPunchTime(log.checkInTime)}.`,
+          'success',
+        )
       } else {
         addToast('Checking out…', 'loading')
         const log = await checkOutAttendance()
-        setCheckedIn(false)
-        setCheckOutTime(formatPunchTime(log.checkOutTime))
-        setRecentChecks((prev) => [mapAttendanceRow(log), ...prev.filter((r) => r.date !== log.workDate)])
-        addToast(`Checked out at ${formatPunchTime(log.checkOutTime)}.`, 'success')
+        applySelfServiceLog(log)
+        const wd = normalizeWorkDate(log.workDate)
+        addToast(
+          wd && wd !== today
+            ? `Checked out at ${formatPunchTime(log.checkOutTime)} (closed open session from ${wd}).`
+            : `Checked out at ${formatPunchTime(log.checkOutTime)}.`,
+          'success',
+        )
       }
     } catch (err) {
       addToast(err instanceof ApiError ? err.message : 'Attendance punch failed.', 'error')
+      await loadMyAttendance()
     } finally {
       setAttendanceBusy(false)
     }
@@ -1149,8 +1168,16 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
 
               <div id="checkin-timer-widget" className="bg-slate-50/70 p-6 rounded-2xl border border-slate-100 text-center space-y-4">
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wide">
-                  Today ({new Date().toLocaleDateString('en-CA')})
+                  Today ({localTodayIso()}) · SGT
                 </span>
+
+                {overnightOpen ? (
+                  <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-left text-[11px] font-medium leading-relaxed text-amber-900">
+                    You forgot to punch out on <strong>{sessionWorkDate}</strong>. Use{' '}
+                    <strong>Close open session</strong> now, or <strong>Check in (new day)</strong> to
+                    auto-close yesterday at 23:59 and start today — no admin Manual Punch needed.
+                  </p>
+                ) : null}
 
                 <div className="space-y-1">
                   <h3 className="text-3xl font-extrabold text-slate-800 tracking-tight font-mono">
@@ -1174,8 +1201,15 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
 
                 <div className="pt-2">
                   <p className="text-[11px] font-bold text-slate-500">
-                    Status: {checkedIn ? (
-                      <span className="text-emerald-500 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 italic inline-block inline-flex items-center whitespace-nowrap shrink-0">● ACTIVE WORK SESSION</span>
+                    Status:{' '}
+                    {overnightOpen ? (
+                      <span className="inline-flex items-center whitespace-nowrap rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 font-extrabold italic text-amber-800">
+                        ● MISSED PUNCH-OUT ({sessionWorkDate})
+                      </span>
+                    ) : checkedIn ? (
+                      <span className="inline-flex items-center whitespace-nowrap rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 font-extrabold italic text-emerald-500">
+                        ● ACTIVE WORK SESSION
+                      </span>
                     ) : (
                       <span className="text-slate-400">Not Clocked-In</span>
                     )}
@@ -1184,18 +1218,41 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
               </div>
 
               <div className="flex flex-col gap-2">
-                <button
-                  onClick={executeCheckInFlow}
-                  className={`w-full py-3.5 rounded-xl font-bold text-xs tracking-wide transition-all uppercase cursor-pointer text-center ${
-                    checkedIn
-                      ? 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100/70'
-                      : 'bg-novora hover:bg-opacity-95 text-white shadow-xs'
-                  }`}
-                >
-                  {checkedIn ? 'Check Out of Session' : 'Clock Check-In Now'}
-                </button>
-                <p className="text-[10px] text-center text-slate-400 font-medium">
-                  Matches your login email authentication: {navigator.userAgent.includes('Mobile') ? 'Mobile App Key' : 'Web Console Login'}
+                {overnightOpen ? (
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      disabled={attendanceBusy}
+                      onClick={() => void executeSelfServicePunch('in')}
+                      className="w-full rounded-xl bg-novora py-3.5 text-center text-xs font-bold uppercase tracking-wide text-white shadow-xs transition-all hover:bg-opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Check in (new day)
+                    </button>
+                    <button
+                      type="button"
+                      disabled={attendanceBusy}
+                      onClick={() => void executeSelfServicePunch('out')}
+                      className="w-full rounded-xl border border-rose-200 bg-rose-50 py-3.5 text-center text-xs font-bold uppercase tracking-wide text-rose-600 transition-all hover:bg-rose-100/70 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Close open session
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={attendanceBusy || Boolean(checkInTime && checkOutTime && sessionWorkDate === localTodayIso())}
+                    onClick={() => void executeSelfServicePunch(checkedIn ? 'out' : 'in')}
+                    className={`w-full rounded-xl py-3.5 text-center text-xs font-bold uppercase tracking-wide transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
+                      checkedIn
+                        ? 'border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100/70'
+                        : 'bg-novora text-white shadow-xs hover:bg-opacity-95'
+                    }`}
+                  >
+                    {checkedIn ? 'Check Out of Session' : 'Clock Check-In Now'}
+                  </button>
+                )}
+                <p className="text-center text-[10px] font-medium text-slate-400">
+                  Self-service for your login — Manual Punch is admin-only backup.
                 </p>
               </div>
             </div>
@@ -1641,23 +1698,98 @@ export default function AttendanceTab({ addToast, employees = [] }: AttendanceTa
                 />
 
                 <span className="bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-100">
-                  Present: 1,148
+                  Present: {rollCallRows.filter((r) => /present|office|completed|late/i.test(r.status)).length}
                 </span>
                 <span className="bg-rose-50 text-rose-600 text-xs font-bold px-3 py-1.5 rounded-xl border border-rose-100">
-                  Absent: 23
+                  Absent: {rollCallRows.filter((r) => /absent/i.test(r.status)).length}
                 </span>
                 <span className="bg-amber-50 text-amber-600 text-xs font-bold px-3 py-1.5 rounded-xl border border-amber-100">
-                  On leave: 47
+                  On leave: {rollCallRows.filter((r) => /leave/i.test(r.status)).length}
                 </span>
               </div>
 
-              <button
-                onClick={() => addToast('Compiling custom roll call report spreadsheet...', 'success')}
-                className="bg-white border border-slate-200 hover:bg-slate-50/50 font-bold text-xs text-slate-700 px-3.5 py-2.5 rounded-xl shadow-xs shrink-0 cursor-pointer"
-              >
-                <span>Export roll call</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={attendanceAiBusy}
+                  onClick={() => {
+                    void (async () => {
+                      if (attendanceAiBusy) return
+                      setAttendanceAiBusy(true)
+                      addToast('Scanning attendance…', 'loading')
+                      try {
+                        const present = rollCallRows.filter((r) => /present|office|completed|late/i.test(r.status)).length
+                        const absent = rollCallRows.filter((r) => /absent/i.test(r.status)).length
+                        const late = rollCallRows.filter((r) => /late/i.test(r.status)).length
+                        const openPunch = rollCallRows.filter(
+                          (r) => r.in && r.in !== '—' && (!r.out || r.out === '—'),
+                        ).length
+                        const result = await fetchAttendanceAiReview({
+                          workDate: rollCallDate || todayIsoDate(),
+                          presentCount: present,
+                          absentCount: absent,
+                          lateCount: late,
+                          openPunchCount: openPunch,
+                          sampleRows: rollCallRows.slice(0, 12).map(
+                            (r) => `${r.name}: in ${r.in} out ${r.out || '—'} (${r.status})`,
+                          ),
+                        })
+                        setAttendanceAi(result)
+                        addToast(
+                          result.source === 'gemini'
+                            ? 'AI attendance tips ready — review only.'
+                            : 'Heuristic attendance tips ready.',
+                          'success',
+                        )
+                      } catch (err) {
+                        addToast(
+                          err instanceof ApiError ? err.message : 'Could not run attendance AI assist.',
+                          'error',
+                        )
+                      } finally {
+                        setAttendanceAiBusy(false)
+                      }
+                    })()
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-novora/25 bg-novora/5 px-3.5 py-2.5 text-xs font-extrabold text-novora hover:bg-novora/10 disabled:opacity-60"
+                >
+                  <Sparkles className={`h-3.5 w-3.5 ${attendanceAiBusy ? 'animate-spin' : ''}`} />
+                  {attendanceAiBusy ? 'Scanning…' : 'AI Attendance QA'}
+                </button>
+                <button
+                  onClick={() => addToast('Compiling custom roll call report spreadsheet...', 'success')}
+                  className="bg-white border border-slate-200 hover:bg-slate-50/50 font-bold text-xs text-slate-700 px-3.5 py-2.5 rounded-xl shadow-xs shrink-0 cursor-pointer"
+                >
+                  <span>Export roll call</span>
+                </button>
+              </div>
             </div>
+
+            {attendanceAi && (
+              <div className="nv-ai-panel space-y-2 rounded-2xl border border-novora/20 bg-novora/5 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h5 className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                      <Sparkles className="h-3.5 w-3.5 text-novora" />
+                      AI attendance tips
+                    </h5>
+                    <p className="mt-0.5 text-[10px] text-slate-400">{attendanceAi.disclaimer}</p>
+                  </div>
+                  <button type="button" onClick={() => setAttendanceAi(null)} className="text-[10px] font-bold text-slate-500">
+                    Dismiss
+                  </button>
+                </div>
+                <p className="text-xs font-medium text-slate-600">{attendanceAi.summary}</p>
+                <ul className="space-y-1">
+                  {attendanceAi.findings.map((f) => (
+                    <li key={f} className="flex gap-1.5 text-xs text-slate-700">
+                      <span className="mt-0.5 text-novora">•</span>
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div className="nv-card p-4 shadow-xs overflow-hidden">
               <div className="overflow-x-auto">

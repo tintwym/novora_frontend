@@ -201,6 +201,97 @@ export type PolicyQaResponse = {
   disclaimer: string
 }
 
+export type ClaimsReviewRequest = {
+  pendingCount?: number | null
+  flaggedCount?: number | null
+  totalPendingAmount?: string | null
+  sampleClaims?: string[]
+}
+
+export type ClaimsReviewResponse = {
+  findings: string[]
+  summary: string
+  source: string
+  disclaimer: string
+}
+
+export type LeaveReviewRequest = {
+  pendingCount?: number | null
+  approvedThisMonth?: number | null
+  sampleRequests?: string[]
+}
+
+export type LeaveReviewResponse = {
+  findings: string[]
+  summary: string
+  source: string
+  disclaimer: string
+}
+
+export type ApprovalNoteRequest = {
+  kind: string
+  title?: string
+  requestedByName?: string
+  detail?: string
+  amount?: string
+  currency?: string
+  intendedDecision?: string
+}
+
+export type ApprovalNoteResponse = {
+  draftNote: string
+  source: string
+  disclaimer: string
+}
+
+export type AttendanceReviewRequest = {
+  workDate?: string | null
+  presentCount?: number | null
+  absentCount?: number | null
+  lateCount?: number | null
+  openPunchCount?: number | null
+  sampleRows?: string[]
+}
+
+export type AttendanceReviewResponse = {
+  findings: string[]
+  summary: string
+  source: string
+  disclaimer: string
+}
+
+export type ReportsBriefRequest = {
+  employees?: number | null
+  pendingLeave?: number | null
+  claimsPending?: number | null
+  openJobs?: number | null
+  candidates?: number | null
+  payrollHeadcountThisMonth?: number | null
+  onboardingIncomplete?: number | null
+}
+
+export type ReportsBriefResponse = {
+  narrative: string
+  focusAreas: string[]
+  source: string
+  disclaimer: string
+}
+
+export type OnboardingAssistRequest = {
+  employeeName?: string
+  department?: string
+  role?: string
+  existingTasks?: string[]
+  dayOneDate?: string
+}
+
+export type OnboardingAssistResponse = {
+  welcomeNote: string
+  suggestedTasks: string[]
+  source: string
+  disclaimer: string
+}
+
 /** Employee self-service: answers from the company's own HR settings. Available to all roles. */
 export async function askPolicyAssistant(question: string): Promise<PolicyQaResponse> {
   return apiRequest<PolicyQaResponse>('/api/ai/policy-qa', {
@@ -303,6 +394,60 @@ export async function fetchAssetsAiInsights(
   payload: AssetsInsightRequest,
 ): Promise<AssetsInsightResponse> {
   return apiRequest<AssetsInsightResponse>('/api/admin/ai/assets-insights', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function fetchClaimsAiReview(
+  payload: ClaimsReviewRequest,
+): Promise<ClaimsReviewResponse> {
+  return apiRequest<ClaimsReviewResponse>('/api/admin/ai/claims-review', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function fetchLeaveAiReview(
+  payload: LeaveReviewRequest,
+): Promise<LeaveReviewResponse> {
+  return apiRequest<LeaveReviewResponse>('/api/admin/ai/leave-review', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function fetchApprovalAiNote(
+  payload: ApprovalNoteRequest,
+): Promise<ApprovalNoteResponse> {
+  return apiRequest<ApprovalNoteResponse>('/api/admin/ai/approval-note', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function fetchAttendanceAiReview(
+  payload: AttendanceReviewRequest,
+): Promise<AttendanceReviewResponse> {
+  return apiRequest<AttendanceReviewResponse>('/api/admin/ai/attendance-review', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function fetchReportsAiBrief(
+  payload: ReportsBriefRequest,
+): Promise<ReportsBriefResponse> {
+  return apiRequest<ReportsBriefResponse>('/api/admin/ai/reports-brief', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export async function fetchOnboardingAiAssist(
+  payload: OnboardingAssistRequest,
+): Promise<OnboardingAssistResponse> {
+  return apiRequest<OnboardingAssistResponse>('/api/admin/ai/onboarding-assist', {
     method: 'POST',
     body: payload,
   })

@@ -61,6 +61,7 @@ import {
   fetchPerformanceReviews,
   fetchRecruitmentCandidates,
   fetchRecruitmentJobs,
+  fetchReportsAiBrief,
   fetchReportSummary,
   fetchTrainings,
   type AssetRow,
@@ -77,6 +78,7 @@ import {
   type RecruitmentCandidateRow,
   type RecruitmentJobRow,
   type ReportSummary,
+  type ReportsBriefResponse,
   type TrainingRow,
 } from '@/services';
 import { useCurrency } from '@/hooks/useCurrency';
@@ -917,6 +919,34 @@ export default function ReportsTab({
   const [totalCustomSaved, setTotalCustomSaved] = useState<number>(0);
   const [reportSummary, setReportSummary] = useState<ReportSummary | null>(null);
   const [summaryLoadedAt, setSummaryLoadedAt] = useState<string | null>(null);
+  const [reportsAiBusy, setReportsAiBusy] = useState(false);
+  const [reportsAi, setReportsAi] = useState<ReportsBriefResponse | null>(null);
+
+  const runReportsAiBrief = useCallback(async () => {
+    if (reportsAiBusy) return
+    setReportsAiBusy(true)
+    addToast('Drafting board brief…', 'loading')
+    try {
+      const result = await fetchReportsAiBrief({
+        employees: reportSummary?.employees ?? employees.length,
+        pendingLeave: reportSummary?.pendingLeave ?? null,
+        claimsPending: reportSummary?.claimsPending ?? null,
+        openJobs: reportSummary?.openJobs ?? null,
+        candidates: reportSummary?.candidates ?? null,
+        payrollHeadcountThisMonth: reportSummary?.payrollHeadcountThisMonth ?? null,
+        onboardingIncomplete: null,
+      })
+      setReportsAi(result)
+      addToast(
+        result.source === 'gemini' ? 'AI board brief ready — review only.' : 'Heuristic board brief ready.',
+        'success',
+      )
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not draft reports brief.', 'error')
+    } finally {
+      setReportsAiBusy(false)
+    }
+  }, [addToast, employees.length, reportSummary, reportsAiBusy])
 
   useEffect(() => {
     let cancelled = false
@@ -1603,36 +1633,55 @@ export default function ReportsTab({
                       </div>
                       <h3 className="text-xs font-black text-slate-200 uppercase tracking-wider block font-sans">Live summary</h3>
                     </div>
-                    <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
-                      {summaryLoadedAt ? `Loaded ${summaryLoadedAt}` : 'API'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={reportsAiBusy || !reportSummary}
+                        onClick={() => void runReportsAiBrief()}
+                        className="inline-flex items-center gap-1 rounded-full border border-novora/30 bg-novora/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-novora hover:bg-novora/20 disabled:opacity-50"
+                      >
+                        <Sparkles className={`h-3 w-3 ${reportsAiBusy ? 'animate-spin' : ''}`} />
+                        {reportsAiBusy ? 'Drafting…' : 'AI brief'}
+                      </button>
+                      <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase px-2 py-0.5 rounded-full inline-flex items-center whitespace-nowrap shrink-0">
+                        {summaryLoadedAt ? `Loaded ${summaryLoadedAt}` : 'API'}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="space-y-4 font-sans">
                     <div className="space-y-1">
                       <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest block">organisation pulse</span>
                       <p className="text-[11.5px] font-medium text-slate-300 leading-relaxed">
-                        {reportSummary
-                          ? `${reportSummary.employees} employees · ${reportSummary.pendingLeave} pending leave · ${reportSummary.claimsPending} claims pending · ${reportSummary.payrollHeadcountThisMonth} on this month’s payroll.`
-                          : 'Loading live report counters from the server…'}
+                        {reportsAi?.narrative
+                          ? reportsAi.narrative
+                          : reportSummary
+                            ? `${reportSummary.employees} employees · ${reportSummary.pendingLeave} pending leave · ${reportSummary.claimsPending} claims pending · ${reportSummary.payrollHeadcountThisMonth} on this month’s payroll.`
+                            : 'Loading live report counters from the server…'}
                       </p>
+                      {reportsAi?.disclaimer ? (
+                        <p className="text-[9px] text-slate-500 mt-1">{reportsAi.disclaimer}</p>
+                      ) : null}
                     </div>
 
                     <div className="border-t border-slate-800 pt-4 space-y-3">
                       <span className="text-[9px] font-extrabold text-novora uppercase tracking-widest block">Focus areas</span>
                       <ul className="space-y-2.5">
-                        <li className="flex gap-2.5 items-start text-[11px] text-slate-300 leading-normal font-medium">
-                          <span className="bg-novora/20 text-[#3b82f6] text-[10px] font-black h-4.5 w-4.5 shrink-0 rounded-full flex items-center justify-center font-mono border border-blue-500/10">1</span>
-                          <span className="flex-1 mt-0.5">Clear pending leave and claims queues before month close.</span>
-                        </li>
-                        <li className="flex gap-2.5 items-start text-[11px] text-slate-300 leading-normal font-medium">
-                          <span className="bg-novora/20 text-[#3b82f6] text-[10px] font-black h-4.5 w-4.5 shrink-0 rounded-full flex items-center justify-center font-mono border border-blue-500/10">2</span>
-                          <span className="flex-1 mt-0.5">Review open jobs ({reportSummary?.openJobs ?? '—'}) and candidates ({reportSummary?.candidates ?? '—'}) in Recruitment.</span>
-                        </li>
-                        <li className="flex gap-2.5 items-start text-[11px] text-slate-300 leading-normal font-medium">
-                          <span className="bg-novora/20 text-[#3b82f6] text-[10px] font-black h-4.5 w-4.5 shrink-0 rounded-full flex items-center justify-center font-mono border border-blue-500/10">3</span>
-                          <span className="flex-1 mt-0.5">Confirm payroll headcount matches active employee roster.</span>
-                        </li>
+                        {(reportsAi?.focusAreas?.length
+                          ? reportsAi.focusAreas
+                          : [
+                              'Clear pending leave and claims queues before month close.',
+                              `Review open jobs (${reportSummary?.openJobs ?? '—'}) and candidates (${reportSummary?.candidates ?? '—'}) in Recruitment.`,
+                              'Confirm payroll headcount matches active employee roster.',
+                            ]
+                        ).map((line, idx) => (
+                          <li key={`${idx}-${line}`} className="flex gap-2.5 items-start text-[11px] text-slate-300 leading-normal font-medium">
+                            <span className="bg-novora/20 text-[#3b82f6] text-[10px] font-black h-4.5 w-4.5 shrink-0 rounded-full flex items-center justify-center font-mono border border-blue-500/10">
+                              {idx + 1}
+                            </span>
+                            <span className="flex-1 mt-0.5">{line}</span>
+                          </li>
+                        ))}
                       </ul>
                     </div>
                   </div>

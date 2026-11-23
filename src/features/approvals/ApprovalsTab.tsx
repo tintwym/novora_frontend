@@ -1,12 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Check, ClipboardCheck, RefreshCw, X } from 'lucide-react'
+import { Check, ClipboardCheck, RefreshCw, Sparkles, X } from 'lucide-react'
 import {
   ApiError,
   decideClaim,
   decideLeave,
   decideOvertimeRecord,
+  fetchApprovalAiNote,
   fetchPendingApprovals,
   type ApprovalTask,
 } from '@/services'
@@ -41,6 +42,8 @@ export default function ApprovalsTab({ addToast }: ApprovalsTabProps) {
   const [busy, setBusy] = useState(false)
   const [kindFilter, setKindFilter] = useState<'ALL' | 'LEAVE' | 'CLAIM' | 'OVERTIME'>('ALL')
   const [decidingId, setDecidingId] = useState<string | null>(null)
+  const [noteBusyId, setNoteBusyId] = useState<string | null>(null)
+  const [draftNotes, setDraftNotes] = useState<Record<string, string>>({})
 
   const load = useCallback(async () => {
     setBusy(true)
@@ -72,19 +75,40 @@ export default function ApprovalsTab({ addToast }: ApprovalsTabProps) {
     return base
   }, [tasks])
 
+  const suggestNote = async (task: ApprovalTask, intendedDecision?: 'APPROVE' | 'REJECT') => {
+    setNoteBusyId(task.id)
+    try {
+      const result = await fetchApprovalAiNote({
+        kind: task.kind,
+        title: task.title ?? undefined,
+        requestedByName: task.requestedByName,
+        detail: task.detail ?? undefined,
+        amount: task.amount != null ? String(task.amount) : undefined,
+        currency: task.currency ?? undefined,
+        intendedDecision,
+      })
+      setDraftNotes((prev) => ({ ...prev, [task.id]: result.draftNote }))
+      addToast(
+        result.source === 'gemini' ? 'AI note drafted — edit before using.' : 'Heuristic note drafted.',
+        'success',
+      )
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not draft approval note.', 'error')
+    } finally {
+      setNoteBusyId(null)
+    }
+  }
+
   const decide = async (task: ApprovalTask, decision: 'APPROVE' | 'REJECT') => {
     setDecidingId(task.id)
+    const note =
+      draftNotes[task.id]?.trim() ||
+      (decision === 'REJECT' ? 'Rejected from approvals inbox' : undefined)
     try {
       if (task.kind === 'LEAVE') {
-        await decideLeave(task.entityId, {
-          decision,
-          note: decision === 'REJECT' ? 'Rejected from approvals inbox' : undefined,
-        })
+        await decideLeave(task.entityId, { decision, note })
       } else if (task.kind === 'CLAIM') {
-        await decideClaim(task.entityId, {
-          decision,
-          note: decision === 'REJECT' ? 'Rejected from approvals inbox' : undefined,
-        })
+        await decideClaim(task.entityId, { decision, note })
       } else if (task.kind === 'OVERTIME') {
         await decideOvertimeRecord(task.entityId, { decision })
       } else {
@@ -93,6 +117,11 @@ export default function ApprovalsTab({ addToast }: ApprovalsTabProps) {
       }
       setTasks((prev) => prev.filter((t) => t.id !== task.id))
       setTotalPending((n) => Math.max(0, n - 1))
+      setDraftNotes((prev) => {
+        const next = { ...prev }
+        delete next[task.id]
+        return next
+      })
       addToast(
         decision === 'APPROVE'
           ? `Approved ${task.title ?? task.kind.toLowerCase()} for ${task.requestedByName}.`
@@ -187,8 +216,28 @@ export default function ApprovalsTab({ addToast }: ApprovalsTabProps) {
                       {task.currency} {Number(task.amount).toFixed(2)}
                     </p>
                   ) : null}
+                  {draftNotes[task.id] ? (
+                    <textarea
+                      value={draftNotes[task.id]}
+                      onChange={(e) =>
+                        setDraftNotes((prev) => ({ ...prev, [task.id]: e.target.value }))
+                      }
+                      rows={2}
+                      className="mt-2 w-full rounded-xl border border-novora/20 bg-novora/5 px-3 py-2 text-xs text-slate-700 outline-none"
+                      aria-label="AI draft decision note"
+                    />
+                  ) : null}
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    disabled={noteBusyId === task.id || decidingId === task.id}
+                    onClick={() => void suggestNote(task)}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-novora/25 bg-novora/5 px-3 py-2 text-xs font-bold text-novora hover:bg-novora/10 disabled:opacity-50"
+                  >
+                    <Sparkles className={`h-3.5 w-3.5 ${noteBusyId === task.id ? 'animate-spin' : ''}`} />
+                    AI note
+                  </button>
                   <button
                     type="button"
                     disabled={decidingId === task.id}

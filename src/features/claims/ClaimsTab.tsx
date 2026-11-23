@@ -25,6 +25,7 @@ import {
   ChevronDown,
   Printer,
   Edit2,
+  Sparkles,
 } from 'lucide-react';
 import { DropdownAnchor, SelectMenu } from '@/components/ui';
 import ModuleHeader from '@/components/ui/ModuleHeader';
@@ -35,9 +36,11 @@ import {
   decideClaim,
   fetchAdminClaims,
   fetchClaimPolicy,
+  fetchClaimsAiReview,
   fetchMyClaims,
   updateClaimPolicy,
   type ClaimRow,
+  type ClaimsReviewResponse,
 } from '@/services';
 import { dateStamp, downloadCsv, downloadNearestTableCsv } from '@/lib/csv';
 import { useCurrency } from '@/hooks/useCurrency';
@@ -281,8 +284,39 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
   const [repQuery, setRepQuery] = useState<string>('');
   const [isReportGenerated, setIsReportGenerated] = useState<boolean>(false);
 
+  const [claimsAiBusy, setClaimsAiBusy] = useState(false);
+  const [claimsAi, setClaimsAi] = useState<ClaimsReviewResponse | null>(null);
+
   // State calculations
   const pendingCount = claims.filter(c => c.status === 'Pending').length;
+
+  const runClaimsAiReview = async () => {
+    if (claimsAiBusy) return;
+    setClaimsAiBusy(true);
+    addToast('Scanning claims queue…', 'loading');
+    try {
+      const pending = claims.filter((c) => c.status === 'Pending');
+      const flagged = pending.filter((c) => c.policyFlag && c.policyFlag !== 'Clear');
+      const total = pending.reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+      const result = await fetchClaimsAiReview({
+        pendingCount: pending.length,
+        flaggedCount: flagged.length,
+        totalPendingAmount: String(total.toFixed(2)),
+        sampleClaims: pending.slice(0, 10).map(
+          (c) => `${c.empName}: ${c.category} ${c.currency} ${c.amount} (${c.policyFlag})`,
+        ),
+      });
+      setClaimsAi(result);
+      addToast(
+        result.source === 'gemini' ? 'AI claims QA ready — review only.' : 'Heuristic claims QA ready.',
+        'success',
+      );
+    } catch (err) {
+      addToast(err instanceof ApiError ? err.message : 'Could not run claims AI QA.', 'error');
+    } finally {
+      setClaimsAiBusy(false);
+    }
+  };
 
   // Meal daily limit threshold check
   const calculatedMyrEquivalent = () => {
@@ -1074,19 +1108,60 @@ export default function ClaimsTab({ employees, addToast, roles = [] }: ClaimsTab
                 </span>
               </div>
 
-              <button
-                onClick={() => {
-                  setApprovalStatusFilter('All status');
-                  setApprovalCategoryFilter('All categories');
-                  setApprovalDeptFilter('All departments');
-                  setApprovalDateFilter('');
-                  addToast('Reset filters', 'info');
-                }}
-                className="text-slate-500 hover:text-slate-800 text-xs font-bold px-3 py-1 bg-white border border-slate-100 rounded-xl"
-              >
-                Reset
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={claimsAiBusy}
+                  onClick={() => void runClaimsAiReview()}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-novora/25 bg-novora/5 px-3 py-1.5 text-xs font-extrabold text-novora hover:bg-novora/10 disabled:opacity-60"
+                >
+                  <Sparkles className={`h-3.5 w-3.5 ${claimsAiBusy ? 'animate-spin' : ''}`} />
+                  {claimsAiBusy ? 'Scanning…' : 'AI Claims QA'}
+                </button>
+                <button
+                  onClick={() => {
+                    setApprovalStatusFilter('All status');
+                    setApprovalCategoryFilter('All categories');
+                    setApprovalDeptFilter('All departments');
+                    setApprovalDateFilter('');
+                    addToast('Reset filters', 'info');
+                  }}
+                  className="text-slate-500 hover:text-slate-800 text-xs font-bold px-3 py-1 bg-white border border-slate-100 rounded-xl"
+                >
+                  Reset
+                </button>
+              </div>
             </div>
+
+            {claimsAi && (
+              <div className="nv-ai-panel rounded-2xl border border-novora/20 bg-novora/5 p-4 space-y-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h5 className="text-xs font-bold text-slate-800 inline-flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-novora" />
+                      AI claims QA
+                    </h5>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{claimsAi.disclaimer}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setClaimsAi(null)}
+                    className="text-[10px] font-bold text-slate-500 hover:text-slate-700"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+                <p className="text-xs text-slate-600 font-medium">{claimsAi.summary}</p>
+                <ul className="space-y-1">
+                  {claimsAi.findings.map((f) => (
+                    <li key={f} className="flex gap-1.5 text-xs text-slate-700">
+                      <span className="mt-0.5 text-novora">•</span>
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Approval Routing Rules Checklist Widget */}
             <div className="nv-card p-6 shadow-xs">
